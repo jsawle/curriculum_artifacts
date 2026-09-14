@@ -53,7 +53,7 @@
 <div id="app">
   <header>
     <h1>Yosemite Valley, filled with ice</h1>
-    <p>Real terrain from elevation data. Drag to turn, scroll or pinch to zoom.</p>
+    <p>Real terrain and satellite imagery. Drag to turn, scroll or pinch to zoom.</p>
   </header>
   <div id="view">
     <div id="loading">Loading terrain…</div>
@@ -62,7 +62,7 @@
       <canvas id="plan" width="264" height="220" aria-label="Plan view of the model showing the camera position"></canvas>
     </div>
     <button id="peek" aria-pressed="false">See through the ice</button>
-    <div id="hint" class="chip">Heights ×1.5 so the valley reads on a small screen</div>
+    <div id="hint" class="chip">Heights ×1.5 so the valley reads on a small screen. <span id="attrib"></span></div>
     <svg id="north" viewBox="0 0 44 44" aria-label="North arrow"><circle cx="22" cy="22" r="20" fill="rgba(243,244,240,.88)" stroke="#5C6866"/><g id="northG"><path d="M22 5 L27 22 L22 19 L17 22 Z" fill="#22302F"/><text x="22" y="36" text-anchor="middle" font-size="11" fill="#22302F">N</text></g></svg>
   </div>
   <footer>
@@ -86,13 +86,17 @@
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lerc@4.0.4/LercDecode.min.js"></script>
 <script>
 (async function(){
   // ---------- study area and elevation source ----------
   const BBOX={w:-119.725,e:-119.505,s:37.690,n:37.790};
   const qs=new URLSearchParams(location.search);
   const Z=+(qs.get('z')||13), STEP=+(qs.get('res')||3), EXAG=1.5, U=100;   // ?z=12&res=3 for a lighter mesh
-  const TILE=(z,x,y)=>`https://s3.amazonaws.com/elevation-tiles-prod/terrarium/${z}/${x}/${y}.png`;
+  const DEM=qs.get('dem')||'esri';   // esri = World Elevation Terrain3D (LERC); terrarium = AWS PNG fallback
+  const ESRI_DEM=(z,x,y)=>`https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/${z}/${y}/${x}`;
+  const TERRARIUM=(z,x,y)=>`https://s3.amazonaws.com/elevation-tiles-prod/terrarium/${z}/${x}/${y}.png`;
+  const IMG_Z=14, IMAGERY=(z,x,y)=>`https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`;
   const lon2x=(lon,z)=>(lon+180)/360*Math.pow(2,z);
   const lat2y=(lat,z)=>{const r=lat*Math.PI/180;return (1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*Math.pow(2,z);};
   const x0=Math.floor(lon2x(BBOX.w,Z)),x1=Math.floor(lon2x(BBOX.e,Z)),y0=Math.floor(lat2y(BBOX.n,Z)),y1=Math.floor(lat2y(BBOX.s,Z));
@@ -109,13 +113,43 @@
   // ---------- fetch and decode tiles ----------
   const H=new Float32Array(cols*rows);
   const cv=document.createElement('canvas');cv.width=cv.height=256;const cx=cv.getContext('2d');
-  const loadTile=(tx,ty)=>new Promise((res,rej)=>{const im=new Image();im.crossOrigin='anonymous';im.onload=()=>res(im);im.onerror=rej;im.src=TILE(Z,tx,ty);});
-  const jobs=[];
-  for(let ty=y0;ty<=y1;ty++)for(let tx=x0;tx<=x1;tx++)jobs.push(loadTile(tx,ty).then(im=>{
-    cx.drawImage(im,0,0);const d=cx.getImageData(0,0,256,256).data;
-    for(let j=0;j<256;j++)for(let i=0;i<256;i++){const k=(j*256+i)*4;H[((ty-y0)*256+j)*cols+(tx-x0)*256+i]=(d[k]*256+d[k+1]+d[k+2]/256)-32768;}
-  }));
-  try{await Promise.all(jobs);}catch(e){document.getElementById('loading').textContent='Could not load elevation tiles. Check the network and reload.';return;}
+  const loadImg=src=>new Promise((res,rej)=>{const im=new Image();im.crossOrigin='anonymous';im.onload=()=>res(im);im.onerror=()=>rej(new Error(src));im.src=src;});
+  const put=(tx,ty,get)=>{for(let j=0;j<256;j++)for(let i=0;i<256;i++)H[((ty-y0)*256+j)*cols+(tx-x0)*256+i]=get(i,j);};
+  async function loadEsri(){
+    await Lerc.load();
+    const jobs=[];
+    for(let ty=y0;ty<=y1;ty++)for(let tx=x0;tx<=x1;tx++)jobs.push(fetch(ESRI_DEM(Z,tx,ty)).then(r=>{if(!r.ok)throw new Error('tile '+r.status);return r.arrayBuffer();}).then(buf=>{
+      const d=Lerc.decode(buf),w=d.width,px=d.pixels[0],m=d.mask;   // Terrain3D tiles are 257 px with a shared edge
+      put(tx,ty,(i,j)=>{const k=j*w+i;return (m&&!m[k])?0:px[k];});
+    }));
+    await Promise.all(jobs);
+  }
+  async function loadTerrarium(){
+    const jobs=[];
+    for(let ty=y0;ty<=y1;ty++)for(let tx=x0;tx<=x1;tx++)jobs.push(loadImg(TERRARIUM(Z,tx,ty)).then(im=>{
+      cx.drawImage(im,0,0);const d=cx.getImageData(0,0,256,256).data;
+      put(tx,ty,(i,j)=>{const k=(j*256+i)*4;return (d[k]*256+d[k+1]+d[k+2]/256)-32768;});
+    }));
+    await Promise.all(jobs);
+  }
+  let demName='Elevation: Esri World Elevation (Terrain3D).';
+  try{
+    if(DEM==='esri'){try{await loadEsri();}catch(e){console.warn('Esri DEM failed, falling back to Terrarium',e);await loadTerrarium();demName='Elevation: Mapzen Terrarium (Esri service unavailable).';}}
+    else{await loadTerrarium();demName='Elevation: Mapzen Terrarium.';}
+  }catch(e){document.getElementById('loading').textContent='Could not load elevation tiles. Check the network and reload.';return;}
+
+  // satellite imagery for the drape: World Imagery tiles, cropped to the bbox
+  let imagery=null;
+  try{
+    const ax0=Math.floor(lon2x(BBOX.w,IMG_Z)),ax1=Math.floor(lon2x(BBOX.e,IMG_Z)),ay0=Math.floor(lat2y(BBOX.n,IMG_Z)),ay1=Math.floor(lat2y(BBOX.s,IMG_Z));
+    const block=document.createElement('canvas');block.width=(ax1-ax0+1)*256;block.height=(ay1-ay0+1)*256;const bc=block.getContext('2d');
+    const jobs=[];for(let ty=ay0;ty<=ay1;ty++)for(let tx=ax0;tx<=ax1;tx++)jobs.push(loadImg(IMAGERY(IMG_Z,tx,ty)).then(im=>bc.drawImage(im,(tx-ax0)*256,(ty-ay0)*256)));
+    await Promise.all(jobs);
+    const cx0=(lon2x(BBOX.w,IMG_Z)-ax0)*256,cx1=(lon2x(BBOX.e,IMG_Z)-ax0)*256,cy0=(lat2y(BBOX.n,IMG_Z)-ay0)*256,cy1=(lat2y(BBOX.s,IMG_Z)-ay0)*256;
+    imagery=document.createElement('canvas');imagery.width=2048;imagery.height=Math.round(2048*(cy1-cy0)/(cx1-cx0));
+    imagery.getContext('2d').drawImage(block,cx0,cy0,cx1-cx0,cy1-cy0,0,0,imagery.width,imagery.height);
+  }catch(e){console.warn('Imagery failed, using computed colours',e);imagery=null;}
+  document.getElementById('attrib').textContent=demName+(imagery?' Imagery: Esri, Maxar, Earthstar Geographics, and the GIS User Community.':'');
 
   // ---------- crop and downsample ----------
   const W=Math.floor((px1-px0)/STEP), R=Math.floor((py1-py0)/STEP);
@@ -144,7 +178,7 @@
   // ---------- scene ----------
   const view=document.getElementById('view');
   const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-  renderer.domElement.className='gl';view.appendChild(renderer.domElement);
+  renderer.domElement.className='gl';renderer.outputEncoding=THREE.sRGBEncoding;view.appendChild(renderer.domElement);
   const scene=new THREE.Scene();scene.background=new THREE.Color(0xE4E9EA);scene.fog=new THREE.Fog(0xE4E9EA,sx*1.6,sx*3.6);
   const camera=new THREE.PerspectiveCamera(46,1,0.5,sx*10);
   const controls=new THREE.OrbitControls(camera,renderer.domElement);
@@ -169,7 +203,11 @@
     col[k*3]=c.r;col[k*3+1]=c.g;col[k*3+2]=c.b;
   }
   geo.setAttribute('color',new THREE.BufferAttribute(col,3));geo.computeVertexNormals();geo.rotateX(-Math.PI/2);
-  scene.add(new THREE.Mesh(geo,new THREE.MeshLambertMaterial({vertexColors:true})));
+  let terrainMat;
+  if(imagery){const tex=new THREE.CanvasTexture(imagery);tex.anisotropy=renderer.capabilities.getMaxAnisotropy();tex.encoding=THREE.sRGBEncoding;
+    terrainMat=new THREE.MeshLambertMaterial({map:tex});}
+  else terrainMat=new THREE.MeshLambertMaterial({vertexColors:true});
+  scene.add(new THREE.Mesh(geo,terrainMat));
 
   // ---------- ice / lake surface, coloured by depth so thickness reads ----------
   const fillGeo=new THREE.PlaneGeometry(sx,sy,W-1,R-1);fillGeo.rotateX(-Math.PI/2);
@@ -227,9 +265,9 @@
   // ---------- stages ----------
   const S=[
     {bp:'over 2,000,000 BP',title:'Before the ice: a river canyon',
-     b1:'The model can only show the land as it is now, so this stage has to be imagined. Long before any glacier, the Merced River had cut a narrow V-shaped canyon here, like the one it still runs in west of the valley today. There was no flat floor and no waterfalls dropping off the walls.',
-     b2:'The <a href="yosemite-valley.html">cross-section version</a> draws this stage and shows how the V became a U.',
-     look:['Follow the Merced River west out of the valley. The canyon it runs in past El Portal was never under ice, so it still has its V shape.']},
+     b1:'The model can only show the land as it is now, so this stage has to be imagined. The granite formed deep underground about 100 million years ago. Much later the whole Sierra Nevada was tilted up along its eastern edge, which steepened the Merced River and set it cutting down into the rock. By the time the ice came, the river had made a narrow V-shaped canyon, like the one it still runs in west of the valley today. No flat floor, no waterfalls dropping off the walls.',
+     b2:'One more thing was already decided: the granite is cracked in some places and solid in others. The cracked rock is what the glaciers would later pull away. The solid blocks, El Capitan and Half Dome, are what they left behind. The <a href="yosemite-valley.html">cross-section version</a> draws this stage and shows how the V became a U.',
+     look:['Follow the Merced River west out of the valley. The canyon it runs in past El Portal was never under ice, so it still has its V shape.','Look at El Capitan in the imagery: one smooth face with almost no cracks. Then look at the broken, stepped walls either side of it.']},
     {ice:{level:2250,slope:12,west:-180},bp:'about 1,000,000 BP',title:'The Sherwin glaciation: ice to the rim',
      b1:'This is the hard part to picture. Watch the ice rise. The whole valley disappears under something like 1,500 m of ice, and only the tops of El Capitan and Half Dome are left showing. Check the measuring post: it stands on the valley floor and the ice climbs past every mark on it.',
      b2:'A glacier this thick is not a river of ice running along the floor. It is a solid mass that fills the valley from wall to wall and grinds every surface it touches. This is the glacier that did most of the shaping. The ice continued well beyond the edge of the model.',
