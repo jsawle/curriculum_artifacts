@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>How Yosemite Valley was made</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{--paper:#F3F4F0;--ink:#22302F;--ink-2:#5C6866;--rule:#C9CEC8;--water:#2F6F8F}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--paper);color:var(--ink);font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:17px;line-height:1.55}
+  main{max-width:1000px;margin:0 auto;padding:28px 20px 64px}
+  h1{font-size:30px;font-weight:600;letter-spacing:-.01em;margin:0 0 6px;line-height:1.15}
+  .lede{color:var(--ink-2);margin:0 0 22px;max-width:64ch}
+  .fig{display:grid;grid-template-columns:minmax(0,1fr) 180px;gap:14px;border-top:1px solid var(--ink);border-bottom:1px solid var(--ink);padding:8px 0}
+  svg{display:block;width:100%;height:auto}
+  .inset{position:relative;align-self:start}
+  .inset img{display:block;width:180px;height:180px;background:#dde}
+  .inset svg{position:absolute;inset:0;width:180px;height:180px}
+  .inset .cap{font-size:11px;color:var(--ink-2);margin:4px 0 0;line-height:1.3}
+  #status{color:var(--ink-2);font-size:14px;margin:8px 0}
+  .timeline{position:relative;height:64px;margin:18px 0 8px}
+  .timeline .bar{position:absolute;left:0;right:0;top:50px;height:1px;background:var(--ink)}
+  .timeline button{position:absolute;top:0;transform:translateX(-50%);font:inherit;font-size:12.5px;line-height:1.2;background:transparent;border:0;padding:0;color:var(--ink-2);cursor:pointer;width:150px;text-align:center;white-space:nowrap}
+  .timeline button b{display:block;font-weight:600;font-size:14px}
+  .timeline button::after{content:"";display:block;width:9px;height:9px;border-radius:50%;background:var(--paper);border:1.5px solid var(--ink);position:absolute;left:50%;top:46px;transform:translateX(-50%)}
+  .timeline button[aria-current="true"]{color:var(--ink)}.timeline button[aria-current="true"]::after{background:var(--ink)}
+  .timeline button:focus-visible{outline:2px solid var(--water);outline-offset:2px}
+  .stage{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:28px;margin-top:10px}
+  .stage h2{font-size:21px;font-weight:600;margin:0 0 6px}
+  .stage p{margin:0 0 10px;max-width:60ch}
+  .look{border-left:2px solid var(--water);padding:2px 0 2px 16px;align-self:start}
+  .look h3{font-size:15px;font-weight:600;margin:0 0 6px;color:var(--water)}
+  .look ul{margin:0;padding-left:18px}.look li{margin:0 0 6px;font-size:15.5px}
+  .links{margin-top:30px;padding-top:18px;border-top:1px solid var(--rule);display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+  .links a{font:inherit;font-size:15px;text-decoration:none;padding:10px 16px;border-radius:2px;border:1px solid var(--water);color:var(--water)}
+  .links a.primary{background:var(--water);color:#fff}
+  .note{font-size:13.5px;color:var(--ink-2);margin:14px 0 0;max-width:72ch}
+  @media (max-width:700px){.fig{grid-template-columns:1fr}.inset img,.inset svg{width:100%;height:auto;aspect-ratio:1}.stage{grid-template-columns:1fr}h1{font-size:25px}.timeline button{width:80px;font-size:10.5px;white-space:normal}}
+  @media (prefers-reduced-motion:reduce){.anim{transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+  <h1>How Yosemite Valley was made</h1>
+  <p class="lede">A real cross-section, sampled from Esri's world elevation data along a north–south line through El Capitan. Step through the stages to see what the same line looked like before, during and after the ice.</p>
+
+  <div class="fig">
+    <svg id="xs" viewBox="0 0 900 400" role="img" aria-labelledby="xs-t xs-d">
+      <title id="xs-t">Cross-section of Yosemite Valley through the stages of its formation</title>
+      <desc id="xs-d">A river-cut V-shaped valley is widened and deepened by two glaciations into a U-shaped trough, floods to form Lake Yosemite, then fills with sediment to give today's flat floor and sheer walls.</desc>
+      <defs>
+        <pattern id="granite" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="8" stroke="#7B8078" stroke-width=".8"/></pattern>
+        <pattern id="stipple" width="6" height="6" patternUnits="userSpaceOnUse"><circle cx="1.5" cy="1.5" r=".8" fill="#8C7B5A"/><circle cx="4.5" cy="4.5" r=".8" fill="#8C7B5A"/></pattern>
+        <pattern id="flow" width="40" height="14" patternUnits="userSpaceOnUse"><path d="M0 7 q10 -5 20 0 t20 0" fill="none" stroke="#8FB0C2" stroke-width=".8"/></pattern>
+      </defs>
+      <rect width="900" height="400" fill="#F3F4F0"/>
+      <g id="axis" font-size="11" fill="#5C6866"></g>
+      <path id="ice" d="" fill="#D6E3EA" stroke="#8FB0C2" stroke-width="1"/>
+      <path id="iceflow" d="" fill="url(#flow)" opacity=".9"/>
+      <path id="lake" d="" fill="#2F6F8F" opacity=".85"/>
+      <path id="sed" d="" fill="#C8B99B" stroke="#8C7B5A" stroke-width=".8"/>
+      <path id="sedst" d="" fill="url(#stipple)"/>
+      <path id="rock" d="" fill="#B9BDB5" stroke="#22302F" stroke-width="1.6" stroke-linejoin="round"/>
+      <path id="rockh" d="" fill="url(#granite)" opacity=".55"/>
+      <path id="river" d="" fill="#2F6F8F"/>
+      <g id="labels" font-size="12" fill="#22302F"></g>
+    </svg>
+    <div class="inset">
+      <img id="insetImg" alt="Satellite image of Yosemite Valley with the line of the cross-section marked">
+      <svg viewBox="0 0 180 180" aria-hidden="true"><line id="insetLine" stroke="#C8452B" stroke-width="2.5"/><text id="insetN" font-size="11" fill="#fff" font-weight="600"></text><text id="insetS" font-size="11" fill="#fff" font-weight="600"></text></svg>
+      <p class="cap">Line of section, north (top) to south. Imagery: Esri, Maxar, Earthstar Geographics.</p>
+    </div>
+  </div>
+  <p id="status">Loading elevation…</p>
+
+  <div class="timeline" role="tablist" aria-label="Stages">
+    <div class="bar"></div>
+    <button data-s="0" style="left:8%"><b>Before the ice</b>over 2,000,000 BP</button>
+    <button data-s="1" style="left:29%"><b>Sherwin ice</b>about 1,000,000 BP</button>
+    <button data-s="2" style="left:50%"><b>Tioga ice</b>about 20,000 BP</button>
+    <button data-s="3" style="left:71%"><b>Lake Yosemite</b>about 15,000 BP</button>
+    <button data-s="4" style="left:92%" aria-current="true"><b>Today</b>0 BP</button>
+  </div>
+
+  <section class="stage" aria-live="polite">
+    <div><h2 id="title"></h2><p id="body1"></p><p id="body2"></p></div>
+    <aside class="look"><h3>Look for this in MapMaker</h3><ul id="look"></ul></aside>
+  </section>
+
+  <div class="links">
+    <a class="primary" href="https://www.arcgis.com/apps/instant/atlas/index.html?appid=0cd1cdee853c413a84bfe4b9a6931f0d&center=-119.6370,37.7300&level=13" target="_blank" rel="noopener">Open Yosemite Valley in MapMaker</a>
+    <a id="threeD" href="yosemite-3d.html">3D version</a>
+    <a href="https://jsawle.github.io/profile/elevation-profile-tool.html" target="_blank" rel="noopener">Draw your own profile</a>
+  </div>
+  <p class="note">Today's line is measured from the elevation data. The earlier stages are reconstructions: the depth of sediment under the floor is taken from USGS drilling (a few hundred metres here, up to about 600 m further east), the Tioga ice limit is marked by moraines that still exist, and the Sherwin ice limit and the shape of the pre-glacial canyon are inferred and less certain. BP means years before present, counted from 1950.</p>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/lerc@4.0.4/LercDecode.min.js"></script>
+<script>
+(async function(){
+  const qs=new URLSearchParams(location.search);
+  document.getElementById('threeD').href=qs.get('td')||'yosemite-3d.html';
+  // ---------- the line of section: north rim to south rim through El Capitan ----------
+  const LON=-119.637, LAT_N=37.768, LAT_S=37.698, N=300;   // ~7.8 km, 300 samples
+  const Z=13, EXAG=1.5;
+  const lon2x=(lon,z)=>(lon+180)/360*Math.pow(2,z);
+  const lat2y=(lat,z)=>{const r=lat*Math.PI/180;return (1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*Math.pow(2,z);};
+  const status=document.getElementById('status');
+
+  // inset: World Imagery tile at zoom 12 with the line drawn on it
+  {const IZ=12,ix=Math.floor(lon2x(LON,IZ)),iy=Math.floor(lat2y((LAT_N+LAT_S)/2,IZ));
+   document.getElementById('insetImg').src=`https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${IZ}/${iy}/${ix}`;
+   const x=(lon2x(LON,IZ)-ix)*180,y1=(lat2y(LAT_N,IZ)-iy)*180,y2=(lat2y(LAT_S,IZ)-iy)*180;
+   const L=document.getElementById('insetLine');L.setAttribute('x1',x);L.setAttribute('x2',x);L.setAttribute('y1',y1);L.setAttribute('y2',y2);
+   const n=document.getElementById('insetN');n.setAttribute('x',x+5);n.setAttribute('y',y1+10);n.textContent='N';
+   const s=document.getElementById('insetS');s.setAttribute('x',x+5);s.setAttribute('y',y2-2);s.textContent='S';}
+
+  // ---------- fetch the elevation tiles that cover the line ----------
+  const tx=Math.floor(lon2x(LON,Z)),ty0=Math.floor(lat2y(LAT_N,Z)),ty1=Math.floor(lat2y(LAT_S,Z));
+  const tiles={};   // ty -> {w,px,mask}
+  async function loadEsri(){await Lerc.load();
+    await Promise.all(Array.from({length:ty1-ty0+1},(_,i)=>ty0+i).map(ty=>fetch(`https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/${Z}/${ty}/${tx}`)
+      .then(r=>{if(!r.ok)throw new Error('tile '+r.status);return r.arrayBuffer();}).then(b=>{const d=Lerc.decode(b);tiles[ty]={w:d.width,px:d.pixels[0],get:(i,j)=>d.pixels[0][j*d.width+i]};})));}
+  async function loadTerrarium(){const cv=document.createElement('canvas');cv.width=cv.height=256;const cx=cv.getContext('2d');
+    await Promise.all(Array.from({length:ty1-ty0+1},(_,i)=>ty0+i).map(ty=>new Promise((res,rej)=>{const im=new Image();im.crossOrigin='anonymous';im.onerror=rej;
+      im.onload=()=>{cx.drawImage(im,0,0);const d=cx.getImageData(0,0,256,256).data;tiles[ty]={w:256,get:(i,j)=>{const k=(j*256+i)*4;return d[k]*256+d[k+1]+d[k+2]/256-32768;}};res();};
+      im.src=`https://s3.amazonaws.com/elevation-tiles-prod/terrarium/${Z}/${tx}/${ty}.png`;})));}
+  let src='Esri World Elevation (Terrain3D)';
+  try{await loadEsri();}catch(e){console.warn(e);try{await loadTerrarium();src='Mapzen Terrarium (Esri service unavailable)';}catch(e2){status.textContent='Could not load elevation data. Check the network and reload.';return;}}
+
+  // bilinear sample at a lon/lat
+  function elev(lon,lat){const gx=lon2x(lon,Z),gy=lat2y(lat,Z);const ty=Math.floor(gy);const t=tiles[ty];if(!t)return NaN;
+    const fx=(gx-tx)*256,fy=(gy-ty)*256;const i=Math.min(254,Math.floor(fx)),j=Math.min(254,Math.floor(fy)),u=fx-i,v=fy-j;
+    return t.get(i,j)*(1-u)*(1-v)+t.get(i+1,j)*u*(1-v)+t.get(i,j+1)*(1-u)*v+t.get(i+1,j+1)*u*v;}
+  const today=new Float32Array(N), km=new Float32Array(N);
+  const lenKm=(LAT_N-LAT_S)*111.32;
+  for(let n=0;n<N;n++){const lat=LAT_N-(LAT_N-LAT_S)*n/(N-1);today[n]=elev(LON,lat);km[n]=lenKm*n/(N-1);}
+  // light smoothing so the section reads as a drawing rather than noise
+  for(let p=0;p<2;p++)for(let n=1;n<N-1;n++)today[n]=(today[n-1]+2*today[n]+today[n+1])/4;
+
+  // ---------- reconstruct the other stages from today's line ----------
+  const floor=Math.min(...today);                                  // valley floor elevation
+  let a=0;while(today[a]>floor+60)a++;let b=N-1;while(today[b]>floor+60)b--;   // extent of the flat floor
+  const rimN=Math.max(...today.slice(0,a)), rimS=Math.max(...today.slice(b));
+  const iN=today.indexOf(rimN), iS=b+today.slice(b).indexOf(rimS);
+  // shoulders: where the walls start, taken as 200 m below each rim
+  let sN=iN;while(sN<a&&today[sN]>rimN-200)sN++;let sS=iS;while(sS>b&&today[sS]>rimS-200)sS--;
+  const FILL=300;   // metres of sediment under the floor on this line (deeper further east)
+  const bedrock=Float32Array.from(today);
+  for(let n=a;n<=b;n++){const t=(n-a)/(b-a);bedrock[n]=floor-FILL*Math.sin(Math.PI*t);}
+  const mid=(sN+sS)/2, vBottom=floor+150;
+  const vshape=Float32Array.from(today);
+  for(let n=sN;n<=sS;n++){const t=Math.abs(n-mid)/((sS-sN)/2);const rim=n<mid?today[sN]:today[sS];vshape[n]=vBottom+(rim-vBottom)*Math.pow(t,1.15);}
+
+  // ---------- drawing ----------
+  const eMin=Math.floor((Math.min(...bedrock)-100)/200)*200, eMax=Math.ceil((Math.max(rimN,rimS)+120)/200)*200;
+  const X=k=>60+k/lenKm*820, Y=m=>340-(m-eMin)/(eMax-eMin)*300;
+  const vex=((300/(eMax-eMin))/(820/(lenKm*1000))).toFixed(1);
+  {const g=document.getElementById('axis');let s=`<line x1="60" y1="40" x2="60" y2="340" stroke="#5C6866" stroke-width=".8"/><line x1="60" y1="352" x2="880" y2="352" stroke="#5C6866" stroke-width=".8"/>`;
+   for(let m=eMin;m<=eMax;m+=400)s+=`<line x1="56" y1="${Y(m)}" x2="60" y2="${Y(m)}" stroke="#5C6866" stroke-width=".8"/><text x="52" y="${Y(m)+4}" text-anchor="end">${m.toLocaleString()} m</text>`;
+   for(let k=0;k<=lenKm;k+=2)s+=`<line x1="${X(k)}" y1="352" x2="${X(k)}" y2="356" stroke="#5C6866" stroke-width=".8"/><text x="${X(k)}" y="368" text-anchor="middle">${k} km</text>`;
+   s+=`<text x="60" y="30" fill="#5C6866">north</text><text x="880" y="30" text-anchor="end" fill="#5C6866">south</text><text x="470" y="392" text-anchor="middle" fill="#8A928F">vertical exaggeration ${vex}×</text>`;
+   g.innerHTML=s;}
+  const line=arr=>{let d='';for(let n=0;n<N;n++)d+=(n?' L':'M')+X(km[n]).toFixed(1)+' '+Y(arr[n]).toFixed(1);return d;};
+  const closed=arr=>line(arr)+' L880 340 L60 340 Z';
+  function fillBelow(arr,level,fromN,toN){let d='',open=false;   // area between a flat level and the profile, where the profile is below it
+    for(let n=fromN;n<=toN;n++){const below=arr[n]<level;if(below&&!open){d+=`M${X(km[n])} ${Y(level)}`;open=true;}
+      if(open)d+=` L${X(km[n])} ${Y(Math.min(arr[n],level))}`; if(open&&(!below||n===toN)){d+=` L${X(km[n])} ${Y(level)} Z`;open=false;}}
+    return d;}
+  const lerpArr=(p,q,t)=>p.map((v,i)=>v+(q[i]-v)*t);
+  const S=[
+    {rock:vshape,ice:0,lake:0,sed:0,river:true,title:'Before the ice: a river canyon (over 2,000,000 BP)',
+     b1:'The granite formed deep underground about 100 million years ago. Much later the Sierra Nevada was tilted up along its eastern edge, which steepened the Merced River and set it cutting down. By the time the ice came it had made a narrow V-shaped canyon, drawn here as a reconstruction inside today\u2019s rims.',
+     b2:'The granite was already cracked in some places and solid in others. That decided which walls the glaciers would later pull away and which would stand.',
+     look:['Compare with the Merced River canyon downstream of El Portal, which ice never reached.','Use the profile tool across the canyon at El Portal and note the V shape.']},
+    {rock:null,carve:0.6,ice:2250,lake:0,sed:0,title:'The Sherwin glaciation: ice to the rim (about 1,000,000 BP)',
+     b1:'The biggest glacier to occupy the valley reached close to the rim, about 1,500 m of ice above the floor. Ice this thick grinds the whole valley, plucking blocks along the cracks in the granite and widening the walls as much as deepening the floor.',
+     b2:'Most of the shaping happened in this stage. Later glaciers mostly tidied up.',
+     look:['Look at the shape of the valley in the hillshade or 3D basemap: straight walls, wide floor.','El Capitan is massive granite with few joints, which is why it survived where jointed rock was plucked away.']},
+    {rock:bedrock,ice:1760,lake:0,sed:0,title:'The Tioga glaciation: a smaller glacier (about 20,000 BP)',
+     b1:'The last glacier was much thinner. It reached only part way up the walls and ended near Bridalveil Meadow, where it dropped its moraine. Above the ice the rock was left to frost; below it the glacier polished the bedrock.',
+     b2:'The trough now has its U shape: a bedrock floor well below today\u2019s ground level, and sheer sides.',
+     look:['Find the Tioga moraine, a low ridge across the valley near Bridalveil Meadow, west of El Capitan.','Glacial polish and erratics on the domes above the valley mark rock the ice crossed.']},
+    {rock:bedrock,ice:0,lake:null,sed:0,title:'Lake Yosemite (about 15,000 BP)',
+     b1:'As the Tioga glacier retreated, meltwater was trapped behind its moraine and a lake filled the valley from wall to wall.',
+     b2:'The tributary valleys were left hanging. Streams that once joined the Merced at its level now dropped hundreds of metres off the walls.',
+     look:['The waterfalls are the evidence: Bridalveil (188 m), Yosemite Falls (739 m), Ribbon Fall. Each marks a hanging valley.','Trace Yosemite Creek upstream of the fall: gentle valley, then the edge.']},
+    {rock:bedrock,ice:0,lake:0,sed:null,river:true,trees:true,title:'Today (0 BP)',
+     b1:'The lake silted up. Drilling has found hundreds of metres of glacial sediment beneath the floor, so the ground at El Capitan Meadow is fill, not bedrock. That is why the floor is so flat and the walls so abrupt.',
+     b2:'The solid line is today\u2019s ground, measured from the elevation data. The sediment below it is a reconstruction.',
+     look:['Measure the valley on this line: floor at about '+Math.round(floor/10)*10+' m, north rim at about '+Math.round(rimN/10)*10+' m.','Find the meanders of the Merced on the flat floor, then look at the river downstream of the moraine, back in a canyon.','Open the land cover layer: forest and meadow on the fill, bare rock on the walls.']}
+  ];
+  const $=id=>document.getElementById(id);
+  const labels=$('labels');
+  function render(rock,ice,lake,sed,stage){
+    $('rock').setAttribute('d',closed(rock));$('rockh').setAttribute('d',closed(rock));
+    const iceD=ice>eMin?fillBelow(rock,ice,0,N-1):'';$('ice').setAttribute('d',iceD);$('iceflow').setAttribute('d',iceD);
+    $('lake').setAttribute('d',lake>eMin?fillBelow(rock,lake,sN,sS):'');
+    const sedD=sed>eMin?fillBelow(rock,sed,sN,sS):'';$('sed').setAttribute('d',sedD);$('sedst').setAttribute('d',sedD);
+    let riv='';if(stage.river){const y=sed>eMin?Y(sed):Y(Math.min(...rock));const xm=X(km[Math.round(mid)]);
+      riv=sed>eMin?`M${xm-22} ${y-6} q10 -6 22 0 t22 0 v8 q-10 6 -22 0 t-22 0 Z`:`M${xm-5} ${y-3} L${xm+5} ${y-3} L${xm} ${y+2} Z`;}
+    $('river').setAttribute('d',riv);
+    const cl=x=>Math.max(120,Math.min(800,x));let L=`<text x="${cl(X(km[iN]))}" y="${Y(rimN)-10}" text-anchor="middle">El Capitan ${Math.round(rimN).toLocaleString()} m</text><text x="${cl(X(km[iS]))}" y="${Y(rimS)-10}" text-anchor="middle">Cathedral Rocks ${Math.round(rimS).toLocaleString()} m</text>`;
+    if(stage.trees){for(let n=a;n<=b;n+=6){if(Math.abs(n-mid)<6)continue;const x=X(km[n]),y=Y(sed);L+=`<path d="M${x} ${y} l-3 0 l3 -9 l3 9 z" fill="#4F6B4A"/>`;}}
+    if(sed>eMin)L+=`<text x="${X(km[Math.round(mid)])}" y="${Y(sed)-20}" text-anchor="middle" font-weight="600">valley floor ${Math.round(floor).toLocaleString()} m</text><text x="${X(km[Math.round(mid)])}" y="${Y(floor-FILL)-8}" text-anchor="middle" fill="#5C6866">bedrock, under about ${FILL} m of fill here</text>`;
+    else if(lake>eMin)L+=`<text x="${X(km[Math.round(mid)])}" y="${Y(lake)-10}" text-anchor="middle" font-weight="600" fill="#2F6F8F">Lake Yosemite</text>`;
+    if(ice>eMin)L+=`<text x="${X(km[Math.round(mid)])}" y="${Y(ice)-10}" text-anchor="middle" font-weight="600" fill="#3E6B85">ice about ${Math.round((ice-floor)/100)*100} m thick above today\u2019s floor</text>`;
+    labels.innerHTML=L;
+  }
+  let cur=4,raf=null,state={rock:bedrock,ice:0,lake:0,sed:floor};
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function go(i){
+    cur=i;const s=S[i];
+    const tgt={rock:s.rock||lerpArr(vshape,bedrock,s.carve),ice:s.ice,lake:s.lake===null?floor:s.lake,sed:s.sed===null?floor:s.sed};
+    const from={rock:state.rock,ice:state.ice,lake:state.lake,sed:state.sed},t0=performance.now(),dur=reduce?0:1000;
+    cancelAnimationFrame(raf);
+    const step=now=>{const t=dur?Math.min(1,(now-t0)/dur):1,e=1-Math.pow(1-t,3);
+      state={rock:lerpArr(from.rock,tgt.rock,e),ice:from.ice+(tgt.ice-from.ice)*e,lake:from.lake+(tgt.lake-from.lake)*e,sed:from.sed+(tgt.sed-from.sed)*e};
+      render(state.rock,state.ice,state.lake,state.sed,t<1?{}:s);if(t<1)raf=requestAnimationFrame(step);};
+    raf=requestAnimationFrame(step);
+    $('title').textContent=s.title;$('body1').textContent=s.b1;$('body2').textContent=s.b2;
+    $('look').innerHTML=s.look.map(t=>`<li>${t}</li>`).join('');
+    document.querySelectorAll('.timeline button').forEach(bt=>bt.setAttribute('aria-current',bt.dataset.s==i?'true':'false'));
+  }
+  document.querySelectorAll('.timeline button').forEach(bt=>bt.addEventListener('click',()=>go(+bt.dataset.s)));
+  document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'&&cur<S.length-1)go(cur+1);if(e.key==='ArrowLeft'&&cur>0)go(cur-1);});
+  status.textContent=`Elevation: ${src}. ${N} samples along ${lenKm.toFixed(1)} km. Floor ${Math.round(floor)} m, El Capitan side ${Math.round(rimN)} m, Cathedral Rocks side ${Math.round(rimS)} m.`;
+  go(4);
+})();
+</script>
+</body>
+</html>
