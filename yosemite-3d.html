@@ -6,72 +6,80 @@
 <title>Yosemite Valley in 3D: filled with ice</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&display=swap" rel="stylesheet">
 <style>
-  :root{--paper:#F3F4F0;--ink:#22302F;--ink-2:#5C6866;--rule:#C9CEC8;--water:#2F6F8F;--ice:#8FB0C2}
+  :root{--paper:#F3F4F0;--ink:#22302F;--ink-2:#5C6866;--rule:#C9CEC8;--water:#2F6F8F}
   *{box-sizing:border-box}
   html,body{margin:0;height:100%;background:var(--paper);color:var(--ink);font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:16px;line-height:1.5}
   #app{display:grid;grid-template-rows:auto 1fr auto;height:100%}
-  header{padding:14px 20px 10px;border-bottom:1px solid var(--ink)}
+  header{padding:12px 20px 8px;border-bottom:1px solid var(--ink)}
   h1{font-size:22px;font-weight:600;margin:0;line-height:1.2}
   header p{margin:2px 0 0;color:var(--ink-2);font-size:14px}
-  #view{position:relative;min-height:320px;background:#E4E9EA}
-  canvas{display:block;width:100%;height:100%}
-  #loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--ink-2);font-size:15px;background:#E4E9EA}
-  #hint{position:absolute;left:12px;bottom:10px;font-size:12px;color:var(--ink-2);background:rgba(243,244,240,.85);padding:4px 8px;border-radius:2px}
+  #view{position:relative;min-height:340px;background:#E4E9EA;overflow:hidden}
+  canvas.gl{display:block;width:100%;height:100%}
+  #loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--ink-2);font-size:15px;background:#E4E9EA;z-index:5}
+  .chip{position:absolute;font-size:12px;color:var(--ink-2);background:rgba(243,244,240,.88);padding:4px 8px;border-radius:2px}
+  #hint{left:12px;bottom:10px}
   #peek{position:absolute;right:12px;top:12px;font:inherit;font-size:13px;padding:7px 12px;border:1px solid var(--ink);background:rgba(243,244,240,.92);color:var(--ink);border-radius:2px;cursor:pointer;display:none}
   #peek[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
-  footer{border-top:1px solid var(--ink);padding:12px 20px 18px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px 28px;max-height:46vh;overflow:auto}
-  .timeline{grid-column:1/-1;position:relative;height:44px;margin:4px 0 6px}
-  .timeline .bar{position:absolute;left:0;right:0;top:22px;height:1px;background:var(--ink)}
-  .timeline button{position:absolute;top:0;transform:translateX(-50%);font:inherit;font-size:13px;line-height:1.15;background:transparent;border:0;padding:0;color:var(--ink-2);cursor:pointer;width:96px;text-align:center}
-  .timeline button::after{content:"";display:block;width:9px;height:9px;border-radius:50%;background:var(--paper);border:1.5px solid var(--ink);margin:6px auto 0}
-  .timeline button[aria-current="true"]{color:var(--ink);font-weight:600}
+  #inset{position:absolute;left:12px;top:12px;display:flex;gap:6px;background:rgba(243,244,240,.92);padding:6px;border:1px solid var(--rule);border-radius:2px}
+  #inset .m{position:relative;width:110px;height:110px;overflow:hidden;background:#dde}
+  #inset .m img{position:absolute;inset:0;width:100%;height:100%;display:block}
+  #inset .dot{position:absolute;width:10px;height:10px;border-radius:50%;background:#C8452B;border:2px solid #fff;transform:translate(-50%,-50%);box-shadow:0 0 0 1px #C8452B}
+  #inset .cap{position:absolute;left:0;right:0;bottom:0;font-size:9px;color:#fff;background:rgba(34,48,47,.6);padding:1px 3px;line-height:1.2}
+  #plan{width:132px;height:110px;display:block;background:#cfd3cc}
+  #north{position:absolute;right:12px;bottom:12px;width:44px;height:44px}
+  footer{border-top:1px solid var(--ink);padding:10px 20px 16px;display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:6px 28px;max-height:46vh;overflow:auto}
+  .timeline{grid-column:1/-1;position:relative;height:60px;margin:2px 0 4px}
+  .timeline .bar{position:absolute;left:0;right:0;top:50px;height:1px;background:var(--ink)}
+  .timeline button{position:absolute;top:0;transform:translateX(-50%);font:inherit;font-size:12.5px;line-height:1.2;background:transparent;border:0;padding:0;color:var(--ink-2);cursor:pointer;width:110px;text-align:center}
+  .timeline button b{display:block;font-weight:600;font-size:14px}
+  .timeline button::after{content:"";display:block;width:9px;height:9px;border-radius:50%;background:var(--paper);border:1.5px solid var(--ink);margin:0 auto;position:absolute;left:50%;top:46px;transform:translateX(-50%)}
+  .timeline button[aria-current="true"]{color:var(--ink)}
   .timeline button[aria-current="true"]::after{background:var(--ink)}
   .timeline button:focus-visible{outline:2px solid var(--water);outline-offset:2px}
-  .timeline button b{display:block;font-weight:600;font-size:14px;color:inherit}
-  h2{font-size:19px;font-weight:600;margin:0 0 4px}
-  .bp{color:var(--water);font-size:14px;margin:0 0 6px;font-weight:600}
+  h2{font-size:19px;font-weight:600;margin:0 0 6px}
   footer p{margin:0 0 8px;max-width:58ch;font-size:15px}
+  footer p a{color:var(--water)}
   .look{border-left:2px solid var(--water);padding:0 0 0 14px;align-self:start}
   .look h3{font-size:14px;font-weight:600;margin:0 0 4px;color:var(--water)}
-  .look ul{margin:0;padding-left:16px}
-  .look li{font-size:14px;margin-bottom:4px}
-  .links{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding-top:6px}
+  .look ul{margin:0;padding-left:16px}.look li{font-size:14px;margin-bottom:4px}
+  .links{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding-top:4px}
   .links a{font-size:14px;text-decoration:none;padding:8px 14px;border-radius:2px;border:1px solid var(--water);color:var(--water)}
   .links a.primary{background:var(--water);color:#fff}
   .links span{font-size:12.5px;color:var(--ink-2)}
-  @media (max-width:640px){footer{grid-template-columns:1fr;max-height:52vh}.timeline button{width:72px;font-size:12px}.timeline button b{font-size:12.5px}}
+  @media (max-width:700px){footer{grid-template-columns:1fr;max-height:52vh}.timeline button{width:66px;font-size:11px}.timeline button b{font-size:12px}#inset{transform:scale(.7);transform-origin:top left}}
 </style>
 </head>
 <body>
 <div id="app">
   <header>
     <h1>Yosemite Valley, filled with ice</h1>
-    <p>Real terrain from 30 m elevation data. Drag to turn, scroll or pinch to zoom.</p>
+    <p>Real terrain from elevation data. Drag to turn, scroll or pinch to zoom.</p>
   </header>
   <div id="view">
     <div id="loading">Loading terrain…</div>
+    <div id="inset">
+      <div class="m"><img id="insetImg" alt="Location map: Yosemite Valley in eastern California"><div class="dot" id="insetDot"></div><div class="cap">Yosemite, California. Map: Esri</div></div>
+      <canvas id="plan" width="264" height="220" aria-label="Plan view of the model showing the camera position"></canvas>
+    </div>
     <button id="peek" aria-pressed="false">See through the ice</button>
-    <div id="hint">Heights ×1.5 so the valley reads on a small screen</div>
+    <div id="hint" class="chip">Heights ×1.5 so the valley reads on a small screen</div>
+    <svg id="north" viewBox="0 0 44 44" aria-label="North arrow"><circle cx="22" cy="22" r="20" fill="rgba(243,244,240,.88)" stroke="#5C6866"/><g id="northG"><path d="M22 5 L27 22 L22 19 L17 22 Z" fill="#22302F"/><text x="22" y="36" text-anchor="middle" font-size="11" fill="#22302F">N</text></g></svg>
   </div>
   <footer>
     <div class="timeline" role="tablist" aria-label="Timeline">
       <div class="bar"></div>
-      <button data-s="0" style="left:8%" aria-current="true"><b>Today</b>0 BP</button>
-      <button data-s="1" style="left:32%"><b>Sherwin ice</b>~1,000,000 BP</button>
-      <button data-s="2" style="left:57%"><b>Tioga ice</b>~20,000 BP</button>
-      <button data-s="3" style="left:80%"><b>Lake Yosemite</b>~15,000 BP</button>
+      <button data-s="0" style="left:8%"><b>Before the ice</b>over 2,000,000 BP</button>
+      <button data-s="1" style="left:29%"><b>Sherwin ice</b>about 1,000,000 BP</button>
+      <button data-s="2" style="left:50%"><b>Tioga ice</b>about 20,000 BP</button>
+      <button data-s="3" style="left:71%"><b>Lake Yosemite</b>about 15,000 BP</button>
+      <button data-s="4" style="left:92%" aria-current="true"><b>Today</b>0 BP</button>
     </div>
-    <div>
-      <p class="bp" id="bp"></p>
-      <h2 id="title"></h2>
-      <p id="b1"></p>
-      <p id="b2"></p>
-    </div>
+    <div><h2 id="title"></h2><p id="b1"></p><p id="b2"></p></div>
     <aside class="look"><h3>Look for this in MapMaker</h3><ul id="look"></ul></aside>
     <div class="links">
       <a class="primary" href="https://www.arcgis.com/apps/instant/atlas/index.html?appid=0cd1cdee853c413a84bfe4b9a6931f0d&center=-119.6350,37.7250&level=13" target="_blank" rel="noopener">Open Yosemite Valley in MapMaker</a>
       <a href="yosemite-valley.html">Cross-section version</a>
-      <span>BP means years before present (counted from 1950).</span>
+      <span>BP means years before present, counted from 1950.</span>
     </div>
   </footer>
 </div>
@@ -81,20 +89,27 @@
 <script>
 (async function(){
   // ---------- study area and elevation source ----------
-  const BBOX={w:-119.74,e:-119.50,s:37.68,n:37.80};   // Yosemite Valley, west end to Half Dome
-  const Z=12, EXAG=1.5, U=100;                          // tile zoom, vertical exaggeration, metres per scene unit
+  const BBOX={w:-119.725,e:-119.505,s:37.690,n:37.790};
+  const qs=new URLSearchParams(location.search);
+  const Z=+(qs.get('z')||13), STEP=+(qs.get('res')||3), EXAG=1.5, U=100;   // ?z=12&res=3 for a lighter mesh
   const TILE=(z,x,y)=>`https://s3.amazonaws.com/elevation-tiles-prod/terrarium/${z}/${x}/${y}.png`;
-
   const lon2x=(lon,z)=>(lon+180)/360*Math.pow(2,z);
   const lat2y=(lat,z)=>{const r=lat*Math.PI/180;return (1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*Math.pow(2,z);};
-  const x0=Math.floor(lon2x(BBOX.w,Z)),x1=Math.floor(lon2x(BBOX.e,Z));
-  const y0=Math.floor(lat2y(BBOX.n,Z)),y1=Math.floor(lat2y(BBOX.s,Z));
+  const x0=Math.floor(lon2x(BBOX.w,Z)),x1=Math.floor(lon2x(BBOX.e,Z)),y0=Math.floor(lat2y(BBOX.n,Z)),y1=Math.floor(lat2y(BBOX.s,Z));
   const cols=(x1-x0+1)*256, rows=(y1-y0+1)*256;
+  // pixel offsets of the bbox inside the tile block, so the mesh is cropped to the bbox
+  const px0=Math.floor((lon2x(BBOX.w,Z)-x0)*256), px1=Math.floor((lon2x(BBOX.e,Z)-x0)*256);
+  const py0=Math.floor((lat2y(BBOX.n,Z)-y0)*256), py1=Math.floor((lat2y(BBOX.s,Z)-y0)*256);
+
+  // location inset: Esri World Topo tile at zoom 5 (covers California and Nevada)
+  const IZ=5, ix=Math.floor(lon2x(-119.6,IZ)), iy=Math.floor(lat2y(37.73,IZ));
+  document.getElementById('insetImg').src=`https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/${IZ}/${iy}/${ix}`;
+  const dot=document.getElementById('insetDot');dot.style.left=((lon2x(-119.6,IZ)-ix)*100)+'%';dot.style.top=((lat2y(37.73,IZ)-iy)*100)+'%';
 
   // ---------- fetch and decode tiles ----------
   const H=new Float32Array(cols*rows);
   const cv=document.createElement('canvas');cv.width=cv.height=256;const cx=cv.getContext('2d');
-  function loadTile(tx,ty){return new Promise((res,rej)=>{const im=new Image();im.crossOrigin='anonymous';im.onload=()=>res(im);im.onerror=rej;im.src=TILE(Z,tx,ty);});}
+  const loadTile=(tx,ty)=>new Promise((res,rej)=>{const im=new Image();im.crossOrigin='anonymous';im.onload=()=>res(im);im.onerror=rej;im.src=TILE(Z,tx,ty);});
   const jobs=[];
   for(let ty=y0;ty<=y1;ty++)for(let tx=x0;tx<=x1;tx++)jobs.push(loadTile(tx,ty).then(im=>{
     cx.drawImage(im,0,0);const d=cx.getImageData(0,0,256,256).data;
@@ -102,124 +117,158 @@
   }));
   try{await Promise.all(jobs);}catch(e){document.getElementById('loading').textContent='Could not load elevation tiles. Check the network and reload.';return;}
 
-  // ---------- downsample to a mesh-sized grid ----------
-  const STEP=3, W=Math.floor(cols/STEP), R=Math.floor(rows/STEP);
+  // ---------- crop and downsample ----------
+  const W=Math.floor((px1-px0)/STEP), R=Math.floor((py1-py0)/STEP);
   const h=new Float32Array(W*R);
-  for(let j=0;j<R;j++)for(let i=0;i<W;i++)h[j*W+i]=H[(j*STEP)*cols+i*STEP];
-  // ground distance per grid cell (metres)
+  for(let j=0;j<R;j++)for(let i=0;i<W;i++)h[j*W+i]=H[(py0+j*STEP)*cols+px0+i*STEP];
   const latMid=(BBOX.n+BBOX.s)/2;
-  const mPerPx=40075016.686*Math.cos(latMid*Math.PI/180)/(256*Math.pow(2,Z));
-  const cell=mPerPx*STEP;
+  const cell=40075016.686*Math.cos(latMid*Math.PI/180)/(256*Math.pow(2,Z))*STEP;   // metres per grid cell
   const sx=W*cell/U, sy=R*cell/U;
+  const ij=(lon,lat)=>[ (lon-BBOX.w)/(BBOX.e-BBOX.w)*W, (BBOX.n-lat)/(BBOX.n-BBOX.s)*R ];
+  const groundAt=(lon,lat)=>{const [i,j]=ij(lon,lat);return h[Math.round(j)*W+Math.round(i)];};
+  const toScene=(i,j,e)=>new THREE.Vector3((i/W-0.5)*sx,e*EXAG/U,(j/R-0.5)*sy);
+
+  // ---------- valley mask: which cells are below a level AND connected to the valley floor ----------
+  const seed=ij(-119.6350,37.7235);  // El Capitan Meadow
+  const mask=new Uint8Array(W*R), stack=new Int32Array(W*R);
+  function floodMask(levelAt){
+    mask.fill(0);let sp=0;const s0=Math.round(seed[1])*W+Math.round(seed[0]);
+    if(h[s0]>=levelAt(s0))return;mask[s0]=1;stack[sp++]=s0;
+    while(sp){const k=stack[--sp],i=k%W,j=(k-i)/W;
+      const nb=[i>0?k-1:-1,i<W-1?k+1:-1,j>0?k-W:-1,j<R-1?k+W:-1];
+      for(const n of nb){if(n>=0&&!mask[n]&&h[n]<levelAt(n)){mask[n]=1;stack[sp++]=n;}}}
+  }
+  const lonOf=k=>BBOX.w+((k%W)/W)*(BBOX.e-BBOX.w);
+  const kmFromEast=k=>(BBOX.e-lonOf(k))*111.32*Math.cos(latMid*Math.PI/180);
 
   // ---------- scene ----------
   const view=document.getElementById('view');
-  const renderer=new THREE.WebGLRenderer({antialias:true});
-  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-  view.appendChild(renderer.domElement);
-  const scene=new THREE.Scene();scene.background=new THREE.Color(0xE4E9EA);
-  scene.fog=new THREE.Fog(0xE4E9EA,sx*1.4,sx*3.2);
-  const camera=new THREE.PerspectiveCamera(48,1,0.5,sx*10);
+  const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.domElement.className='gl';view.appendChild(renderer.domElement);
+  const scene=new THREE.Scene();scene.background=new THREE.Color(0xE4E9EA);scene.fog=new THREE.Fog(0xE4E9EA,sx*1.6,sx*3.6);
+  const camera=new THREE.PerspectiveCamera(46,1,0.5,sx*10);
   const controls=new THREE.OrbitControls(camera,renderer.domElement);
-  controls.enableDamping=true;controls.maxPolarAngle=Math.PI*0.48;controls.minDistance=sx*0.15;controls.maxDistance=sx*2.5;
-  scene.add(new THREE.HemisphereLight(0xffffff,0x8a8f88,0.85));
-  const sun=new THREE.DirectionalLight(0xfff4e0,0.9);sun.position.set(-sx,sx*0.9,sy*0.6);scene.add(sun);
+  controls.enableDamping=true;controls.maxPolarAngle=Math.PI*0.47;controls.minDistance=sx*0.12;controls.maxDistance=sx*2.2;
+  scene.add(new THREE.HemisphereLight(0xffffff,0x8a8f88,0.8));
+  const sun=new THREE.DirectionalLight(0xfff4e0,0.95);sun.position.set(-sx,sx*0.8,sy*0.7);scene.add(sun);
 
-  function gridGeom(zAt){
-    const g=new THREE.PlaneGeometry(sx,sy,W-1,R-1);
-    const p=g.attributes.position;
-    for(let j=0;j<R;j++)for(let i=0;i<W;i++){const k=j*W+i;p.setZ(k,zAt(i,j,k));}
-    g.computeVertexNormals();g.rotateX(-Math.PI/2);return g;
-  }
-  const zTerrain=(i,j,k)=>h[k]*EXAG/U;
-
-  // terrain colours: granite on steep slopes, forest on gentle ground, meadow on the flat fill
-  const terrain=gridGeom(zTerrain);
+  // terrain, coloured by slope and elevation. Meadow only on the flat valley floor east of the moraine.
+  const geo=new THREE.PlaneGeometry(sx,sy,W-1,R-1);const P=geo.attributes.position;
   const col=new Float32Array(W*R*3);
-  const cGran=new THREE.Color(0x9EA29C),cGranDk=new THREE.Color(0x777B75),cForest=new THREE.Color(0x4F6B4A),cMeadow=new THREE.Color(0x9FB36E),cHigh=new THREE.Color(0x7C8478);
+  const cGran=new THREE.Color(0xA3A69F),cGranDk=new THREE.Color(0x767A74),cForest=new THREE.Color(0x4E6A49),cForestHi=new THREE.Color(0x6E8A5E),cMeadow=new THREE.Color(0xA7B77A),cHigh=new THREE.Color(0x848C82);
+  const slopeArr=new Float32Array(W*R);
   for(let j=0;j<R;j++)for(let i=0;i<W;i++){
-    const k=j*W+i,e=h[k];
-    const dx=(h[j*W+Math.min(i+1,W-1)]-h[j*W+Math.max(i-1,0)])/(2*cell);
-    const dy=(h[Math.min(j+1,R-1)*W+i]-h[Math.max(j-1,0)*W+i])/(2*cell);
-    const slope=Math.atan(Math.hypot(dx,dy));               // radians
-    let c=slope>0.75?cGranDk:slope>0.5?cGran:e>2600?cHigh:e<1260?cMeadow:cForest;
-    if(slope<0.5&&e>2300&&e<=2600) c=cForest.clone().lerp(cHigh,(e-2300)/300);
+    const k=j*W+i,e=h[k];P.setZ(k,e*EXAG/U);
+    const dx=(h[j*W+Math.min(i+1,W-1)]-h[j*W+Math.max(i-1,0)])/(2*cell), dy=(h[Math.min(j+1,R-1)*W+i]-h[Math.max(j-1,0)*W+i])/(2*cell);
+    const slope=Math.atan(Math.hypot(dx,dy));slopeArr[k]=slope;
+    let c;
+    if(slope>0.8)c=cGranDk;else if(slope>0.55)c=cGran;
+    else if(e<1300&&slope<0.12&&lonOf(k)>-119.668)c=cMeadow;
+    else if(e>2700)c=cHigh;else if(e>2300)c=cForestHi.clone().lerp(cHigh,(e-2300)/400);
+    else c=cForest.clone().lerp(cForestHi,Math.max(0,(e-1300)/1000));
     col[k*3]=c.r;col[k*3+1]=c.g;col[k*3+2]=c.b;
   }
-  terrain.setAttribute('color',new THREE.BufferAttribute(col,3));
-  scene.add(new THREE.Mesh(terrain,new THREE.MeshLambertMaterial({vertexColors:true})));
+  geo.setAttribute('color',new THREE.BufferAttribute(col,3));geo.computeVertexNormals();geo.rotateX(-Math.PI/2);
+  scene.add(new THREE.Mesh(geo,new THREE.MeshLambertMaterial({vertexColors:true})));
 
-  // ---------- ice and lake surfaces ----------
-  // The surface sits at a level that slopes gently down-valley (west). Where it would be below ground it is dropped under the terrain.
-  const iceMat=new THREE.MeshPhongMaterial({color:0xE7F0F4,emissive:0x2F4F5F,emissiveIntensity:0.05,shininess:35,transparent:true,opacity:0.96,side:THREE.DoubleSide});
-  const lakeMat=new THREE.MeshPhongMaterial({color:0x2F6F8F,shininess:80,transparent:true,opacity:0.9});
-  const fillGeom=new THREE.PlaneGeometry(sx,sy,W-1,R-1);fillGeom.rotateX(-Math.PI/2);
-  const fill=new THREE.Mesh(fillGeom,iceMat);fill.visible=false;scene.add(fill);
-  const pos=fillGeom.attributes.position;
-  function setFill(levelEast,slopePerKm,westLimitLon){
-    for(let j=0;j<R;j++)for(let i=0;i<W;i++){
-      const k=j*W+i;const lon=BBOX.w+(i/W)*(BBOX.e-BBOX.w);
-      const kmFromEast=(BBOX.e-lon)*111.32*Math.cos(latMid*Math.PI/180);
-      let lvl=levelEast-slopePerKm*kmFromEast;
-      if(westLimitLon!==null&&lon<westLimitLon) lvl=-1e4;
-      const z=Math.max(lvl,h[k]-40)*EXAG/U;       // sit 40 m under ground where the surface is below terrain, so it hides
-      pos.setY(k,z);
+  // ---------- ice / lake surface, coloured by depth so thickness reads ----------
+  const fillGeo=new THREE.PlaneGeometry(sx,sy,W-1,R-1);fillGeo.rotateX(-Math.PI/2);
+  const fcol=new Float32Array(W*R*3);fillGeo.setAttribute('color',new THREE.BufferAttribute(fcol,3));
+  const iceMat=new THREE.MeshPhongMaterial({vertexColors:true,shininess:30,transparent:true,opacity:0.95,side:THREE.DoubleSide});
+  const lakeMat=new THREE.MeshPhongMaterial({vertexColors:true,shininess:90,transparent:true,opacity:0.9});
+  const fill=new THREE.Mesh(fillGeo,iceMat);fill.visible=false;fill.renderOrder=1;scene.add(fill);
+  const FP=fillGeo.attributes.position;
+  const iceThin=new THREE.Color(0xEEF4F6),iceThick=new THREE.Color(0x8FB2C6),lakeShallow=new THREE.Color(0x6FA3BD),lakeDeep=new THREE.Color(0x1F567A);
+  let curLevel=null; // function k -> surface elevation, or null
+  function applyFill(levelEast,slopePerKm,westLimitLon,isLake){
+    const lv=k=>{const l=levelEast-slopePerKm*kmFromEast(k);return lonOf(k)<westLimitLon?-1e4:l;};
+    floodMask(lv);curLevel=lv;
+    for(let k=0;k<W*R;k++){
+      const on=mask[k]===1,l=lv(k);
+      FP.setY(k,(on?l:h[k]-60)*EXAG/U);
+      const t=on?Math.min(1,(l-h[k])/(isLake?300:1500)):0;
+      const c=isLake?lakeShallow.clone().lerp(lakeDeep,t):iceThin.clone().lerp(iceThick,t);
+      fcol[k*3]=c.r;fcol[k*3+1]=c.g;fcol[k*3+2]=c.b;
     }
-    pos.needsUpdate=true;fillGeom.computeVertexNormals();
+    FP.needsUpdate=true;fillGeo.attributes.color.needsUpdate=true;fillGeo.computeVertexNormals();
   }
 
-  // ---------- labels ----------
-  function label(text,lon,lat,dz){
-    const c=document.createElement('canvas');c.width=512;c.height=128;const g=c.getContext('2d');
-    g.font='600 44px "IBM Plex Sans", system-ui, sans-serif';g.fillStyle='#22302F';g.textAlign='center';g.fillText(text,256,80);
-    const t=new THREE.CanvasTexture(c);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,depthTest:false}));
-    const i=(lon-BBOX.w)/(BBOX.e-BBOX.w)*W,j=(BBOX.n-lat)/(BBOX.n-BBOX.s)*R;
-    const e=h[Math.round(j)*W+Math.round(i)];
-    s.position.set((i/W-0.5)*sx,e*EXAG/U+dz,(j/R-0.5)*sy);s.scale.set(sx*0.22,sx*0.055,1);scene.add(s);return s;
-  }
-  const labels=[label('El Capitan',-119.6377,37.7340,1.2),label('Half Dome',-119.5332,37.7459,1.2),label('Yosemite Falls',-119.5967,37.7566,0.9),label('Bridalveil Fall',-119.6468,37.7167,0.9)];
+  // ---------- labels (constant screen size, hidden when under the surface) ----------
+  function sprite(text,size,color){const c=document.createElement('canvas');c.width=512;c.height=96;const g=c.getContext('2d');
+    g.font=`600 ${size}px "IBM Plex Sans", system-ui, sans-serif`;g.textAlign='center';g.lineWidth=8;g.strokeStyle='rgba(243,244,240,.9)';g.strokeText(text,256,62);g.fillStyle=color;g.fillText(text,256,62);
+    const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),depthTest:false,sizeAttenuation:false}));s.scale.set(0.22,0.041,1);s.renderOrder=3;return s;}
+  const places=[['El Capitan',-119.6377,37.7340],['Half Dome',-119.5332,37.7459],['Yosemite Falls',-119.5967,37.7566],['Bridalveil Fall',-119.6468,37.7167],['Tioga moraine',-119.6605,37.7175]];
+  const labels=places.map(([t,lon,lat])=>{const s=sprite(t,40,'#22302F');const [i,j]=ij(lon,lat);const e=groundAt(lon,lat);
+    s.position.copy(toScene(i,j,e+90));s.userData={k:Math.round(j)*W+Math.round(i),e};scene.add(s);return s;});
+  function updateLabels(){for(const s of labels){s.visible=!(curLevel&&mask[s.userData.k]&&curLevel(s.userData.k)>s.userData.e+30);}}
 
-  // camera: from the west end, looking east up the valley
-  camera.position.set(-sx*0.62,sx*0.26,sy*0.55);controls.target.set(0,12,0);
+  // ---------- measuring post at El Capitan Meadow: 0 to 1,500 m above the floor ----------
+  const post=new THREE.Group();{const [pi,pj]=ij(-119.6350,37.7235);const g0=groundAt(-119.6350,37.7235);
+    const base=toScene(pi,pj,g0);const hgt=1500*EXAG/U;
+    const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.12,hgt,8),new THREE.MeshBasicMaterial({color:0x22302F,depthTest:false}));pole.position.set(base.x,base.y+hgt/2,base.z);pole.renderOrder=2;post.add(pole);
+    for(let m=0;m<=1500;m+=500){const ring=new THREE.Mesh(new THREE.TorusGeometry(0.45,0.08,6,24),new THREE.MeshBasicMaterial({color:m?0xC8452B:0x22302F,depthTest:false}));ring.rotation.x=Math.PI/2;ring.position.set(base.x,base.y+m*EXAG/U,base.z);ring.renderOrder=2;post.add(ring);
+      const lab=sprite(m?m.toLocaleString()+' m':'valley floor',34,m?'#C8452B':'#22302F');lab.scale.set(0.13,0.024,1);lab.position.set(base.x,base.y+m*EXAG/U+0.35,base.z);post.add(lab);}
+    scene.add(post);}
+
+  camera.position.set(-sx*0.58,sx*0.24,sy*0.6);controls.target.set(0,12,0);
+
+  // ---------- plan view inset with camera footprint and 1 km bar ----------
+  const plan=document.getElementById('plan'),pg=plan.getContext('2d');
+  const shade=document.createElement('canvas');shade.width=W;shade.height=R;{const sc=shade.getContext('2d'),im=sc.createImageData(W,R);
+    for(let k=0;k<W*R;k++){const v=Math.round(215-slopeArr[k]*120);im.data[k*4]=v;im.data[k*4+1]=v+4;im.data[k*4+2]=v;im.data[k*4+3]=255;}sc.putImageData(im,0,0);}
+  function drawPlan(){pg.clearRect(0,0,plan.width,plan.height);pg.drawImage(shade,0,0,plan.width,plan.height);
+    const px=(camera.position.x/sx+0.5)*plan.width,py=(camera.position.z/sy+0.5)*plan.height;
+    const dir=new THREE.Vector3();camera.getWorldDirection(dir);const a=Math.atan2(dir.z,dir.x),fov=0.45;
+    pg.fillStyle='rgba(200,69,43,.28)';pg.beginPath();pg.moveTo(px,py);pg.lineTo(px+Math.cos(a-fov)*160,py+Math.sin(a-fov)*160);pg.lineTo(px+Math.cos(a+fov)*160,py+Math.sin(a+fov)*160);pg.closePath();pg.fill();
+    pg.fillStyle='#C8452B';pg.beginPath();pg.arc(Math.min(plan.width-4,Math.max(4,px)),Math.min(plan.height-4,Math.max(4,py)),5,0,7);pg.fill();
+    const kmPx=1000/(cell*W)*plan.width;pg.fillStyle='#22302F';pg.fillRect(8,plan.height-16,kmPx,3);pg.font='600 18px system-ui';pg.fillText('1 km',8,plan.height-20);
+    document.getElementById('northG').setAttribute('transform',`rotate(${-controls.getAzimuthalAngle()*180/Math.PI} 22 22)`);}
 
   // ---------- stages ----------
   const S=[
-    {ice:null,bp:'0 BP (today)',title:'The valley as it is now',
-     b1:'A flat floor about 1,200 m above sea level, with walls that rise almost 1,000 m straight up. El Capitan on the left, Half Dome at the far end. The floor is flat because it is lake sediment, not rock: drilling found up to 600 m of fill under the meadows.',
-     b2:'Waterfalls drop from side valleys that end high on the walls. Turn the model and look at how sharp the edge is between floor and wall.',
-     look:['Switch on hillshade or 3D terrain and find the same sharp edge between floor and wall.','Measure from El Capitan Meadow (about 1,200 m) to the top of El Capitan (2,307 m).']},
-    {ice:{level:2280,slope:12,west:null},bp:'About 1,000,000 BP',title:'The Sherwin glaciation: ice to the rim',
-     b1:'This is the hard part to picture. The whole valley you just looked at was under ice, perhaps 1,500 m of it. Only the tops of El Capitan and Half Dome poked out. A glacier this thick is not a river of ice on the floor; it is a solid block that fills the entire valley and grinds every wall it touches.',
-     b2:'Tap the button on the model to see through the ice and check that the valley is still there underneath. This is the glacier that did most of the shaping.',
-     look:['Find the flat granite domes above the valley (Sentinel Dome, North Dome). Ice went over these.','Look at how straight the valley walls are compared with an ordinary river canyon.']},
-    {ice:{level:1760,slope:18,west:-119.662},bp:'About 20,000 BP',title:'The Tioga glaciation: a smaller glacier',
-     b1:'The last ice age glacier was much thinner and stopped near Bridalveil Meadow, where it left a ridge of rubble called a moraine. The upper walls stayed above the ice. Below it, the glacier polished the bedrock smooth.',
-     b2:'The valley already had its U shape from the earlier ice. This glacier mostly cleaned it out again.',
-     look:['Find the low ridge across the valley floor west of El Capitan: the Tioga moraine.','Compare the valley east of the moraine (glaciated) with the Merced canyon west of it (never glaciated).']},
-    {ice:{level:1228,slope:0,west:-119.664},lake:true,bp:'About 15,000 BP',title:'Lake Yosemite',
-     b1:'When the Tioga glacier melted, the moraine acted as a dam and the valley filled with water from wall to wall. The Merced River flowed in at the east end and out over the moraine at the west.',
-     b2:'Streams from the side valleys now dropped straight into the lake as waterfalls. Over thousands of years the lake filled with sand and gravel until it became the flat floor you see today.',
-     look:['Trace Yosemite Creek upstream from the top of the falls. Its valley is gentle, then it stops at the edge: a hanging valley.','Find the meanders of the Merced River on the flat floor.']}
+    {bp:'over 2,000,000 BP',title:'Before the ice: a river canyon',
+     b1:'The model can only show the land as it is now, so this stage has to be imagined. Long before any glacier, the Merced River had cut a narrow V-shaped canyon here, like the one it still runs in west of the valley today. There was no flat floor and no waterfalls dropping off the walls.',
+     b2:'The <a href="yosemite-valley.html">cross-section version</a> draws this stage and shows how the V became a U.',
+     look:['Follow the Merced River west out of the valley. The canyon it runs in past El Portal was never under ice, so it still has its V shape.']},
+    {ice:{level:2250,slope:12,west:-180},bp:'about 1,000,000 BP',title:'The Sherwin glaciation: ice to the rim',
+     b1:'This is the hard part to picture. Watch the ice rise. The whole valley disappears under something like 1,500 m of ice, and only the tops of El Capitan and Half Dome are left showing. Check the measuring post: it stands on the valley floor and the ice climbs past every mark on it.',
+     b2:'A glacier this thick is not a river of ice running along the floor. It is a solid mass that fills the valley from wall to wall and grinds every surface it touches. This is the glacier that did most of the shaping. The ice continued well beyond the edge of the model.',
+     look:['Find the rounded granite domes above the valley, such as Sentinel Dome and North Dome. Ice flowed over these.','Compare how straight the valley walls are with the winding canyon downstream.']},
+    {ice:{level:1760,slope:18,west:-119.662},bp:'about 20,000 BP',title:'The Tioga glaciation: a smaller glacier',
+     b1:'The last ice age glacier was much thinner. It stopped near Bridalveil Meadow, where it dumped a ridge of rock and gravel called a moraine. The upper walls stayed clear of the ice, and the measuring post shows the ice only reached about the 500 m mark.',
+     b2:'The valley already had its U shape from the Sherwin ice. This glacier polished the floor and cleaned it out again.',
+     look:['Find the low ridge across the valley floor west of El Capitan: the Tioga moraine.','Compare the valley east of the moraine, which was under ice, with the Merced canyon west of it, which never was.']},
+    {ice:{level:1228,slope:0,west:-119.664},lake:true,bp:'about 15,000 BP',title:'Lake Yosemite',
+     b1:'When the Tioga glacier melted, the moraine held the water back like a dam and the valley filled from wall to wall. The Merced River flowed in at the east end and spilled out over the moraine at the west.',
+     b2:'Streams from the side valleys now dropped straight into the lake as waterfalls. Over thousands of years the lake filled with sand and gravel until it became the flat floor of today.',
+     look:['Trace Yosemite Creek upstream from the top of the falls. Its valley is gentle, then it stops at the edge: a hanging valley.','Find the meanders of the Merced River on the flat floor.']},
+    {bp:'0 BP',title:'Today',
+     b1:'A flat floor about 1,200 m above sea level, with walls that rise almost 1,000 m. The floor is flat because it is lake sediment, not rock: drilling has found up to 600 m of fill under the meadows.',
+     b2:'Waterfalls drop from side valleys that end high on the walls. Turn the model and look at how sharp the edge is between floor and wall. The plan view in the corner shows which way you are looking.',
+     look:['Switch on hillshade or 3D terrain and find the same sharp edge between floor and wall.','Measure from El Capitan Meadow (about 1,200 m) to the top of El Capitan (2,307 m).']}
   ];
-  const $=id=>document.getElementById(id);
-  const peek=$('peek');let cur=0;
+  const $=id=>document.getElementById(id);const peek=$('peek');let cur=4,anim=null;
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
   function go(i){
-    cur=i;const s=S[i];
-    if(s.ice){setFill(s.ice.level,s.ice.slope,s.ice.west);fill.material=s.lake?lakeMat:iceMat;fill.visible=true;}
-    else fill.visible=false;
-    peek.style.display=(s.ice&&!s.lake)?'block':'none';peek.setAttribute('aria-pressed','false');iceMat.opacity=0.96;
-    $('bp').textContent=s.bp;$('title').textContent=s.title;$('b1').textContent=s.b1;$('b2').textContent=s.b2;
+    cur=i;const s=S[i];cancelAnimationFrame(anim);
+    if(s.ice){
+      fill.material=s.lake?lakeMat:iceMat;fill.visible=true;
+      const from=1150,t0=performance.now(),dur=reduce?0:(s.lake?1500:3200);
+      const step=now=>{const t=dur?Math.min(1,(now-t0)/dur):1,e=1-Math.pow(1-t,2);
+        applyFill(from+(s.ice.level-from)*e,s.ice.slope*e,s.ice.west,!!s.lake);updateLabels();if(t<1)anim=requestAnimationFrame(step);};
+      anim=requestAnimationFrame(step);
+    }else{fill.visible=false;curLevel=null;updateLabels();}
+    peek.style.display=(s.ice&&!s.lake)?'block':'none';peek.setAttribute('aria-pressed','false');iceMat.opacity=0.95;
+    $('title').textContent=s.title+' ('+s.bp+')';$('b1').textContent=s.b1;$('b2').innerHTML=s.b2;
     $('look').innerHTML=s.look.map(t=>`<li>${t}</li>`).join('');
     document.querySelectorAll('.timeline button').forEach(b=>b.setAttribute('aria-current',b.dataset.s==i?'true':'false'));
   }
   document.querySelectorAll('.timeline button').forEach(b=>b.addEventListener('click',()=>go(+b.dataset.s)));
-  peek.addEventListener('click',()=>{const on=peek.getAttribute('aria-pressed')!=='true';peek.setAttribute('aria-pressed',on);iceMat.opacity=on?0.3:0.96;});
+  peek.addEventListener('click',()=>{const on=peek.getAttribute('aria-pressed')!=='true';peek.setAttribute('aria-pressed',on);iceMat.opacity=on?0.3:0.95;});
   document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'&&cur<S.length-1)go(cur+1);if(e.key==='ArrowLeft'&&cur>0)go(cur-1);});
-
   function resize(){const w=view.clientWidth,ht=view.clientHeight;renderer.setSize(w,ht,false);camera.aspect=w/ht;camera.updateProjectionMatrix();}
-  addEventListener('resize',resize);resize();
-  $('loading').remove();go(0);
-  (function loop(){requestAnimationFrame(loop);controls.update();renderer.render(scene,camera);})();
+  addEventListener('resize',resize);resize();$('loading').remove();go(4);
+  (function loop(){requestAnimationFrame(loop);controls.update();renderer.render(scene,camera);drawPlan();})();
 })();
 </script>
 </body>
