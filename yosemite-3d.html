@@ -6,20 +6,42 @@
 <title>Yosemite Valley in 3D: filled with ice</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&display=swap" rel="stylesheet">
 <style>
-  :root{--paper:#F3F4F0;--ink:#22302F;--ink-2:#5C6866;--rule:#C9CEC8;--water:#2F6F8F}
+  :root{--paper:#F3F4F0;--ink:#22302F;--ink-2:#5C6866;--rule:#C9CEC8;--water:#2F6F8F;--panel:400px}
   *{box-sizing:border-box}
-  html,body{margin:0;height:100%;background:var(--paper);color:var(--ink);font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:16px;line-height:1.5}
-  #app{display:grid;grid-template-rows:auto auto auto;min-height:100%}
-  header{padding:12px 20px 8px;border-bottom:1px solid var(--ink)}
+  html,body{margin:0;height:100%;background:var(--paper);color:var(--ink);font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:15px;line-height:1.5}
+  #app{display:grid;grid-template-columns:var(--panel) minmax(0,1fr);height:100vh}
+  #panel{display:flex;flex-direction:column;gap:14px;padding:18px 22px 16px;border-right:1px solid var(--ink);overflow-y:auto;min-height:0}
   h1{font-size:22px;font-weight:600;margin:0;line-height:1.2}
-  header p{margin:2px 0 0;color:var(--ink-2);font-size:14px}
-  #view{position:relative;height:62vh;min-height:340px;background:#E4E9EA;overflow:hidden}
+  .lede{margin:-8px 0 0;color:var(--ink-2);font-size:13.5px}
+  .stages{list-style:none;margin:0;padding:0;position:relative}
+  .stages::before{content:"";position:absolute;left:11px;top:14px;bottom:14px;width:1px;background:var(--ink)}
+  .stages li{margin:0 0 4px}
+  .stages button{display:flex;align-items:center;gap:12px;width:100%;text-align:left;font:inherit;padding:6px 10px 6px 4px;border:1px solid transparent;border-radius:3px;background:transparent;color:var(--ink);cursor:pointer;position:relative}
+  .stages button:hover{background:#E6E9E4;border-color:var(--rule)}
+  .stages button:focus-visible{outline:2px solid var(--water);outline-offset:1px}
+  .stages .dot{flex:none;width:15px;height:15px;border-radius:50%;background:var(--paper);border:1.5px solid var(--ink);position:relative;z-index:1}
+  .stages .t{display:flex;flex-direction:column;line-height:1.2}
+  .stages b{font-weight:600;font-size:15px}.stages small{font-size:12.5px;color:var(--ink-2)}
+  .stages button::after{content:"›";margin-left:auto;font-size:20px;color:var(--ink-2);line-height:1}
+  .stages button[aria-current="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .stages button[aria-current="true"] .dot{background:var(--paper)}
+  .stages button[aria-current="true"] small,.stages button[aria-current="true"]::after{color:#C9CEC8}
+  .info{border-top:1px solid var(--rule);padding-top:12px}
+  h2{font-size:17px;font-weight:600;margin:0 0 6px}
+  .info p{margin:0 0 8px}
+  .info p a{color:var(--water)}
+  .look{border-left:2px solid var(--water);padding:0 0 0 12px;margin-top:10px}
+  .look h3{font-size:13px;font-weight:600;margin:0 0 4px;color:var(--water)}
+  .look ul{margin:0;padding-left:16px}.look li{font-size:13.5px;margin-bottom:4px}
+  .links{margin-top:auto;padding-top:12px;border-top:1px solid var(--rule);display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .links a{font-size:13.5px;text-decoration:none;padding:7px 12px;border-radius:2px;border:1px solid var(--water);color:var(--water)}
+  .links a.primary{background:var(--water);color:#fff}
+  .links span{font-size:12px;color:var(--ink-2);flex-basis:100%}
+  #view{position:relative;background:#E4E9EA;overflow:hidden;min-height:0}
   canvas.gl{display:block;width:100%;height:100%}
   #loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--ink-2);font-size:15px;background:#E4E9EA;z-index:5}
-  .chip{position:absolute;font-size:12px;color:var(--ink-2);background:rgba(243,244,240,.88);padding:4px 8px;border-radius:2px}
-  #hint{left:12px;bottom:10px}
-  #peek{position:absolute;right:12px;top:12px;font:inherit;font-size:13px;padding:7px 12px;border:1px solid var(--ink);background:rgba(243,244,240,.92);color:var(--ink);border-radius:2px;cursor:pointer;display:none}
-  #peek[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+  .chip{position:absolute;font-size:11.5px;color:var(--ink-2);background:rgba(243,244,240,.88);padding:4px 8px;border-radius:2px}
+  #hint{left:12px;bottom:10px;max-width:70%}
   #inset{position:absolute;left:12px;top:12px;display:flex;gap:6px;background:rgba(243,244,240,.92);padding:6px;border:1px solid var(--rule);border-radius:2px}
   #inset .m{position:relative;width:110px;height:110px;overflow:hidden;background:#dde}
   #inset .m img{position:absolute;inset:0;width:100%;height:100%;display:block}
@@ -27,61 +49,40 @@
   #inset .cap{position:absolute;left:0;right:0;bottom:0;font-size:9px;color:#fff;background:rgba(34,48,47,.6);padding:1px 3px;line-height:1.2}
   #plan{width:132px;height:110px;display:block;background:#cfd3cc}
   #north{position:absolute;right:12px;bottom:12px;width:44px;height:44px}
-  footer{border-top:1px solid var(--ink);padding:10px 20px 16px;display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:6px 28px}
-  .timeline{grid-column:1/-1;position:relative;height:64px;margin:4px 0 6px}
-  .timeline .bar{position:absolute;left:0;right:0;top:50px;height:1px;background:var(--ink)}
-  .timeline button{position:absolute;top:0;transform:translateX(-50%);font:inherit;font-size:12.5px;line-height:1.2;background:transparent;border:0;padding:0;color:var(--ink-2);cursor:pointer;width:150px;text-align:center;white-space:nowrap}
-  .timeline button b{display:block;font-weight:600;font-size:14px}
-  .timeline button::after{content:"";display:block;width:9px;height:9px;border-radius:50%;background:var(--paper);border:1.5px solid var(--ink);margin:0 auto;position:absolute;left:50%;top:46px;transform:translateX(-50%)}
-  .timeline button[aria-current="true"]{color:var(--ink)}
-  .timeline button[aria-current="true"]::after{background:var(--ink)}
-  .timeline button:focus-visible{outline:2px solid var(--water);outline-offset:2px}
-  h2{font-size:19px;font-weight:600;margin:0 0 6px}
-  footer p{margin:0 0 8px;max-width:58ch;font-size:15px}
-  footer p a{color:var(--water)}
-  .look{border-left:2px solid var(--water);padding:0 0 0 14px;align-self:start}
-  .look h3{font-size:14px;font-weight:600;margin:0 0 4px;color:var(--water)}
-  .look ul{margin:0;padding-left:16px}.look li{font-size:14px;margin-bottom:4px}
-  .links{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding-top:4px}
-  .links a{font-size:14px;text-decoration:none;padding:8px 14px;border-radius:2px;border:1px solid var(--water);color:var(--water)}
-  .links a.primary{background:var(--water);color:#fff}
-  .links span{font-size:12.5px;color:var(--ink-2)}
-  @media (max-width:700px){footer{grid-template-columns:1fr}#view{height:48vh}.timeline button{width:80px;font-size:10.5px;white-space:normal}.timeline button b{font-size:12px}#inset{transform:scale(.7);transform-origin:top left}}
+  @media (max-width:800px){#app{grid-template-columns:1fr;grid-template-rows:52vh minmax(0,1fr);height:100vh}#view{order:-1}#panel{border-right:0;border-top:1px solid var(--ink)}#inset{transform:scale(.7);transform-origin:top left}}
 </style>
 </head>
 <body>
 <div id="app">
-  <header>
+  <aside id="panel">
     <h1>Yosemite Valley, filled with ice</h1>
-    <p>Real terrain and satellite imagery. Drag to turn, scroll or pinch to zoom.</p>
-  </header>
+    <p class="lede">Real terrain and satellite imagery. Drag the model to turn it, scroll or pinch to zoom.</p>
+    <ol class="stages" aria-label="Stages: choose one">
+      <li><button data-s="0"><span class="dot"></span><span class="t"><b>Before the ice</b><small>over 2,000,000 BP</small></span></button></li>
+      <li><button data-s="1"><span class="dot"></span><span class="t"><b>Sherwin glaciation</b><small>about 1,000,000 BP</small></span></button></li>
+      <li><button data-s="2"><span class="dot"></span><span class="t"><b>Tioga glaciation</b><small>about 20,000 BP</small></span></button></li>
+      <li><button data-s="3"><span class="dot"></span><span class="t"><b>Lake Yosemite</b><small>about 15,000 BP</small></span></button></li>
+      <li><button data-s="4" aria-current="true"><span class="dot"></span><span class="t"><b>Today</b><small>0 BP</small></span></button></li>
+    </ol>
+    <div class="info">
+      <h2 id="title"></h2><p id="b1"></p><p id="b2"></p>
+      <div class="look"><h3>Look for this in MapMaker</h3><ul id="look"></ul></div>
+    </div>
+    <div class="links">
+      <a class="primary" href="https://www.arcgis.com/apps/instant/atlas/index.html?appid=0cd1cdee853c413a84bfe4b9a6931f0d&center=-119.6350,37.7250&level=13" target="_blank" rel="noopener">Open in MapMaker</a>
+      <a id="xsLink" href="yosemite-valley.html">Cross-section</a>
+      <span>BP: years before present, from 1950.</span>
+    </div>
+  </aside>
   <div id="view">
     <div id="loading">Loading terrain…</div>
     <div id="inset">
       <div class="m"><img id="insetImg" alt="Location map: Yosemite Valley in eastern California"><div class="dot" id="insetDot"></div><div class="cap">Yosemite, California. Map: Esri</div></div>
       <canvas id="plan" width="264" height="220" aria-label="Plan view of the model showing the camera position"></canvas>
     </div>
-    <button id="peek" aria-pressed="false">See through the ice</button>
-    <div id="hint" class="chip">Heights ×1.5 so the valley reads on a small screen. <span id="attrib"></span></div>
+    <div id="hint" class="chip">Heights ×1.5. <span id="attrib"></span></div>
     <svg id="north" viewBox="0 0 44 44" aria-label="North arrow"><circle cx="22" cy="22" r="20" fill="rgba(243,244,240,.88)" stroke="#5C6866"/><g id="northG"><path d="M22 5 L27 22 L22 19 L17 22 Z" fill="#22302F"/><text x="22" y="36" text-anchor="middle" font-size="11" fill="#22302F">N</text></g></svg>
   </div>
-  <footer>
-    <div class="timeline" role="tablist" aria-label="Timeline">
-      <div class="bar"></div>
-      <button data-s="0" style="left:8%"><b>Before the ice</b>over 2,000,000 BP</button>
-      <button data-s="1" style="left:29%"><b>Sherwin ice</b>about 1,000,000 BP</button>
-      <button data-s="2" style="left:50%"><b>Tioga ice</b>about 20,000 BP</button>
-      <button data-s="3" style="left:71%"><b>Lake Yosemite</b>about 15,000 BP</button>
-      <button data-s="4" style="left:92%" aria-current="true"><b>Today</b>0 BP</button>
-    </div>
-    <div><h2 id="title"></h2><p id="b1"></p><p id="b2"></p></div>
-    <aside class="look"><h3>Look for this in MapMaker</h3><ul id="look"></ul></aside>
-    <div class="links">
-      <a class="primary" href="https://www.arcgis.com/apps/instant/atlas/index.html?appid=0cd1cdee853c413a84bfe4b9a6931f0d&center=-119.6350,37.7250&level=13" target="_blank" rel="noopener">Open Yosemite Valley in MapMaker</a>
-      <a id="xsLink" href="yosemite-valley.html">Cross-section version</a>
-      <span>BP means years before present, counted from 1950.</span>
-    </div>
-  </footer>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
@@ -216,7 +217,7 @@
   const lakeMat=new THREE.MeshPhongMaterial({vertexColors:true,shininess:90,transparent:true,opacity:0.9});
   const fill=new THREE.Mesh(fillGeo,iceMat);fill.visible=false;fill.renderOrder=1;scene.add(fill);
   const FP=fillGeo.attributes.position;
-  const iceThin=new THREE.Color(0xEEF4F6),iceThick=new THREE.Color(0x8FB2C6),lakeShallow=new THREE.Color(0x6FA3BD),lakeDeep=new THREE.Color(0x1F567A);
+  const iceThin=new THREE.Color(0xEEF4F6),iceThick=new THREE.Color(0x6F98B0),lakeShallow=new THREE.Color(0x6FA3BD),lakeDeep=new THREE.Color(0x1F567A);
   let curLevel=null; // function k -> surface elevation, or null
   function applyFill(levelEast,slopePerKm,westLimitLon,isLake){
     const lv=k=>{const l=levelEast-slopePerKm*kmFromEast(k);return lonOf(k)<westLimitLon?-1e4:l;};
@@ -224,7 +225,7 @@
     for(let k=0;k<W*R;k++){
       const on=mask[k]===1,l=lv(k);
       FP.setY(k,(on?l:h[k]-60)*EXAG/U);
-      const t=on?Math.min(1,(l-h[k])/(isLake?300:1500)):0;
+      const t=on?Math.min(1,(l-h[k])/(isLake?300:1200)):0;
       const c=isLake?lakeShallow.clone().lerp(lakeDeep,t):iceThin.clone().lerp(iceThick,t);
       fcol[k*3]=c.r;fcol[k*3+1]=c.g;fcol[k*3+2]=c.b;
     }
@@ -239,14 +240,6 @@
   const labels=places.map(([t,lon,lat])=>{const s=sprite(t,40,'#22302F');const [i,j]=ij(lon,lat);const e=groundAt(lon,lat);
     s.position.copy(toScene(i,j,e+90));s.userData={k:Math.round(j)*W+Math.round(i),e};scene.add(s);return s;});
   function updateLabels(){for(const s of labels){s.visible=!(curLevel&&mask[s.userData.k]&&curLevel(s.userData.k)>s.userData.e+30);}}
-
-  // ---------- measuring post at El Capitan Meadow: 0 to 1,500 m above the floor ----------
-  const post=new THREE.Group();{const [pi,pj]=ij(-119.6350,37.7235);const g0=groundAt(-119.6350,37.7235);
-    const base=toScene(pi,pj,g0);const hgt=1500*EXAG/U;
-    const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.2,hgt,8),new THREE.MeshBasicMaterial({color:0x22302F,depthTest:false}));pole.position.set(base.x,base.y+hgt/2,base.z);pole.renderOrder=2;post.add(pole);
-    for(let m=0;m<=1500;m+=500){const ring=new THREE.Mesh(new THREE.TorusGeometry(0.7,0.12,6,24),new THREE.MeshBasicMaterial({color:m?0xC8452B:0x22302F,depthTest:false}));ring.rotation.x=Math.PI/2;ring.position.set(base.x,base.y+m*EXAG/U,base.z);ring.renderOrder=2;post.add(ring);
-      const lab=sprite(m?m.toLocaleString()+' m above the floor':'valley floor',40,m?'#C8452B':'#22302F');lab.scale.set(0.3,0.056,1);lab.position.set(base.x,base.y+m*EXAG/U+0.6,base.z);post.add(lab);}
-    scene.add(post);}
 
   camera.position.set(-sx*0.58,sx*0.24,sy*0.6);controls.target.set(0,12,0);
 
@@ -269,11 +262,11 @@
      b2:'One more thing was already decided: the granite is cracked in some places and solid in others. The cracked rock is what the glaciers would later pull away. The solid blocks, El Capitan and Half Dome, are what they left behind. The <a class="xs" href="yosemite-valley.html">cross-section version</a> draws this stage and shows how the V became a U.',
      look:['Follow the Merced River west out of the valley. The canyon it runs in past El Portal was never under ice, so it still has its V shape.','Look at El Capitan in the imagery: one smooth face with almost no cracks. Then look at the broken, stepped walls either side of it.']},
     {ice:{level:2250,slope:12,west:-180},bp:'about 1,000,000 BP',title:'The Sherwin glaciation: ice to the rim',
-     b1:'This is the hard part to picture. Watch the ice rise. The whole valley disappears under something like 1,500 m of ice, and only the tops of El Capitan and Half Dome are left showing. Check the measuring post: it stands on the valley floor and the ice climbs past every mark on it.',
+     b1:'This is the hard part to picture. Watch the ice rise. The whole valley disappears under something like 1,500 m of ice, and only the tops of El Capitan and Half Dome are left showing. Where the ice is deepest it is drawn a darker blue.',
      b2:'A glacier this thick is not a river of ice running along the floor. It is a solid mass that fills the valley from wall to wall and grinds every surface it touches. This is the glacier that did most of the shaping. The ice continued well beyond the edge of the model.',
      look:['Find the rounded granite domes above the valley, such as Sentinel Dome and North Dome. Ice flowed over these.','Compare how straight the valley walls are with the winding canyon downstream.']},
     {ice:{level:1760,slope:18,west:-119.662},bp:'about 20,000 BP',title:'The Tioga glaciation: a smaller glacier',
-     b1:'The last ice age glacier was much thinner. It stopped near Bridalveil Meadow, where it dumped a ridge of rock and gravel called a moraine. The upper walls stayed clear of the ice, and the measuring post shows the ice only reached about the 500 m mark.',
+     b1:'The last ice age glacier was much thinner. It stopped near Bridalveil Meadow, where it dumped a ridge of rock and gravel called a moraine. The upper walls stayed clear of the ice: it was roughly 500 m thick over the floor, a third of the Sherwin ice.',
      b2:'The valley already had its U shape from the Sherwin ice. This glacier polished the floor and cleaned it out again.',
      look:['Find the low ridge across the valley floor west of El Capitan: the Tioga moraine.','Compare the valley east of the moraine, which was under ice, with the Merced canyon west of it, which never was.']},
     {ice:{level:1228,slope:0,west:-119.664},lake:true,bp:'about 15,000 BP',title:'Lake Yosemite',
@@ -285,7 +278,7 @@
      b2:'Waterfalls drop from side valleys that end high on the walls. Turn the model and look at how sharp the edge is between floor and wall. The plan view in the corner shows which way you are looking.',
      look:['Switch on hillshade or 3D terrain and find the same sharp edge between floor and wall.','Measure from El Capitan Meadow (about 1,200 m) to the top of El Capitan (2,307 m).']}
   ];
-  const $=id=>document.getElementById(id);const peek=$('peek');let cur=4,anim=null;
+  const $=id=>document.getElementById(id);let cur=4,anim=null;
   const XS=qs.get('xs')||'yosemite-valley.html';   // ?xs=<url> if the cross-section page lives elsewhere
   $('xsLink').href=XS;
   const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -298,13 +291,11 @@
         applyFill(from+(s.ice.level-from)*e,s.ice.slope*e,s.ice.west,!!s.lake);updateLabels();if(t<1)anim=requestAnimationFrame(step);};
       anim=requestAnimationFrame(step);
     }else{fill.visible=false;curLevel=null;updateLabels();}
-    peek.style.display=(s.ice&&!s.lake)?'block':'none';peek.setAttribute('aria-pressed','false');iceMat.opacity=0.95;
-    $('title').textContent=s.title+' ('+s.bp+')';$('b1').textContent=s.b1;$('b2').innerHTML=s.b2;
+    $('title').textContent=s.title;$('b1').textContent=s.b1;$('b2').innerHTML=s.b2;
     $('look').innerHTML=s.look.map(t=>`<li>${t}</li>`).join('');document.querySelectorAll('a.xs').forEach(a=>a.href=XS);
-    document.querySelectorAll('.timeline button').forEach(b=>b.setAttribute('aria-current',b.dataset.s==i?'true':'false'));
+    document.querySelectorAll('.stages button').forEach(b=>b.setAttribute('aria-current',b.dataset.s==i?'true':'false'));
   }
-  document.querySelectorAll('.timeline button').forEach(b=>b.addEventListener('click',()=>go(+b.dataset.s)));
-  peek.addEventListener('click',()=>{const on=peek.getAttribute('aria-pressed')!=='true';peek.setAttribute('aria-pressed',on);iceMat.opacity=on?0.3:0.95;});
+  document.querySelectorAll('.stages button').forEach(b=>b.addEventListener('click',()=>go(+b.dataset.s)));
   document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'&&cur<S.length-1)go(cur+1);if(e.key==='ArrowLeft'&&cur>0)go(cur-1);});
   function resize(){const w=view.clientWidth,ht=view.clientHeight;renderer.setSize(w,ht,false);camera.aspect=w/ht;camera.updateProjectionMatrix();}
   addEventListener('resize',resize);resize();$('loading').remove();go(4);
