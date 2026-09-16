@@ -10,33 +10,33 @@
   *{box-sizing:border-box}
   html,body{margin:0;height:100%;background:var(--paper);color:var(--ink);font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:15px;line-height:1.5}
   #app{display:grid;grid-template-columns:var(--panel) minmax(0,1fr);height:100vh}
-  #panel{display:flex;flex-direction:column;gap:14px;padding:18px 22px 16px;border-right:1px solid var(--ink);overflow-y:auto;min-height:0}
-  h1{font-size:22px;font-weight:600;margin:0;line-height:1.2}
-  .lede{margin:-8px 0 0;color:var(--ink-2);font-size:13.5px}
+  #panel{display:flex;flex-direction:column;gap:10px;padding:14px 18px 12px;border-right:1px solid var(--ink);overflow:hidden;min-height:0}
+  h1{font-size:19px;font-weight:600;margin:0;line-height:1.2}
+  .lede{margin:-6px 0 0;color:var(--ink-2);font-size:12.5px}
   .stages{list-style:none;margin:0;padding:0;position:relative}
-  .stages::before{content:"";position:absolute;left:11px;top:14px;bottom:14px;width:1px;background:var(--ink)}
-  .stages li{margin:0 0 4px}
-  .stages button{display:flex;align-items:center;gap:12px;width:100%;text-align:left;font:inherit;padding:6px 10px 6px 4px;border:1px solid transparent;border-radius:3px;background:transparent;color:var(--ink);cursor:pointer;position:relative}
+  .stages::before{content:"";position:absolute;left:11px;top:12px;bottom:12px;width:1px;background:var(--ink)}
+  .stages li{margin:0 0 2px}
+  .stages button{display:flex;align-items:center;gap:12px;width:100%;text-align:left;font:inherit;padding:4px 8px 4px 4px;border:1px solid transparent;border-radius:3px;background:transparent;color:var(--ink);cursor:pointer;position:relative}
   .stages button:hover{background:#E6E9E4;border-color:var(--rule)}
   .stages button:focus-visible{outline:2px solid var(--water);outline-offset:1px}
-  .stages .dot{flex:none;width:15px;height:15px;border-radius:50%;background:var(--paper);border:1.5px solid var(--ink);position:relative;z-index:1}
-  .stages .t{display:flex;flex-direction:column;line-height:1.2}
-  .stages b{font-weight:600;font-size:15px}.stages small{font-size:12.5px;color:var(--ink-2)}
-  .stages button::after{content:"›";margin-left:auto;font-size:20px;color:var(--ink-2);line-height:1}
+  .stages .dot{flex:none;width:13px;height:13px;border-radius:50%;background:var(--paper);border:1.5px solid var(--ink);position:relative;z-index:1}
+  .stages .t{display:flex;align-items:baseline;gap:8px;line-height:1.3}
+  .stages b{font-weight:600;font-size:14px}.stages small{font-size:12px;color:var(--ink-2)}
+  .stages button::after{content:"›";margin-left:auto;font-size:18px;color:var(--ink-2);line-height:1}
   .stages button[aria-current="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
   .stages button[aria-current="true"] .dot{background:var(--paper)}
   .stages button[aria-current="true"] small,.stages button[aria-current="true"]::after{color:#C9CEC8}
-  .info{border-top:1px solid var(--rule);padding-top:12px}
-  h2{font-size:17px;font-weight:600;margin:0 0 6px}
-  .info p{margin:0 0 8px}
+  .info{border-top:1px solid var(--rule);padding-top:10px;flex:1 1 auto;min-height:0;overflow-y:auto}
+  h2{font-size:16px;font-weight:600;margin:0 0 4px}
+  .info p{margin:0 0 6px;font-size:14.5px}
   .info p a{color:var(--water)}
-  .look{border-left:2px solid var(--water);padding:0 0 0 12px;margin-top:10px}
+  .look{border-left:2px solid var(--water);padding:0 0 0 12px;margin-top:8px}
   .look h3{font-size:13px;font-weight:600;margin:0 0 4px;color:var(--water)}
-  .look ul{margin:0;padding-left:16px}.look li{font-size:13.5px;margin-bottom:4px}
-  .links{margin-top:auto;padding-top:12px;border-top:1px solid var(--rule);display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .look ul{margin:0;padding-left:16px}.look li{font-size:13px;margin-bottom:3px}
+  .links{flex:none;padding-top:10px;border-top:1px solid var(--rule);display:flex;flex-wrap:wrap;gap:8px;align-items:center}
   .links a{font-size:13.5px;text-decoration:none;padding:7px 12px;border-radius:2px;border:1px solid var(--water);color:var(--water)}
   .links a.primary{background:var(--water);color:#fff}
-  .links span{font-size:12px;color:var(--ink-2);flex-basis:100%}
+  .links span{font-size:11.5px;color:var(--ink-2);flex-basis:100%}
   #view{position:relative;background:#E4E9EA;overflow:hidden;min-height:0}
   canvas.gl{display:block;width:100%;height:100%}
   #loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--ink-2);font-size:15px;background:#E4E9EA;z-index:5}
@@ -71,7 +71,7 @@
     <div class="links">
       <a class="primary" href="https://www.arcgis.com/apps/instant/atlas/index.html?appid=0cd1cdee853c413a84bfe4b9a6931f0d&center=-119.6350,37.7250&level=13" target="_blank" rel="noopener">Open in MapMaker</a>
       <a id="xsLink" href="yosemite-valley.html">Cross-section</a>
-      <span>BP: years before present, from 1950.</span>
+      <span>BP = years before now.</span>
     </div>
   </aside>
   <div id="view">
@@ -257,26 +257,26 @@
 
   // ---------- stages ----------
   const S=[
-    {bp:'over 2,000,000 BP',title:'Before the ice: a river canyon',
-     b1:'The model can only show the land as it is now, so this stage has to be imagined. The granite formed deep underground about 100 million years ago. Much later the whole Sierra Nevada was tilted up along its eastern edge, which steepened the Merced River and set it cutting down into the rock. By the time the ice came, the river had made a narrow V-shaped canyon, like the one it still runs in west of the valley today. No flat floor, no waterfalls dropping off the walls.',
-     b2:'One more thing was already decided: the granite is cracked in some places and solid in others. The cracked rock is what the glaciers would later pull away. The solid blocks, El Capitan and Half Dome, are what they left behind. The <a class="xs" href="yosemite-valley.html">cross-section version</a> draws this stage and shows how the V became a U.',
-     look:['Follow the Merced River west out of the valley. The canyon it runs in past El Portal was never under ice, so it still has its V shape.','Look at El Capitan in the imagery: one smooth face with almost no cracks. Then look at the broken, stepped walls either side of it.']},
-    {ice:{level:2250,slope:12,west:-180},bp:'about 1,000,000 BP',title:'The Sherwin glaciation: ice to the rim',
-     b1:'This is the hard part to picture. Watch the ice rise. The whole valley disappears under something like 1,500 m of ice, and only the tops of El Capitan and Half Dome are left showing. Where the ice is deepest it is drawn a darker blue.',
-     b2:'A glacier this thick is not a river of ice running along the floor. It is a solid mass that fills the valley from wall to wall and grinds every surface it touches. This is the glacier that did most of the shaping. The ice continued well beyond the edge of the model.',
-     look:['Find the rounded granite domes above the valley, such as Sentinel Dome and North Dome. Ice flowed over these.','Compare how straight the valley walls are with the winding canyon downstream.']},
-    {ice:{level:1760,slope:18,west:-119.662},bp:'about 20,000 BP',title:'The Tioga glaciation: a smaller glacier',
-     b1:'The last ice age glacier was much thinner. It stopped near Bridalveil Meadow, where it dumped a ridge of rock and gravel called a moraine. The upper walls stayed clear of the ice: it was roughly 500 m thick over the floor, a third of the Sherwin ice.',
-     b2:'The valley already had its U shape from the Sherwin ice. This glacier polished the floor and cleaned it out again.',
-     look:['Find the low ridge across the valley floor west of El Capitan: the Tioga moraine.','Compare the valley east of the moraine, which was under ice, with the Merced canyon west of it, which never was.']},
+    {bp:'over 2,000,000 BP',title:'Before the ice',
+     b1:'The model shows the land as it is now, so you have to imagine this stage. Long ago the Sierra Nevada was pushed up. That made the Merced River run faster and cut down into the hard granite.',
+     b2:'It cut a deep, narrow canyon shaped like a V. There was no flat floor and no waterfalls yet. The <a class="xs" href="yosemite-valley.html">cross-section</a> shows this stage.',
+     look:['Follow the Merced River west out of the valley. Its canyon there was never under ice. It is still a V.']},
+    {ice:{level:2250,slope:12,west:-180},bp:'about 1,000,000 BP',title:'Sherwin glaciation',
+     b1:'Watch the ice rise. The whole valley fills up. The ice is about 1,500 m thick. Only the tops of El Capitan and Half Dome stick out.',
+     b2:'Ice this thick does not flow along the floor like a river. It fills the valley from wall to wall and grinds every surface. This ice did most of the shaping.',
+     look:['Find the rounded domes above the valley, like Sentinel Dome. Ice flowed right over them.']},
+    {ice:{level:1760,slope:18,west:-119.662},bp:'about 20,000 BP',title:'Tioga glaciation',
+     b1:'The last glacier was smaller, about 500 m thick. It stopped near Bridalveil Meadow and left a ridge of rock and gravel there. That ridge is called a moraine.',
+     b2:'The upper walls stayed above the ice. The valley already had its U shape. This glacier polished the floor.',
+     look:['Find the low ridge across the valley west of El Capitan. That is the moraine.']},
     {ice:{level:1228,slope:0,west:-119.664},lake:true,bp:'about 15,000 BP',title:'Lake Yosemite',
-     b1:'When the Tioga glacier melted, the moraine held the water back like a dam and the valley filled from wall to wall. The Merced River flowed in at the east end and spilled out over the moraine at the west.',
-     b2:'Streams from the side valleys now dropped straight into the lake as waterfalls. Over thousands of years the lake filled with sand and gravel until it became the flat floor of today.',
-     look:['Trace Yosemite Creek upstream from the top of the falls. Its valley is gentle, then it stops at the edge: a hanging valley.','Find the meanders of the Merced River on the flat floor.']},
+     b1:'The glacier melted. The moraine held the water back like a dam, and a lake filled the valley.',
+     b2:'Streams from the side valleys now fell straight into the lake. Those are the waterfalls. Slowly the lake filled up with sand and mud.',
+     look:['Look at Yosemite Falls. Trace the creek above it. Its valley stops at the edge and drops off.']},
     {bp:'0 BP',title:'Today',
-     b1:'A flat floor about 1,200 m above sea level, with walls that rise almost 1,000 m. The floor is flat because it is lake sediment, not rock: drilling has found up to 600 m of fill under the meadows.',
-     b2:'Waterfalls drop from side valleys that end high on the walls. Turn the model and look at how sharp the edge is between floor and wall. The plan view in the corner shows which way you are looking.',
-     look:['Switch on hillshade or 3D terrain and find the same sharp edge between floor and wall.','Measure from El Capitan Meadow (about 1,200 m) to the top of El Capitan (2,307 m).']}
+     b1:'The lake is gone. Its mud and sand make the flat floor, about 1,200 m above the sea. Under the meadows there is up to 600 m of it before you reach rock.',
+     b2:'The walls rise almost 1,000 m straight up. Turn the model and look at the sharp edge between floor and wall.',
+     look:['Measure from El Capitan Meadow (about 1,200 m) to the top of El Capitan (2,307 m).','Turn on the land cover layer. Forest and meadow on the floor, bare rock on the walls.']}
   ];
   const $=id=>document.getElementById(id);let cur=4,anim=null;
   const XS=qs.get('xs')||'yosemite-valley.html';   // ?xs=<url> if the cross-section page lives elsewhere
