@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Landforms Uncovered: how the land was made</title>
+<link rel="stylesheet" href="https://js.arcgis.com/4.34/esri/themes/dark/main.css">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{color-scheme:dark;--bg:#101c24;--panel:#14262f;--line:#33454e;--text:#f2f5ef;--muted:#b3c2c7;--lime:#ddf58b;--ice:#bfe0f0;--panelw:400px}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:15px;line-height:1.5}
+  button{font:inherit;cursor:pointer;color:inherit;background:transparent;border:1px solid var(--line);border-radius:8px;padding:9px 13px}
+  button:hover{border-color:var(--lime)}button:focus-visible{outline:3px solid var(--lime);outline-offset:2px}
+  header{height:64px;display:flex;align-items:center;gap:18px;padding:0 20px;border-bottom:1px solid var(--line)}
+  .brand{font-size:19px;font-weight:600;letter-spacing:-.3px}.brand b{color:var(--lime);font-weight:800;letter-spacing:1px;text-transform:uppercase}
+  .stats{margin-left:auto;font-size:13px;display:flex;gap:18px}.stats b{color:var(--lime);font-size:19px;margin-right:4px}
+  #app{display:grid;grid-template-columns:var(--panelw) minmax(0,1fr);height:calc(100% - 64px)}
+  aside{display:flex;flex-direction:column;gap:10px;padding:14px 18px 12px;background:var(--panel);border-right:1px solid var(--line);overflow:hidden;min-height:0}
+  .sites{display:flex;gap:6px;flex-wrap:wrap}
+  .sites button{font-size:13px;padding:6px 11px;border-radius:20px}
+  .sites button[aria-current="true"]{background:var(--lime);color:#18241b;border-color:var(--lime);font-weight:600}
+  h1{font-size:19px;font-weight:600;margin:0;line-height:1.2}
+  .lede{margin:-6px 0 0;color:var(--muted);font-size:12.5px}
+  .stages{list-style:none;margin:0;padding:0;position:relative}
+  .stages::before{content:"";position:absolute;left:11px;top:12px;bottom:12px;width:1px;background:var(--line)}
+  .stages li{margin:0 0 2px}
+  .stages button{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:4px 8px 4px 4px;border:1px solid transparent;border-radius:6px;position:relative}
+  .stages button:hover{background:#ffffff0c;border-color:var(--line)}
+  .stages .dot{flex:none;width:13px;height:13px;border-radius:50%;background:var(--panel);border:1.5px solid var(--text);position:relative;z-index:1}
+  .stages .t{display:flex;align-items:baseline;gap:8px;line-height:1.3}
+  .stages b{font-weight:600;font-size:14px}.stages small{font-size:12px;color:var(--muted)}
+  .stages button::after{content:"›";margin-left:auto;font-size:18px;color:var(--muted);line-height:1}
+  .stages button[aria-current="true"]{background:var(--lime);color:#18241b;border-color:var(--lime)}
+  .stages button[aria-current="true"] .dot{background:#18241b;border-color:#18241b}
+  .stages button[aria-current="true"] small,.stages button[aria-current="true"]::after{color:#3b4a3b}
+  .info{border-top:1px solid var(--line);padding-top:10px;flex:1 1 auto;min-height:0;overflow-y:auto}
+  h2{font-size:16px;font-weight:600;margin:0 0 4px}
+  .info p{margin:0 0 6px;font-size:14.5px}
+  .look{border-left:2px solid var(--lime);padding:0 0 0 12px;margin-top:8px}
+  .look h3{font-size:12.5px;font-weight:600;margin:0 0 4px;color:var(--lime);letter-spacing:1px;text-transform:uppercase}
+  .look ul{margin:0;padding-left:16px}.look li{font-size:13px;margin-bottom:3px;color:#d0dcdc}
+  .quiz{border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:10px;background:#192e38}
+  .quiz h3{margin:0 0 6px;font-size:14px}.quiz .q{margin:0 0 8px;font-size:14px}
+  .quiz .opts{display:grid;gap:6px}.quiz .opts button{text-align:left;font-size:13.5px;padding:8px 10px;background:#14262f}
+  .quiz .opts button.correct{border-color:var(--lime);background:#344735}.quiz .opts button.wrong{border-color:#f1a494;background:#4c3434}
+  .quiz .fb{font-size:13px;color:var(--lime);margin:8px 0 0}
+  .links{flex:none;padding-top:10px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .links a{font-size:13.5px;text-decoration:none;padding:7px 12px;border-radius:8px;border:1px solid var(--lime);color:var(--lime)}
+  .links a.primary{background:var(--lime);color:#18241b;font-weight:600}
+  .links span{font-size:11.5px;color:var(--muted);flex-basis:100%}
+  #world{position:relative;min-height:0;background:#172d3b}
+  #scene{position:absolute;inset:0}
+  #status{position:absolute;left:14px;top:14px;background:#10202de8;padding:7px 11px;border-radius:6px;font-size:13px;max-width:70%}#status:empty{display:none}
+  .tools{position:absolute;right:14px;top:14px;display:flex;gap:6px}.tools button{font-size:12.5px;background:#10202dea;padding:7px 10px}
+  .attrib{position:absolute;left:14px;bottom:36px;font-size:11px;color:var(--muted);background:#10202dc8;padding:3px 7px;border-radius:4px;max-width:70%}
+  @media (max-width:800px){#app{grid-template-columns:1fr;grid-template-rows:50vh minmax(0,1fr)}#world{order:-1}aside{border-right:0;border-top:1px solid var(--line)}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">Landforms <b>Uncovered</b></div>
+  <div class="stats"><span><b id="xp">0</b>XP</span><span><b id="done">0</b>/ <span id="total">0</span> explained</span></div>
+</header>
+<div id="app">
+  <aside>
+    <div class="sites" id="sites" role="tablist" aria-label="Places"></div>
+    <h1 id="siteName"></h1>
+    <p class="lede" id="siteLede"></p>
+    <ol class="stages" id="stages" aria-label="Stages: choose one"></ol>
+    <div class="info">
+      <h2 id="title"></h2><p id="b1"></p><p id="b2"></p>
+      <div class="look"><h3>Look for this</h3><ul id="look"></ul></div>
+      <div class="quiz" id="quiz" hidden></div>
+    </div>
+    <div class="links">
+      <a class="primary" id="mm" href="#" target="_blank" rel="noopener">Open in MapMaker</a>
+      <a id="xs" href="#" hidden>Cross-section</a>
+      <span>BP = years before now.</span>
+    </div>
+  </aside>
+  <div id="world">
+    <div id="scene"></div>
+    <div id="status">Loading the globe…</div>
+    <div class="tools"><button id="recenter">⌖ Recenter</button><button id="overhead">↓ Overhead</button><button id="rotate">↻ Rotate</button></div>
+    <div class="attrib">Imagery: Esri, Maxar, Earthstar Geographics. Elevation: Esri World Elevation. Heights are not exaggerated.</div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/lerc@4.0.4/LercDecode.min.js"></script>
+<script>
+// ======================================================================
+// SITES: one entry per place. Each has a camera, stages, and an overlay
+// type. 'icefill' builds ice/lake surfaces from the elevation data;
+// 'retreat' animates a feature moving along a path (a waterfall, a coast).
+// To add a place, add an entry here. Nothing else needs to change.
+// ======================================================================
+const SITES=[
+ {id:'yosemite',name:'Yosemite Valley',lede:'A valley cut by a river and finished by ice.',
+  camera:{x:-119.76,y:37.715,z:4200,heading:80,tilt:70},target:{x:-119.60,y:37.73},
+  mapmaker:'https://www.arcgis.com/apps/instant/atlas/index.html?appid=0cd1cdee853c413a84bfe4b9a6931f0d&center=-119.6350,37.7250&level=13',
+  crossSection:'yosemite-valley.html',
+  overlay:{type:'icefill',bbox:{w:-119.725,e:-119.505,s:37.690,n:37.790},seed:[-119.6350,37.7235]},
+  labels:[['El Capitan',-119.6377,37.7340],['Half Dome',-119.5332,37.7459],['Yosemite Falls',-119.5967,37.7566],['Bridalveil Fall',-119.6468,37.7167],['Tioga moraine',-119.6605,37.7175]],
+  stages:[
+   {name:'Before the ice',bp:'over 2,000,000 BP',
+    b1:'The globe shows the land as it is now, so you have to imagine this stage. Long ago the Sierra Nevada was pushed up. That made the Merced River run faster and cut down into the hard granite.',
+    b2:'It cut a deep, narrow canyon shaped like a V. There was no flat floor and no waterfalls yet.',
+    look:['Follow the Merced River west out of the valley. Its canyon there was never under ice. It is still a V.']},
+   {name:'Sherwin glaciation',bp:'about 1,000,000 BP',fill:{level:2250,slope:12,west:-180},
+    b1:'Watch the ice rise. The whole valley fills up. The ice is about 1,500 m thick. Only the tops of El Capitan and Half Dome stick out.',
+    b2:'Ice this thick does not flow along the floor like a river. It fills the valley from wall to wall and grinds every surface. This ice did most of the shaping.',
+    look:['Find the rounded domes above the valley, like Sentinel Dome. Ice flowed right over them.']},
+   {name:'Tioga glaciation',bp:'about 20,000 BP',fill:{level:1760,slope:18,west:-119.662},
+    b1:'The last glacier was smaller, about 500 m thick. It stopped near Bridalveil Meadow and left a ridge of rock and gravel there. That ridge is called a moraine.',
+    b2:'The upper walls stayed above the ice. The valley already had its U shape. This glacier polished the floor.',
+    look:['Find the low ridge across the valley west of El Capitan. That is the moraine.']},
+   {name:'Lake Yosemite',bp:'about 15,000 BP',fill:{level:1228,slope:0,west:-119.664,lake:true},
+    b1:'The glacier melted. The moraine held the water back like a dam, and a lake filled the valley.',
+    b2:'Streams from the side valleys now fell straight into the lake. Those are the waterfalls. Slowly the lake filled up with sand and mud.',
+    look:['Look at Yosemite Falls. Trace the creek above it. Its valley stops at the edge and drops off.']},
+   {name:'Today',bp:'0 BP',
+    b1:'The lake is gone. Its mud and sand make the flat floor, about 1,200 m above the sea. Under the meadows there is up to 600 m of it before you reach rock.',
+    b2:'The walls rise almost 1,000 m straight up. Turn the globe and look at the sharp edge between floor and wall.',
+    look:['Measure from El Capitan Meadow (about 1,200 m) to the top of El Capitan (2,307 m).','In MapMaker, turn on the land cover layer. Forest and meadow on the floor, bare rock on the walls.']}
+  ],
+  quiz:{q:'Why is the floor of Yosemite Valley so flat?',opts:['The river spread out and levelled it','It is the bottom of an old lake, filled with mud and sand','Glaciers polished the rock flat'],answer:1,
+        explain:'Right. The Tioga moraine dammed a lake, and the lake slowly filled with sediment. The flat floor is that fill.'}
+ },
+ {id:'niagara',name:'Niagara Falls',lede:'A waterfall that has been walking upstream for 12,000 years.',
+  camera:{x:-79.02,y:43.03,z:3200,heading:335,tilt:62},target:{x:-79.065,y:43.11},
+  mapmaker:'https://www.arcgis.com/apps/instant/atlas/index.html?appid=0cd1cdee853c413a84bfe4b9a6931f0d&center=-79.0650,43.1100&level=13',
+  overlay:{type:'retreat',
+   // approximate line of the gorge, downstream (Queenston) to the falls today
+   path:[[-79.049,43.164],[-79.052,43.145],[-79.055,43.132],[-79.068,43.118],[-79.062,43.106],[-79.066,43.093],[-79.071,43.084],[-79.075,43.079]],
+   feature:'Falls'},
+  labels:[['Queenston / Lewiston',-79.049,43.164],['Whirlpool',-79.070,43.118],['Horseshoe Falls',-79.075,43.079],['Goat Island',-79.066,43.080],['Lake Ontario',-79.05,43.24]],
+  stages:[
+   {name:'Ice sheet melts',bp:'about 12,500 BP',
+    b1:'A huge ice sheet covered this land. As it melted back, water from the Great Lakes found a new way out: over the Niagara Escarpment, a long cliff of hard rock.',
+    b2:'The first falls were at Queenston, near where the river meets Lake Ontario today. Turn the globe to see the cliff line.',
+    look:['Find the escarpment: the sharp step in the land north of the gorge.']},
+   {name:'The falls start to move',bp:'about 12,000 BP',retreat:0,
+    b1:'The top of the cliff is hard rock called dolomite. Under it is soft shale. Water pouring over the edge eats away the soft shale.',
+    b2:'With nothing holding it up, the hard cap breaks off. The falls step back a little. Then it happens again.',
+    look:['Look at the gorge walls in the imagery: a hard grey cap on top, crumbly slopes below.']},
+   {name:'Halfway: the Whirlpool',bp:'about 6,000 BP',retreat:0.42,
+    b1:'The falls have moved about 5 km upstream. Here they cut into an older gorge that ice had buried with gravel, and the river swung sideways. That made the Whirlpool.',
+    b2:'The gorge behind the falls is the path they have already travelled.',
+    look:['Find the Whirlpool: the round bend where the river turns a sharp corner.']},
+   {name:'Today',bp:'0 BP',retreat:1,
+    b1:'The falls have moved about 11 km in 12,000 years, roughly a metre a year. Goat Island splits them into the Horseshoe Falls and the American Falls.',
+    b2:'They still move, but slowly now, because much of the water is used for electricity. In a very long time they could reach Lake Erie and drain it.',
+    look:['Measure the gorge from Queenston to the Horseshoe Falls. That is 12,000 years of movement.']}
+  ],
+  quiz:{q:'What makes Niagara Falls move upstream?',opts:['The river gets wider every year','Soft rock under the hard top layer is washed out, and the top breaks off','Earthquakes shake the cliff back'],answer:1,
+        explain:'Right. Water removes the soft shale, the hard dolomite cap loses its support and collapses, and the edge steps back.'}
+ }
+];
+
+// ======================================================================
+const $=id=>document.getElementById(id);
+let view=null,SDK=null,layer=null,labelLayer=null,site=null,stageIdx=0,xp=0,done=new Set(),anim=0;
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+$('total').textContent=SITES.length;
+
+// ---------- elevation grid for a bbox (Esri Terrain3D LERC tiles) ----------
+const lon2x=(lon,z)=>(lon+180)/360*Math.pow(2,z);
+const lat2y=(lat,z)=>{const r=lat*Math.PI/180;return (1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*Math.pow(2,z);};
+const grids={};
+async function loadGrid(o){
+  if(grids[o.bbox.w+','+o.bbox.n])return grids[o.bbox.w+','+o.bbox.n];
+  const Z=13,STEP=4,B=o.bbox;
+  const x0=Math.floor(lon2x(B.w,Z)),x1=Math.floor(lon2x(B.e,Z)),y0=Math.floor(lat2y(B.n,Z)),y1=Math.floor(lat2y(B.s,Z));
+  const cols=(x1-x0+1)*256,rows=(y1-y0+1)*256,H=new Float32Array(cols*rows);
+  await Lerc.load();
+  const jobs=[];
+  for(let ty=y0;ty<=y1;ty++)for(let tx=x0;tx<=x1;tx++)jobs.push(fetch(`https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/${Z}/${ty}/${tx}`)
+    .then(r=>{if(!r.ok)throw new Error('tile '+r.status);return r.arrayBuffer();}).then(buf=>{const d=Lerc.decode(buf),w=d.width,px=d.pixels[0];
+      for(let j=0;j<256;j++)for(let i=0;i<256;i++)H[((ty-y0)*256+j)*cols+(tx-x0)*256+i]=px[j*w+i];}));
+  await Promise.all(jobs);
+  const px0=Math.floor((lon2x(B.w,Z)-x0)*256),px1=Math.floor((lon2x(B.e,Z)-x0)*256),py0=Math.floor((lat2y(B.n,Z)-y0)*256),py1=Math.floor((lat2y(B.s,Z)-y0)*256);
+  const W=Math.floor((px1-px0)/STEP),R=Math.floor((py1-py0)/STEP),h=new Float32Array(W*R),lon=new Float32Array(W),lat=new Float32Array(R);
+  for(let j=0;j<R;j++)for(let i=0;i<W;i++)h[j*W+i]=H[(py0+j*STEP)*cols+px0+i*STEP];
+  for(let i=0;i<W;i++)lon[i]=B.w+(i/(W-1))*(B.e-B.w);
+  // rows are in Web Mercator pixel space; convert back to latitude
+  for(let j=0;j<R;j++){const gy=(y0+(py0+j*STEP)/256)/Math.pow(2,Z);lat[j]=Math.atan(Math.sinh(Math.PI*(1-2*gy)))*180/Math.PI;}
+  const g={W,R,h,lon,lat,mask:new Uint8Array(W*R),stack:new Int32Array(W*R),seed:o.seed};
+  grids[o.bbox.w+','+o.bbox.n]=g;return g;
+}
+// flood fill from the seed over cells below a level: keeps the fill inside the valley system
+function floodMask(g,levelAt){
+  const {W,R,h,mask,stack}=g;mask.fill(0);
+  let si=0;for(let i=1;i<W;i++)if(g.lon[i]>=g.seed[0]){si=i;break;}
+  let sj=0;for(let j=1;j<R;j++)if(g.lat[j]<=g.seed[1]){sj=j;break;}
+  const s0=sj*W+si;if(h[s0]>=levelAt(s0))return;
+  let sp=0;mask[s0]=1;stack[sp++]=s0;
+  while(sp){const k=stack[--sp],i=k%W,j=(k-i)/W;
+    const nb=[i>0?k-1:-1,i<W-1?k+1:-1,j>0?k-W:-1,j<R-1?k+W:-1];
+    for(const n of nb)if(n>=0&&!mask[n]&&h[n]<levelAt(n)){mask[n]=1;stack[sp++]=n;}}
+}
+// build an ArcGIS Mesh of the fill surface (only where masked), coloured by depth
+function fillMesh(g,levelEast,slopePerKm,westLimit,isLake){
+  const {W,R,h,lon,lat,mask}=g,latMid=lat[Math.floor(R/2)];
+  const lv=k=>{const i=k%W;const kmE=(lon[W-1]-lon[i])*111.32*Math.cos(latMid*Math.PI/180);return lon[i]<westLimit?-1e4:levelEast-slopePerKm*kmE;};
+  floodMask(g,lv);
+  const idx=new Int32Array(W*R).fill(-1);let n=0;for(let k=0;k<W*R;k++)if(mask[k])idx[k]=n++;
+  if(n<4)return null;
+  const pos=new Float64Array(n*3),col=new Uint8Array(n*4);
+  const thin=isLake?[111,163,189]:[236,244,247],thick=isLake?[31,86,122]:[111,152,176];
+  for(let k=0;k<W*R;k++){const m=idx[k];if(m<0)continue;const i=k%W,j=(k-i)/W,l=lv(k);
+    pos[m*3]=lon[i];pos[m*3+1]=lat[j];pos[m*3+2]=l;
+    const t=Math.min(1,(l-h[k])/(isLake?300:1200));
+    for(let c=0;c<3;c++)col[m*4+c]=Math.round(thin[c]+(thick[c]-thin[c])*t);col[m*4+3]=isLake?230:245;}
+  const faces=[];
+  for(let j=0;j<R-1;j++)for(let i=0;i<W-1;i++){const a=idx[j*W+i],b=idx[j*W+i+1],c=idx[(j+1)*W+i],d=idx[(j+1)*W+i+1];
+    if(a<0||b<0||c<0||d<0)continue;faces.push(a,c,b,b,c,d);}
+  return new SDK.Mesh({spatialReference:{wkid:4326},vertexAttributes:{position:pos,color:col},components:[{faces:new Uint32Array(faces),material:{doubleSided:true}}]});
+}
+function meshGraphic(mesh){return new SDK.Graphic({geometry:mesh,symbol:{type:'mesh-3d',symbolLayers:[{type:'fill',material:{color:[255,255,255,0.96],colorMixMode:'multiply'}}]}});}
+
+// ---------- overlays ----------
+async function showIceFill(f){
+  const g=await loadGrid(site.overlay);
+  const id=++anim,from=Math.min(...g.h)+50,steps=reduce?1:(f.lake?6:12),dur=f.lake?1500:3200;
+  const t0=performance.now();
+  for(let s=1;s<=steps;s++){
+    if(id!==anim)return;
+    const e=1-Math.pow(1-s/steps,2);
+    const mesh=fillMesh(g,from+(f.level-from)*e,f.slope*e,f.west,!!f.lake);
+    layer.removeAll();if(mesh)layer.add(meshGraphic(mesh));
+    updateLabels(g,f,e);
+    const wait=t0+dur*s/steps-performance.now();if(wait>0)await new Promise(r=>setTimeout(r,wait));
+  }
+}
+function updateLabels(g,f,e){
+  const {W,R,h,lon,lat}=g;
+  for(const gr of labelLayer.graphics.items){const p=gr.geometry;
+    let i=0;while(i<W-1&&lon[i]<p.longitude)i++;let j=0;while(j<R-1&&lat[j]>p.latitude)j++;
+    const k=j*W+i;const kmE=(lon[W-1]-lon[i])*111.32*Math.cos(lat[Math.floor(R/2)]*Math.PI/180);
+    const from=Math.min(...h)+50,l=from+(f.level-from)*e-f.slope*e*kmE;
+    gr.visible=!(g.mask[k]&&l>h[k]+30&&lon[i]>=f.west);}
+}
+function showRetreat(t){
+  const p=site.overlay.path,n=p.length-1,pos=t*n,i=Math.min(n-1,Math.floor(pos)),u=pos-i;
+  const cur=[p[i][0]+(p[i+1][0]-p[i][0])*u,p[i][1]+(p[i+1][1]-p[i][1])*u];
+  const travelled=[...p.slice(0,i+1),cur];
+  layer.removeAll();
+  if(travelled.length>1)layer.add(new SDK.Graphic({geometry:{type:'polyline',paths:[travelled],spatialReference:{wkid:4326}},
+    symbol:{type:'line-3d',symbolLayers:[{type:'line',size:3,material:{color:[221,245,139,0.9]},cap:'round',join:'round'}]}}));
+  layer.add(new SDK.Graphic({geometry:{type:'point',x:cur[0],y:cur[1],spatialReference:{wkid:4326}},
+    symbol:{type:'point-3d',symbolLayers:[{type:'icon',resource:{primitive:'circle'},size:14,material:{color:[221,245,139]},outline:{color:[16,32,45],size:1.5}},
+      {type:'text',text:site.overlay.feature+' now',size:12,material:{color:[255,255,255]},halo:{color:[16,32,45],size:1.5}}],verticalOffset:{screenLength:30,maxWorldLength:400,minWorldLength:20},callout:{type:'line',size:1,color:[221,245,139]}}}));
+  // ghost markers for the other stages
+  site.stages.forEach(s=>{if(s.retreat===undefined||s.retreat===t)return;const q=s.retreat*n,qi=Math.min(n-1,Math.floor(q)),qu=q-qi;
+    layer.add(new SDK.Graphic({geometry:{type:'point',x:p[qi][0]+(p[qi+1][0]-p[qi][0])*qu,y:p[qi][1]+(p[qi+1][1]-p[qi][1])*qu,spatialReference:{wkid:4326}},
+      symbol:{type:'point-3d',symbolLayers:[{type:'icon',resource:{primitive:'circle'},size:8,material:{color:[221,245,139,0.5]},outline:{color:[16,32,45],size:1}},
+        {type:'text',text:s.bp,size:10,material:{color:[200,214,216]},halo:{color:[16,32,45],size:1.2}}],verticalOffset:{screenLength:18},callout:{type:'line',size:0.5,color:[221,245,139,0.5]}}}));});
+}
+
+// ---------- UI ----------
+function buildSites(){$('sites').replaceChildren();SITES.forEach((s,i)=>{const b=document.createElement('button');b.textContent=s.name;b.setAttribute('role','tab');b.onclick=()=>selectSite(i);$('sites').append(b);});}
+function selectSite(i){
+  site=SITES[i];stageIdx=site.stages.length-1;anim++;
+  [...$('sites').children].forEach((b,j)=>b.setAttribute('aria-current',j===i?'true':'false'));
+  $('siteName').textContent=site.name;$('siteLede').textContent=site.lede;
+  $('mm').href=site.mapmaker;$('xs').hidden=!site.crossSection;if(site.crossSection)$('xs').href=site.crossSection;
+  $('stages').replaceChildren();
+  site.stages.forEach((s,j)=>{const li=document.createElement('li'),b=document.createElement('button');b.dataset.s=j;
+    b.innerHTML=`<span class="dot"></span><span class="t"><b>${s.name}</b><small>${s.bp}</small></span>`;b.onclick=()=>go(j);li.append(b);$('stages').append(li);});
+  $('quiz').hidden=true;
+  if(view)placeLabels();
+  fly();go(stageIdx);
+}
+function placeLabels(){labelLayer.removeAll();site.labels.forEach(([t,x,y])=>labelLayer.add(new SDK.Graphic({geometry:{type:'point',x,y,spatialReference:{wkid:4326}},
+  symbol:{type:'point-3d',symbolLayers:[{type:'text',text:t,size:12,material:{color:[255,255,255]},halo:{color:[16,32,45],size:1.5}}],verticalOffset:{screenLength:26,maxWorldLength:300,minWorldLength:10},callout:{type:'line',size:1,color:[255,255,255,0.7]}}})));}
+function go(j){
+  stageIdx=j;const s=site.stages[j];anim++;
+  [...$('stages').querySelectorAll('button')].forEach(b=>b.setAttribute('aria-current',b.dataset.s==j?'true':'false'));
+  $('title').textContent=s.name+' ('+s.bp+')';$('b1').textContent=s.b1;$('b2').textContent=s.b2;
+  $('look').innerHTML=s.look.map(t=>`<li>${t}</li>`).join('');
+  if(j===site.stages.length-1&&!done.has(site.id))showQuiz();else $('quiz').hidden=true;
+  if(!view)return;
+  labelLayer.graphics.items.forEach(g=>g.visible=true);
+  if(s.fill)showIceFill(s.fill).catch(e=>{console.warn(e);$('status').textContent='Could not build the ice surface from the elevation service.';});
+  else if(s.retreat!==undefined)showRetreat(s.retreat);
+  else layer.removeAll();
+}
+function showQuiz(){const q=site.quiz;$('quiz').hidden=false;$('quiz').innerHTML=`<h3>Quick check · +100 XP</h3><p class="q">${q.q}</p><div class="opts"></div><p class="fb"></p>`;
+  q.opts.forEach((o,i)=>{const b=document.createElement('button');b.textContent=o;b.onclick=()=>{[...$('quiz').querySelectorAll('.opts button')].forEach((bb,k)=>{bb.disabled=true;if(k===q.answer)bb.classList.add('correct');else if(k===i)bb.classList.add('wrong');});
+    const ok=i===q.answer;if(ok){xp+=100;$('xp').textContent=xp;done.add(site.id);$('done').textContent=done.size;}
+    $('quiz').querySelector('.fb').textContent=ok?q.explain:'Not quite. '+q.explain.replace(/^Right\. /,'');};$('quiz').querySelector('.opts').append(b);});}
+let moveId=0;
+async function fly(top=false){if(!view)return;const c=site.camera,id=++moveId;$('status').textContent='Flying to '+site.name+'…';
+  try{await view.goTo(top?{target:new SDK.Point({x:site.target.x,y:site.target.y,spatialReference:{wkid:4326}}),tilt:0,heading:0,scale:60000}:new SDK.Camera({position:{x:c.x,y:c.y,z:c.z,spatialReference:{wkid:4326}},heading:c.heading,tilt:c.tilt}),{duration:reduce?0:2200});
+    if(id===moveId)$('status').textContent='';}catch(e){if(e.name!=='AbortError'&&id===moveId)$('status').textContent='';}}
+$('recenter').onclick=()=>fly();$('overhead').onclick=()=>fly(true);$('rotate').onclick=()=>{if(view)view.goTo({heading:view.camera.heading+60},{duration:800}).catch(()=>{});};
+
+// ---------- scene ----------
+window.initScene=()=>{
+  require(['esri/Map','esri/views/SceneView','esri/layers/TileLayer','esri/layers/ElevationLayer','esri/layers/GraphicsLayer','esri/Graphic','esri/geometry/Mesh','esri/geometry/Point','esri/Camera'],
+  (Map,SceneView,TileLayer,ElevationLayer,GraphicsLayer,Graphic,Mesh,Point,Camera)=>{
+    SDK={Graphic,Mesh,Point,Camera};
+    layer=new GraphicsLayer({elevationInfo:{mode:'absolute-height'},title:'process'});
+    labelLayer=new GraphicsLayer({elevationInfo:{mode:'relative-to-ground'},title:'labels'});
+    const map=new Map({basemap:{baseLayers:[new TileLayer({url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer'})]},
+      ground:{layers:[new ElevationLayer({url:'https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer'})]},layers:[layer,labelLayer]});
+    view=new SceneView({container:'scene',map,qualityProfile:'medium',ui:{components:['attribution','zoom','compass']},
+      environment:{lighting:{date:new Date('2026-06-21T18:00:00Z'),directShadowsEnabled:false},atmosphereEnabled:true},popupEnabled:false});
+    view.when(()=>{placeLabels();fly();go(stageIdx);},e=>{$('status').textContent='3D globe unavailable: '+e.message;});
+  });
+};
+window.mapFallback=()=>{$('status').textContent='Could not load the ArcGIS 3D globe. Check the network and reload.';};
+buildSites();selectSite(0);
+</script>
+<script src="https://js.arcgis.com/4.34/" onload="initScene()" onerror="mapFallback()"></script>
+</body>
+</html>
