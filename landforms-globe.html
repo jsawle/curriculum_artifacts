@@ -14,8 +14,7 @@
   button:hover{border-color:var(--lime)}button:focus-visible{outline:3px solid var(--lime);outline-offset:2px}
   header{height:64px;display:flex;align-items:center;gap:18px;padding:0 20px;border-bottom:1px solid var(--line)}
   .brand{font-size:19px;font-weight:600;letter-spacing:-.3px}.brand b{color:var(--lime);font-weight:800;letter-spacing:1px;text-transform:uppercase}
-  .stats{margin-left:auto;font-size:13px;display:flex;gap:18px}.stats b{color:var(--lime);font-size:19px;margin-right:4px}
-  #app{display:grid;grid-template-columns:var(--panelw) minmax(0,1fr);height:calc(100% - 64px)}
+    #app{display:grid;grid-template-columns:var(--panelw) minmax(0,1fr);height:calc(100% - 64px)}
   aside{display:flex;flex-direction:column;gap:10px;padding:14px 18px 12px;background:var(--panel);border-right:1px solid var(--line);overflow:hidden;min-height:0}
   .sites{display:flex;gap:6px;flex-wrap:wrap}
   .sites button{font-size:13px;padding:6px 11px;border-radius:20px}
@@ -40,12 +39,7 @@
   .look{border-left:2px solid var(--lime);padding:0 0 0 12px;margin-top:8px}
   .look h3{font-size:12.5px;font-weight:600;margin:0 0 4px;color:var(--lime);letter-spacing:1px;text-transform:uppercase}
   .look ul{margin:0;padding-left:16px}.look li{font-size:13px;margin-bottom:3px;color:#d0dcdc}
-  .quiz{border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:10px;background:#192e38}
-  .quiz h3{margin:0 0 6px;font-size:14px}.quiz .q{margin:0 0 8px;font-size:14px}
-  .quiz .opts{display:grid;gap:6px}.quiz .opts button{text-align:left;font-size:13.5px;padding:8px 10px;background:#14262f}
-  .quiz .opts button.correct{border-color:var(--lime);background:#344735}.quiz .opts button.wrong{border-color:#f1a494;background:#4c3434}
-  .quiz .fb{font-size:13px;color:var(--lime);margin:8px 0 0}
-  .links{flex:none;padding-top:10px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+    .links{flex:none;padding-top:10px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px;align-items:center}
   .links a{font-size:13.5px;text-decoration:none;padding:7px 12px;border-radius:8px;border:1px solid var(--lime);color:var(--lime)}
   .links a.primary{background:var(--lime);color:#18241b;font-weight:600}
   .links span{font-size:11.5px;color:var(--muted);flex-basis:100%}
@@ -60,7 +54,7 @@
 <body>
 <header>
   <div class="brand">Landforms <b>Uncovered</b></div>
-  <div class="stats"><span><b id="xp">0</b>XP</span><span><b id="done">0</b>/ <span id="total">0</span> explained</span></div>
+  
 </header>
 <div id="app">
   <aside>
@@ -71,7 +65,6 @@
     <div class="info">
       <h2 id="title"></h2><p id="b1"></p><p id="b2"></p>
       <div class="look"><h3>Look for this</h3><ul id="look"></ul></div>
-      <div class="quiz" id="quiz" hidden></div>
     </div>
     <div class="links">
       <a class="primary" id="mm" href="#" target="_blank" rel="noopener">Open in MapMaker</a>
@@ -102,7 +95,7 @@ const SITES=[
   crossSection:'yosemite-valley.html',
   overlay:{type:'icefill',bbox:{w:-119.80,e:-119.505,s:37.660,n:37.790},seed:[-119.6350,37.7235],
    moraine:[[-119.6635,37.7215],[-119.6580,37.7140]],   // Tioga terminal moraine at Bridalveil Meadow (approximate line)
-   sediment:{avg:300,max:600}},
+   sediment:{avg:300,max:600},lakeDepth:{avg:300,max:600},statsAt:[-119.612,37.737]},
   labels:[['El Capitan',-119.6377,37.7340],['Half Dome',-119.5332,37.7459],['Yosemite Falls',-119.5967,37.7566],['Bridalveil Fall',-119.6468,37.7167],['Tioga moraine',-119.6605,37.7175]],
   stages:[
    {name:'Before the ice',bp:'over 2,000,000 BP',
@@ -117,7 +110,7 @@ const SITES=[
     b1:'The last glacier was smaller. Watch it grow up the valley from its snout. It stopped near Bridalveil Meadow and left a ridge of rock and gravel there, drawn in brown. That ridge is called a moraine.',
     b2:'The upper walls stayed above the ice. The valley already had its U shape. This glacier polished the floor.',
     look:['Find the low ridge across the valley west of El Capitan. That is the moraine.']},
-   {name:'Lake Yosemite',bp:'about 15,000 BP',fill:{level:1228,west:-119.664,lake:true},moraine:true,
+   {name:'Lake Yosemite',bp:'about 15,000 BP',fill:{level:1240,west:-119.664,lake:true},moraine:true,
     b1:'The glacier melted. The moraine held the water back like a dam, and a lake filled the valley.',
     b2:'Streams from the side valleys now fell straight into the lake. Those are the waterfalls. Slowly the lake filled up with sand and mud.',
     look:['Look at Yosemite Falls. Trace the creek above it. Its valley stops at the edge and drops off.']},
@@ -126,8 +119,6 @@ const SITES=[
     b2:'The walls rise almost 1,000 m straight up. Turn the globe and look at the sharp edge between floor and wall.',
     look:['Measure from El Capitan Meadow (about 1,200 m) to the top of El Capitan (2,307 m).','In MapMaker, turn on the land cover layer. Forest and meadow on the floor, bare rock on the walls.']}
   ],
-  quiz:{q:'Why is the floor of Yosemite Valley so flat?',opts:['The river spread out and levelled it','It is the bottom of an old lake, filled with mud and sand','Glaciers polished the rock flat'],answer:1,
-        explain:'Right. The Tioga moraine dammed a lake, and the lake slowly filled with sediment. The flat floor is that fill.'}
  },
  {id:'niagara',name:'Niagara Falls',lede:'A waterfall that has been walking upstream for 12,000 years.',
   camera:{x:-79.02,y:43.03,z:3200,heading:335,tilt:62},target:{x:-79.065,y:43.11},
@@ -155,16 +146,13 @@ const SITES=[
     b2:'They still move, but slowly now, because much of the water is used for electricity. In a very long time they could reach Lake Erie and drain it.',
     look:['Measure the gorge from Queenston to the Horseshoe Falls. That is 12,000 years of movement.']}
   ],
-  quiz:{q:'What makes Niagara Falls move upstream?',opts:['The river gets wider every year','Soft rock under the hard top layer is washed out, and the top breaks off','Earthquakes shake the cliff back'],answer:1,
-        explain:'Right. Water removes the soft shale, the hard dolomite cap loses its support and collapses, and the edge steps back.'}
  }
 ];
 
 // ======================================================================
 const $=id=>document.getElementById(id);
-let view=null,SDK=null,layer=null,labelLayer=null,labelLayerFill=null,site=null,stageIdx=0,xp=0,done=new Set(),anim=0;
+let view=null,SDK=null,layer=null,labelLayer=null,labelLayerFill=null,site=null,stageIdx=0,anim=0;
 const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
-$('total').textContent=SITES.length;
 
 // ---------- elevation grid for a bbox (Esri Terrain3D LERC tiles) ----------
 const lon2x=(lon,z)=>(lon+180)/360*Math.pow(2,z);
@@ -229,20 +217,20 @@ function glacierSurface(g,f){
 // build an ArcGIS Mesh of the fill surface where it stands above the ground, coloured by depth. Returns stats too.
 function fillMesh(g,levelAt,isLake,useMask){
   const {W,R,h,lon,lat,mask}=g;
-  const idx=new Int32Array(W*R).fill(-1);let n=0,sum=0,max=0;
-  for(let k=0;k<W*R;k++){const l=levelAt(k);if(l>h[k]+1&&(!useMask||mask[k])){idx[k]=n++;const t=l-h[k];sum+=t;if(t>max)max=t;}}
+  const idx=new Int32Array(W*R).fill(-1);let n=0,sum=0,max=0,na=0;
+  for(let k=0;k<W*R;k++){const l=levelAt(k);if(l>h[k]-200&&(!useMask||mask[k])){idx[k]=n++;const t=l-h[k];if(t>0){na++;sum+=t;if(t>max)max=t;}}}
   if(n<4)return null;
   const pos=new Float64Array(n*3),col=new Uint8Array(n*4);
   const thin=isLake?[111,163,189]:[236,244,247],thick=isLake?[31,86,122]:[111,152,176];
   for(let k=0;k<W*R;k++){const m=idx[k];if(m<0)continue;const i=k%W,j=(k-i)/W,l=levelAt(k);
     pos[m*3]=lon[i];pos[m*3+1]=lat[j];pos[m*3+2]=l;
-    const t=Math.min(1,(l-h[k])/(isLake?300:1200));
+    const t=Math.max(0,Math.min(1,(l-h[k])/(isLake?300:1200)));
     for(let c=0;c<3;c++)col[m*4+c]=Math.round(thin[c]+(thick[c]-thin[c])*t);col[m*4+3]=isLake?230:245;}
   const faces=[];
   for(let j=0;j<R-1;j++)for(let i=0;i<W-1;i++){const a=idx[j*W+i],b=idx[j*W+i+1],c=idx[(j+1)*W+i],d=idx[(j+1)*W+i+1];
     if(a<0||b<0||c<0||d<0)continue;faces.push(a,c,b,b,c,d);}
   const mesh=new SDK.Mesh({spatialReference:{wkid:4326},vertexAttributes:{position:pos,color:col},components:[{faces:new Uint32Array(faces),material:{doubleSided:true}}]});
-  return {mesh,avg:sum/n,max,idx};
+  return {mesh,avg:na?sum/na:0,max,idx};
 }
 function meshGraphic(mesh){return new SDK.Graphic({geometry:mesh,symbol:{type:'mesh-3d',symbolLayers:[{type:'fill',material:{color:[255,255,255,0.96],colorMixMode:'multiply'}}]}});}
 function textGraphic(lon,lat,z,text,color,size){return new SDK.Graphic({geometry:{type:'point',x:lon,y:lat,z,spatialReference:{wkid:4326}},
@@ -254,36 +242,44 @@ const fmt=m=>Math.round(m/50)*50;
 // ---------- overlays ----------
 async function showIceFill(f,st){
   const g=await loadGrid(site.overlay);
-  const id=++anim,steps=reduce?1:(f.lake?6:14),dur=f.lake?1500:3500,t0=performance.now();
-  const seedK=cellAt(g,site.overlay.seed[0],site.overlay.seed[1]);
-  let levelAt,useMask=false;
-  if(f.lake){levelAt=k=>g.lon[k%g.W]<f.west?-1e4:f.level;floodMask(g,levelAt);useMask=true;}
-  const gs=f.lake?null:glacierSurface(g,f);
+  const id=++anim,[lx,ly]=site.overlay.statsAt||site.overlay.seed,lk=cellAt(g,lx,ly);
+  layer.removeAll();labelLayerFill.removeAll();
+  const mg=st.moraine?moraineGraphic():null;
+  if(f.lake){
+    // flat water surface from the dam eastward; the terrain hides it wherever the ground is higher, so the shore follows the valley sides
+    const B=site.overlay.bbox,z=f.level;
+    const ring=[[f.west,B.s,z],[B.e,B.s,z],[B.e,B.n,z],[f.west,B.n,z],[f.west,B.s,z]];
+    layer.add(new SDK.Graphic({geometry:{type:'polygon',rings:[ring],hasZ:true,spatialReference:{wkid:4326}},
+      symbol:{type:'polygon-3d',symbolLayers:[{type:'fill',material:{color:[47,111,143,0.92]}}]}}));
+    if(mg)layer.add(mg);
+    const d=site.overlay.lakeDepth;
+    labelLayerFill.add(textGraphic(lx,ly,z,d?`Lake: about ${d.avg} m deep on average, up to ${d.max} m. The floor was far lower then.`:'Lake Yosemite',[221,245,139],13));
+    updateLabels(g,k=>g.lon[k%g.W]<f.west?-1e4:z);
+    return;
+  }
+  const gs=glacierSurface(g,f),steps=reduce?1:14,dur=3500,t0=performance.now();
   for(let s=1;s<=steps;s++){
     if(id!==anim)return;
     const e=1-Math.pow(1-s/steps,2);
-    const lv=f.lake?levelAt:(k=>{const sv=gs.surf[k];return sv<-1e3?sv:g.h[k]+(sv-g.h[k])*e;});
-    // during the rise the surface is ground + e*thickness, so the snout grows out from the terminus
-    const lvRise=f.lake?levelAt:(k=>{const sv=gs.surf[k];if(sv<-1e3)return sv;const fb=sv-Math.sqrt(2*f.tau*1000*gs.dist[k]/(917*9.81));return fb+(sv-fb)*e;});
-    const r=fillMesh(g,lvRise,!!f.lake,useMask);
-    layer.removeAll();if(r)layer.add(meshGraphic(r.mesh));
-    const mg=st.moraine?moraineGraphic():null;if(mg)layer.add(mg);
-    if(r&&s===steps){const z=lvRise(seedK);labelLayerFill.removeAll();
-      labelLayerFill.add(textGraphic(site.overlay.seed[0],site.overlay.seed[1],z>0?z:g.h[seedK],
-        f.lake?`Lake: about ${fmt(r.avg)} m deep on average, up to ${fmt(r.max)} m`:`Ice: about ${fmt(r.avg)} m thick on average, up to ${fmt(r.max)} m`,[221,245,139],13));}
-    updateLabels(g,lvRise);
+    // during the rise the surface is floor + e*thickness, so the snout grows out from the terminus
+    const lv=k=>{const sv=gs.surf[k];if(sv<-1e3)return sv;const fb=sv-Math.sqrt(2*f.tau*1000*gs.dist[k]/(917*9.81));return fb+(sv-fb)*e;};
+    const r=fillMesh(g,lv,false,false);
+    layer.removeAll();if(r)layer.add(meshGraphic(r.mesh));if(mg)layer.add(mg);
+    if(r&&s===steps){const z=Math.max(lv(lk),g.h[lk]);labelLayerFill.removeAll();
+      labelLayerFill.add(textGraphic(lx,ly,z,`Ice: about ${fmt(r.avg)} m thick on average, up to ${fmt(r.max)} m`,[221,245,139],13));}
+    updateLabels(g,lv);
     const wait=t0+dur*s/steps-performance.now();if(wait>0)await new Promise(res=>setTimeout(res,wait));
   }
 }
 function updateLabels(g,levelAt){
   for(const gr of labelLayer.graphics.items){const p=gr.geometry,k=cellAt(g,p.longitude,p.latitude);gr.visible=!(levelAt(k)>g.h[k]+30);}
 }
-function showStatic(st){
+async function showStatic(st){
   layer.removeAll();labelLayerFill.removeAll();
   const mg=st.moraine?moraineGraphic():null;if(mg)layer.add(mg);
-  if(st.sediment&&site.overlay.sediment){const sd=site.overlay.sediment,[x,y]=site.overlay.seed;
-    labelLayer.add(new SDK.Graphic({geometry:{type:'point',x,y,spatialReference:{wkid:4326}},
-      symbol:{type:'point-3d',symbolLayers:[{type:'text',text:`Lake sediment under the floor: about ${sd.avg} m on average, up to ${sd.max} m`,size:13,material:{color:[221,245,139]},halo:{color:[16,32,45],size:1.5}}],verticalOffset:{screenLength:22,maxWorldLength:300,minWorldLength:10},callout:{type:'line',size:1,color:[221,245,139,0.8]}}}));}
+  if(st.sediment&&site.overlay.sediment){const sd=site.overlay.sediment,[x,y]=site.overlay.statsAt||site.overlay.seed;
+    const g=await loadGrid(site.overlay);const z=g.h[cellAt(g,x,y)];
+    labelLayerFill.add(textGraphic(x,y,z,`Lake sediment under the floor: about ${sd.avg} m on average, up to ${sd.max} m`,[221,245,139],13));}
 }
 function showRetreat(t){
   const p=site.overlay.path,n=p.length-1,pos=t*n,i=Math.min(n-1,Math.floor(pos)),u=pos-i;
@@ -312,7 +308,6 @@ function selectSite(i){
   $('stages').replaceChildren();
   site.stages.forEach((s,j)=>{const li=document.createElement('li'),b=document.createElement('button');b.dataset.s=j;
     b.innerHTML=`<span class="dot"></span><span class="t"><b>${s.name}</b><small>${s.bp}</small></span>`;b.onclick=()=>go(j);li.append(b);$('stages').append(li);});
-  $('quiz').hidden=true;
   if(view)placeLabels();
   fly();go(stageIdx);
 }
@@ -323,18 +318,13 @@ function go(j){
   [...$('stages').querySelectorAll('button')].forEach(b=>b.setAttribute('aria-current',b.dataset.s==j?'true':'false'));
   $('title').textContent=s.name+' ('+s.bp+')';$('b1').textContent=s.b1;$('b2').textContent=s.b2;
   $('look').innerHTML=s.look.map(t=>`<li>${t}</li>`).join('');
-  if(j===site.stages.length-1&&!done.has(site.id))showQuiz();else $('quiz').hidden=true;
   if(!view)return;
-  labelLayer.graphics.items.forEach(g=>g.visible=true);
+  labelLayer.graphics.items.forEach(g=>g.visible=true);labelLayerFill.removeAll();
   labelLayerFill.removeAll();
   if(s.fill)showIceFill(s.fill,s).catch(e=>{console.warn(e);$('status').textContent='Could not build the ice surface from the elevation service.';});
   else if(s.retreat!==undefined){showRetreat(s.retreat);}
-  else showStatic(s);
+  else showStatic(s).catch(e=>console.warn(e));
 }
-function showQuiz(){const q=site.quiz;$('quiz').hidden=false;$('quiz').innerHTML=`<h3>Quick check · +100 XP</h3><p class="q">${q.q}</p><div class="opts"></div><p class="fb"></p>`;
-  q.opts.forEach((o,i)=>{const b=document.createElement('button');b.textContent=o;b.onclick=()=>{[...$('quiz').querySelectorAll('.opts button')].forEach((bb,k)=>{bb.disabled=true;if(k===q.answer)bb.classList.add('correct');else if(k===i)bb.classList.add('wrong');});
-    const ok=i===q.answer;if(ok){xp+=100;$('xp').textContent=xp;done.add(site.id);$('done').textContent=done.size;}
-    $('quiz').querySelector('.fb').textContent=ok?q.explain:'Not quite. '+q.explain.replace(/^Right\. /,'');};$('quiz').querySelector('.opts').append(b);});}
 let moveId=0;
 async function fly(top=false){if(!view)return;const c=site.camera,id=++moveId;$('status').textContent='Flying to '+site.name+'…';
   try{await view.goTo(top?{target:new SDK.Point({x:site.target.x,y:site.target.y,spatialReference:{wkid:4326}}),tilt:0,heading:0,scale:60000}:new SDK.Camera({position:{x:c.x,y:c.y,z:c.z,spatialReference:{wkid:4326}},heading:c.heading,tilt:c.tilt}),{duration:reduce?0:2200});
