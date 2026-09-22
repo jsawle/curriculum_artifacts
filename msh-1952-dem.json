@@ -1,0 +1,13 @@
+{
+ "source": "Bard, J.A., and Phillips-Netherton, R., 2024, Digital elevation model of Mount St. Helens, Washington and vicinity prior to the 1980 eruption: U.S. Geological Survey data release, https://doi.org/10.5066/P91W7C1L (CC0). Resampled to a 30 m Web Mercator grid.",
+ "crs": "EPSG:3857",
+ "xmin": -13633880.86363628,
+ "ymax": 5833779.828666985,
+ "cellM": 43.37780895949506,
+ "cellTrue": 30,
+ "W": 956,
+ "H": 661,
+ "scale": 0.1,
+ "nodata": 0,
+ "surface": "circa 1952"
+}

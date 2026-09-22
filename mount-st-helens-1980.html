@@ -1,0 +1,714 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+<title>Mount St Helens 1980: Four Hazards</title>
+<meta name="description" content="Grades 6-8 explorer: model the debris avalanche, lateral blast, pyroclastic flows and lahars of 18 May 1980 at Mount St Helens with standard hazard methods (energy cone, LAHARZ) on real terrain, including the USGS pre-1980 surface." />
+<script type="module" src="https://js.arcgis.com/5.1/"></script>
+<style>
+  :root {
+    --bg: #f6f4ef; --panel: #fffdf8; --ink: #22201c; --muted: #6b665c; --rule: #ddd6c8;
+    --accent: #b4381c; --accent-ink: #fff; --chip: #efe9dd;
+    --c-aval: #8a5a2b; --c-blast: #6d28d9; --c-pf: #dc2626; --c-lahar: #0e7490;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #161513; --panel: #1f1d1a; --ink: #ece8df; --muted: #a39c8e; --rule: #3a3630; --accent: #e0643f; --accent-ink: #1a0f0a; --chip: #2b2823; }
+  }
+  :root[data-theme="dark"] { --bg: #161513; --panel: #1f1d1a; --ink: #ece8df; --muted: #a39c8e; --rule: #3a3630; --accent: #e0643f; --accent-ink: #1a0f0a; --chip: #2b2823; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  #app { display: flex; height: 100%; }
+  #panel { width: 390px; flex: none; overflow-y: auto; background: var(--panel); border-right: 1px solid var(--rule); padding: 18px 18px 28px; }
+  #mapwrap { position: relative; flex: 1; min-width: 0; }
+  arcgis-scene { display: block; width: 100%; height: 100%; }
+  h1 { font-size: 20px; line-height: 1.2; margin: 0 0 4px; }
+  .kicker { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); font-weight: 600; margin-bottom: 6px; }
+  .lede { color: var(--muted); margin: 6px 0 14px; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin: 18px 0 8px; font-weight: 600; }
+  .steps { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .steps button { text-align: left; padding: 8px 10px; font-size: 13.5px; line-height: 1.25; }
+  .steps button .n { display: block; font-size: 11px; color: var(--muted); font-weight: 600; }
+  .steps button .sw { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; }
+  .steps button[aria-pressed="true"] { outline: 2px solid var(--accent); outline-offset: 0; background: var(--panel); }
+  .row { margin: 10px 0; }
+  label.ctl { display: flex; justify-content: space-between; font-weight: 600; font-size: 14px; gap: 8px; }
+  label.ctl span.val { font-variant-numeric: tabular-nums; color: var(--accent); white-space: nowrap; }
+  .hint { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  select { width: 100%; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--rule); background: var(--panel); color: var(--ink); font: inherit; }
+  .btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  button { font: inherit; font-weight: 600; border-radius: 8px; padding: 9px 14px; cursor: pointer; border: 1px solid var(--rule); background: var(--chip); color: var(--ink); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  button:disabled { opacity: 0.5; cursor: default; }
+  .check { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; margin: 8px 0; }
+  .check input { margin-top: 3px; accent-color: var(--accent); }
+  #story { border-left: 3px solid var(--accent); padding: 2px 0 2px 10px; font-size: 14px; }
+  #status { font-size: 13px; color: var(--muted); margin-top: 10px; min-height: 1.4em; }
+  .bar { height: 4px; background: var(--rule); border-radius: 2px; overflow: hidden; margin-top: 6px; }
+  .bar > div { height: 100%; width: 0; background: var(--accent); transition: width .15s; }
+  #results { display: none; border: 1px solid var(--rule); border-radius: 10px; padding: 12px; margin-top: 14px; }
+  table.cmp { width: 100%; border-collapse: collapse; font-size: 14px; }
+  table.cmp th { text-align: right; font-size: 12px; color: var(--muted); font-weight: 600; padding: 4px 0 4px 8px; border-bottom: 1px solid var(--rule); }
+  table.cmp th:first-child, table.cmp td:first-child { text-align: left; padding-left: 0; }
+  table.cmp td { text-align: right; padding: 6px 0 6px 8px; border-bottom: 1px solid var(--rule); font-variant-numeric: tabular-nums; }
+  table.cmp td.n { font-weight: 700; }
+  details { border-top: 1px solid var(--rule); padding: 10px 0; }
+  details:last-of-type { border-bottom: 1px solid var(--rule); }
+  summary { cursor: pointer; font-weight: 600; }
+  details p, details li { font-size: 14px; }
+  details ol, details ul { padding-left: 20px; margin: 6px 0; }
+  .sources { font-size: 12.5px; color: var(--muted); }
+  .sources a { color: inherit; }
+  #legend { position: absolute; right: 12px; bottom: 28px; background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 10px 12px; font-size: 12.5px; box-shadow: 0 2px 10px rgba(0,0,0,.15); }
+  #legend .t { font-weight: 700; margin-bottom: 4px; }
+  #legend .k { display: flex; align-items: center; gap: 8px; margin: 2px 0; }
+  #legend .sw { width: 18px; height: 12px; border-radius: 2px; flex: none; }
+  #surfaceTag { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); background: var(--panel); border: 1px solid var(--rule); border-radius: 20px; padding: 6px 14px; font-size: 13px; font-weight: 600; box-shadow: 0 2px 10px rgba(0,0,0,.12); max-width: calc(100% - 120px); text-align: center; }
+  #toast { position: absolute; left: 50%; top: 52px; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 8px 14px; border-radius: 20px; font-size: 13.5px; font-weight: 600; display: none; z-index: 5; max-width: calc(100% - 32px); text-align: center; }
+  @media (max-width: 760px) {
+    #app { flex-direction: column-reverse; }
+    #panel { width: 100%; height: 50%; border-right: 0; border-top: 1px solid var(--rule); padding: 14px 16px 24px; }
+    #mapwrap { height: 50%; flex: none; }
+    #legend { right: 8px; bottom: 20px; padding: 6px 8px; font-size: 11px; }
+    #surfaceTag { font-size: 11.5px; top: 8px; max-width: calc(100% - 90px); }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="panel">
+    <div class="kicker">Physical processes · Volcanoes</div>
+    <h1>Mount St Helens, 18 May 1980</h1>
+    <p class="lede">One morning, four different hazards. Model each one with the methods scientists use for hazard maps, then compare your result with what really happened.</p>
+
+    <h2>Choose a hazard</h2>
+    <div class="steps" role="group" aria-label="Hazard">
+      <button data-h="aval" aria-pressed="true"><span class="n">1 · The mountain collapses</span><span class="sw" style="background:var(--c-aval)"></span>Debris avalanche</button>
+      <button data-h="blast" aria-pressed="false"><span class="n">2 · Seconds later</span><span class="sw" style="background:var(--c-blast)"></span>Lateral blast</button>
+      <button data-h="pf" aria-pressed="false"><span class="n">3 · Through the day</span><span class="sw" style="background:var(--c-pf)"></span>Pyroclastic flows</button>
+      <button data-h="lahar" aria-pressed="false"><span class="n">4 · Down the rivers</span><span class="sw" style="background:var(--c-lahar)"></span>Lahars</button>
+    </div>
+
+    <div class="row" id="story" style="margin-top:14px"></div>
+
+    <h2>Settings</h2>
+    <div id="controls"></div>
+    <label class="check"><input type="checkbox" id="keep" checked /> Keep the other hazards on the map, so you can build up the whole day</label>
+    <label class="check"><input type="checkbox" id="past" checked /> Show the mountain as it was before 1980 (for hazards 1 and 2)</label>
+    <div class="btns">
+      <button id="run" class="primary" disabled>Run the model</button>
+      <button id="moveStart">Move start point</button>
+      <button id="resetStart">Reset</button>
+    </div>
+    <div id="status">Loading terrain…</div>
+    <div class="bar"><div id="prog"></div></div>
+
+    <div id="results">
+      <table class="cmp">
+        <thead><tr><th></th><th>Your model</th><th>1980</th></tr></thead>
+        <tbody id="cmpRows"></tbody>
+      </table>
+      <div class="hint" id="resNote" style="margin-top:8px"></div>
+    </div>
+
+    <h2>Explore</h2>
+    <details open>
+      <summary>Try this</summary>
+      <ol>
+        <li>Run all four hazards in order. Which one reached furthest from the volcano? Which covered the most ground?</li>
+        <li>For the blast, change the direction to the south and run it again. Why do scientists think the direction of the blast mattered so much?</li>
+        <li>For the pyroclastic flows, raise the collapse height. Why do the flows still go north?</li>
+        <li>For lahars, compare the North Fork Toutle with Pine Creek. Why did the biggest lahar go where it did?</li>
+      </ol>
+    </details>
+    <details>
+      <summary>How the models work</summary>
+      <p><b>Energy cone</b> (pyroclastic flows and the blast). Picture a cone upside down, with its tip high above the vent. A flow starts at that height and loses a fixed amount of height for every metre it travels, set by the <i>mobility</i> (H/L). It can reach any spot where that falling line stays above the ground. A high ridge stops it; a low one is swept over. Scientists use mobility values from 0.05 (very mobile) to 0.5.</p>
+      <p><b>LAHARZ</b> (lahars and the avalanche). From a US Geological Survey method: the bigger the volume, the more of each valley it fills and the more ground it covers. Lahars are runny, so they spread over ten times more ground than a rock avalanche of the same volume. The model follows the river downhill, fills each stretch of valley to the right depth, and stops when it has covered its total area.</p>
+    </details>
+    <details>
+      <summary>What these models can't tell you</summary>
+      <ul>
+        <li><b>The blast is an approximation.</b> The real blast was a sideways explosion. There's no simple standard method for that, so this uses an energy cone limited to one side of the volcano.</li>
+        <li><b>No timing or speed.</b> The models show where each hazard could reach, not when.</li>
+        <li><b>Only one flow at a time.</b> In 1980 lahars ran down several valleys at once. Run each one separately.</li>
+        <li><b>The ground.</b> Hazards 1 and 2 use the 1952 mapped surface, the best record of the mountain before 1980. Beyond its edges, and for hazards 3 and 4, the model uses today's ground. Hazards 3 and 4 happened after the avalanche had already reshaped the land, so today's ground is closer to what they flowed over, but it has also changed since 1980.</li>
+        <li><b>Start points are approximate.</b> The model moves each start to the nearest river, so check the marker is where you expect.</li>
+      </ul>
+    </details>
+
+    <h2>Sources</h2>
+    <div class="sources">
+      <a href="https://www.usgs.gov/volcanoes/mount-st.-helens/science/1980-cataclysmic-eruption" target="_blank" rel="noopener">USGS: 1980 cataclysmic eruption</a> ·
+      <a href="https://pubs.usgs.gov/gip/msh/mudflows.html" target="_blank" rel="noopener">USGS: mudflows and floods</a> ·
+      <a href="https://www.usgs.gov/volcanoes/mount-st.-helens/science/lahar-hazards-mount-st-helens" target="_blank" rel="noopener">USGS: lahar hazards at Mount St Helens</a> ·
+      <a href="https://www.academia.edu/23914199/Numerical_simulation_of_some_lahars_from_Mount_St_Helens" target="_blank" rel="noopener">Numerical simulation of some lahars from Mount St Helens (lahar volumes)</a> ·
+      <a href="https://doi.org/10.5066/P91W7C1L" target="_blank" rel="noopener">Bard &amp; Phillips-Netherton (2024), pre-1980 elevation model, USGS</a> ·
+      <a href="https://pubs.usgs.gov/publication/70226932" target="_blank" rel="noopener">LAHARZ: Iverson, Schilling &amp; Vallance (1998)</a> ·
+      <a href="https://www.usgs.gov/publications/mobility-statistics-and-automated-hazard-mapping-debris-flows-and-rock-avalanches" target="_blank" rel="noopener">Griswold &amp; Iverson (2008), avalanche coefficients</a> ·
+      <a href="https://gscommunitycodes.usf.edu/geoscicommunitycodes/public/energy-cone/energy_cone.php" target="_blank" rel="noopener">Energy cone model</a> ·
+      <a href="https://volcano.oregonstate.edu/mount-st-helens-fact-sheet" target="_blank" rel="noopener">Oregon State Volcano World fact sheet</a>
+    </div>
+  </aside>
+
+  <main id="mapwrap">
+    <arcgis-scene basemap="hybrid" ground="world-elevation"
+      camera-position="-122.33, 46.40, 9500" camera-heading="150" camera-tilt="62">
+      <arcgis-zoom slot="top-left"></arcgis-zoom>
+      <arcgis-navigation-toggle slot="top-left"></arcgis-navigation-toggle>
+      <arcgis-compass slot="top-left"></arcgis-compass>
+    </arcgis-scene>
+    <div id="surfaceTag">Ground: today</div>
+    <div id="toast"></div>
+    <div id="legend">
+      <div class="t">18 May 1980 hazards</div>
+      <div class="k"><span class="sw" style="background:var(--c-aval)"></span>Debris avalanche</div>
+      <div class="k"><span class="sw" style="background:var(--c-blast)"></span>Lateral blast</div>
+      <div class="k"><span class="sw" style="background:var(--c-pf)"></span>Pyroclastic flows</div>
+      <div class="k"><span class="sw" style="background:var(--c-lahar)"></span>Lahars</div>
+    </div>
+  </main>
+</div>
+
+<script>
+/* Volcanic hazard models for classroom use.
+   1. Energy cone (Malin & Sheridan 1982) for pyroclastic density currents and, as an
+      approximation, a lateral blast limited to a sector. A current starts at height H above
+      the vent and its "energy line" drops by k (= H/L) metres per metre travelled. It can
+      reach a spot if the energy line stays above the ground all the way from the vent.
+   2. LAHARZ (Iverson, Schilling & Vallance 1998; Griswold & Iverson 2008) for lahars and
+      debris avalanches. From volume V: valley cross-section filled A = a1·V^(2/3),
+      total area flooded B = a2·V^(2/3). Walk down the river network, filling each valley
+      cross-section to area A, until the flooded area reaches B.
+   Grids: row-major Float32Array heights (m), NaN = no data, j increases southward. */
+(function (root) {
+  "use strict";
+  const DI = [-1, 0, 1, -1, 1, -1, 0, 1];
+  const DJ = [-1, -1, -1, 0, 0, 1, 1, 1];
+  const DD = [Math.SQRT2, 1, Math.SQRT2, 1, 1, Math.SQRT2, 1, Math.SQRT2];
+
+  // ---------- binary min-heap on typed arrays ----------
+  function Heap(cap) { this.k = new Float64Array(cap); this.v = new Int32Array(cap); this.n = 0; }
+  Heap.prototype.push = function (key, val) {
+    let i = this.n++; const K = this.k, V = this.v;
+    while (i > 0) { const p = (i - 1) >> 1; if (K[p] <= key) break; K[i] = K[p]; V[i] = V[p]; i = p; }
+    K[i] = key; V[i] = val;
+  };
+  Heap.prototype.pop = function () {
+    const K = this.k, V = this.v, top = V[0]; this.lastKey = K[0];
+    const n = --this.n; if (n === 0) return top;
+    const key = K[n], val = V[n]; let i = 0;
+    for (;;) {
+      let c = 2 * i + 1; if (c >= n) break;
+      if (c + 1 < n && K[c + 1] < K[c]) c++;
+      if (K[c] >= key) break;
+      K[i] = K[c]; V[i] = V[c]; i = c;
+    }
+    K[i] = key; V[i] = val; return top;
+  };
+
+  /* River network: priority-flood depression filling (with a tiny gradient so flats drain),
+     steepest-descent (D8) directions on the filled surface, and upstream cell counts.
+     Cells with h <= seaLevel or on the grid edge are outlets. */
+  function flowNetwork(h, w, ht, seaLevel) {
+    seaLevel = seaLevel == null ? 0 : seaLevel;
+    const N = w * ht, filled = new Float64Array(N).fill(NaN), done = new Uint8Array(N);
+    const heap = new Heap(N), order = new Int32Array(N); let no = 0;
+    const EPS = 1e-3;
+    for (let c = 0; c < N; c++) {
+      if (!isFinite(h[c])) continue;
+      const i = c % w, j = (c / w) | 0;
+      let edge = i === 0 || j === 0 || i === w - 1 || j === ht - 1 || h[c] <= seaLevel;
+      if (!edge) for (let k = 0; k < 8; k++) { if (!isFinite(h[(j + DJ[k]) * w + i + DI[k]])) { edge = true; break; } }
+      if (edge) { filled[c] = h[c]; done[c] = 1; heap.push(h[c], c); }
+    }
+    while (heap.n) {
+      const c = heap.pop(); order[no++] = c;
+      const i = c % w, j = (c / w) | 0, fc = filled[c];
+      for (let k = 0; k < 8; k++) {
+        const ni = i + DI[k], nj = j + DJ[k];
+        if (ni < 0 || nj < 0 || ni >= w || nj >= ht) continue;
+        const n = nj * w + ni;
+        if (done[n] || !isFinite(h[n])) continue;
+        done[n] = 1; filled[n] = Math.max(h[n], fc + EPS); heap.push(filled[n], n);
+      }
+    }
+    const dir = new Int8Array(N).fill(-1);
+    for (let c = 0; c < N; c++) {
+      if (!done[c]) continue;
+      const i = c % w, j = (c / w) | 0; let best = -1, bs = 0;
+      for (let k = 0; k < 8; k++) {
+        const ni = i + DI[k], nj = j + DJ[k];
+        if (ni < 0 || nj < 0 || ni >= w || nj >= ht) continue;
+        const n = nj * w + ni; if (!done[n]) continue;
+        const s = (filled[c] - filled[n]) / DD[k];
+        if (s > bs) { bs = s; best = k; }
+      }
+      dir[c] = best;
+    }
+    const acc = new Int32Array(N);
+    for (let q = no - 1; q >= 0; q--) {           // reverse flood order is upstream-first
+      const c = order[q]; acc[c] += 1;
+      const k = dir[c]; if (k < 0) continue;
+      acc[(((c / w) | 0) + DJ[k]) * w + (c % w) + DI[k]] += acc[c];
+    }
+    return { filled, dir, acc };
+  }
+
+  // The cell within radius with the largest upstream area (the main river there), if it has at least minCells.
+  function snapToChannel(net, w, ht, idx, minCells, radiusCells) {
+    const ci = idx % w, cj = (idx / w) | 0; let best = -1, ba = minCells - 1;
+    for (let dj = -radiusCells; dj <= radiusCells; dj++) for (let di = -radiusCells; di <= radiusCells; di++) {
+      const i = ci + di, j = cj + dj; if (i < 0 || j < 0 || i >= w || j >= ht) continue;
+      const c = j * w + i;
+      if (di * di + dj * dj <= radiusCells * radiusCells && net.acc[c] > ba) { ba = net.acc[c]; best = c; }
+    }
+    return best;
+  }
+
+  /* LAHARZ. A (m²) cross-section, B (m²) planimetric area. cell = true cell size (m).
+     onCell(idx, distanceAlongPath). Returns {path, area, length, reason}. */
+  function laharz(h, net, w, ht, cell, start, A, B, onCell, opts) {
+    opts = opts || {};
+    const maxHalf = opts.maxHalfWidthCells || 400;
+    const flooded = new Uint8Array(w * ht); let nFlooded = 0;
+    const cellArea = cell * cell, path = [];
+    let c = start, dist = 0, reason = "area", prevK = 4;
+    const mark = (q, d) => { if (!flooded[q]) { flooded[q] = 1; nFlooded++; onCell(q, d); } };
+    for (let guard = 0; guard < w * ht; guard++) {
+      path.push(c);
+      const k = net.dir[c];
+      const i = c % w, j = (c / w) | 0, zc = h[c];
+      // cross-section perpendicular to the flow direction (use the incoming direction at outlets)
+      const kk = k >= 0 ? k : (path.length > 1 ? prevK : 4);
+      const px = -DJ[kk], py = DI[kk], step = cell * Math.hypot(px, py);
+      const profile = (sgn) => { const z = []; for (let n = 1; n <= maxHalf; n++) {
+        const ni = i + sgn * n * px, nj = j + sgn * n * py;
+        if (ni < 0 || nj < 0 || ni >= w || nj >= ht) break; const v = h[nj * w + ni]; if (!isFinite(v)) break; z.push(v);
+      } return z; };
+      const left = profile(1), right = profile(-1);
+      const areaAt = (L) => {
+        let a = Math.max(0, L - zc) * step;
+        for (const side of [left, right]) for (const z of side) { if (z >= L) break; a += (L - z) * step; }
+        return a;
+      };
+      let lo = zc, hi = zc + 50;
+      while (areaAt(hi) < A && hi - zc < 3000) hi = zc + (hi - zc) * 2;
+      for (let it = 0; it < 40; it++) { const mid = (lo + hi) / 2; if (areaAt(mid) < A) lo = mid; else hi = mid; }
+      const L = hi;
+      mark(c, dist);
+      for (const [side, sgn] of [[left, 1], [right, -1]]) {
+        for (let n = 0; n < side.length; n++) { if (side[n] >= L) break; mark((j + sgn * (n + 1) * py) * w + i + sgn * (n + 1) * px, dist); }
+      }
+      if (nFlooded * cellArea >= B) { reason = "area"; break; }
+      if (k < 0) { reason = "edge"; break; }
+      if (opts.seaLevel != null && zc <= opts.seaLevel) { reason = "sea"; break; }
+      prevK = k;
+      dist += DD[k] * cell;
+      c = (j + DJ[k]) * w + i + DI[k];
+    }
+    return { path, area: nFlooded * cellArea, length: dist, reason, flooded };
+  }
+
+  /* Energy cone with topographic blocking. vent idx, H (m above vent ground), k = H/L.
+     sector: {center: deg from north clockwise, half: half-angle deg} or null for all directions.
+     onCell(idx, distance m). Returns {reached:Uint8Array, maxDist}. */
+  function energyCone(h, w, ht, cell, vent, H, k, sector, onCell) {
+    const vi = vent % w, vj = (vent / w) | 0, z0 = h[vent] + H;
+    let zmin = Infinity; for (let c = 0; c < h.length; c++) if (h[c] < zmin) zmin = h[c];
+    const Rcells = Math.min(Math.ceil((z0 - zmin) / k / cell) + 2, Math.max(w, ht));
+    const reached = new Uint8Array(w * ht); let maxDist = 0;
+    const ok = (ang) => { if (!sector) return true; let d = Math.abs(((ang - sector.center) % 360 + 540) % 360 - 180); return d <= sector.half; };
+    const hit = (c, d) => { if (!reached[c]) { reached[c] = 1; if (onCell) onCell(c, d); } if (d > maxDist) maxDist = d; };
+    hit(vent, 0);
+    // one ray to every cell on the square perimeter at radius Rcells: every cell inside is crossed by some ray
+    const targets = [];
+    for (let t = -Rcells; t <= Rcells; t++) { targets.push([t, -Rcells], [t, Rcells]); if (t > -Rcells && t < Rcells) targets.push([-Rcells, t], [Rcells, t]); }
+    for (const [ti, tj] of targets) {
+      const ang = (Math.atan2(ti, -tj) * 180 / Math.PI + 360) % 360;
+      if (!ok(ang)) continue;
+      const len = Math.hypot(ti, tj), steps = Math.ceil(len * 2), dx = ti / steps, dy = tj / steps, ds = len / steps * cell;
+      for (let s = 1; s <= steps; s++) {
+        const i = Math.round(vi + dx * s), j = Math.round(vj + dy * s);
+        if (i < 0 || j < 0 || i >= w || j >= ht) break;
+        const c = j * w + i, z = h[c]; if (!isFinite(z)) break;
+        const d = s * ds, e = z0 - k * d;
+        if (e < z) break;
+        hit(c, d);
+      }
+    }
+    return { reached, maxDist };
+  }
+
+  const api = { flowNetwork, snapToChannel, laharz, energyCone };
+  if (typeof module !== "undefined" && module.exports) module.exports = api; else root.HazardModels = api;
+})(typeof window !== "undefined" ? window : globalThis);
+
+</script>
+
+<script type="module">
+const HM = window.HazardModels;
+const $ = (id) => document.getElementById(id);
+const status = (t) => { $("status").textContent = t; };
+const prog = (f) => { $("prog").style.width = Math.round(f * 100) + "%"; };
+function toast(t, ms = 3500) { const el = $("toast"); el.textContent = t; el.style.display = "block"; clearTimeout(toast._t); if (ms) toast._t = setTimeout(() => el.style.display = "none", ms); }
+const yieldUI = () => new Promise(r => setTimeout(r));
+
+// ---------- Geometry ----------
+const R = 6378137;
+const toMerc = (lon, lat) => [lon * Math.PI / 180 * R, R * Math.log(Math.tan(Math.PI / 4 + lat * Math.PI / 360))];
+const fromMerc = (x, y) => [x / R * 180 / Math.PI, (2 * Math.atan(Math.exp(y / R)) - Math.PI / 2) * 180 / Math.PI];
+// Model grid: volcano to the Cowlitz River, 40 m cells
+const GRID = { lonMin: -123.00, lonMax: -122.05, latMin: 46.05, latMax: 46.40, cell: 40 };
+const latC = (GRID.latMin + GRID.latMax) / 2, cellM = GRID.cell / Math.cos(latC * Math.PI / 180);
+const [xmin, ymin] = toMerc(GRID.lonMin, GRID.latMin), [xmax0, ymax0] = toMerc(GRID.lonMax, GRID.latMax);
+const W = Math.floor((xmax0 - xmin) / cellM), H = Math.floor((ymax0 - ymin) / cellM);
+const xmax = xmin + W * cellM, ymax = ymin + H * cellM;
+const idxOf = (lon, lat) => { const [x, y] = toMerc(lon, lat); const i = Math.floor((x - xmin) / cellM), j = Math.floor((ymax - y) / cellM); return (i < 0 || j < 0 || i >= W || j >= H) ? -1 : j * W + i; };
+const cellXY = (c) => [xmin + (c % W + 0.5) * cellM, ymax - (((c / W) | 0) + 0.5) * cellM];
+const cellLL = (c) => fromMerc(...cellXY(c));
+
+// ---------- Hazards ----------
+// Record values: USGS "1980 Cataclysmic Eruption"; lahar volumes from "Numerical simulation of some lahars from Mount St Helens".
+const HAZ = {
+  aval: {
+    name: "Debris avalanche", color: [138, 90, 43], surface: "past",
+    story: "An earthquake shook loose the bulging north side of the mountain. About 2.5 km³ of rock slid away: the largest landslide in recorded history. It swept around and up ridges to the north, but most of it turned west down the North Fork Toutle River valley.",
+    start: { lon: -122.1968, lat: 46.2138, label: "North flank" },
+    controls: [{ id: "vol", label: "Volume of rock", min: 0.1, max: 5, step: 0.1, value: 2.5, fmt: v => v.toFixed(1) + " km³", hint: "1980: about 2.5 km³." }],
+    record: [["How far it travelled", "23 km"]]
+  },
+  blast: {
+    name: "Lateral blast", color: [109, 40, 217], surface: "past",
+    story: "The landslide uncorked the gas-rich magma inside the mountain. It exploded sideways, not upwards, and a blast of hot rock and gas raced north at more than 480 km per hour. Near the volcano almost no trees were left standing.",
+    start: { lon: -122.1918, lat: 46.2120, label: "Blast source" },
+    controls: [
+      { id: "Hb", label: "Starting height above the source", min: 100, max: 1500, step: 50, value: 400, fmt: v => v + " m", hint: "How high the exploding cloud started above the mountainside." },
+      { id: "kb", label: "Mobility (H/L)", min: 0.03, max: 0.3, step: 0.005, value: 0.08, fmt: v => v.toFixed(3), hint: "Lower means it travels further. Scientists use 0.05–0.5 for these currents." },
+      { id: "dir", label: "Direction", min: 0, max: 355, step: 5, value: 0, fmt: v => v + "° " + compass(v), hint: "1980: north." },
+      { id: "spread", label: "Spread", min: 30, max: 360, step: 10, value: 180, fmt: v => v + "°", hint: "How wide a fan it covers. 360° is all the way round." }
+    ],
+    record: [["Area devastated", "600 km²"], ["Width, west to east", "nearly 30 km"], ["Reach to the north", "more than 20 km"]]
+  },
+  pf: {
+    name: "Pyroclastic flows", color: [220, 38, 38], surface: "today",
+    story: "All day, the eruption column collapsed again and again. Avalanches of hot pumice and ash poured out of the new crater at 80–130 km per hour and spread over the ground north of the volcano, building the Pumice Plain.",
+    start: { lon: -122.1890, lat: 46.1990, label: "Crater", lowest: 12 },
+    controls: [
+      { id: "Hp", label: "Collapse height above the crater", min: 50, max: 1500, step: 25, value: 200, fmt: v => v + " m", hint: "How high the column rose before it collapsed." },
+      { id: "kp", label: "Mobility (H/L)", min: 0.05, max: 0.5, step: 0.005, value: 0.11, fmt: v => v.toFixed(3), hint: "Lower means it travels further. Scientists use 0.05–0.5." }
+    ],
+    record: [["Reach to the north", "about 8 km"]]
+  },
+  lahar: {
+    name: "Lahars", color: [14, 116, 144], surface: "today",
+    story: "Snow and ice melted by the eruption, and water squeezed from the avalanche, mixed with rock and ash into lahars: fast mudflows like wet concrete. They poured down the river valleys, destroying more than 200 homes and choking the Cowlitz and Columbia Rivers.",
+    presets: {
+      nf: { label: "North Fork Toutle", lon: -122.300, lat: 46.285, vol: 140 },
+      sf: { label: "South Fork Toutle", lon: -122.245, lat: 46.190, vol: 13 },
+      pine: { label: "Pine Creek", lon: -122.170, lat: 46.170, vol: 8 },
+      muddy: { label: "Muddy River", lon: -122.140, lat: 46.185, vol: 5.5 }
+    },
+    controls: [
+      { id: "valley", type: "select", label: "Which valley?", options: [["nf", "North Fork Toutle"], ["sf", "South Fork Toutle"], ["pine", "Pine Creek"], ["muddy", "Muddy River"]], value: "nf" },
+      { id: "lvol", label: "Volume of mud", min: 0.5, max: 500, step: 0.5, value: 140, fmt: v => v + " million m³", hint: "1980 estimates: North Fork 140, South Fork 13, Pine Creek 8, Muddy River 5.5 million m³." }
+    ],
+    record: [["Largest lahar (North Fork)", "grew until about 80 km downstream"], ["River channels affected", "about 220 km"]]
+  }
+};
+function compass(d) { return ["N", "NE", "E", "SE", "S", "SW", "W", "NW"][Math.round(d / 45) % 8]; }
+
+// ---------- UI: hazard picker and controls ----------
+let current = "aval";
+const values = {};
+for (const k in HAZ) for (const c of HAZ[k].controls) values[c.id] = c.value;
+let startOverride = {};               // hazard -> {lon, lat}
+function renderControls() {
+  const hz = HAZ[current];
+  $("story").textContent = hz.story;
+  const box = $("controls"); box.innerHTML = "";
+  for (const c of hz.controls) {
+    const row = document.createElement("div"); row.className = "row";
+    if (c.type === "select") {
+      row.innerHTML = `<label class="ctl" for="${c.id}">${c.label}</label><select id="${c.id}">${c.options.map(([v, l]) => `<option value="${v}">${l}</option>`).join("")}</select>`;
+      box.appendChild(row); const el = row.querySelector("select"); el.value = values[c.id];
+      el.onchange = () => {
+        values[c.id] = el.value; const p = HAZ.lahar.presets[el.value];
+        values.lvol = p.vol; delete startOverride.lahar; renderControls(); drawStart();
+      };
+    } else {
+      row.innerHTML = `<label class="ctl" for="${c.id}">${c.label} <span class="val" id="${c.id}Val"></span></label>
+        <input id="${c.id}" type="range" min="${c.min}" max="${c.max}" step="${c.step}" value="${values[c.id]}" />${c.hint ? `<div class="hint">${c.hint}</div>` : ""}`;
+      box.appendChild(row);
+      const el = row.querySelector("input"), out = row.querySelector(".val");
+      const f = () => { values[c.id] = +el.value; out.textContent = c.fmt(+el.value); }; el.oninput = f; f();
+    }
+  }
+  document.querySelectorAll(".steps button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.h === current)));
+}
+
+// ---------- ArcGIS ----------
+const [Graphic, GraphicsLayer, Extent, ElevationLayer, BaseElevationLayer] = await $arcgis.import([
+  "@arcgis/core/Graphic.js", "@arcgis/core/layers/GraphicsLayer.js", "@arcgis/core/geometry/Extent.js",
+  "@arcgis/core/layers/ElevationLayer.js", "@arcgis/core/layers/BaseElevationLayer.js"
+]);
+const sceneEl = document.querySelector("arcgis-scene");
+await sceneEl.viewOnReady();
+const view = sceneEl.view, map = sceneEl.map;
+const layers = {};
+for (const k of ["lahar", "pf", "blast", "aval"]) { layers[k] = new GraphicsLayer({ title: HAZ[k].name, elevationInfo: { mode: "on-the-ground" } }); }
+const markLayer = new GraphicsLayer({ title: "Start points", elevationInfo: { mode: "relative-to-ground" } });
+map.addMany([layers.lahar, layers.pf, layers.blast, layers.aval, markLayer]);
+const merc = (x, y) => ({ type: "point", x, y, spatialReference: { wkid: 3857 } });
+function labelSymbol(text, color, size = 11) {
+  return { type: "point-3d", symbolLayers: [
+      { type: "icon", size, resource: { primitive: "circle" }, material: { color }, outline: { color: "white", size: 1.2 } },
+      { type: "text", text, size: 11, material: { color: "white" }, halo: { color: [0, 0, 0, 0.75], size: 1.4 }, verticalAlignment: "bottom", font: { weight: "bold" } }],
+    verticalOffset: { screenLength: 18, maxWorldLength: 600, minWorldLength: 20 }, callout: { type: "line", size: 1, color: [255, 255, 255, 0.9] } };
+}
+
+// ---------- Terrain: today (Esri) and before 1980 (USGS 1952 surface blended in) ----------
+let today = null, past = null, nets = {};
+let dem52 = null;   // {hdr, z: Float32Array, wgt: Float32Array}
+async function loadDem52() {
+  const [hdr, buf] = await Promise.all([fetch("msh-1952-dem.json").then(r => r.json()), fetch("msh-1952-dem.bin").then(r => r.arrayBuffer())]);
+  const raw = new Uint16Array(buf), n = hdr.W * hdr.H, z = new Float32Array(n);
+  for (let i = 0; i < n; i++) z[i] = raw[i] ? raw[i] * hdr.scale : NaN;
+  // feather weight: distance (cells) to the edge of the mapped area, via a two-pass chamfer transform
+  const d = new Float32Array(n);
+  for (let i = 0; i < n; i++) d[i] = isNaN(z[i]) ? 0 : 1e9;
+  const Wd = hdr.W, Hd = hdr.H;
+  for (let j = 0; j < Hd; j++) for (let i = 0; i < Wd; i++) { const c = j * Wd + i; if (!d[c]) continue;
+    let v = d[c]; if (i > 0) v = Math.min(v, d[c - 1] + 1); if (j > 0) v = Math.min(v, d[c - Wd] + 1);
+    if (i > 0 && j > 0) v = Math.min(v, d[c - Wd - 1] + 1.414); if (i < Wd - 1 && j > 0) v = Math.min(v, d[c - Wd + 1] + 1.414);
+    if (i === 0 || j === 0 || i === Wd - 1 || j === Hd - 1) v = Math.min(v, 1); d[c] = v; }
+  for (let j = Hd - 1; j >= 0; j--) for (let i = Wd - 1; i >= 0; i--) { const c = j * Wd + i; if (!d[c]) continue;
+    let v = d[c]; if (i < Wd - 1) v = Math.min(v, d[c + 1] + 1); if (j < Hd - 1) v = Math.min(v, d[c + Wd] + 1);
+    if (i < Wd - 1 && j < Hd - 1) v = Math.min(v, d[c + Wd + 1] + 1.414); if (i > 0 && j < Hd - 1) v = Math.min(v, d[c + Wd - 1] + 1.414); d[c] = v; }
+  const FEATHER = 20; // cells of 30 m = 600 m
+  const wgt = new Float32Array(n); for (let i = 0; i < n; i++) wgt[i] = Math.min(1, d[i] / FEATHER);
+  dem52 = { hdr, z, wgt };
+}
+// 1952 height and blend weight at a Web Mercator point (bilinear)
+function sample52(x, y) {
+  const { hdr, z, wgt } = dem52;
+  const fx = (x - hdr.xmin) / hdr.cellM - 0.5, fy = (hdr.ymax - y) / hdr.cellM - 0.5;
+  const i = Math.floor(fx), j = Math.floor(fy);
+  if (i < 0 || j < 0 || i >= hdr.W - 1 || j >= hdr.H - 1) return null;
+  const a = fx - i, b = fy - j, c = j * hdr.W + i;
+  const q = [c, c + 1, c + hdr.W, c + hdr.W + 1], f = [(1 - a) * (1 - b), a * (1 - b), (1 - a) * b, a * b];
+  let zs = 0, ws = 0;
+  for (let k = 0; k < 4; k++) { if (isNaN(z[q[k]])) return null; zs += z[q[k]] * f[k]; ws += wgt[q[k]] * f[k]; }
+  return ws > 0 ? { z: zs, w: ws } : null;
+}
+
+async function loadToday() {
+  status("Loading today's terrain…");
+  await map.ground.load();
+  const ext = new Extent({ xmin, ymin, xmax, ymax, spatialReference: { wkid: 3857 } });
+  const elev = map.ground.layers.getItemAt(0);
+  let sampler;
+  try { sampler = await elev.createElevationSampler(ext, { demResolution: GRID.cell }); }
+  catch (e) { console.warn("Fixed-resolution sampler failed, using auto", e); sampler = await map.ground.createElevationSampler(ext); }
+  const sr = sampler.spatialReference, geographic = sr && (sr.isGeographic || sr.wkid === 4326), nd = sampler.noDataValue;
+  const h = new Float32Array(W * H);
+  for (let j = 0; j < H; j++) {
+    const y = ymax - (j + 0.5) * cellM;
+    for (let i = 0; i < W; i++) {
+      const x = xmin + (i + 0.5) * cellM;
+      const z = geographic ? sampler.elevationAt(...fromMerc(x, y)) : sampler.elevationAt(x, y);
+      h[j * W + i] = (z === nd || z == null || !isFinite(z)) ? NaN : z;
+    }
+    if (j % 40 === 0) { prog(j / H); await yieldUI(); }
+  }
+  prog(1);
+  return h;
+}
+function buildPast(h) {
+  const p = Float32Array.from(h);
+  for (let c = 0; c < W * H; c++) {
+    const s = sample52(...cellXY(c));
+    if (s && isFinite(h[c])) p[c] = h[c] + s.w * (s.z - h[c]);
+  }
+  return p;
+}
+function surfaceOf(key) { return HAZ[key].surface === "past" ? past : today; }
+async function networkOf(key) {
+  const s = HAZ[key].surface;
+  if (!nets[s]) { status("Mapping the rivers…"); await yieldUI(); nets[s] = HM.flowNetwork(surfaceOf(key), W, H, 0); }
+  return nets[s];
+}
+
+// Custom elevation layer: today's terrain with the 1952 surface blended in, so students can see the old mountain.
+const TERRAIN_URL = "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer";
+const PastElevation = BaseElevationLayer.createSubclass({
+  load() {
+    this._base = new ElevationLayer({ url: TERRAIN_URL });
+    this.addResolvingPromise(this._base.load().then(() => {
+      this.tileInfo = this._base.tileInfo; this.spatialReference = this._base.spatialReference; this.fullExtent = this._base.fullExtent;
+    }));
+  },
+  fetchTile(level, row, col, options) {
+    return this._base.fetchTile(level, row, col, options).then((data) => {
+      if (!dem52) return data;
+      const ti = this.tileInfo, lod = ti.lods[level], size = ti.size[0], res = lod.resolution;
+      const corner = data.width === size + 1;
+      const step = size * res / (corner ? data.width - 1 : data.width), off = corner ? 0 : step / 2;
+      const x0 = ti.origin.x + col * size * res, y0 = ti.origin.y - row * size * res;
+      const hx = dem52.hdr, bx1 = hx.xmin + hx.W * hx.cellM, by0 = hx.ymax - hx.H * hx.cellM;
+      if (x0 > bx1 || x0 + size * res < hx.xmin || y0 < by0 || y0 - size * res > hx.ymax) return data;
+      for (let py = 0; py < data.height; py++) for (let px = 0; px < data.width; px++) {
+        const q = py * data.width + px, v = data.values[q];
+        if (v === data.noDataValue) continue;
+        const s = sample52(x0 + off + px * step, y0 - off - py * step);
+        if (s) data.values[q] = v + s.w * (s.z - v);
+      }
+      return data;
+    });
+  }
+});
+let pastLayer = null, todayLayers = null;
+function setDisplaySurface(which) {
+  const wantPast = which === "past" && $("past").checked && dem52;
+  if (!todayLayers) todayLayers = map.ground.layers.toArray();
+  if (wantPast) { if (!pastLayer) pastLayer = new PastElevation(); map.ground.layers.removeAll(); map.ground.layers.add(pastLayer); }
+  else { map.ground.layers.removeAll(); map.ground.layers.addMany(todayLayers); }
+  $("surfaceTag").textContent = wantPast ? "Ground: before 1980 (mapped 1952). Photo: today" : "Ground: today";
+}
+
+// ---------- Start points ----------
+function startFor(key) {
+  if (startOverride[key]) return startOverride[key];
+  if (key === "lahar") { const p = HAZ.lahar.presets[values.valley]; return { lon: p.lon, lat: p.lat, label: p.label }; }
+  return HAZ[key].start;
+}
+let startGraphic = null;
+function drawStart(snappedIdx) {
+  if (startGraphic) markLayer.remove(startGraphic);
+  const s = startFor(current); let x, y;
+  if (snappedIdx != null && snappedIdx >= 0) [x, y] = cellXY(snappedIdx); else [x, y] = toMerc(s.lon, s.lat);
+  startGraphic = new Graphic({ geometry: merc(x, y), symbol: labelSymbol(s.label || "Start", "rgb(" + HAZ[current].color.join(",") + ")", 12) });
+  markLayer.add(startGraphic);
+}
+let placing = false;
+$("moveStart").onclick = () => { placing = !placing; $("moveStart").setAttribute("aria-pressed", String(placing)); if (placing) toast("Tap the map where this hazard should start", 0); else $("toast").style.display = "none"; };
+$("resetStart").onclick = () => { delete startOverride[current]; for (const c of HAZ[current].controls) values[c.id] = c.value; renderControls(); drawStart(); };
+view.on("click", (e) => {
+  if (!placing || !e.mapPoint) return;
+  const lon = e.mapPoint.longitude, lat = e.mapPoint.latitude;
+  if (idxOf(lon, lat) < 0) { toast("That's outside the modelled area."); return; }
+  startOverride[current] = { lon, lat, label: "Your start" };
+  placing = false; $("moveStart").setAttribute("aria-pressed", "false"); drawStart(); toast("Start moved. Press Run the model.");
+});
+
+// ---------- Drawing ----------
+function framesFromCells(cells, dists, color, nBins) {
+  let maxD = 1; for (const d of dists) if (d > maxD) maxD = d;
+  const bin = new Int16Array(W * H).fill(-1);
+  cells.forEach((c, k) => { bin[c] = Math.min(nBins - 1, Math.floor(dists[k] / (maxD + 1e-9) * nBins)); });
+  const rings = Array.from({ length: nBins }, () => []);
+  for (let j = 0; j < H; j++) {
+    let i = 0;
+    while (i < W) {
+      const b = bin[j * W + i]; if (b < 0) { i++; continue; }
+      let e = i + 1; while (e < W && bin[j * W + e] === b) e++;
+      const x0 = xmin + i * cellM, x1 = xmin + e * cellM, y1 = ymax - j * cellM, y0 = y1 - cellM;
+      rings[b].push([[x0, y0], [x0, y1], [x1, y1], [x1, y0], [x0, y0]]); i = e;
+    }
+  }
+  return rings.map(r => r.length ? [new Graphic({ geometry: { type: "polygon", rings: r, spatialReference: { wkid: 3857 } },
+    symbol: { type: "simple-fill", color: [...color, 0.62], outline: { width: 0 } } })] : []);
+}
+let playToken = 0;
+async function play(layer, frames) {
+  const t = ++playToken; layer.removeAll();
+  for (const f of frames) { if (t !== playToken) return; if (f.length) layer.addMany(f); await new Promise(r => setTimeout(r, 90)); }
+}
+
+// ---------- Results ----------
+const km = (m) => (m / 1000).toFixed(1) + " km", km2 = (m2) => Math.round(m2 / 1e6).toLocaleString("en-GB") + " km²";
+function showResults(key, rows, note) {
+  $("results").style.display = "block";
+  $("cmpRows").innerHTML = rows.map(([a, b, c]) => `<tr><td>${a}</td><td class="n">${b}</td><td>${c}</td></tr>`).join("");
+  $("resNote").textContent = note || "";
+}
+function extentStats(cells, vent) {
+  const [vx, vy] = cellXY(vent); let maxN = 0, minX = 0, maxX = 0, far = 0;
+  const f = Math.cos(latC * Math.PI / 180);
+  for (const c of cells) { const [x, y] = cellXY(c); const dx = (x - vx) * f, dy = (y - vy) * f;
+    if (dy > maxN) maxN = dy; if (dx < minX) minX = dx; if (dx > maxX) maxX = dx; const d = Math.hypot(dx, dy); if (d > far) far = d; }
+  return { north: maxN, westEast: maxX - minX, far };
+}
+
+// ---------- Run ----------
+let busy = false;
+async function runModel() {
+  if (busy || !today) return;
+  busy = true; $("run").disabled = true;
+  try {
+    const key = current, hz = HAZ[key], h = surfaceOf(key);
+    if (!$("keep").checked) for (const k in layers) if (k !== key) layers[k].removeAll();
+    const s = startFor(key); let start = idxOf(s.lon, s.lat);
+    if (start < 0 || !isFinite(h[start])) { toast("No elevation data at the start point. Try another spot."); return; }
+    const cells = [], dists = [];
+    const onCell = (c, d) => { cells.push(c); dists.push(d); };
+    if (key === "aval" || key === "lahar") {
+      const net = await networkOf(key);
+      const minCells = key === "lahar" ? 150 : 20;       // 0.24 km² / 0.03 km² upstream area
+      const snapped = HM.snapToChannel(net, W, H, start, minCells, key === "aval" ? 4 : (startOverride[key] ? 12 : 15));
+      if (snapped < 0) { toast("No river valley near the start point. Try closer to a valley."); return; }
+      start = snapped; drawStart(start);
+      const V = key === "aval" ? values.vol * 1e9 : values.lvol * 1e6;
+      const [a1, a2] = key === "aval" ? [0.2, 20] : [0.05, 200];
+      status("Following the valley downhill…"); await yieldUI();
+      const r = HM.laharz(h, net, W, H, GRID.cell, start, a1 * Math.pow(V, 2 / 3), a2 * Math.pow(V, 2 / 3), onCell, { maxHalfWidthCells: 250 });
+      console.log("LAHARZ", key, { start: cellLL(start), end: cellLL(r.path[r.path.length - 1]), km: r.length / 1000, km2: r.area / 1e6, reason: r.reason, endZ: h[r.path[r.path.length - 1]] });
+      const why = { area: "It had covered all the ground its volume allows.", edge: "It reached the edge of the modelled area.", sea: "It reached sea level." }[r.reason] || "";
+      if (key === "aval") showResults(key, [["How far it travelled", km(r.length), "23 km"], ["Ground covered", km2(r.area), "–"]], why);
+      else showResults(key, [["Distance along the river", km(r.length), values.valley === "nf" ? "grew until about 80 km downstream" : "–"], ["Ground covered", km2(r.area), "–"]],
+        why + " In 1980 lahars affected about 220 km of river channels in all.");
+    } else {
+      if (key === "pf") {
+        // put the vent on the lowest point of the crater floor near the start
+        let best = start, bz = h[start]; const rr = HAZ.pf.start.lowest, ci = start % W, cj = (start / W) | 0;
+        if (!startOverride.pf) for (let dj = -rr; dj <= rr; dj++) for (let di = -rr; di <= rr; di++) {
+          const i = ci + di, j = cj + dj; if (i < 0 || j < 0 || i >= W || j >= H || di * di + dj * dj > rr * rr) continue;
+          const c = j * W + i; if (h[c] < bz) { bz = h[c]; best = c; } }
+        start = best; drawStart(start);
+      }
+      status("Tracing the energy cone…"); await yieldUI();
+      const Hh = key === "blast" ? values.Hb : values.Hp, k = key === "blast" ? values.kb : values.kp;
+      const sector = key === "blast" && values.spread < 360 ? { center: values.dir, half: values.spread / 2 } : null;
+      const r = HM.energyCone(h, W, H, GRID.cell, start, Hh, k, sector, onCell);
+      const st = extentStats(cells, start), area = cells.length * GRID.cell * GRID.cell;
+      if (key === "blast") showResults(key, [["Area devastated", km2(area), "600 km²"], ["Width, west to east", km(st.westEast), "nearly 30 km"], ["Reach to the north", km(Math.max(0, st.north)), "more than 20 km"]],
+        "Try changing the height and mobility to match 1980. The real blast swept over ridges near the volcano and was blocked by others further out.");
+      else showResults(key, [["Reach to the north", km(Math.max(0, st.north)), "about 8 km"], ["Furthest reach, any direction", km(st.far), "–"], ["Ground covered", km2(area), "–"]],
+        "The starting values were chosen so the flows reach about 8 km, like 1980. Change them to see what a bigger eruption could do.");
+    }
+    status(`Done: ${hz.name.toLowerCase()} modelled on ${hz.surface === "past" ? "the pre-1980 ground" : "today's ground"}.`);
+    await play(layers[key], framesFromCells(cells, dists, hz.color, 24));
+  } catch (e) { console.error(e); status("Something went wrong. Reload the page and try again."); }
+  finally { busy = false; $("run").disabled = false; }
+}
+$("run").onclick = runModel;
+document.querySelectorAll(".steps button").forEach(b => b.onclick = () => {
+  current = b.dataset.h; placing = false; renderControls(); drawStart(); $("results").style.display = "none";
+  setDisplaySurface(HAZ[current].surface);
+});
+$("past").onchange = () => setDisplaySurface(HAZ[current].surface);
+
+// ---------- Go ----------
+renderControls(); drawStart();
+try {
+  await loadDem52().catch(e => { console.error(e); toast("Couldn't load the pre-1980 ground. Hazards 1 and 2 will use today's ground.", 6000); });
+  today = await loadToday();
+  past = dem52 ? buildPast(today) : today;
+  setDisplaySurface(HAZ[current].surface);
+  status("Terrain ready. Press Run the model.");
+  $("run").disabled = false;
+} catch (e) { console.error(e); status("Couldn't load the elevation data. Check your connection and reload the page."); }
+</script>
+</body>
+</html>
