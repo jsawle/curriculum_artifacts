@@ -122,9 +122,19 @@
       <div class="hint">Each flow sees the ground randomly raised or lowered by up to this much. It stands in for bumps, walls and debris the map can't show.</div>
     </div>
     <div class="row">
-      <label class="ctl" for="len">Maximum flow length <span class="val" id="lenVal">5.6 km</span></label>
-      <input id="len" type="range" min="1" max="10" step="0.1" value="5.6" />
-      <div class="hint">This method can't predict how far lava travels before it cools, so you set it. The 1944 flow reached 5.6 km. The model's paths zigzag from grid square to grid square, so they use up length faster than a smooth real flow. If flows stop just short of a town, try a little longer.</div>
+      <label class="ctl" for="stop">Lava stops below this height <span class="val" id="stopVal">140 m</span></label>
+      <input id="stop" type="range" min="0" max="600" step="10" value="140" />
+      <div class="hint">This method can't predict when lava cools and stops, so you tell it. In 1944 the northern flow stopped at about 140 m above sea level and the south-eastern flow at about 350 m. Choosing a 1944 flow sets this for you. Set it to 0 to let lava run to the sea.</div>
+    </div>
+    <div class="row">
+      <label class="ctl" for="width">Flow width <span class="val" id="widthVal">200 m</span></label>
+      <input id="width" type="range" min="20" max="500" step="20" value="200" />
+      <div class="hint">Real lava spreads out as it flows. Where a hiking trail crosses the 1944 flow today, it's almost 200 m wide.</div>
+    </div>
+    <div class="row">
+      <label class="ctl" for="len">Longest possible flow <span class="val" id="lenVal">10.0 km</span></label>
+      <input id="len" type="range" min="1" max="15" step="0.1" value="10" />
+      <div class="hint">A safety limit. Flows stop at the height above or at this length, whichever comes first. The model's paths zigzag from square to square, so they're a little longer than the real flow, which was 5.6 km.</div>
     </div>
     <div class="btns">
       <button id="run" class="primary" disabled>Run the model</button>
@@ -184,7 +194,7 @@
       <summary>What this model can't tell you</summary>
       <ul>
         <li><b>Timing.</b> The replay shows the order the ground was reached, not real hours or days.</li>
-        <li><b>Thickness and cooling.</b> The model doesn't know how deep the lava is or when it cools and stops. You set the length yourself.</li>
+        <li><b>Thickness, width and cooling.</b> The model doesn't know how deep or wide the lava is, or when it cools and stops. You set the width and the stop height yourself, using what happened in 1944.</li>
         <li><b>Today's ground, not 1944's.</b> The elevation map is modern. It includes the 1944 lava itself. The crater rim also changed in 1944, when part of the north side of the cone collapsed, so lava spilling out of today's crater need not follow the 1944 routes. That's why the two 1944 flows start on the flanks where they actually ran.</li>
         <li><b>No buildings.</b> The map is bare ground. Walls and streets steer real lava.</li>
         <li><b>Only lava.</b> Ash fall, volcanic bombs and pyroclastic flows are different hazards with different models.</li>
@@ -311,7 +321,8 @@
 
   /* One lava path. dh = 0 gives the unperturbed "most likely" path.
      onCell(idx, step, isPond) is called for every cell covered (path + filled hollows). */
-  function descend(h, w, ht, start, run, dh, seed, cellTrue, maxLen, maxPond, onCell) {
+  function descend(h, w, ht, start, run, dh, seed, cellTrue, maxLen, maxPond, onCell, stopElev) {
+    stopElev = stopElev == null ? -Infinity : stopElev;
     const raised = new Map();                // cells filled with lava in this run → lava surface height
     const base = (i) => h[i] + (dh ? dh * noise(run, i, seed) : 0);
     const Z = (i) => { const r = raised.get(i); return r === undefined ? base(i) : r; };
@@ -321,6 +332,7 @@
     onCell(cur, 0);
     for (let guard = 0; guard < 100000; guard++) {
       if (h[cur] <= 0) { reason = "sea"; break; }
+      if (step > 0 && h[cur] < stopElev) { reason = "height"; break; }
       const ci = cur % w, cj = (cur / w) | 0;
       const zc = Z(cur);
       let best = -1, bestSlope = 0, bestD = 1, hitEdge = false;
@@ -355,6 +367,8 @@
 
   /* opts: h (Float32Array heights in m, NaN = no data, <=0 = sea), w, ht,
      cellTrue (m per cell), vent (idx), runs, dh (m), maxLen (m), seed,
+     stopElev (m, optional: a flow ends once it drops below this height),
+     width (m, optional: each path is widened to this footprint before counting — real flows are tens to hundreds of metres wide),
      targets: [{name, cells:Int32Array}] */
   // Incremental runner: call step(n) repeatedly (lets a page yield between batches), then result().
   function createRunner(opts) {
@@ -368,20 +382,35 @@
       const m = new Uint8Array(N); for (const c of t.cells) m[c] = 1;
       return { name: t.name, mask: m, hits: 0 };
     });
-    const lengths = [], reasons = { sea: 0, edge: 0, flat: 0, length: 0 };
+    const lengths = [], reasons = { sea: 0, edge: 0, flat: 0, length: 0, height: 0 };
     const seenRun = new Int32Array(N).fill(-1);
+    const stopElev = opts.stopElev == null ? -Infinity : +opts.stopElev;
+    const rad = Math.max(0, (+opts.width || 0) / 2 / cellTrue);
+    const offs = [];                                   // disc of cells around each path cell
+    const R = Math.floor(rad);
+    for (let dj = -R; dj <= R; dj++) for (let di = -R; di <= R; di++) if (di * di + dj * dj <= rad * rad + 1e-9) offs.push([di, dj]);
+    if (!offs.length) offs.push([0, 0]);
     let done = 0;
 
     function step(n) {
       const end = Math.min(runs, done + n);
       for (let r = done; r < end; r++) {
         const hit = new Uint8Array(targets.length);
-        const res = descend(h, w, ht, vent, r, dh, seed, cellTrue, maxLen, maxPond, (c, s) => {
+        const mark = (c, s) => {
           if (seenRun[c] === r) return; seenRun[c] = r;
           count[c]++;
           if (first[c] < 0 || s < first[c]) first[c] = s;
           for (let t = 0; t < targets.length; t++) if (targets[t].mask[c]) hit[t] = 1;
-        });
+        };
+        const res = descend(h, w, ht, vent, r, dh, seed, cellTrue, maxLen, maxPond, (c, s) => {
+          const ci = c % w, cj = (c / w) | 0;
+          for (const [di, dj] of offs) {
+            const ni = ci + di, nj = cj + dj;
+            if (ni < 0 || nj < 0 || ni >= w || nj >= ht) continue;
+            const n = nj * w + ni;
+            if (h[n] > 0) mark(n, s);                  // footprint doesn't spread onto the sea
+          }
+        }, stopElev);
         for (let t = 0; t < targets.length; t++) targets[t].hits += hit[t];
         lengths.push(res.length); reasons[res.reason]++;
       }
@@ -391,7 +420,7 @@
 
     function result() {
       const best = [];
-      const bestRes = descend(h, w, ht, vent, 0, 0, seed, cellTrue, maxLen, maxPond, (c, s, pond) => { if (!pond) best.push(c); });
+      const bestRes = descend(h, w, ht, vent, 0, 0, seed, cellTrue, maxLen, maxPond, (c, s, pond) => { if (!pond) best.push(c); }, stopElev);
       const L = lengths.slice().sort((a, b) => a - b);
       let covered = 0; for (let i = 0; i < N; i++) if (count[i] > 0) covered++;
       return {
@@ -423,9 +452,9 @@ const CRATER = { lon: 14.4269, lat: 40.8211 };        // Gran Cono summit crater
 // (then turned west by Monte Somma into San Sebastiano and Massa di Somma). The start points below sit about
 // 450 m from the crater centre on those flanks; they are approximate, not surveyed vent positions.
 const VENTS = {
-  north:     { lon: 14.4269, lat: 40.8252, label: "Starts just below the crater on the north flank. In 1944 this flow was turned west by Monte Somma and reached San Sebastiano and Massa di Somma, stopping at about 140 m above sea level." },
-  southeast: { lon: 14.4307, lat: 40.8182, label: "Starts just below the crater on the south-east flank. In 1944 this flow stopped at about 350 m above sea level, before reaching any town." },
-  crater:    { lon: CRATER.lon, lat: CRATER.lat, label: "Lava fills today's crater until it spills over the lowest point of the rim. The rim changed in 1944, when part of the north side of the cone collapsed, so today's spill point need not match 1944." }
+  north:     { stop: 140, lon: 14.4269, lat: 40.8252, label: "Starts just below the crater on the north flank. In 1944 this flow was turned west by Monte Somma and reached San Sebastiano and Massa di Somma, stopping at about 140 m above sea level." },
+  southeast: { stop: 350, lon: 14.4307, lat: 40.8182, label: "Starts just below the crater on the south-east flank. In 1944 this flow stopped at about 350 m above sea level, before reaching any town." },
+  crater:    { stop: 0, lon: CRATER.lon, lat: CRATER.lat, label: "Lava fills today's crater until it spills over the lowest point of the rim. The rim changed in 1944, when part of the north side of the cone collapsed, so today's spill point need not match 1944." }
 };
 const GRID = { lonMin: 14.32, lonMax: 14.50, latMin: 40.76, latMax: 40.87, cell: 20 }; // cell in true metres
 const TOWNS = [
@@ -554,6 +583,7 @@ let vent;
 function setPreset(key) {
   vent = { ...VENTS[key], key };
   $("ventPreset").value = key; $("ventLabel").textContent = vent.label; drawVent(vent.lon, vent.lat);
+  if ($("stop")) { $("stop").value = vent.stop; $("stop").dispatchEvent(new Event("input")); }
 }
 setPreset("north");
 $("ventPreset").onchange = () => { if (VENTS[$("ventPreset").value]) setPreset($("ventPreset").value); };
@@ -581,6 +611,8 @@ const bind = (id, fmt) => { const el = $(id), out = $(id + "Val"); const f = () 
 bind("runs", v => String(v));
 bind("dh", v => v + " m");
 bind("len", v => v.toFixed(1) + " km");
+bind("stop", v => v === 0 ? "off" : v + " m");
+bind("width", v => v + " m");
 
 // ---------- Drawing results ----------
 const classOf = (p) => { for (let k = 0; k < CLASSES.length; k++) if (p >= CLASSES[k].min) return k; return CLASSES.length - 1; };
@@ -643,6 +675,7 @@ function showResults(res) {
   $("results").style.display = "block";
   $("rBest").textContent = (res.bestPathLength / 1000).toFixed(1) + " km";
   const r = res.reasons, n = res.runs, parts = [];
+  if (r.height) parts.push(`${Math.round(r.height / n * 100)}% reached the stop height`);
   if (r.length) parts.push(`${Math.round(r.length / n * 100)}% reached the length limit`);
   if (r.sea) parts.push(`${Math.round(r.sea / n * 100)}% reached the sea`);
   if (r.flat) parts.push(`${Math.round(r.flat / n * 100)}% stopped in a large hollow`);
@@ -839,6 +872,7 @@ async function runModel() {
   const runner = LavaModel.createRunner({
     h: heights, w: W, ht: H, cellTrue: GRID.cell, vent: ventIdx,
     runs: +$("runs").value, dh: +$("dh").value, maxLen: +$("len").value * 1000,
+    stopElev: +$("stop").value > 0 ? +$("stop").value : null, width: +$("width").value,
     seed: 1944, maxPond: 30000, targets
   });
   const t0 = performance.now();
