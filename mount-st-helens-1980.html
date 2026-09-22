@@ -88,7 +88,7 @@
   <aside id="panel">
     <div class="kicker">Physical processes · Volcanoes</div>
     <h1>Mount St Helens, 18 May 1980</h1>
-    <div class="hint" id="version" style="margin:-2px 0 6px">Model version 1.4 · 22 September 2026</div>
+    <div class="hint" id="version" style="margin:-2px 0 6px">Model version 1.5 · 22 September 2026</div>
     <p class="lede">One morning, four different hazards. Model each one with the methods scientists use for hazard maps, then compare your result with what really happened.</p>
 
     <h2>Choose a hazard</h2>
@@ -148,7 +148,7 @@
         <li><b>3D depth.</b> The 3D surface shows how high the model fills each stretch of valley. The real flows were deepest at their peak and left much thinner deposits behind.</li>
         <li><b>Only one flow at a time.</b> In 1980 lahars ran down several valleys at once. Run each one separately.</li>
         <li><b>The ground.</b> Hazards 1 and 2 use the 1952 mapped surface, the best record of the mountain before 1980. Beyond its edges, and for hazards 3 and 4, the model uses today's ground. Hazards 3 and 4 happened after the avalanche had already reshaped the land, so today's ground is closer to what they flowed over, but it has also changed since 1980.</li>
-        <li><b>Start points are approximate.</b> The model moves each start to the nearest river, so check the marker is where you expect.</li>
+        <li><b>Start points are approximate.</b> The model moves each start to the nearest channel, so check the marker is where you expect. The South Fork, Pine Creek and Muddy River lahars start on the volcano. The North Fork lahar starts down the valley on the avalanche deposit, because that's where the USGS says it formed.</li>
       </ul>
     </details>
 
@@ -182,6 +182,7 @@
       <div class="k"><span class="sw" style="background:var(--c-blast)"></span>Lateral blast</div>
       <div class="k"><span class="sw" style="background:var(--c-pf)"></span>Pyroclastic flows</div>
       <div class="k"><span class="sw" style="background:var(--c-lahar)"></span>Lahars</div>
+      <div class="k"><span class="sw" style="background:linear-gradient(90deg, rgba(138,90,43,.35) 50%, rgba(14,116,144,.35) 50%)"></span>Paler shade: danger zone near the summit</div>
     </div>
   </main>
 </div>
@@ -425,7 +426,7 @@
 
 <script type="module">
 const HM = window.HazardModels;
-const MODEL_VERSION = "1.4";
+const MODEL_VERSION = "1.5";
 const CAM = { ahead: 5000, height: 4000, tilt: 50 };   // follow camera: metres ahead of the front, metres above it, tilt in degrees
 console.info("Mount St Helens 1980 hazard explorer, model version " + MODEL_VERSION);
 const $ = (id) => document.getElementById(id);
@@ -482,15 +483,18 @@ const HAZ = {
   },
   lahar: {
     name: "Lahars", color: [14, 116, 144], surface: "today",
-    story: "Snow and ice melted by the eruption, and water squeezed from the avalanche, mixed with rock and ash into lahars: fast mudflows like wet concrete. They poured down the river valleys, destroying more than 200 homes and choking the Cowlitz and Columbia Rivers.",
+    story: "Hot rock and gas melted snow and ice on the volcano, and the water mixed with loose rock to form lahars: fast mudflows like wet concrete. Several poured down the volcano into the river valleys. The largest, in the North Fork Toutle, formed differently: water escaped from inside the avalanche deposit through most of the day. Lahars destroyed more than 200 homes and choked the Cowlitz and Columbia Rivers.",
     presets: {
+      // USGS: the North Fork lahar "was formed by water ... escaping from inside the huge landslide deposit through most of the day",
+      // so it starts on the upper avalanche deposit. The others "poured down the volcano", so they start on its flanks.
+      // All start points are approximate and are snapped to the nearest channel.
       nf: { label: "North Fork Toutle", lon: -122.300, lat: 46.285, vol: 140 },
-      sf: { label: "South Fork Toutle", lon: -122.245, lat: 46.190, vol: 13 },
-      pine: { label: "Pine Creek", lon: -122.170, lat: 46.170, vol: 8 },
-      muddy: { label: "Muddy River", lon: -122.140, lat: 46.185, vol: 5.5 }
+      sf: { label: "South Fork Toutle", lon: -122.2250, lat: 46.1850, vol: 13 },
+      pine: { label: "Pine Creek", lon: -122.1700, lat: 46.1700, vol: 8 },
+      muddy: { label: "Muddy River", lon: -122.1600, lat: 46.1900, vol: 5.5 }
     },
     controls: [
-      { id: "valley", type: "select", label: "Which valley?", options: [["nf", "North Fork Toutle"], ["sf", "South Fork Toutle"], ["pine", "Pine Creek"], ["muddy", "Muddy River"]], value: "nf" },
+      { id: "valley", type: "select", label: "Which valley?", options: [["nf", "North Fork Toutle (from the avalanche deposit)"], ["sf", "South Fork Toutle"], ["pine", "Pine Creek"], ["muddy", "Muddy River"]], value: "nf" },
       { id: "lvol", label: "Volume of mud", min: 0.5, max: 500, step: 0.5, value: 140, fmt: v => v + " million m³", hint: "1980 estimates: North Fork 140, South Fork 13, Pine Creek 8, Muddy River 5.5 million m³." }
     ],
     record: [["Largest lahar (North Fork)", "grew until about 80 km downstream"], ["River channels affected", "about 220 km"]]
@@ -703,7 +707,7 @@ function binCells(cells, vals, nBins) {
   return { bin, lists, binEnd, maxV };
 }
 // Flat patches draped on the ground, merged into row runs.
-function drapedFrames(B, color) {
+function drapedFrames(B, color, alpha) {
   const n = B.lists.length, rings = Array.from({ length: n }, () => []);
   for (let j = 0; j < H; j++) {
     let i = 0;
@@ -715,7 +719,7 @@ function drapedFrames(B, color) {
     }
   }
   return rings.map(r => r.length ? [new Graphic({ geometry: { type: "polygon", rings: r, spatialReference: { wkid: 3857 } },
-    symbol: { type: "simple-fill", color: [...color, 0.62], outline: { width: 0 } } })] : []);
+    symbol: { type: "simple-fill", color: [...color, alpha || 0.62], outline: { width: 0 } } })] : []);
 }
 // 3D flow surface: a mesh at the model's flow height. Corner heights are averaged from neighbouring cells so the surface is smooth.
 function meshFrames(B, level, color) {
@@ -772,6 +776,7 @@ async function play(key) {
   const t = ++playToken;
   layers[key].removeAll(); if (meshLayers[key]) meshLayers[key].removeAll();
   const use3D = P.mesh && $("td").checked, frames = P.draped;   // the draped fill is always drawn, so thin mud never shows gaps
+  if (P.prox && P.prox.length) layers[key].addMany(P.prox);      // the danger zone around the summit, where the flow starts
   $("clock").style.display = "block";
   $("clockLabel").textContent = P.timed ? "Time since it started" : "Order the ground was reached";
   $("clockNote").textContent = P.clockNote || "";
@@ -830,11 +835,11 @@ async function runModel() {
     if (!$("keep").checked) { for (const k in layers) if (k !== key) layers[k].removeAll(); for (const k in meshLayers) if (k !== key) meshLayers[k].removeAll(); }
     const s = startFor(key); let start = idxOf(s.lon, s.lat);
     if (start < 0 || !isFinite(h[start])) { toast("No elevation data at the start point. Try another spot."); return; }
-    const cells = [], dists = []; let anim = {};
+    const cells = [], dists = []; const anim = {};
     const onCell = (c, d) => { cells.push(c); dists.push(d); };
     if (key === "aval" || key === "lahar") {
       const net = await networkOf(key);
-      const minCells = key === "lahar" ? 150 : 20;       // 0.24 km² / 0.03 km² upstream area
+      const minCells = 20;                                // at least 0.03 km² draining to the start point
       const snapped = HM.snapToChannel(net, W, H, start, minCells, key === "aval" ? 4 : (startOverride[key] ? 12 : 15));
       if (snapped < 0) { toast("No river valley near the start point. Try closer to a valley."); return; }
       start = snapped; drawStart(start);
@@ -844,6 +849,9 @@ async function runModel() {
       // Proximal hazard zone (Iverson et al. 1998): energy cone from the summit with H/L = 0.23, as they used for Mount Rainier.
       const summit = HAZ[key].surface === "past" ? [-122.1918, 46.1976] : [-122.1944, 46.1912];
       const apex = HM.highestNear(h, W, H, idxOf(...summit), 38);
+      // the danger zone itself: ground below the energy cone from the summit (10 m allowance at the rounded summit)
+      const proxCells = []; HM.energyCone(h, W, H, GRID.cell, apex, 10, 0.23, null, (c) => proxCells.push(c));
+      anim.prox = proxCells;
       const r = HM.laharz(h, net, W, H, GRID.cell, start, a1 * Math.pow(V, 2 / 3), a2 * Math.pow(V, 2 / 3), () => {},
         { maxHalfWidthCells: 100, proximal: { apex, k: 0.23 } });
       // Tidy the result for drawing (the area and distance reported below come from the model itself)
@@ -853,13 +861,14 @@ async function runModel() {
         for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) { const b = (j + dj) * W + i + di; if (r.flooded[b] && isFinite(r.distOf[b]) && !(r.distOf[b] >= best)) best = r.distOf[b]; }
         return isFinite(best) ? best : 0; };
       for (let q = 0; q < W * H; q++) if (cl.mask[q]) { cells.push(q); dists.push(r.flooded[q] ? r.distOf[q] : ownerDist(q)); }
-      anim = { level: cl.surface, path: r.path, pathDist: r.pathDist };
+      Object.assign(anim, { level: cl.surface, path: r.path, pathDist: r.pathDist });
       anim.pathVal = r.pathDist.slice();
       if (key === "lahar") { const T = laharTimes(r, h); anim.times = dists.map(T); anim.pathVal = r.pathDist.map(T); }
       anim.proxKm = r.proximalExit > 0 ? r.pathDist[r.proximalExit] / 1000 : 0;
+      if (!(r.proximalExit > 0)) anim.prox = null;   // only shade the summit danger zone when the flow starts inside it
       console.log("LAHARZ", key, { start: cellLL(start), end: cellLL(r.path[r.path.length - 1]), km: r.length / 1000, km2: r.area / 1e6, reason: r.reason, endZ: h[r.path[r.path.length - 1]] });
       const why = ({ area: "It had covered all the ground its volume allows.", edge: "It reached the edge of the modelled area.", sea: "It reached sea level." }[r.reason] || "") +
-        (anim.proxKm > 0 ? ` The first ${anim.proxKm.toFixed(1)} km are inside the danger zone around the summit, where LAHARZ doesn't draw the flow.` : "");
+        (anim.proxKm > 0 ? ` The paler shading around the summit is the danger zone near the volcano, where the method counts all the ground as at risk. The flow is mapped in full from where it leaves that zone, ${anim.proxKm.toFixed(1)} km from the start.` : "");
       if (key === "aval") showResults(key, [["How far it travelled", km(r.length), "23 km"], ["Ground covered", km2(r.area), "–"]], why);
       else showResults(key, [["Distance along the river", km(r.length), values.valley === "nf" ? "grew until about 80 km downstream" : "–"], ["Ground covered", km2(r.area), "–"]],
         why + " In 1980 lahars affected about 220 km of river channels in all.");
@@ -877,8 +886,8 @@ async function runModel() {
       const sector = key === "blast" && values.spread < 360 ? { center: values.dir, half: values.spread / 2 } : null;
       const r = HM.energyCone(h, W, H, GRID.cell, start, Hh, k, sector, onCell);
       const speed = key === "blast" ? 480 / 3.6 : 105 / 3.6;
-      anim = { times: dists.map(d => d / speed), cone: { vent: start, Hh, k, sector },
-        clockNote: key === "blast" ? "At 480 km/h, the lowest speed the USGS reports, so real times were shorter." : "At 105 km/h, the middle of the USGS range of 80–130 km/h." };
+      Object.assign(anim, { times: dists.map(d => d / speed), cone: { vent: start, Hh, k, sector },
+        clockNote: key === "blast" ? "At 480 km/h, the lowest speed the USGS reports, so real times were shorter." : "At 105 km/h, the middle of the USGS range of 80–130 km/h." });
       const st = extentStats(cells, start), area = cells.length * GRID.cell * GRID.cell;
       if (key === "blast") showResults(key, [["Area devastated", km2(area), "600 km²"], ["Width, west to east", km(st.westEast), "nearly 30 km"], ["Reach to the north", km(Math.max(0, st.north)), "more than 20 km"]],
         "Try changing the height and mobility to match 1980. The real blast swept over ridges near the volcano and was blocked by others further out.");
@@ -898,7 +907,12 @@ async function runModel() {
         const [ax, ay] = cellXY(a), [cx, cy] = cellXY(c), [qx, qy] = cellXY(q);
         return { x: qx, y: qy, z: h[q], heading: (Math.atan2(cx - ax, cy - ay) * 180 / Math.PI + 360) % 360 }; });
     }
-    lastPlay[key] = { draped: drapedFrames(B, hz.color), mesh: anim.level ? meshFrames(B, anim.level, hz.color) : null,
+    let proxGraphic = [];
+    if (anim.prox && anim.prox.length) {
+      const bp = new Int16Array(W * H).fill(-1); for (const c of anim.prox) bp[c] = 0;
+      proxGraphic = drapedFrames({ bin: bp, lists: [anim.prox] }, hz.color, 0.28)[0];
+    }
+    lastPlay[key] = { prox: proxGraphic, draped: drapedFrames(B, hz.color), mesh: anim.level ? meshFrames(B, anim.level, hz.color) : null,
       binEnd: B.binEnd, timed, fronts, follow: !!fronts, frameMs: 220,
       clockNote: timed ? (anim.clockNote || "Speed estimated from the slope, within the USGS range.") : "We found no reliable speed for the avalanche." };
     $("replay").disabled = false;
