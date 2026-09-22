@@ -88,7 +88,7 @@
   <aside id="panel">
     <div class="kicker">Physical processes · Volcanoes</div>
     <h1>Mount St Helens, 18 May 1980</h1>
-    <div class="hint" id="version" style="margin:-2px 0 6px">Model version 1.3 · 22 September 2026</div>
+    <div class="hint" id="version" style="margin:-2px 0 6px">Model version 1.4 · 22 September 2026</div>
     <p class="lede">One morning, four different hazards. Model each one with the methods scientists use for hazard maps, then compare your result with what really happened.</p>
 
     <h2>Choose a hazard</h2>
@@ -425,7 +425,8 @@
 
 <script type="module">
 const HM = window.HazardModels;
-const MODEL_VERSION = "1.3";
+const MODEL_VERSION = "1.4";
+const CAM = { ahead: 5000, height: 4000, tilt: 50 };   // follow camera: metres ahead of the front, metres above it, tilt in degrees
 console.info("Mount St Helens 1980 hazard explorer, model version " + MODEL_VERSION);
 const $ = (id) => document.getElementById(id);
 const status = (t) => { $("status").textContent = t; };
@@ -781,9 +782,10 @@ async function play(key) {
     if (use3D && P.mesh[b].length) meshLayers[key].addMany(P.mesh[b]);
     $("clockTime").textContent = P.timed ? fmtDur(P.binEnd[b]) : Math.round((b + 1) / frames.length * 100) + "%";
     if (P.follow && $("follow").checked && P.fronts[b] && b % 2 === 0) {
-      // camera 3 km behind the front, 1.6 km above it, looking down the valley
-      const F = P.fronts[b], back = 3000 / Math.cos(latC * Math.PI / 180), rad = F.heading * Math.PI / 180;
-      const cam = { position: { x: F.x - Math.sin(rad) * back, y: F.y - Math.cos(rad) * back, z: F.z + 1600, spatialReference: { wkid: 3857 } }, heading: F.heading, tilt: 62 };
+      // camera ahead of the front, looking back up the valley at the oncoming flow, backing away as it advances
+      const F = P.fronts[b], ahead = CAM.ahead / Math.cos(latC * Math.PI / 180), rad = F.heading * Math.PI / 180;
+      const cam = { position: { x: F.x + Math.sin(rad) * ahead, y: F.y + Math.cos(rad) * ahead, z: F.z + CAM.height, spatialReference: { wkid: 3857 } },
+        heading: (F.heading + 180) % 360, tilt: CAM.tilt };
       view.goTo(cam, { duration: prevFront ? P.frameMs * 2 : 1200, easing: prevFront ? "linear" : "in-out-cubic" }).catch(() => {});
       prevFront = F;
       if (b === 0) await new Promise(r => setTimeout(r, 1200));
