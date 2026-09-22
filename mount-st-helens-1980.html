@@ -65,12 +65,15 @@
   #legend .k { display: flex; align-items: center; gap: 8px; margin: 2px 0; }
   #legend .sw { width: 18px; height: 12px; border-radius: 2px; flex: none; }
   #surfaceTag { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); background: var(--panel); border: 1px solid var(--rule); border-radius: 20px; padding: 6px 14px; font-size: 13px; font-weight: 600; box-shadow: 0 2px 10px rgba(0,0,0,.12); max-width: calc(100% - 120px); text-align: center; }
+  #clock { position: absolute; left: 12px; bottom: 28px; background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 8px 12px; font-size: 13px; box-shadow: 0 2px 10px rgba(0,0,0,.15); display: none; max-width: 240px; }
+  #clock .big { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
   #toast { position: absolute; left: 50%; top: 52px; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 8px 14px; border-radius: 20px; font-size: 13.5px; font-weight: 600; display: none; z-index: 5; max-width: calc(100% - 32px); text-align: center; }
   @media (max-width: 760px) {
     #app { flex-direction: column-reverse; }
     #panel { width: 100%; height: 50%; border-right: 0; border-top: 1px solid var(--rule); padding: 14px 16px 24px; }
     #mapwrap { height: 50%; flex: none; }
     #legend { right: 8px; bottom: 20px; padding: 6px 8px; font-size: 11px; }
+    #clock { left: 8px; bottom: 20px; padding: 6px 8px; font-size: 11px; max-width: 150px; } #clock .big { font-size: 16px; }
     #surfaceTag { font-size: 11.5px; top: 8px; max-width: calc(100% - 90px); }
   }
 </style>
@@ -95,11 +98,15 @@
     <h2>Settings</h2>
     <div id="controls"></div>
     <label class="check"><input type="checkbox" id="keep" checked /> Keep the other hazards on the map, so you can build up the whole day</label>
+    <label class="check"><input type="checkbox" id="td" checked /> Show the avalanche and lahars in 3D, at the depth the model works out</label>
+    <label class="check"><input type="checkbox" id="cone" checked /> Show the energy cone for the blast and pyroclastic flows</label>
+    <label class="check"><input type="checkbox" id="follow" checked /> Camera follows the flow</label>
     <label class="check"><input type="checkbox" id="past" checked /> Show the mountain as it was before 1980 (for hazards 1 and 2)</label>
     <div class="btns">
       <button id="run" class="primary" disabled>Run the model</button>
       <button id="moveStart">Move start point</button>
       <button id="resetStart">Reset</button>
+      <button id="replay" disabled>Replay</button>
     </div>
     <div id="status">Loading terrain…</div>
     <div class="bar"><div id="prog"></div></div>
@@ -131,7 +138,8 @@
       <summary>What these models can't tell you</summary>
       <ul>
         <li><b>The blast is an approximation.</b> The real blast was a sideways explosion. There's no simple standard method for that, so this uses an energy cone limited to one side of the volcano.</li>
-        <li><b>No timing or speed.</b> The models show where each hazard could reach, not when.</li>
+        <li><b>The clock is an estimate.</b> The models show where each hazard could reach, not when. The clock adds speeds reported by the USGS: the blast at least 480 km/h, pyroclastic flows 80–130 km/h (the page uses 105), and lahars up to about 145 km/h on steep upper slopes, slowing to about 5 km/h on flatter ground. In between, the page estimates a lahar's speed from the slope. We didn't find a reliable speed for the avalanche, so it plays in order without a clock.</li>
+        <li><b>3D depth.</b> The 3D surface shows how high the model fills each stretch of valley. The real flows were deepest at their peak and left much thinner deposits behind.</li>
         <li><b>Only one flow at a time.</b> In 1980 lahars ran down several valleys at once. Run each one separately.</li>
         <li><b>The ground.</b> Hazards 1 and 2 use the 1952 mapped surface, the best record of the mountain before 1980. Beyond its edges, and for hazards 3 and 4, the model uses today's ground. Hazards 3 and 4 happened after the avalanche had already reshaped the land, so today's ground is closer to what they flowed over, but it has also changed since 1980.</li>
         <li><b>Start points are approximate.</b> The model moves each start to the nearest river, so check the marker is where you expect.</li>
@@ -161,6 +169,7 @@
     </arcgis-scene>
     <div id="surfaceTag">Ground: today</div>
     <div id="toast"></div>
+    <div id="clock"><div id="clockLabel">Time since it started</div><div class="big" id="clockTime">0 s</div><div id="clockNote" class="hint"></div></div>
     <div id="legend">
       <div class="t">18 May 1980 hazards</div>
       <div class="k"><span class="sw" style="background:var(--c-aval)"></span>Debris avalanche</div>
@@ -268,16 +277,19 @@
   }
 
   /* LAHARZ. A (m²) cross-section, B (m²) planimetric area. cell = true cell size (m).
-     onCell(idx, distanceAlongPath). Returns {path, area, length, reason}. */
+     onCell(idx, distanceAlongPath). Returns {path, pathDist, area, length, reason, flooded, level}.
+     level[idx] = height (m) of the flow surface at that spot: the fill level of the cross-section that flooded it. */
   function laharz(h, net, w, ht, cell, start, A, B, onCell, opts) {
     opts = opts || {};
     const maxHalf = opts.maxHalfWidthCells || 400;
     const flooded = new Uint8Array(w * ht); let nFlooded = 0;
-    const cellArea = cell * cell, path = [];
+    const level = new Float32Array(w * ht).fill(NaN);
+    const cellArea = cell * cell, path = [], pathDist = [];
     let c = start, dist = 0, reason = "area", prevK = 4;
-    const mark = (q, d) => { if (!flooded[q]) { flooded[q] = 1; nFlooded++; onCell(q, d); } };
+    let Lcur = 0;
+    const mark = (q, d) => { if (!flooded[q]) { flooded[q] = 1; nFlooded++; level[q] = Lcur; onCell(q, d); } };
     for (let guard = 0; guard < w * ht; guard++) {
-      path.push(c);
+      path.push(c); pathDist.push(dist);
       const k = net.dir[c];
       const i = c % w, j = (c / w) | 0, zc = h[c];
       // cross-section perpendicular to the flow direction (use the incoming direction at outlets)
@@ -296,7 +308,7 @@
       let lo = zc, hi = zc + 50;
       while (areaAt(hi) < A && hi - zc < 3000) hi = zc + (hi - zc) * 2;
       for (let it = 0; it < 40; it++) { const mid = (lo + hi) / 2; if (areaAt(mid) < A) lo = mid; else hi = mid; }
-      const L = hi;
+      const L = hi; Lcur = L;
       mark(c, dist);
       for (const [side, sgn] of [[left, 1], [right, -1]]) {
         for (let n = 0; n < side.length; n++) { if (side[n] >= L) break; mark((j + sgn * (n + 1) * py) * w + i + sgn * (n + 1) * px, dist); }
@@ -308,7 +320,7 @@
       dist += DD[k] * cell;
       c = (j + DJ[k]) * w + i + DI[k];
     }
-    return { path, area: nFlooded * cellArea, length: dist, reason, flooded };
+    return { path, pathDist, area: nFlooded * cellArea, length: dist, reason, flooded, level };
   }
 
   /* Energy cone with topographic blocking. vent idx, H (m above vent ground), k = H/L.
@@ -449,9 +461,10 @@ function renderControls() {
 }
 
 // ---------- ArcGIS ----------
-const [Graphic, GraphicsLayer, Extent, ElevationLayer, BaseElevationLayer] = await $arcgis.import([
+const [Graphic, GraphicsLayer, Extent, ElevationLayer, BaseElevationLayer, Mesh, MeshComponent] = await $arcgis.import([
   "@arcgis/core/Graphic.js", "@arcgis/core/layers/GraphicsLayer.js", "@arcgis/core/geometry/Extent.js",
-  "@arcgis/core/layers/ElevationLayer.js", "@arcgis/core/layers/BaseElevationLayer.js"
+  "@arcgis/core/layers/ElevationLayer.js", "@arcgis/core/layers/BaseElevationLayer.js",
+  "@arcgis/core/geometry/Mesh.js", "@arcgis/core/geometry/support/MeshComponent.js"
 ]);
 const sceneEl = document.querySelector("arcgis-scene");
 await sceneEl.viewOnReady();
@@ -459,7 +472,10 @@ const view = sceneEl.view, map = sceneEl.map;
 const layers = {};
 for (const k of ["lahar", "pf", "blast", "aval"]) { layers[k] = new GraphicsLayer({ title: HAZ[k].name, elevationInfo: { mode: "on-the-ground" } }); }
 const markLayer = new GraphicsLayer({ title: "Start points", elevationInfo: { mode: "relative-to-ground" } });
-map.addMany([layers.lahar, layers.pf, layers.blast, layers.aval, markLayer]);
+const meshLayers = {};
+for (const k of ["lahar", "aval"]) meshLayers[k] = new GraphicsLayer({ title: HAZ[k].name + " (3D)", elevationInfo: { mode: "absolute-height" } });
+const coneLayer = new GraphicsLayer({ title: "Energy cone", elevationInfo: { mode: "absolute-height" } });
+map.addMany([layers.lahar, layers.pf, layers.blast, layers.aval, meshLayers.lahar, meshLayers.aval, coneLayer, markLayer]);
 const merc = (x, y) => ({ type: "point", x, y, spatialReference: { wkid: 3857 } });
 function labelSymbol(text, color, size = 11) {
   return { type: "point-3d", symbolLayers: [
@@ -602,17 +618,23 @@ view.on("click", (e) => {
   placing = false; $("moveStart").setAttribute("aria-pressed", "false"); drawStart(); toast("Start moved. Press Run the model.");
 });
 
-// ---------- Drawing ----------
-function framesFromCells(cells, dists, color, nBins) {
-  let maxD = 1; for (const d of dists) if (d > maxD) maxD = d;
-  const bin = new Int16Array(W * H).fill(-1);
-  cells.forEach((c, k) => { bin[c] = Math.min(nBins - 1, Math.floor(dists[k] / (maxD + 1e-9) * nBins)); });
-  const rings = Array.from({ length: nBins }, () => []);
+// ---------- Drawing and animation ----------
+// Bin cells by a value (arrival time or distance) into nBins frames.
+function binCells(cells, vals, nBins) {
+  let maxV = 1e-9; for (const v of vals) if (v > maxV) maxV = v;
+  const bin = new Int16Array(W * H).fill(-1), lists = Array.from({ length: nBins }, () => []);
+  cells.forEach((c, k) => { const b = Math.min(nBins - 1, Math.floor(vals[k] / maxV * nBins)); bin[c] = b; lists[b].push(c); });
+  const binEnd = Array.from({ length: nBins }, (_, b) => (b + 1) / nBins * maxV);
+  return { bin, lists, binEnd, maxV };
+}
+// Flat patches draped on the ground, merged into row runs.
+function drapedFrames(B, color) {
+  const n = B.lists.length, rings = Array.from({ length: n }, () => []);
   for (let j = 0; j < H; j++) {
     let i = 0;
     while (i < W) {
-      const b = bin[j * W + i]; if (b < 0) { i++; continue; }
-      let e = i + 1; while (e < W && bin[j * W + e] === b) e++;
+      const b = B.bin[j * W + i]; if (b < 0) { i++; continue; }
+      let e = i + 1; while (e < W && B.bin[j * W + e] === b) e++;
       const x0 = xmin + i * cellM, x1 = xmin + e * cellM, y1 = ymax - j * cellM, y0 = y1 - cellM;
       rings[b].push([[x0, y0], [x0, y1], [x1, y1], [x1, y0], [x0, y0]]); i = e;
     }
@@ -620,10 +642,90 @@ function framesFromCells(cells, dists, color, nBins) {
   return rings.map(r => r.length ? [new Graphic({ geometry: { type: "polygon", rings: r, spatialReference: { wkid: 3857 } },
     symbol: { type: "simple-fill", color: [...color, 0.62], outline: { width: 0 } } })] : []);
 }
-let playToken = 0;
-async function play(layer, frames) {
-  const t = ++playToken; layer.removeAll();
-  for (const f of frames) { if (t !== playToken) return; if (f.length) layer.addMany(f); await new Promise(r => setTimeout(r, 90)); }
+// 3D flow surface: a mesh at the model's flow height. Corner heights are averaged from neighbouring cells so the surface is smooth.
+function meshFrames(B, level, color) {
+  const cornerZ = (ci, cj) => {
+    let s = 0, n = 0;
+    for (const [di, dj] of [[-1, -1], [0, -1], [-1, 0], [0, 0]]) {
+      const i = ci + di, j = cj + dj; if (i < 0 || j < 0 || i >= W || j >= H) continue;
+      const v = level[j * W + i]; if (isFinite(v)) { s += v; n++; }
+    }
+    return s / n + 1.5;
+  };
+  return B.lists.map(list => {
+    if (!list.length) return [];
+    const idx = new Map(), pos = [], faces = [];
+    const vert = (ci, cj) => { const key = cj * (W + 1) + ci; let v = idx.get(key);
+      if (v === undefined) { v = pos.length / 3; idx.set(key, v); pos.push(xmin + ci * cellM, ymax - cj * cellM, cornerZ(ci, cj)); } return v; };
+    for (const c of list) {
+      const i = c % W, j = (c / W) | 0;
+      const tl = vert(i, j), tr = vert(i + 1, j), br = vert(i + 1, j + 1), bl = vert(i, j + 1);
+      faces.push(bl, br, tr, bl, tr, tl);
+    }
+    const mesh = new Mesh({ vertexAttributes: { position: new Float64Array(pos) },
+      components: [new MeshComponent({ faces: new Uint32Array(faces), material: { color: [...color, 0.9] } })],
+      spatialReference: { wkid: 3857 } });
+    return [new Graphic({ geometry: mesh, symbol: { type: "mesh-3d", symbolLayers: [{ type: "fill" }] } })];
+  });
+}
+// The energy cone: its surface drops k metres per metre from a point H above the vent.
+function coneGraphics(vent, Hh, k, sector, h) {
+  const [vx, vy] = cellXY(vent), z0 = h[vent] + Hh, f = 1 / Math.cos(latC * Math.PI / 180);
+  let zmin = Infinity; for (let c = 0; c < h.length; c++) if (h[c] < zmin) zmin = h[c];
+  const Rmax = Math.min((z0 - zmin) / k, 45000), NR = 24;
+  const a0 = sector ? sector.center - sector.half : 0, span = sector ? sector.half * 2 : 360, NS = Math.max(12, Math.round(span / 3));
+  const pos = [vx, vy, z0], faces = [];
+  for (let r = 1; r <= NR; r++) for (let sI = 0; sI <= NS; sI++) {
+    const d = Rmax * r / NR, az = (a0 + span * sI / NS) * Math.PI / 180;
+    pos.push(vx + d * Math.sin(az) * f, vy + d * Math.cos(az) * f, z0 - k * d);
+  }
+  const at = (r, sI) => 1 + (r - 1) * (NS + 1) + sI;
+  for (let sI = 0; sI < NS; sI++) faces.push(0, at(1, sI + 1), at(1, sI));
+  for (let r = 1; r < NR; r++) for (let sI = 0; sI < NS; sI++) faces.push(at(r, sI), at(r, sI + 1), at(r + 1, sI + 1), at(r, sI), at(r + 1, sI + 1), at(r + 1, sI));
+  const mesh = new Mesh({ vertexAttributes: { position: new Float64Array(pos) },
+    components: [new MeshComponent({ faces: new Uint32Array(faces), material: { color: [255, 255, 255, 0.22] } })], spatialReference: { wkid: 3857 } });
+  const pole = { type: "polyline", paths: [[[vx, vy, h[vent]], [vx, vy, z0]]], hasZ: true, spatialReference: { wkid: 3857 } };
+  return [new Graphic({ geometry: mesh, symbol: { type: "mesh-3d", symbolLayers: [{ type: "fill" }] } }),
+          new Graphic({ geometry: pole, symbol: { type: "line-3d", symbolLayers: [{ type: "line", size: 2, material: { color: [255, 255, 255, 0.95] } }] } })];
+}
+
+const fmtDur = (t) => { t = Math.round(t); if (t < 60) return t + " s"; const m = Math.floor(t / 60), sec = t % 60;
+  if (m < 60) return m + " min" + (sec && m < 10 ? " " + sec + " s" : ""); const hh = Math.floor(m / 60), mm = m % 60; return hh + " h" + (mm ? " " + mm + " min" : ""); };
+let playToken = 0, lastPlay = {};
+async function play(key) {
+  const P = lastPlay[key]; if (!P) return;
+  const t = ++playToken;
+  layers[key].removeAll(); if (meshLayers[key]) meshLayers[key].removeAll();
+  const use3D = P.mesh && $("td").checked, target = use3D ? meshLayers[key] : layers[key], frames = use3D ? P.mesh : P.draped;
+  $("clock").style.display = "block";
+  $("clockLabel").textContent = P.timed ? "Time since it started" : "Order the ground was reached";
+  $("clockNote").textContent = P.clockNote || "";
+  let prevFront = null;
+  for (let b = 0; b < frames.length; b++) {
+    if (t !== playToken) return;
+    if (frames[b].length) target.addMany(frames[b]);
+    $("clockTime").textContent = P.timed ? fmtDur(P.binEnd[b]) : Math.round((b + 1) / frames.length * 100) + "%";
+    if (P.follow && $("follow").checked && P.fronts[b] && b % 3 === 0) {
+      const [fx, fy] = P.fronts[b];
+      const heading = prevFront ? (Math.atan2(fx - prevFront[0], fy - prevFront[1]) * 180 / Math.PI + 360) % 360 : undefined;
+      if (!prevFront || Math.hypot(fx - prevFront[0], fy - prevFront[1]) > 300) {
+        view.goTo({ target: merc(fx, fy), zoom: 13, tilt: 65, ...(heading != null ? { heading } : {}) }, { duration: 550, easing: "linear" }).catch(() => {});
+        prevFront = [fx, fy];
+      }
+    }
+    await new Promise(r => setTimeout(r, P.frameMs));
+  }
+}
+// Arrival times along a LAHARZ path: speed from the local slope, between the USGS range of about 145 km/h (steep) and 5 km/h (flat).
+function laharTimes(r, h) {
+  const n = r.path.length, tPath = new Float64Array(n);
+  const vOf = (s) => { const x = Math.min(1, Math.max(0, (Math.log10(Math.max(s, 1e-6)) + 3) / 2)); return 5 * Math.pow(145 / 5, x) / 3.6; };
+  for (let p = 1; p < n; p++) {
+    const a = Math.max(0, p - 12), b = Math.min(n - 1, p + 12), run = r.pathDist[b] - r.pathDist[a];
+    const slope = run > 0 ? Math.max(0, (h[r.path[a]] - h[r.path[b]]) / run) : 0;
+    tPath[p] = tPath[p - 1] + (r.pathDist[p] - r.pathDist[p - 1]) / vOf(slope);
+  }
+  return (d) => { let lo = 0, hi = n - 1; while (lo < hi) { const m = (lo + hi + 1) >> 1; if (r.pathDist[m] <= d) lo = m; else hi = m - 1; } return tPath[lo]; };
 }
 
 // ---------- Results ----------
@@ -648,10 +750,10 @@ async function runModel() {
   busy = true; $("run").disabled = true;
   try {
     const key = current, hz = HAZ[key], h = surfaceOf(key);
-    if (!$("keep").checked) for (const k in layers) if (k !== key) layers[k].removeAll();
+    if (!$("keep").checked) { for (const k in layers) if (k !== key) layers[k].removeAll(); for (const k in meshLayers) if (k !== key) meshLayers[k].removeAll(); }
     const s = startFor(key); let start = idxOf(s.lon, s.lat);
     if (start < 0 || !isFinite(h[start])) { toast("No elevation data at the start point. Try another spot."); return; }
-    const cells = [], dists = [];
+    const cells = [], dists = []; let anim = {};
     const onCell = (c, d) => { cells.push(c); dists.push(d); };
     if (key === "aval" || key === "lahar") {
       const net = await networkOf(key);
@@ -663,6 +765,8 @@ async function runModel() {
       const [a1, a2] = key === "aval" ? [0.2, 20] : [0.05, 200];
       status("Following the valley downhill…"); await yieldUI();
       const r = HM.laharz(h, net, W, H, GRID.cell, start, a1 * Math.pow(V, 2 / 3), a2 * Math.pow(V, 2 / 3), onCell, { maxHalfWidthCells: 250 });
+      anim = { level: r.level, path: r.path, pathDist: r.pathDist };
+      if (key === "lahar") { const T = laharTimes(r, h); anim.times = dists.map(T); }
       console.log("LAHARZ", key, { start: cellLL(start), end: cellLL(r.path[r.path.length - 1]), km: r.length / 1000, km2: r.area / 1e6, reason: r.reason, endZ: h[r.path[r.path.length - 1]] });
       const why = { area: "It had covered all the ground its volume allows.", edge: "It reached the edge of the modelled area.", sea: "It reached sea level." }[r.reason] || "";
       if (key === "aval") showResults(key, [["How far it travelled", km(r.length), "23 km"], ["Ground covered", km2(r.area), "–"]], why);
@@ -681,6 +785,9 @@ async function runModel() {
       const Hh = key === "blast" ? values.Hb : values.Hp, k = key === "blast" ? values.kb : values.kp;
       const sector = key === "blast" && values.spread < 360 ? { center: values.dir, half: values.spread / 2 } : null;
       const r = HM.energyCone(h, W, H, GRID.cell, start, Hh, k, sector, onCell);
+      const speed = key === "blast" ? 480 / 3.6 : 105 / 3.6;
+      anim = { times: dists.map(d => d / speed), cone: { vent: start, Hh, k, sector },
+        clockNote: key === "blast" ? "At 480 km/h, the lowest speed the USGS reports, so real times were shorter." : "At 105 km/h, the middle of the USGS range of 80–130 km/h." };
       const st = extentStats(cells, start), area = cells.length * GRID.cell * GRID.cell;
       if (key === "blast") showResults(key, [["Area devastated", km2(area), "600 km²"], ["Width, west to east", km(st.westEast), "nearly 30 km"], ["Reach to the north", km(Math.max(0, st.north)), "more than 20 km"]],
         "Try changing the height and mobility to match 1980. The real blast swept over ridges near the volcano and was blocked by others further out.");
@@ -688,13 +795,24 @@ async function runModel() {
         "The starting values were chosen so the flows reach about 8 km, like 1980. Change them to see what a bigger eruption could do.");
     }
     status(`Done: ${hz.name.toLowerCase()} modelled on ${hz.surface === "past" ? "the pre-1980 ground" : "today's ground"}.`);
-    await play(layers[key], framesFromCells(cells, dists, hz.color, 24));
+    const NB = 40, timed = !!anim.times, B = binCells(cells, timed ? anim.times : dists, NB);
+    coneLayer.removeAll();
+    if (anim.cone && $("cone").checked) coneLayer.addMany(coneGraphics(anim.cone.vent, anim.cone.Hh, anim.cone.k, anim.cone.sector, h));
+    const fronts = B.lists.map(list => { if (!list.length) return null; let sx = 0, sy = 0; for (const c of list) { const [x, y] = cellXY(c); sx += x; sy += y; } return [sx / list.length, sy / list.length]; });
+    lastPlay[key] = { draped: drapedFrames(B, hz.color), mesh: anim.level ? meshFrames(B, anim.level, hz.color) : null,
+      binEnd: B.binEnd, timed, fronts, follow: key === "aval" || key === "lahar", frameMs: 220,
+      clockNote: timed ? (anim.clockNote || "Speed estimated from the slope, within the USGS range.") : "We found no reliable speed for the avalanche." };
+    $("replay").disabled = false;
+    await play(key);
   } catch (e) { console.error(e); status("Something went wrong. Reload the page and try again."); }
   finally { busy = false; $("run").disabled = false; }
 }
 $("run").onclick = runModel;
+$("replay").onclick = () => { if (!busy) play(current); };
+$("cone").onchange = () => { if (!$("cone").checked) coneLayer.removeAll(); };
 document.querySelectorAll(".steps button").forEach(b => b.onclick = () => {
   current = b.dataset.h; placing = false; renderControls(); drawStart(); $("results").style.display = "none";
+  $("replay").disabled = !lastPlay[current]; $("clock").style.display = "none";
   setDisplaySurface(HAZ[current].surface);
 });
 $("past").onchange = () => setDisplaySurface(HAZ[current].surface);
