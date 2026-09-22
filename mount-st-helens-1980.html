@@ -64,7 +64,12 @@
   #legend .t { font-weight: 700; margin-bottom: 4px; }
   #legend .k { display: flex; align-items: center; gap: 8px; margin: 2px 0; }
   #legend .sw { width: 18px; height: 12px; border-radius: 2px; flex: none; }
-  #surfaceTag { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); background: var(--panel); border: 1px solid var(--rule); border-radius: 20px; padding: 6px 14px; font-size: 13px; font-weight: 600; box-shadow: 0 2px 10px rgba(0,0,0,.12); max-width: calc(100% - 120px); text-align: center; }
+  #surfaceTag { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); background: var(--panel); border: 1px solid var(--rule); border-radius: 20px; padding: 6px 14px; font-size: 13px; font-weight: 600; box-shadow: 0 2px 10px rgba(0,0,0,.12); max-width: calc(100% - 120px); text-align: center; cursor: pointer; color: var(--ink); line-height: 1.3; }
+  #surfaceTag .sw { display: inline-block; width: 30px; height: 16px; border-radius: 8px; background: var(--rule); vertical-align: -3px; margin-right: 8px; position: relative; }
+  #surfaceTag .sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: #fff; transition: left .15s; }
+  #surfaceTag[aria-pressed="true"] .sw { background: var(--accent); }
+  #surfaceTag[aria-pressed="true"] .sw::after { left: 16px; }
+  #surfaceTag .sub { display: block; font-size: 11.5px; font-weight: 500; color: var(--muted); }
   #clock { position: absolute; left: 12px; bottom: 28px; background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 8px 12px; font-size: 13px; box-shadow: 0 2px 10px rgba(0,0,0,.15); display: none; max-width: 240px; }
   #clock .big { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
   #toast { position: absolute; left: 50%; top: 52px; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 8px 14px; border-radius: 20px; font-size: 13.5px; font-weight: 600; display: none; z-index: 5; max-width: calc(100% - 32px); text-align: center; }
@@ -83,6 +88,7 @@
   <aside id="panel">
     <div class="kicker">Physical processes · Volcanoes</div>
     <h1>Mount St Helens, 18 May 1980</h1>
+    <div class="hint" id="version" style="margin:-2px 0 6px">Model version 1.3 · 22 September 2026</div>
     <p class="lede">One morning, four different hazards. Model each one with the methods scientists use for hazard maps, then compare your result with what really happened.</p>
 
     <h2>Choose a hazard</h2>
@@ -101,7 +107,6 @@
     <label class="check"><input type="checkbox" id="td" checked /> Show the avalanche and lahars in 3D, at the depth the model works out</label>
     <label class="check"><input type="checkbox" id="cone" checked /> Show the energy cone for the blast and pyroclastic flows</label>
     <label class="check"><input type="checkbox" id="follow" checked /> Camera follows the flow</label>
-    <label class="check"><input type="checkbox" id="past" checked /> Show the mountain as it was before 1980 (for hazards 1 and 2)</label>
     <div class="btns">
       <button id="run" class="primary" disabled>Run the model</button>
       <button id="moveStart">Move start point</button>
@@ -132,13 +137,14 @@
     <details>
       <summary>How the models work</summary>
       <p><b>Energy cone</b> (pyroclastic flows and the blast). Picture a cone upside down, with its tip high above the vent. A flow starts at that height and loses a fixed amount of height for every metre it travels, set by the <i>mobility</i> (H/L). It can reach any spot where that falling line stays above the ground. A high ridge stops it; a low one is swept over. Scientists use mobility values from 0.05 (very mobile) to 0.5.</p>
-      <p><b>LAHARZ</b> (lahars and the avalanche). From a US Geological Survey method: the bigger the volume, the more of each valley it fills and the more ground it covers. Lahars are runny, so they spread over ten times more ground than a rock avalanche of the same volume. The model follows the river downhill, fills each stretch of valley to the right depth, and stops when it has covered its total area.</p>
+      <p><b>LAHARZ</b> (lahars and the avalanche). From a US Geological Survey method: the bigger the volume, the more of each valley it fills and the more ground it covers. Lahars are runny, so they spread over ten times more ground than a rock avalanche of the same volume. The model follows the river downhill, fills each stretch of valley to the right depth, and stops when it has covered its total area. Close to the summit, everything is treated as a danger zone: an energy cone from the summit with a mobility of 0.23, the value the method's authors used at Mount Rainier. Valley-filling starts where the flow leaves that zone.</p>
     </details>
     <details>
       <summary>What these models can't tell you</summary>
       <ul>
         <li><b>The blast is an approximation.</b> The real blast was a sideways explosion. There's no simple standard method for that, so this uses an energy cone limited to one side of the volcano.</li>
         <li><b>The clock is an estimate.</b> The models show where each hazard could reach, not when. The clock adds speeds reported by the USGS: the blast at least 480 km/h, pyroclastic flows 80–130 km/h (the page uses 105), and lahars up to about 145 km/h on steep upper slopes, slowing to about 5 km/h on flatter ground. In between, the page estimates a lahar's speed from the slope. We didn't find a reliable speed for the avalanche, so it plays in order without a clock.</li>
+        <li><b>Tidied edges.</b> The map smooths out one-square spikes and fills tiny holes so the flow is easier to read. The distance and area in the results come from the model before tidying.</li>
         <li><b>3D depth.</b> The 3D surface shows how high the model fills each stretch of valley. The real flows were deepest at their peak and left much thinner deposits behind.</li>
         <li><b>Only one flow at a time.</b> In 1980 lahars ran down several valleys at once. Run each one separately.</li>
         <li><b>The ground.</b> Hazards 1 and 2 use the 1952 mapped surface, the best record of the mountain before 1980. Beyond its edges, and for hazards 3 and 4, the model uses today's ground. Hazards 3 and 4 happened after the avalanche had already reshaped the land, so today's ground is closer to what they flowed over, but it has also changed since 1980.</li>
@@ -153,7 +159,7 @@
       <a href="https://www.usgs.gov/volcanoes/mount-st.-helens/science/lahar-hazards-mount-st-helens" target="_blank" rel="noopener">USGS: lahar hazards at Mount St Helens</a> ·
       <a href="https://www.academia.edu/23914199/Numerical_simulation_of_some_lahars_from_Mount_St_Helens" target="_blank" rel="noopener">Numerical simulation of some lahars from Mount St Helens (lahar volumes)</a> ·
       <a href="https://doi.org/10.5066/P91W7C1L" target="_blank" rel="noopener">Bard &amp; Phillips-Netherton (2024), pre-1980 elevation model, USGS</a> ·
-      <a href="https://pubs.usgs.gov/publication/70226932" target="_blank" rel="noopener">LAHARZ: Iverson, Schilling &amp; Vallance (1998)</a> ·
+      <a href="https://www.morageology.com/pubs/110.pdf" target="_blank" rel="noopener">LAHARZ: Iverson, Schilling &amp; Vallance (1998)</a> ·
       <a href="https://www.usgs.gov/publications/mobility-statistics-and-automated-hazard-mapping-debris-flows-and-rock-avalanches" target="_blank" rel="noopener">Griswold &amp; Iverson (2008), avalanche coefficients</a> ·
       <a href="https://gscommunitycodes.usf.edu/geoscicommunitycodes/public/energy-cone/energy_cone.php" target="_blank" rel="noopener">Energy cone model</a> ·
       <a href="https://volcano.oregonstate.edu/mount-st-helens-fact-sheet" target="_blank" rel="noopener">Oregon State Volcano World fact sheet</a>
@@ -167,7 +173,7 @@
       <arcgis-navigation-toggle slot="top-left"></arcgis-navigation-toggle>
       <arcgis-compass slot="top-left"></arcgis-compass>
     </arcgis-scene>
-    <div id="surfaceTag">Ground: today</div>
+    <button id="surfaceTag" aria-pressed="false"><span class="sw"></span><span id="surfaceText">1952 ground (before the eruption)</span><span class="sub" id="surfaceSub"></span></button>
     <div id="toast"></div>
     <div id="clock"><div id="clockLabel">Time since it started</div><div class="big" id="clockTime">0 s</div><div id="clockNote" class="hint"></div></div>
     <div id="legend">
@@ -181,7 +187,7 @@
 </div>
 
 <script>
-/* Volcanic hazard models for classroom use.
+/* Volcanic hazard models for classroom use. Version 1.3 (22 September 2026).
    1. Energy cone (Malin & Sheridan 1982) for pyroclastic density currents and, as an
       approximation, a lateral blast limited to a sector. A current starts at height H above
       the vent and its "energy line" drops by k (= H/L) metres per metre travelled. It can
@@ -276,51 +282,109 @@
     return best;
   }
 
-  /* LAHARZ. A (m²) cross-section, B (m²) planimetric area. cell = true cell size (m).
-     onCell(idx, distanceAlongPath). Returns {path, pathDist, area, length, reason, flooded, level}.
-     level[idx] = height (m) of the flow surface at that spot: the fill level of the cross-section that flooded it. */
+  /* LAHARZ (Iverson, Schilling & Vallance 1998). A (m²) cross-section, B (m²) planimetric area, cell = true cell size (m).
+     As published: at each stream cell, three valley cross-sections at 45° intervals (perpendicular to the flow and
+     ±45°), each filled to area A; the flow stops when the flooded area reaches B.
+     opts.proximal = {apex: idx, k: H/L}: no cross-sections while the path is inside the proximal hazard zone (the
+     ground lies below an energy cone from the summit); valley-filling starts where the path leaves it.
+     onCell(idx, distanceAlongPath). Returns {path, pathDist, area, length, reason, flooded, level, surface, distOf, proximalExit}.
+     level[idx] = highest fill level of the cross-sections that flooded the cell; surface[idx] = that level smoothed
+     along the valley and across neighbours (for drawing only; never below the ground). */
+  const RING = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]];
+  function ringIndex(di, dj) { for (let r = 0; r < 8; r++) if (RING[r][0] === di && RING[r][1] === dj) return r; return 0; }
   function laharz(h, net, w, ht, cell, start, A, B, onCell, opts) {
     opts = opts || {};
     const maxHalf = opts.maxHalfWidthCells || 400;
-    const flooded = new Uint8Array(w * ht); let nFlooded = 0;
-    const level = new Float32Array(w * ht).fill(NaN);
-    const cellArea = cell * cell, path = [], pathDist = [];
-    let c = start, dist = 0, reason = "area", prevK = 4;
-    let Lcur = 0;
-    const mark = (q, d) => { if (!flooded[q]) { flooded[q] = 1; nFlooded++; level[q] = Lcur; onCell(q, d); } };
-    for (let guard = 0; guard < w * ht; guard++) {
-      path.push(c); pathDist.push(dist);
-      const k = net.dir[c];
-      const i = c % w, j = (c / w) | 0, zc = h[c];
-      // cross-section perpendicular to the flow direction (use the incoming direction at outlets)
-      const kk = k >= 0 ? k : (path.length > 1 ? prevK : 4);
-      const px = -DJ[kk], py = DI[kk], step = cell * Math.hypot(px, py);
-      const profile = (sgn) => { const z = []; for (let n = 1; n <= maxHalf; n++) {
-        const ni = i + sgn * n * px, nj = j + sgn * n * py;
-        if (ni < 0 || nj < 0 || ni >= w || nj >= ht) break; const v = h[nj * w + ni]; if (!isFinite(v)) break; z.push(v);
-      } return z; };
-      const left = profile(1), right = profile(-1);
-      const areaAt = (L) => {
-        let a = Math.max(0, L - zc) * step;
-        for (const side of [left, right]) for (const z of side) { if (z >= L) break; a += (L - z) * step; }
-        return a;
-      };
-      let lo = zc, hi = zc + 50;
-      while (areaAt(hi) < A && hi - zc < 3000) hi = zc + (hi - zc) * 2;
-      for (let it = 0; it < 40; it++) { const mid = (lo + hi) / 2; if (areaAt(mid) < A) lo = mid; else hi = mid; }
-      const L = hi; Lcur = L;
-      mark(c, dist);
-      for (const [side, sgn] of [[left, 1], [right, -1]]) {
-        for (let n = 0; n < side.length; n++) { if (side[n] >= L) break; mark((j + sgn * (n + 1) * py) * w + i + sgn * (n + 1) * px, dist); }
+    const N = w * ht, flooded = new Uint8Array(N); let nFlooded = 0;
+    const level = new Float32Array(N).fill(NaN), owner = new Int32Array(N).fill(-1), distOf = new Float32Array(N).fill(NaN);
+    const cellArea = cell * cell, path = [], pathDist = [], pathL = [];
+    let c = start, dist = 0, reason = "area", prevK = 4, Lcur = 0, active = !opts.proximal, proximalExit = active ? 0 : -1;
+    const P = opts.proximal;
+    const inProx = (q) => { if (!P) return false; const ai = P.apex % w, aj = (P.apex / w) | 0, qi = q % w, qj = (q / w) | 0;
+      const d = Math.hypot(qi - ai, qj - aj) * cell; return h[q] < h[P.apex] - P.k * d; };
+    const mark = (q, d) => { if (!flooded[q]) { flooded[q] = 1; nFlooded++; level[q] = Lcur; owner[q] = path.length - 1; distOf[q] = d; onCell(q, d); }
+      else if (Lcur > level[q]) { level[q] = Lcur; owner[q] = path.length - 1; } };  // where sections overlap, the flow surface is the highest
+    for (let guard = 0; guard < N; guard++) {
+      path.push(c); pathDist.push(dist); pathL.push(NaN);
+      const k = net.dir[c], i = c % w, j = (c / w) | 0, zc = h[c];
+      if (!active && !inProx(c)) { active = true; proximalExit = path.length - 1; }
+      if (active) {
+        const kk = k >= 0 ? k : prevK, r0 = ringIndex(DI[kk], DJ[kk]);
+        for (const rot of [2, 1, 3]) {                    // perpendicular, then ±45°
+          const [px, py] = RING[(r0 + rot) % 8], step = cell * Math.hypot(px, py);
+          const profile = (sgn) => { const z = []; for (let n = 1; n <= maxHalf; n++) {
+            const ni = i + sgn * n * px, nj = j + sgn * n * py;
+            if (ni < 0 || nj < 0 || ni >= w || nj >= ht) break; const v = h[nj * w + ni]; if (!isFinite(v)) break; z.push(v);
+          } return z; };
+          const left = profile(1), right = profile(-1);
+          const areaAt = (L) => { let a = Math.max(0, L - zc) * step;
+            for (const side of [left, right]) for (const z of side) { if (z >= L) break; a += (L - z) * step; } return a; };
+          let lo = zc, hi = zc + 50;
+          while (areaAt(hi) < A && hi - zc < 3000) hi = zc + (hi - zc) * 2;
+          for (let it = 0; it < 40; it++) { const mid = (lo + hi) / 2; if (areaAt(mid) < A) lo = mid; else hi = mid; }
+          Lcur = hi; if (rot === 2) pathL[path.length - 1] = hi;
+          mark(c, dist);
+          for (const [side, sgn] of [[left, 1], [right, -1]])
+            for (let n = 0; n < side.length; n++) {
+              if (side[n] >= Lcur) break;
+              // diagonal sections step corner to corner: also flood the square in between, so the section is continuous
+              if (px && py) { const bi = i + sgn * (n + 1) * px, bj = j + sgn * n * py, bq = bj * w + bi;
+                if (bi >= 0 && bj >= 0 && bi < w && bj < ht && h[bq] < Lcur) mark(bq, dist); }
+              mark((j + sgn * (n + 1) * py) * w + i + sgn * (n + 1) * px, dist);
+            }
+        }
+        if (nFlooded * cellArea >= B) { reason = "area"; break; }
       }
-      if (nFlooded * cellArea >= B) { reason = "area"; break; }
       if (k < 0) { reason = "edge"; break; }
       if (opts.seaLevel != null && zc <= opts.seaLevel) { reason = "sea"; break; }
-      prevK = k;
-      dist += DD[k] * cell;
-      c = (j + DJ[k]) * w + i + DI[k];
+      prevK = k; dist += DD[k] * cell; c = (j + DJ[k]) * w + i + DI[k];
     }
-    return { path, pathDist, area: nFlooded * cellArea, length: dist, reason, flooded, level };
+    // Smoothed surface for drawing: fill level averaged along the valley (±10 cells), then across flooded neighbours.
+    const n = path.length, Ls = new Float32Array(n);
+    for (let p = 0; p < n; p++) { let s = 0, m = 0; for (let q = Math.max(0, p - 10); q <= Math.min(n - 1, p + 10); q++) if (isFinite(pathL[q])) { s += pathL[q]; m++; } Ls[p] = m ? s / m : h[path[p]]; }
+    let surface = new Float32Array(N).fill(NaN);
+    for (let q = 0; q < N; q++) if (flooded[q]) surface[q] = Math.max(Ls[owner[q]], h[q] + 0.5);
+    for (let pass = 0; pass < 3; pass++) {
+      const next = Float32Array.from(surface);
+      for (let q = 0; q < N; q++) {
+        if (!flooded[q]) continue; const qi = q % w, qj = (q / w) | 0; let s = surface[q], m = 1;
+        for (let kx = 0; kx < 8; kx++) { const ni = qi + DI[kx], nj = qj + DJ[kx]; if (ni < 0 || nj < 0 || ni >= w || nj >= ht) continue;
+          const nb = nj * w + ni; if (flooded[nb]) { s += surface[nb]; m++; } }
+        next[q] = Math.max(s / m, h[q] + 0.5);
+      }
+      surface = next;
+    }
+    return { path, pathDist, area: nFlooded * cellArea, length: dist, reason, flooded, level, surface, distOf, proximalExit };
+  }
+
+  /* For drawing only: remove one-cell spikes and hairlines (cells with <= 2 flooded neighbours) and fill
+     small holes (dry cells with >= 5 flooded neighbours); spikes are cells with <= 3 flooded neighbours. Returns {mask, surface}; the model's area is unchanged. */
+  function cleanForDisplay(flooded, surface, h, w, ht, passes) {
+    let m = Uint8Array.from(flooded), s = Float32Array.from(surface);
+    const nbrs = (q) => { const i = q % w, j = (q / w) | 0; let n = 0, sum = 0;
+      for (let k = 0; k < 8; k++) { const ni = i + DI[k], nj = j + DJ[k]; if (ni < 0 || nj < 0 || ni >= w || nj >= ht) continue;
+        const b = nj * w + ni; if (m[b]) { n++; sum += s[b]; } } return [n, sum]; };
+    for (let p = 0; p < (passes || 2); p++) {
+      const add = [], del = [];
+      for (let q = 0; q < w * ht; q++) {
+        const i = q % w, j = (q / w) | 0; if (i === 0 || j === 0 || i === w - 1 || j === ht - 1) continue;
+        const [n, sum] = nbrs(q);
+        if (m[q] && n <= 3) del.push(q);
+        else if (!m[q] && n >= 5 && isFinite(h[q])) add.push([q, Math.max(sum / n, h[q] + 0.5)]);
+      }
+      for (const q of del) m[q] = 0;
+      for (const [q, z] of add) { m[q] = 1; s[q] = z; }
+    }
+    return { mask: m, surface: s };
+  }
+
+  // Highest cell within radius (cells) of idx: the summit for the proximal hazard zone.
+  function highestNear(h, w, ht, idx, radius) {
+    const ci = idx % w, cj = (idx / w) | 0; let best = idx, bz = -Infinity;
+    for (let dj = -radius; dj <= radius; dj++) for (let di = -radius; di <= radius; di++) {
+      const i = ci + di, j = cj + dj; if (i < 0 || j < 0 || i >= w || j >= ht || di * di + dj * dj > radius * radius) continue;
+      const c = j * w + i; if (h[c] > bz) { bz = h[c]; best = c; } }
+    return best;
   }
 
   /* Energy cone with topographic blocking. vent idx, H (m above vent ground), k = H/L.
@@ -353,7 +417,7 @@
     return { reached, maxDist };
   }
 
-  const api = { flowNetwork, snapToChannel, laharz, energyCone };
+  const api = { flowNetwork, snapToChannel, laharz, energyCone, highestNear, cleanForDisplay };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.HazardModels = api;
 })(typeof window !== "undefined" ? window : globalThis);
 
@@ -361,6 +425,8 @@
 
 <script type="module">
 const HM = window.HazardModels;
+const MODEL_VERSION = "1.3";
+console.info("Mount St Helens 1980 hazard explorer, model version " + MODEL_VERSION);
 const $ = (id) => document.getElementById(id);
 const status = (t) => { $("status").textContent = t; };
 const prog = (f) => { $("prog").style.width = Math.round(f * 100) + "%"; };
@@ -585,13 +651,19 @@ const PastElevation = BaseElevationLayer.createSubclass({
   }
 });
 let pastLayer = null, todayLayers = null;
-function setDisplaySurface(which) {
-  const wantPast = which === "past" && $("past").checked && dem52;
+let showPast = false;
+function setDisplaySurface(which) { showPast = which === "past"; applySurface(); }
+function applySurface() {
+  const wantPast = showPast && !!dem52;
   if (!todayLayers) todayLayers = map.ground.layers.toArray();
   if (wantPast) { if (!pastLayer) pastLayer = new PastElevation(); map.ground.layers.removeAll(); map.ground.layers.add(pastLayer); }
   else { map.ground.layers.removeAll(); map.ground.layers.addMany(todayLayers); }
-  $("surfaceTag").textContent = wantPast ? "Ground: before 1980 (mapped 1952). Photo: today" : "Ground: today";
+  $("surfaceTag").setAttribute("aria-pressed", String(wantPast));
+  const modelPast = HAZ[current].surface === "past";
+  $("surfaceSub").textContent = !dem52 ? "Not available" : (wantPast ? "On. The photo is still today's." : "Off: showing today's ground.") +
+    (wantPast !== modelPast ? (modelPast ? " This hazard is modelled on the 1952 ground." : " This hazard is modelled on today's ground.") : "");
 }
+$("surfaceTag").onclick = () => { if (!dem52) return; showPast = !showPast; applySurface(); };
 
 // ---------- Start points ----------
 function startFor(key) {
@@ -621,10 +693,12 @@ view.on("click", (e) => {
 // ---------- Drawing and animation ----------
 // Bin cells by a value (arrival time or distance) into nBins frames.
 function binCells(cells, vals, nBins) {
-  let maxV = 1e-9; for (const v of vals) if (v > maxV) maxV = v;
+  let maxV = -Infinity, minV = Infinity; for (const v of vals) { if (v > maxV) maxV = v; if (v < minV) minV = v; }
+  if (!isFinite(minV)) { minV = 0; maxV = 1; }
+  const span = Math.max(maxV - minV, 1e-9);
   const bin = new Int16Array(W * H).fill(-1), lists = Array.from({ length: nBins }, () => []);
-  cells.forEach((c, k) => { const b = Math.min(nBins - 1, Math.floor(vals[k] / maxV * nBins)); bin[c] = b; lists[b].push(c); });
-  const binEnd = Array.from({ length: nBins }, (_, b) => (b + 1) / nBins * maxV);
+  cells.forEach((c, k) => { const b = Math.min(nBins - 1, Math.floor((vals[k] - minV) / span * nBins)); bin[c] = b; lists[b].push(c); });
+  const binEnd = Array.from({ length: nBins }, (_, b) => minV + (b + 1) / nBins * span);
   return { bin, lists, binEnd, maxV };
 }
 // Flat patches draped on the ground, merged into row runs.
@@ -696,22 +770,23 @@ async function play(key) {
   const P = lastPlay[key]; if (!P) return;
   const t = ++playToken;
   layers[key].removeAll(); if (meshLayers[key]) meshLayers[key].removeAll();
-  const use3D = P.mesh && $("td").checked, target = use3D ? meshLayers[key] : layers[key], frames = use3D ? P.mesh : P.draped;
+  const use3D = P.mesh && $("td").checked, frames = P.draped;   // the draped fill is always drawn, so thin mud never shows gaps
   $("clock").style.display = "block";
   $("clockLabel").textContent = P.timed ? "Time since it started" : "Order the ground was reached";
   $("clockNote").textContent = P.clockNote || "";
   let prevFront = null;
   for (let b = 0; b < frames.length; b++) {
     if (t !== playToken) return;
-    if (frames[b].length) target.addMany(frames[b]);
+    if (frames[b].length) layers[key].addMany(frames[b]);
+    if (use3D && P.mesh[b].length) meshLayers[key].addMany(P.mesh[b]);
     $("clockTime").textContent = P.timed ? fmtDur(P.binEnd[b]) : Math.round((b + 1) / frames.length * 100) + "%";
-    if (P.follow && $("follow").checked && P.fronts[b] && b % 3 === 0) {
-      const [fx, fy] = P.fronts[b];
-      const heading = prevFront ? (Math.atan2(fx - prevFront[0], fy - prevFront[1]) * 180 / Math.PI + 360) % 360 : undefined;
-      if (!prevFront || Math.hypot(fx - prevFront[0], fy - prevFront[1]) > 300) {
-        view.goTo({ target: merc(fx, fy), zoom: 13, tilt: 65, ...(heading != null ? { heading } : {}) }, { duration: 550, easing: "linear" }).catch(() => {});
-        prevFront = [fx, fy];
-      }
+    if (P.follow && $("follow").checked && P.fronts[b] && b % 2 === 0) {
+      // camera 3 km behind the front, 1.6 km above it, looking down the valley
+      const F = P.fronts[b], back = 3000 / Math.cos(latC * Math.PI / 180), rad = F.heading * Math.PI / 180;
+      const cam = { position: { x: F.x - Math.sin(rad) * back, y: F.y - Math.cos(rad) * back, z: F.z + 1600, spatialReference: { wkid: 3857 } }, heading: F.heading, tilt: 62 };
+      view.goTo(cam, { duration: prevFront ? P.frameMs * 2 : 1200, easing: prevFront ? "linear" : "in-out-cubic" }).catch(() => {});
+      prevFront = F;
+      if (b === 0) await new Promise(r => setTimeout(r, 1200));
     }
     await new Promise(r => setTimeout(r, P.frameMs));
   }
@@ -764,11 +839,25 @@ async function runModel() {
       const V = key === "aval" ? values.vol * 1e9 : values.lvol * 1e6;
       const [a1, a2] = key === "aval" ? [0.2, 20] : [0.05, 200];
       status("Following the valley downhill…"); await yieldUI();
-      const r = HM.laharz(h, net, W, H, GRID.cell, start, a1 * Math.pow(V, 2 / 3), a2 * Math.pow(V, 2 / 3), onCell, { maxHalfWidthCells: 250 });
-      anim = { level: r.level, path: r.path, pathDist: r.pathDist };
-      if (key === "lahar") { const T = laharTimes(r, h); anim.times = dists.map(T); }
+      // Proximal hazard zone (Iverson et al. 1998): energy cone from the summit with H/L = 0.23, as they used for Mount Rainier.
+      const summit = HAZ[key].surface === "past" ? [-122.1918, 46.1976] : [-122.1944, 46.1912];
+      const apex = HM.highestNear(h, W, H, idxOf(...summit), 38);
+      const r = HM.laharz(h, net, W, H, GRID.cell, start, a1 * Math.pow(V, 2 / 3), a2 * Math.pow(V, 2 / 3), () => {},
+        { maxHalfWidthCells: 100, proximal: { apex, k: 0.23 } });
+      // Tidy the result for drawing (the area and distance reported below come from the model itself)
+      const cl = HM.cleanForDisplay(r.flooded, r.surface, h, W, H, 2);
+      // each flooded cell keeps the distance at which it was flooded; filled-in cells take the smallest neighbouring distance
+      const ownerDist = (q) => { const i = q % W, j = (q / W) | 0; let best = NaN;
+        for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) { const b = (j + dj) * W + i + di; if (r.flooded[b] && isFinite(r.distOf[b]) && !(r.distOf[b] >= best)) best = r.distOf[b]; }
+        return isFinite(best) ? best : 0; };
+      for (let q = 0; q < W * H; q++) if (cl.mask[q]) { cells.push(q); dists.push(r.flooded[q] ? r.distOf[q] : ownerDist(q)); }
+      anim = { level: cl.surface, path: r.path, pathDist: r.pathDist };
+      anim.pathVal = r.pathDist.slice();
+      if (key === "lahar") { const T = laharTimes(r, h); anim.times = dists.map(T); anim.pathVal = r.pathDist.map(T); }
+      anim.proxKm = r.proximalExit > 0 ? r.pathDist[r.proximalExit] / 1000 : 0;
       console.log("LAHARZ", key, { start: cellLL(start), end: cellLL(r.path[r.path.length - 1]), km: r.length / 1000, km2: r.area / 1e6, reason: r.reason, endZ: h[r.path[r.path.length - 1]] });
-      const why = { area: "It had covered all the ground its volume allows.", edge: "It reached the edge of the modelled area.", sea: "It reached sea level." }[r.reason] || "";
+      const why = ({ area: "It had covered all the ground its volume allows.", edge: "It reached the edge of the modelled area.", sea: "It reached sea level." }[r.reason] || "") +
+        (anim.proxKm > 0 ? ` The first ${anim.proxKm.toFixed(1)} km are inside the danger zone around the summit, where LAHARZ doesn't draw the flow.` : "");
       if (key === "aval") showResults(key, [["How far it travelled", km(r.length), "23 km"], ["Ground covered", km2(r.area), "–"]], why);
       else showResults(key, [["Distance along the river", km(r.length), values.valley === "nf" ? "grew until about 80 km downstream" : "–"], ["Ground covered", km2(r.area), "–"]],
         why + " In 1980 lahars affected about 220 km of river channels in all.");
@@ -798,9 +887,17 @@ async function runModel() {
     const NB = 40, timed = !!anim.times, B = binCells(cells, timed ? anim.times : dists, NB);
     coneLayer.removeAll();
     if (anim.cone && $("cone").checked) coneLayer.addMany(coneGraphics(anim.cone.vent, anim.cone.Hh, anim.cone.k, anim.cone.sector, h));
-    const fronts = B.lists.map(list => { if (!list.length) return null; let sx = 0, sy = 0; for (const c of list) { const [x, y] = cellXY(c); sx += x; sy += y; } return [sx / list.length, sy / list.length]; });
+    // Camera targets: the furthest point along the flow path reached by the end of each frame
+    let fronts = null;
+    if (anim.path) {
+      const pv = anim.pathVal, fr = [];
+      for (let b = 0; b < NB; b++) { let p = 0; while (p + 1 < pv.length && pv[p + 1] <= B.binEnd[b]) p++; fr.push(p); }
+      fronts = fr.map(p => { const a = anim.path[Math.max(0, p - 25)], c = anim.path[Math.min(anim.path.length - 1, p + 5)], q = anim.path[p];
+        const [ax, ay] = cellXY(a), [cx, cy] = cellXY(c), [qx, qy] = cellXY(q);
+        return { x: qx, y: qy, z: h[q], heading: (Math.atan2(cx - ax, cy - ay) * 180 / Math.PI + 360) % 360 }; });
+    }
     lastPlay[key] = { draped: drapedFrames(B, hz.color), mesh: anim.level ? meshFrames(B, anim.level, hz.color) : null,
-      binEnd: B.binEnd, timed, fronts, follow: key === "aval" || key === "lahar", frameMs: 220,
+      binEnd: B.binEnd, timed, fronts, follow: !!fronts, frameMs: 220,
       clockNote: timed ? (anim.clockNote || "Speed estimated from the slope, within the USGS range.") : "We found no reliable speed for the avalanche." };
     $("replay").disabled = false;
     await play(key);
@@ -815,7 +912,6 @@ document.querySelectorAll(".steps button").forEach(b => b.onclick = () => {
   $("replay").disabled = !lastPlay[current]; $("clock").style.display = "none";
   setDisplaySurface(HAZ[current].surface);
 });
-$("past").onchange = () => setDisplaySurface(HAZ[current].surface);
 
 // ---------- Go ----------
 renderControls(); drawStart();
