@@ -6,6 +6,7 @@
 <title>Vesuvius 1944: Where Would the Lava Go?</title>
 <meta name="description" content="Grades 6-8 lava flow explorer: a probabilistic steepest-descent lava model (DOWNFLOW-style) run on real ArcGIS terrain around Mount Vesuvius, based on the March 1944 eruption." />
 <script type="module" src="https://js.arcgis.com/5.1/"></script>
+<script src="https://cdn.jsdelivr.net/npm/geotiff@3.0.5/dist-browser/geotiff.js"></script>
 <style>
   :root {
     --bg: #f6f4ef; --panel: #fffdf8; --ink: #22201c; --muted: #6b665c; --rule: #ddd6c8;
@@ -56,6 +57,12 @@
   .town:first-of-type { border-top: 0; }
   .town .pct { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .tag { font-size: 11px; font-weight: 600; padding: 1px 6px; border-radius: 10px; background: var(--chip); color: var(--muted); margin-left: 4px; white-space: nowrap; }
+  table.imp { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 13.5px; }
+  table.imp th { text-align: right; font-size: 12px; color: var(--muted); font-weight: 600; padding: 4px 0 4px 8px; border-bottom: 1px solid var(--rule); }
+  table.imp th:first-child, table.imp td:first-child { text-align: left; padding-left: 0; }
+  table.imp td { text-align: right; padding: 5px 0 5px 8px; border-bottom: 1px solid var(--rule); font-variant-numeric: tabular-nums; }
+  table.imp td.n { font-weight: 700; }
+  table.imp .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
   details { border-top: 1px solid var(--rule); padding: 10px 0; }
   details:last-of-type { border-bottom: 1px solid var(--rule); }
   summary { cursor: pointer; font-weight: 600; }
@@ -89,11 +96,17 @@
 
     <h2>Vent</h2>
     <div class="row">
-      <div id="ventLabel" style="font-weight:600">Summit crater (1944 vent)</div>
-      <div class="hint">In 1944 lava poured out of the summit crater and down the slopes. Move the vent to test other places, like the south flank.</div>
+      <label class="ctl" for="ventPreset" style="margin-bottom:4px">Where does the lava start?</label>
+      <select id="ventPreset">
+        <option value="north" selected>1944 northern flow</option>
+        <option value="southeast">1944 south-eastern flow</option>
+        <option value="crater">Summit crater (where it spills today)</option>
+        <option value="custom" disabled>Your own vent</option>
+      </select>
+      <div id="ventLabel" class="hint" style="margin-top:6px"></div>
       <div class="btns">
         <button id="moveVent" aria-pressed="false">Move vent</button>
-        <button id="resetVent">Reset to 1944 vent</button>
+        <button id="resetVent">Reset to 1944 northern flow</button>
       </div>
     </div>
 
@@ -125,13 +138,23 @@
       <div class="big" id="rStop" style="color:var(--muted);font-size:13px"></div>
       <div style="margin-top:8px;font-weight:600;font-size:13px">Share of simulated flows reaching each town</div>
       <div id="rTowns"></div>
+      <div id="impact" style="display:none">
+        <div style="margin-top:14px;font-weight:600;font-size:13px">Buildings and people in the lava zone today</div>
+        <table class="imp">
+          <thead><tr><th>Lava reached this spot in</th><th>Buildings</th><th>People living there</th></tr></thead>
+          <tbody id="impRows"></tbody>
+        </table>
+        <div class="hint" id="impNote" style="margin-top:6px"></div>
+        <div class="hint" style="margin-top:4px">Buildings © OpenStreetMap contributors (ODbL). Population: WorldPop 2020 estimates (CC BY 4.0).</div>
+      </div>
     </div>
 
     <h2>Explore</h2>
     <details open>
       <summary>Try this</summary>
       <ol>
-        <li>Run the model from the 1944 vent. Which towns fall in the dark red zone? Were they the towns destroyed in 1944?</li>
+        <li>Run the model with the 1944 northern flow. Which towns fall in the dark red zone? Were they the towns destroyed in 1944?</li>
+        <li>Now choose <b>Summit crater</b> and run it again. Which way does lava spill out of today's crater? Why might that differ from 1944?</li>
         <li>Zoom in north-west of the cone and look for the dark 1944 lava, which is still visible from space. Does your red zone follow it?</li>
         <li>Press <b>Move vent</b> and tap the south flank of the cone. Which towns would be in danger now?</li>
         <li>Set roughness to 0, then to 10. What happens to the width of the zone? Why?</li>
@@ -140,7 +163,7 @@
     <details>
       <summary>What happened in March 1944?</summary>
       <ul>
-        <li><b>18–21 March:</b> lava flows. The flow smashed through San Sebastiano and Massa di Somma, about 5 km from the crater, and reached a total length of 5.6 km.</li>
+        <li><b>18–21 March:</b> lava flows. Two flows left the crater. One went south-east and stopped at about 350 m above sea level. The other went north, was turned west by Monte Somma, and moved at 50–300 m an hour. It reached San Sebastiano and Massa di Somma, about 5 km from the crater, early on 21 March, and stopped on 22 March at about 140 m above sea level.</li>
         <li><b>21–22 March:</b> lava fountains.</li>
         <li><b>22–29 March:</b> explosions. Ash fell to the east and damaged dozens of American B-25 bombers at a nearby airfield.</li>
       </ul>
@@ -162,9 +185,11 @@
       <ul>
         <li><b>Timing.</b> The replay shows the order the ground was reached, not real hours or days.</li>
         <li><b>Thickness and cooling.</b> The model doesn't know how deep the lava is or when it cools and stops. You set the length yourself.</li>
-        <li><b>Today's ground, not 1944's.</b> The elevation map is modern. It includes the 1944 lava itself, and the crater was reshaped by the 1944 explosions, so an overflow today need not follow the 1944 route.</li>
+        <li><b>Today's ground, not 1944's.</b> The elevation map is modern. It includes the 1944 lava itself. The crater rim also changed in 1944, when part of the north side of the cone collapsed, so lava spilling out of today's crater need not follow the 1944 routes. That's why the two 1944 flows start on the flanks where they actually ran.</li>
         <li><b>No buildings.</b> The map is bare ground. Walls and streets steer real lava.</li>
         <li><b>Only lava.</b> Ash fall, volcanic bombs and pyroclastic flows are different hazards with different models.</li>
+        <li><b>Buildings and people are today's, not 1944's.</b> Buildings come from OpenStreetMap, which volunteers map, so some may be missing. A building counts if its centre is in the zone. People come from WorldPop 2020 estimates on a 100 m grid, so small numbers are rough.</li>
+        <li><b>Living in the zone isn't the same as being hurt.</b> In 1944 the lava moved slowly and most people escaped. The count tells you how many people might need to leave their homes, and how many buildings could be lost.</li>
       </ul>
     </details>
     <details>
@@ -174,12 +199,16 @@
 
     <h2>Sources</h2>
     <div class="sources">
+      <a href="https://www.ov.ingv.it/index.php/storia-vesuvio/1944" target="_blank" rel="noopener">INGV Osservatorio Vesuviano: the 1944 eruption</a> ·
+      <a href="https://www.aivulc.it/dettnews-leruzione_del_1944_e_le_pseudocolate_del_vesuvio/4_682/it/" target="_blank" rel="noopener">AIVulc: the 1944 eruption (in Italian)</a> ·
       <a href="https://www.tandfonline.com/doi/pdf/10.4113/jom.2008.1003" target="_blank" rel="noopener">Geomorphological map of the 1944 Vesuvius lava flow (Journal of Maps)</a> ·
       <a href="https://www.earthmagazine.org/article/benchmarks-march-17-1944-most-recent-eruption-mount-vesuvius/" target="_blank" rel="noopener">EARTH Magazine: March 17, 1944</a> ·
       <a href="https://eu-space.europa.eu/components/earth-observation-copernicus/image-of-day/anniversary-1944-mount-vesuvius-eruption" target="_blank" rel="noopener">Copernicus: 1944 lava seen from space</a> ·
       <a href="https://www.researchgate.net/publication/282203833_Simulating_the_area_covered_by_lava_flows_using_the_DOWNFLOW_code" target="_blank" rel="noopener">DOWNFLOW method</a> ·
       <a href="https://fard.research.vub.be/q-lavha" target="_blank" rel="noopener">Q-LavHA (pit filling)</a> ·
-      <a href="https://www.nature.com/articles/s41598-021-84456-7" target="_blank" rel="noopener">AD 79 pyroclastic currents (Scientific Reports)</a>
+      <a href="https://www.nature.com/articles/s41598-021-84456-7" target="_blank" rel="noopener">AD 79 pyroclastic currents (Scientific Reports)</a> ·
+      <a href="https://hub.arcgis.com/datasets/652793c501a145b992a4cfd35b4c910e_0/about" target="_blank" rel="noopener">OpenStreetMap Buildings for Europe (Esri Living Atlas)</a> ·
+      <a href="https://www.esri.com/arcgis-blog/products/arcgis-pro/announcements/worldpop-100m-gridded-population-layers-now-available-in-the-living-atlas" target="_blank" rel="noopener">WorldPop 100 m population (Esri Living Atlas)</a>
     </div>
   </aside>
 
@@ -309,7 +338,7 @@
         if (f.capped) { reason = "flat"; break; }
         const lvl = f.level + 0.01;
         for (const c of f.pond) { if (!raised.has(c)) onCell(c, step, true); raised.set(c, lvl); }
-        ponds.push({ cells: f.pond, level: f.level });
+        ponds.push({ cells: f.pond, level: f.level, outlet: f.outlet });
         if (f.edge) { reason = "edge"; break; }
         const d = Math.hypot((f.outlet % w) - ci, ((f.outlet / w) | 0) - cj) * cellTrue;
         if (len + d > maxLen) { reason = "length"; break; }
@@ -390,6 +419,14 @@ const LavaModel = window.LavaModel;
 
 // ---------- Setup ----------
 const CRATER = { lon: 14.4269, lat: 40.8211 };        // Gran Cono summit crater
+// INGV Osservatorio Vesuviano: in 1944 two flows left the crater, one to the south-east and one to the north
+// (then turned west by Monte Somma into San Sebastiano and Massa di Somma). The start points below sit about
+// 450 m from the crater centre on those flanks; they are approximate, not surveyed vent positions.
+const VENTS = {
+  north:     { lon: 14.4269, lat: 40.8252, label: "Starts just below the crater on the north flank. In 1944 this flow was turned west by Monte Somma and reached San Sebastiano and Massa di Somma, stopping at about 140 m above sea level." },
+  southeast: { lon: 14.4307, lat: 40.8182, label: "Starts just below the crater on the south-east flank. In 1944 this flow stopped at about 350 m above sea level, before reaching any town." },
+  crater:    { lon: CRATER.lon, lat: CRATER.lat, label: "Lava fills today's crater until it spills over the lowest point of the rim. The rim changed in 1944, when part of the north side of the cone collapsed, so today's spill point need not match 1944." }
+};
 const GRID = { lonMin: 14.32, lonMax: 14.50, latMin: 40.76, latMax: 40.87, cell: 20 }; // cell in true metres
 const TOWNS = [
   { name: "San Sebastiano al Vesuvio", lon: 14.3704, lat: 40.8418, hit1944: true },
@@ -465,7 +502,14 @@ function drawTowns() {
     markLayer.add(new Graphic({ geometry: merc(x, y), symbol: labelSymbol(t.name, t.hit1944 ? "#1f2937" : "#475569", 8), attributes: { kind: "town" } }));
   }
 }
-let ventGraphic = null;
+let ventGraphic = null, spillGraphic = null;
+function drawSpill(idx) {
+  if (spillGraphic) { markLayer.remove(spillGraphic); spillGraphic = null; }
+  if (idx == null) return;
+  const [x, y] = cellCenter(idx);
+  spillGraphic = new Graphic({ geometry: merc(x, y), symbol: labelSymbol("Spill point", "#f97316", 10), attributes: { kind: "spill" } });
+  markLayer.add(spillGraphic);
+}
 function drawVent(lon, lat) {
   if (ventGraphic) markLayer.remove(ventGraphic);
   const [x, y] = toMerc(lon, lat);
@@ -506,24 +550,28 @@ async function loadTerrain() {
 }
 
 // ---------- Vent ----------
-let vent = { ...CRATER, label: "Summit crater (1944 vent)" };
-drawVent(vent.lon, vent.lat);
+let vent;
+function setPreset(key) {
+  vent = { ...VENTS[key], key };
+  $("ventPreset").value = key; $("ventLabel").textContent = vent.label; drawVent(vent.lon, vent.lat);
+}
+setPreset("north");
+$("ventPreset").onchange = () => { if (VENTS[$("ventPreset").value]) setPreset($("ventPreset").value); };
 let placing = false;
 $("moveVent").onclick = () => {
   placing = !placing; $("moveVent").setAttribute("aria-pressed", String(placing));
   if (placing) toast("Tap the map where the new vent should open", 0); else $("toast").style.display = "none";
 };
 $("resetVent").onclick = () => {
-  vent = { ...CRATER, label: "Summit crater (1944 vent)" };
-  $("ventLabel").textContent = vent.label; drawVent(vent.lon, vent.lat);
+  setPreset("north");
   placing = false; $("moveVent").setAttribute("aria-pressed", "false"); $("toast").style.display = "none";
 };
 view.on("click", (e) => {
   if (!placing || !e.mapPoint) return;
   const lon = e.mapPoint.longitude, lat = e.mapPoint.latitude;
   if (idxOf(lon, lat) < 0) { toast("That's outside the modelled area. Tap closer to Vesuvius."); return; }
-  vent = { lon, lat, label: `Your vent (${lat.toFixed(4)}°N, ${lon.toFixed(4)}°E)` };
-  $("ventLabel").textContent = vent.label; drawVent(lon, lat);
+  vent = { lon, lat, key: "custom", label: `Your vent at ${lat.toFixed(4)}°N, ${lon.toFixed(4)}°E.` };
+  $("ventPreset").value = "custom"; $("ventLabel").textContent = vent.label; drawVent(lon, lat);
   placing = false; $("moveVent").setAttribute("aria-pressed", "false");
   toast("Vent moved. Press Run the model.");
 });
@@ -606,6 +654,172 @@ function showResults(res) {
   }).join("");
 }
 
+
+// ---------- Buildings and people ----------
+const BUILDINGS_QUERY = "https://services-eu1.arcgis.com/zci5bUiJ8olAal7N/arcgis/rest/services/OSM_Buildings_EU/FeatureServer/0/query";
+const POP_EXPORT = "https://worldpop.arcgis.com/arcgis/rest/services/WorldPop_Total_Population_100m/ImageServer/exportImage";
+const POP = { x0: -179.9995786402032, y0: 83.62791397674997, px: 8.333323579634333e-4, year: 2020, time: Date.UTC(2020, 0, 1) };
+const THRESH = [0.5, 0.2, 0.05];
+const THRESH_LABEL = ["50% or more of flows", "20% or more", "5% or more"];
+const THRESH_COLOR = ["#dc2626", "#f97316", "#fbbf24"];
+
+function zoneCells(res, minP) {
+  const out = [];
+  for (let c = 0; c < res.count.length; c++) if (res.count[c] / res.runs >= minP) out.push(c);
+  return out;
+}
+
+async function postJSON(url, params) {
+  const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams(params) });
+  const j = await r.json();
+  if (j.error) throw new Error(j.error.message || "Query failed");
+  return j;
+}
+
+// Count OSM buildings whose centre falls in cells reached by >= each threshold.
+async function countBuildings(res, onProgress) {
+  const cells = zoneCells(res, THRESH[THRESH.length - 1]);
+  const TILE = 50; // 50 cells = 1 km
+  const tiles = new Map();
+  for (const c of cells) { const k = Math.floor((c % W) / TILE) + "," + Math.floor(((c / W) | 0) / TILE); tiles.set(k, true); }
+  const seen = new Set(), counts = THRESH.map(() => 0);
+  const keys = [...tiles.keys()];
+  let done = 0, useCentroid = true;
+  async function queryTile(key) {
+    const [ti, tj] = key.split(",").map(Number);
+    const env = { xmin: xmin + ti * TILE * cellM, xmax: xmin + (ti + 1) * TILE * cellM, ymax: ymax - tj * TILE * cellM, ymin: ymax - (tj + 1) * TILE * cellM, spatialReference: { wkid: 3857 } };
+    let offset = 0;
+    for (;;) {
+      const params = { f: "json", where: "1=1", geometry: JSON.stringify(env), geometryType: "esriGeometryEnvelope", inSR: "3857",
+        spatialRel: "esriSpatialRelIntersects", outFields: "objectid", outSR: "3857", orderByFields: "objectid",
+        resultOffset: String(offset), resultRecordCount: "2000" };
+      if (useCentroid) { params.returnGeometry = "false"; params.returnCentroid = "true"; }
+      else { params.returnGeometry = "true"; params.maxAllowableOffset = "5"; params.geometryPrecision = "1"; }
+      let j;
+      try { j = await postJSON(BUILDINGS_QUERY, params); }
+      catch (e) { if (useCentroid) { useCentroid = false; continue; } throw e; }
+      const feats = j.features || [];
+      for (const f of feats) {
+        const id = f.attributes && f.attributes.objectid;
+        if (id == null || seen.has(id)) continue;
+        let x, y;
+        if (f.centroid) { x = f.centroid.x; y = f.centroid.y; }
+        else if (f.geometry && f.geometry.rings && f.geometry.rings[0]) {
+          const r = f.geometry.rings[0]; let a = Infinity, b = -Infinity, c2 = Infinity, d = -Infinity;
+          for (const [px, py] of r) { if (px < a) a = px; if (px > b) b = px; if (py < c2) c2 = py; if (py > d) d = py; }
+          x = (a + b) / 2; y = (c2 + d) / 2;
+        } else continue;
+        seen.add(id);
+        const i = Math.floor((x - xmin) / cellM), jj = Math.floor((ymax - y) / cellM);
+        if (i < 0 || jj < 0 || i >= W || jj >= H) continue;
+        const p = res.count[jj * W + i] / res.runs;
+        for (let t = 0; t < THRESH.length; t++) if (p >= THRESH[t]) counts[t]++;
+      }
+      if (!j.exceededTransferLimit || feats.length === 0) break;
+      offset += feats.length;
+    }
+    onProgress(++done / keys.length);
+  }
+  const queue = keys.slice();
+  await Promise.all(Array.from({ length: 4 }, async () => { while (queue.length) await queryTile(queue.shift()); }));
+  return counts;
+}
+
+async function fetchPopulationTiff(bbox, w, h) {
+  const base = { bbox: bbox.join(","), bboxSR: "4326", imageSR: "4326", size: w + "," + h, format: "tiff", pixelType: "F32",
+    interpolation: "RSP_NearestNeighbor", noData: "-1", f: "image" };
+  const attempts = [
+    { ...base, mosaicRule: JSON.stringify({ multidimensionalDefinition: [{ variableName: "Total Population", dimensionName: "StdTime", values: [POP.time], isSlice: true }] }) },
+    { ...base, time: String(POP.time) }
+  ];
+  let lastErr;
+  for (const params of attempts) {
+    try {
+      const r = await fetch(POP_EXPORT + "?" + new URLSearchParams(params));
+      const buf = await r.arrayBuffer();
+      const b = new Uint8Array(buf, 0, 2);
+      if ((b[0] === 0x49 && b[1] === 0x49) || (b[0] === 0x4d && b[1] === 0x4d)) return buf;
+      lastErr = new Error(new TextDecoder().decode(buf).slice(0, 200));
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr || new Error("No population image");
+}
+
+// Area-weighted people count: each 100 m population pixel contributes in proportion to how much of it the lava zone covers.
+async function countPeople(res) {
+  const cells = zoneCells(res, THRESH[THRESH.length - 1]);
+  if (!cells.length) return THRESH.map(() => 0);
+  let lo0 = Infinity, lo1 = -Infinity, la0 = Infinity, la1 = -Infinity;
+  const cellLL = new Float64Array(cells.length * 2);
+  cells.forEach((c, k) => {
+    const [x, y] = cellCenter(c); const [lon, lat] = fromMerc(x, y);
+    cellLL[2 * k] = lon; cellLL[2 * k + 1] = lat;
+    if (lon < lo0) lo0 = lon; if (lon > lo1) lo1 = lon; if (lat < la0) la0 = lat; if (lat > la1) la1 = lat;
+  });
+  const px = POP.px;
+  const c0 = Math.floor((lo0 - POP.x0) / px) - 1, c1 = Math.ceil((lo1 - POP.x0) / px) + 1;
+  const r0 = Math.floor((POP.y0 - la1) / px) - 1, r1 = Math.ceil((POP.y0 - la0) / px) + 1;
+  const bbox = [POP.x0 + c0 * px, POP.y0 - r1 * px, POP.x0 + c1 * px, POP.y0 - r0 * px];
+  const w = c1 - c0, h = r1 - r0;
+  const buf = await fetchPopulationTiff(bbox, w, h);
+  const tiff = await GeoTIFF.fromArrayBuffer(buf);
+  const img = await tiff.getImage();
+  const iw = img.getWidth(), ih = img.getHeight();
+  const data = (await img.readRasters({ interleave: false }))[0];
+  const pxX = (bbox[2] - bbox[0]) / iw, pxY = (bbox[3] - bbox[1]) / ih;
+  const scale = (pxX * pxY) / (px * px);            // 1 if the server returned native pixels
+  // Share of each population pixel's 20 m squares reached by lava (exact, no rounding at pixel edges).
+  const colOf = (lon) => Math.floor((lon - bbox[0]) / pxX), rowOf = (lat) => Math.floor((bbox[3] - lat) / pxY);
+  const total = new Float64Array(iw * ih);
+  const [bxm0, bym0] = toMerc(bbox[0], bbox[1]), [bxm1, bym1] = toMerc(bbox[2], bbox[3]);
+  const gi0 = Math.max(0, Math.floor((bxm0 - xmin) / cellM)), gi1 = Math.min(W - 1, Math.ceil((bxm1 - xmin) / cellM));
+  const gj0 = Math.max(0, Math.floor((ymax - bym1) / cellM)), gj1 = Math.min(H - 1, Math.ceil((ymax - bym0) / cellM));
+  for (let gj = gj0; gj <= gj1; gj++) for (let gi = gi0; gi <= gi1; gi++) {
+    const [lon, lat] = fromMerc(xmin + (gi + 0.5) * cellM, ymax - (gj + 0.5) * cellM);
+    const col = colOf(lon), row = rowOf(lat);
+    if (col >= 0 && row >= 0 && col < iw && row < ih) total[row * iw + col]++;
+  }
+  const covered = THRESH.map(() => new Float64Array(iw * ih));
+  cells.forEach((c, k) => {
+    const col = colOf(cellLL[2 * k]), row = rowOf(cellLL[2 * k + 1]);
+    if (col < 0 || row < 0 || col >= iw || row >= ih) return;
+    const p = res.count[c] / res.runs;
+    for (let t = 0; t < THRESH.length; t++) if (p >= THRESH[t]) covered[t][row * iw + col]++;
+  });
+  const people = THRESH.map(() => 0);
+  for (let q = 0; q < iw * ih; q++) {
+    const v = data[q];
+    if (!(v > 0) || v > 1e6 || !total[q]) continue;
+    for (let t = 0; t < THRESH.length; t++) if (covered[t][q]) people[t] += v * scale * covered[t][q] / total[q];
+  }
+  return people;
+}
+
+const fmtInt = (n) => Math.round(n).toLocaleString("en-GB");
+const fmtPeople = (n) => n < 1 ? "0" : n < 50 ? "fewer than 50" : "about " + (n < 1000 ? fmtInt(Math.round(n / 10) * 10) : fmtInt(Math.round(n / 100) * 100));
+
+let impactToken = 0;
+async function showImpact(res) {
+  const token = ++impactToken;
+  $("impact").style.display = "block";
+  const rows = (b, p) => THRESH.map((t, k) =>
+    `<tr><td><span class="sw" style="background:${THRESH_COLOR[k]}"></span>${THRESH_LABEL[k]}</td><td class="n">${b ? b[k] : "…"}</td><td class="n">${p ? p[k] : "…"}</td></tr>`).join("");
+  $("impRows").innerHTML = rows(null, null);
+  $("impNote").textContent = "Counting buildings and people…";
+  if (!zoneCells(res, THRESH[THRESH.length - 1]).length) { $("impRows").innerHTML = rows(["0", "0", "0"], ["0", "0", "0"]); $("impNote").textContent = ""; return; }
+  const bP = countBuildings(res, (f) => { if (token === impactToken) $("impNote").textContent = `Counting buildings… ${Math.round(f * 100)}%`; })
+    .then(c => c.map(fmtInt)).catch(e => { console.error("Buildings", e); return null; });
+  const pP = countPeople(res).then(p => p.map(fmtPeople)).catch(e => { console.error("Population", e); return null; });
+  const [b, p] = await Promise.all([bP, pP]);
+  if (token !== impactToken) return;
+  const na = THRESH.map(() => "n/a");
+  $("impRows").innerHTML = rows(b || na, p || na);
+  const fails = [!b && "buildings", !p && "population"].filter(Boolean);
+  $("impNote").textContent = fails.length
+    ? `Couldn't load the ${fails.join(" and ")} data. Check your connection and run again.`
+    : "Each row includes the rows above it. These are the people who might need to leave, not the number who would be hurt.";
+}
+
 // ---------- Run ----------
 let busy = false;
 async function runModel() {
@@ -614,7 +828,7 @@ async function runModel() {
   if (ventIdx < 0 || !isFinite(heights[ventIdx])) { toast("No elevation data at the vent. Try another spot."); return; }
   if (heights[ventIdx] <= 0) { toast("That vent is in the sea. Pick a spot on land."); return; }
   busy = true; $("run").disabled = true; $("replay").disabled = true;
-  playToken++; lavaLayer.removeAll(); pathLayer.removeAll();
+  drawSpill(null); playToken++; impactToken++; lavaLayer.removeAll(); pathLayer.removeAll(); $("impact").style.display = "none";
 
   const targets = TOWNS.map(t => {
     const cells = [], c = idxOf(t.lon, t.lat), ci = c % W, cj = (c / W) | 0, rr = Math.ceil(TOWN_RADIUS / GRID.cell);
@@ -638,6 +852,10 @@ async function runModel() {
   status("Drawing the lava zone…");
   lastFrames = buildFrames(res, 40); lastPath = pathGraphic(res);
   showResults(res);
+  const firstPond = res.bestPonds[0];
+  drawSpill(vent.key === "crater" && firstPond && firstPond.cells.includes(ventIdx) ? firstPond.outlet : null);
+  window.__lavaResult = res; window.__grid = { W, H, xmin, ymax, cellM };
+  showImpact(res);
   status(`Done: ${res.runs} simulated flows. The replay shows the order the ground was reached, not real time.`);
   busy = false; $("run").disabled = false; $("replay").disabled = false;
   await play(lastFrames, lastPath);
