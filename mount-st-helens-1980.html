@@ -104,7 +104,7 @@
 <body>
 <div id="app">
   <aside id="panel">
-    <div class="kicker">Volcanoes <span class="ver" id="verTop">· version 1.13</span></div>
+    <div class="kicker">Volcanoes <span class="ver" id="verTop">· version 1.14</span></div>
     <h1>Mount St Helens, 18 May 1980</h1>
     <p class="lede">One morning, four hazards. Run each one and compare it with what really happened.</p>
 
@@ -183,7 +183,7 @@
         <a href="https://gscommunitycodes.usf.edu/geoscicommunitycodes/public/energy-cone/energy_cone.php" target="_blank" rel="noopener">Energy cone model</a> ·
         <a href="https://volcano.oregonstate.edu/mount-st-helens-fact-sheet" target="_blank" rel="noopener">Oregon State Volcano World fact sheet</a>
       </div>
-      <div class="hint" id="version" style="margin-top:10px">Model version 1.13 · 23 September 2026</div>
+      <div class="hint" id="version" style="margin-top:10px">Model version 1.14 · 23 September 2026</div>
       <div class="hint" id="camRead"></div>
     </details>
   </aside>
@@ -502,7 +502,7 @@
 
 <script type="module">
 const HM = window.HazardModels;
-const MODEL_VERSION = "1.13";
+const MODEL_VERSION = "1.14";
 document.title = "Mount St Helens 1980: Four Hazards (v" + MODEL_VERSION + ")";
 // One fixed overview camera: always looking the same way (east-north-east, back up the North Fork Toutle towards the volcano).
 // It frames the mountain box, which holds the avalanche, blast and pyroclastic flows; a lahar that runs beyond it zooms out along the same line.
@@ -1022,7 +1022,7 @@ async function runModel() {
         "Try a taller column to see what a bigger eruption could do.");
     }
     status(`Done: ${hz.name.toLowerCase()}.`);
-    const NB = 40, timed = !!anim.times, B = binCells(cells, timed ? anim.times : dists, NB);
+    const NB = 120, timed = !!anim.times, B = binCells(cells, timed ? anim.times : dists, NB);
     coneLayer.removeAll();
     if (anim.cone && $("cone").checked) coneLayer.addMany(coneGraphics(anim.cone.vent, anim.cone.Hh, anim.cone.k, anim.cone.sector, h));
     // Camera: the fixed overview, widened only if this flow runs outside the mountain box
@@ -1034,13 +1034,13 @@ async function runModel() {
       frame = (x0 < bx0 || y0 < by0 || x1 > bx1 || y1 > by1) ? overviewFrame(x0, y0, x1, y1) : null; }
     let proxGraphic = [], proxFrames = [];
     if (anim.prox && anim.prox.length) {
-      proxFrames = drapedFrames(binCells(anim.prox, anim.proxD, 10), hz.color, 0.45);   // fills outward from the summit
+      proxFrames = drapedFrames(binCells(anim.prox, anim.proxD, 30), hz.color, 0.45);   // fills outward from the summit
       if (anim.route && anim.route.length > 1) proxGraphic.push(new Graphic({
         geometry: { type: "polyline", paths: [anim.route.map(cellXY)], spatialReference: { wkid: 3857 } },
         symbol: { type: "simple-line", color: [...hz.color, 1], width: 6, cap: "round", join: "round" } }));
     }
     lastPlay[key] = { prox: proxGraphic, proxFrames, draped: drapedFrames(B, hz.color), mesh: anim.level ? meshFrames(B, anim.level, hz.color) : null,
-      binEnd: B.binEnd, timed, frame, frameMs: 220,
+      binEnd: B.binEnd, timed, frame, frameMs: 75,
       clockNote: timed ? (anim.clockNote || "Speed estimated from the slope, within the USGS range.") : "We found no reliable speed for the avalanche." };
     $("replay").disabled = false;
     await play(key);
