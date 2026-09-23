@@ -158,7 +158,7 @@
       <details>
         <summary>What these models can't tell you</summary>
         <ul>
-          <li><b>The blast is an approximation.</b> The real blast was a sideways explosion. There's no simple standard method for that, so this uses an energy cone limited to one side of the volcano.</li>
+          <li><b>The blast is an approximation.</b> The real blast was a sideways explosion. There's no simple standard method for that, so this uses an energy cone limited to one side of the volcano. Towards the sides of the fan the blast is made less mobile, so its edges curve and follow the ground instead of stopping at a straight line. That fall-off is our choice, not a published method.</li>
           <li><b>The clock is an estimate.</b> The models show where each hazard could reach, not when. The clock adds speeds reported by the USGS: the blast at least 480 km/h, pyroclastic flows 80–130 km/h (the page uses 105), and lahars up to about 145 km/h on steep upper slopes, slowing to about 5 km/h on flatter ground. In between, the page estimates a lahar's speed from the slope. We didn't find a reliable speed for the avalanche, so it plays in order without a clock.</li>
           <li><b>Tidied edges.</b> The map smooths out one-square spikes and fills tiny holes so the flow is easier to read. The distance and area in the results come from the model before tidying.</li>
           <li><b>3D depth.</b> The 3D surface shows how high the model fills each stretch of valley. The real flows were deepest at their peak and left much thinner deposits behind.</li>
@@ -180,7 +180,7 @@
         <a href="https://gscommunitycodes.usf.edu/geoscicommunitycodes/public/energy-cone/energy_cone.php" target="_blank" rel="noopener">Energy cone model</a> ·
         <a href="https://volcano.oregonstate.edu/mount-st-helens-fact-sheet" target="_blank" rel="noopener">Oregon State Volcano World fact sheet</a>
       </div>
-      <div class="hint" id="version" style="margin-top:10px">Model version 1.10 · 23 September 2026</div>
+      <div class="hint" id="version" style="margin-top:10px">Model version 1.11 · 23 September 2026</div>
     </details>
   </aside>
 
@@ -208,7 +208,7 @@
 </div>
 
 <script>
-/* Volcanic hazard models for classroom use. Version 1.3 (22 September 2026).
+/* Volcanic hazard models for classroom use. Version 1.4 (23 September 2026).
    1. Energy cone (Malin & Sheridan 1982) for pyroclastic density currents and, as an
       approximation, a lateral blast limited to a sector. A current starts at height H above
       the vent and its "energy line" drops by k (= H/L) metres per metre travelled. It can
@@ -416,7 +416,11 @@
     let zmin = Infinity; for (let c = 0; c < h.length; c++) if (h[c] < zmin) zmin = h[c];
     const Rcells = Math.min(Math.ceil((z0 - zmin) / k / cell) + 2, Math.max(w, ht));
     const reached = new Uint8Array(w * ht); let maxDist = 0;
-    const ok = (ang) => { if (!sector) return true; let d = Math.abs(((ang - sector.center) % 360 + 540) % 360 - 180); return d <= sector.half; };
+    // Sector limit. With sector.taper (degrees), mobility falls off beyond the edge instead of stopping at a straight line:
+    // k rises smoothly from k to sector.kEdge over the taper, so the margin curves and follows the ground.
+    const kOf = (ang) => { if (!sector) return k; const d = Math.abs(((ang - sector.center) % 360 + 540) % 360 - 180);
+      if (d <= sector.half) return k; const tp = sector.taper || 0; if (d > sector.half + tp) return -1;
+      const t = (d - sector.half) / tp; return k + ((sector.kEdge || 0.5) - k) * t * t; };
     const hit = (c, d) => { if (!reached[c]) { reached[c] = 1; if (onCell) onCell(c, d); } if (d > maxDist) maxDist = d; };
     hit(vent, 0);
     // one ray to every cell on the square perimeter at radius Rcells: every cell inside is crossed by some ray
@@ -424,13 +428,13 @@
     for (let t = -Rcells; t <= Rcells; t++) { targets.push([t, -Rcells], [t, Rcells]); if (t > -Rcells && t < Rcells) targets.push([-Rcells, t], [Rcells, t]); }
     for (const [ti, tj] of targets) {
       const ang = (Math.atan2(ti, -tj) * 180 / Math.PI + 360) % 360;
-      if (!ok(ang)) continue;
+      const kr = kOf(ang); if (kr < 0) continue;
       const len = Math.hypot(ti, tj), steps = Math.ceil(len * 2), dx = ti / steps, dy = tj / steps, ds = len / steps * cell;
       for (let s = 1; s <= steps; s++) {
         const i = Math.round(vi + dx * s), j = Math.round(vj + dy * s);
         if (i < 0 || j < 0 || i >= w || j >= ht) break;
         const c = j * w + i, z = h[c]; if (!isFinite(z)) break;
-        const d = s * ds, e = z0 - k * d;
+        const d = s * ds, e = z0 - kr * d;
         if (e < z) break;
         hit(c, d);
       }
@@ -446,7 +450,7 @@
 
 <script type="module">
 const HM = window.HazardModels;
-const MODEL_VERSION = "1.10";
+const MODEL_VERSION = "1.11";
 // One fixed overview camera: always looking the same way (east-north-east, back up the North Fork Toutle towards the volcano).
 // It frames the mountain box, which holds the avalanche, blast and pyroclastic flows; a lahar that runs beyond it zooms out along the same line.
 const CAM = { heading: 70, tilt: 58, box: [-122.50, 46.08, -121.92, 46.44] };
@@ -462,7 +466,7 @@ const R = 6378137;
 const toMerc = (lon, lat) => [lon * Math.PI / 180 * R, R * Math.log(Math.tan(Math.PI / 4 + lat * Math.PI / 360))];
 const fromMerc = (x, y) => [x / R * 180 / Math.PI, (2 * Math.atan(Math.exp(y / R)) - Math.PI / 2) * 180 / Math.PI];
 // Model grid: volcano to the Cowlitz River, 40 m cells
-const GRID = { lonMin: -123.00, lonMax: -122.05, latMin: 46.05, latMax: 46.40, cell: 40 };
+const GRID = { lonMin: -123.00, lonMax: -121.98, latMin: 46.05, latMax: 46.48, cell: 40 };   // reaches 30 km north of the vent, where the 1980 blast ended
 const latC = (GRID.latMin + GRID.latMax) / 2, cellM = GRID.cell / Math.cos(latC * Math.PI / 180);
 const [xmin, ymin] = toMerc(GRID.lonMin, GRID.latMin), [xmax0, ymax0] = toMerc(GRID.lonMax, GRID.latMax);
 const W = Math.floor((xmax0 - xmin) / cellM), H = Math.floor((ymax0 - ymin) / cellM);
@@ -570,7 +574,9 @@ const markLayer = new GraphicsLayer({ title: "Start points", elevationInfo: { mo
 const meshLayers = {};
 for (const k of ["lahar", "aval"]) meshLayers[k] = new GraphicsLayer({ title: HAZ[k].name + " (3D)", elevationInfo: { mode: "absolute-height" } });
 const coneLayer = new GraphicsLayer({ title: "Energy cone", elevationInfo: { mode: "absolute-height" } });
-map.addMany([layers.lahar, layers.pf, layers.blast, layers.aval, meshLayers.lahar, meshLayers.aval, coneLayer, markLayer]);
+// Draw order, bottom to top: the blast (largest area, a zone of damage), then avalanche, pyroclastic flows and lahars.
+// This is also close to the 1980 order: avalanche and blast within minutes, pyroclastic flows from noon, lahars through the day.
+map.addMany([layers.blast, layers.aval, layers.pf, layers.lahar, meshLayers.aval, meshLayers.lahar, coneLayer, markLayer]);
 const merc = (x, y) => ({ type: "point", x, y, spatialReference: { wkid: 3857 } });
 function overviewFrame(x0, y0, x1, y1) {
   const pts = [[x0, y0, 1500], [x1, y0, 1500], [x1, y1, 1500], [x0, y1, 1500], [(x0 + x1) / 2, (y0 + y1) / 2, 2950]];
@@ -937,7 +943,7 @@ async function runModel() {
       }
       status("Tracing the energy cone…"); await yieldUI();
       const Hh = key === "blast" ? values.Hb : values.Hp, k = key === "blast" ? values.kb : values.kp;
-      const sector = key === "blast" && values.spread < 360 ? { center: values.dir, half: values.spread / 2 } : null;
+      const sector = key === "blast" && values.spread < 360 ? { center: values.dir, half: values.spread / 2, taper: 35, kEdge: 0.5 } : null;
       const r = HM.energyCone(h, W, H, GRID.cell, start, Hh, k, sector, onCell);
       const speed = key === "blast" ? 480 / 3.6 : 105 / 3.6;
       Object.assign(anim, { times: dists.map(d => d / speed), cone: { vent: start, Hh, k, sector },
