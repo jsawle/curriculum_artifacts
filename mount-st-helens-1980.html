@@ -134,7 +134,7 @@
       <label class="check"><input type="checkbox" id="keep" checked /> Keep earlier hazards on the map</label>
       <label class="check"><input type="checkbox" id="td" checked /> Show avalanche and lahars in 3D</label>
       <label class="check"><input type="checkbox" id="cone" checked /> Show the energy cone (blast, pyroclastic flows)</label>
-      <label class="check"><input type="checkbox" id="follow" checked /> Camera follows the flow</label>
+      <label class="check"><input type="checkbox" id="follow" checked /> Camera shows the whole flow</label>
       <div class="btns" style="margin-top:6px">
         <button id="moveStart">Move start point</button>
         <button id="resetStart">Reset this hazard</button>
@@ -151,6 +151,7 @@
           <li><b>The clock is an estimate.</b> The models show where each hazard could reach, not when. The clock adds speeds reported by the USGS: the blast at least 480 km/h, pyroclastic flows 80–130 km/h (the page uses 105), and lahars up to about 145 km/h on steep upper slopes, slowing to about 5 km/h on flatter ground. In between, the page estimates a lahar's speed from the slope. We didn't find a reliable speed for the avalanche, so it plays in order without a clock.</li>
           <li><b>Tidied edges.</b> The map smooths out one-square spikes and fills tiny holes so the flow is easier to read. The distance and area in the results come from the model before tidying.</li>
           <li><b>3D depth.</b> The 3D surface shows how high the model fills each stretch of valley. The real flows were deepest at their peak and left much thinner deposits behind.</li>
+          <li><b>No photo from before 1980.</b> The satellite photo is modern, so it shows today's crater. With the 1952 ground on, the area around the volcano is drawn as shaded relief from the 1952 heights instead. The colours only show height, not what covered the ground. The nearest map-ready image from before the eruption we found is a 1973 Landsat scene with 60 m pixels, in false colour (plants show red).</li>
           <li><b>Only one flow at a time.</b> In 1980 lahars ran down several valleys at once. Run each one separately.</li>
           <li><b>The ground.</b> Hazards 1 and 2 use the 1952 mapped surface, the best record of the mountain before 1980. Beyond its edges, and for hazards 3 and 4, the model uses today's ground. Hazards 3 and 4 happened after the avalanche had already reshaped the land, so today's ground is closer to what they flowed over, but it has also changed since 1980.</li>
           <li><b>Start points are approximate.</b> The model moves each start to the nearest channel, so check the marker is where you expect. The South Fork, Pine Creek and Muddy River lahars start on the volcano. The North Fork lahar starts down the valley on the avalanche deposit, because that's where the USGS says it formed.</li>
@@ -168,7 +169,7 @@
         <a href="https://gscommunitycodes.usf.edu/geoscicommunitycodes/public/energy-cone/energy_cone.php" target="_blank" rel="noopener">Energy cone model</a> ·
         <a href="https://volcano.oregonstate.edu/mount-st-helens-fact-sheet" target="_blank" rel="noopener">Oregon State Volcano World fact sheet</a>
       </div>
-      <div class="hint" id="version" style="margin-top:10px">Model version 1.7 · 22 September 2026</div>
+      <div class="hint" id="version" style="margin-top:10px">Model version 1.8 · 23 September 2026</div>
     </details>
   </aside>
 
@@ -432,8 +433,8 @@
 
 <script type="module">
 const HM = window.HazardModels;
-const MODEL_VERSION = "1.7";
-const CAM = { ahead: 5000, height: 4000, tilt: 50 };   // follow camera: metres ahead of the front, metres above it, tilt in degrees
+const MODEL_VERSION = "1.8";
+const CAM = { tilt: 55, pad: 0.12, minHalf: 7000 };   // framing camera: tilt in degrees, padding around the flow, smallest half-width in metres
 console.info("Mount St Helens 1980 hazard explorer, model version " + MODEL_VERSION);
 const $ = (id) => document.getElementById(id);
 const status = (t) => { $("status").textContent = t; };
@@ -539,10 +540,11 @@ function renderControls() {
 }
 
 // ---------- ArcGIS ----------
-const [Graphic, GraphicsLayer, Extent, ElevationLayer, BaseElevationLayer, Mesh, MeshComponent] = await $arcgis.import([
+const [Graphic, GraphicsLayer, Extent, ElevationLayer, BaseElevationLayer, Mesh, MeshComponent, MediaLayer, ImageElement, ExtentAndRotationGeoreference] = await $arcgis.import([
   "@arcgis/core/Graphic.js", "@arcgis/core/layers/GraphicsLayer.js", "@arcgis/core/geometry/Extent.js",
   "@arcgis/core/layers/ElevationLayer.js", "@arcgis/core/layers/BaseElevationLayer.js",
-  "@arcgis/core/geometry/Mesh.js", "@arcgis/core/geometry/support/MeshComponent.js"
+  "@arcgis/core/geometry/Mesh.js", "@arcgis/core/geometry/support/MeshComponent.js",
+  "@arcgis/core/layers/MediaLayer.js", "@arcgis/core/layers/support/ImageElement.js", "@arcgis/core/layers/support/ExtentAndRotationGeoreference.js"
 ]);
 const sceneEl = document.querySelector("arcgis-scene");
 await sceneEl.viewOnReady();
@@ -662,6 +664,32 @@ const PastElevation = BaseElevationLayer.createSubclass({
     });
   }
 });
+// The photo is from today, so over the 1952 area we drape shaded relief drawn from the 1952 heights instead.
+// No map-ready photo from before 1980 was found (the nearest is 60 m false-colour Landsat from 1973).
+let reliefLayer = null;
+function build1952Relief() {
+  const { hdr, z, wgt } = dem52, Wd = hdr.W, Hd = hdr.H, g = hdr.cellM * Math.cos(latC * Math.PI / 180) * 2;
+  const cv = document.createElement("canvas"); cv.width = Wd; cv.height = Hd;
+  const ctx = cv.getContext("2d"), img = ctx.createImageData(Wd, Hd), px = img.data;
+  const az = 315 * Math.PI / 180, alt = 45 * Math.PI / 180, lx = Math.sin(az) * Math.cos(alt), ly = Math.cos(az) * Math.cos(alt), lz = Math.sin(alt);
+  const at = (i, j) => { i = Math.max(0, Math.min(Wd - 1, i)); j = Math.max(0, Math.min(Hd - 1, j)); return z[j * Wd + i]; };
+  // muted height tint (low green, middle tan, high light grey): a drawing, not a record of 1952 land cover
+  const stops = [[400, [96, 128, 84]], [1200, [128, 150, 100]], [1700, [170, 160, 130]], [2200, [205, 200, 190]], [2950, [238, 236, 232]]];
+  const tint = (e) => { if (e <= stops[0][0]) return stops[0][1]; for (let k = 1; k < stops.length; k++) if (e <= stops[k][0]) {
+    const [e0, c0] = stops[k - 1], [e1, c1] = stops[k], t = (e - e0) / (e1 - e0); return c0.map((v, q) => v + (c1[q] - v) * t); } return stops[stops.length - 1][1]; };
+  for (let j = 0; j < Hd; j++) for (let i = 0; i < Wd; i++) {
+    const c = j * Wd + i, o = c * 4, e = z[c]; if (isNaN(e)) continue;
+    let zl = at(i - 1, j), zr = at(i + 1, j), zu = at(i, j - 1), zd = at(i, j + 1);
+    if (isNaN(zl)) zl = e; if (isNaN(zr)) zr = e; if (isNaN(zu)) zu = e; if (isNaN(zd)) zd = e;
+    const dzdx = (zr - zl) / g, dzdy = (zu - zd) / g, n = Math.hypot(dzdx, dzdy, 1);
+    const shade = Math.max(0, (-dzdx * lx - dzdy * ly + lz) / n), f = 0.35 + 0.8 * shade, col = tint(e);
+    px[o] = Math.min(255, col[0] * f); px[o + 1] = Math.min(255, col[1] * f); px[o + 2] = Math.min(255, col[2] * f); px[o + 3] = Math.round(255 * wgt[c]);
+  }
+  ctx.putImageData(img, 0, 0);
+  const ext = new Extent({ xmin: hdr.xmin, xmax: hdr.xmin + Wd * hdr.cellM, ymin: hdr.ymax - Hd * hdr.cellM, ymax: hdr.ymax, spatialReference: { wkid: 3857 } });
+  reliefLayer = new MediaLayer({ title: "1952 ground (shaded relief)", visible: false, source: [new ImageElement({ image: cv, georeference: new ExtentAndRotationGeoreference({ extent: ext }) })] });
+  map.add(reliefLayer, 0);
+}
 let pastLayer = null, todayLayers = null;
 let showPast = false;
 function setDisplaySurface(which) { showPast = which === "past"; applySurface(); }
@@ -671,8 +699,10 @@ function applySurface() {
   if (wantPast) { if (!pastLayer) pastLayer = new PastElevation(); map.ground.layers.removeAll(); map.ground.layers.add(pastLayer); }
   else { map.ground.layers.removeAll(); map.ground.layers.addMany(todayLayers); }
   $("surfaceTag").setAttribute("aria-pressed", String(wantPast));
+  if (wantPast && !reliefLayer) { try { build1952Relief(); } catch (e) { console.warn("Could not draw the 1952 relief", e); } }
+  if (reliefLayer) reliefLayer.visible = wantPast;
   const modelPast = HAZ[current].surface === "past";
-  $("surfaceSub").textContent = !dem52 ? "Not available" : (wantPast ? "On. The photo is still today's." : "Off: showing today's ground.") +
+  $("surfaceSub").textContent = !dem52 ? "Not available" : (wantPast ? "On. Around the volcano the ground is drawn from 1952 heights, not a photo." : "Off: showing today's ground.") +
     (wantPast !== modelPast ? (modelPast ? " This hazard is modelled on the 1952 ground." : " This hazard is modelled on today's ground.") : "");
 }
 $("surfaceTag").onclick = () => { if (!dem52) return; showPast = !showPast; applySurface(); };
@@ -787,21 +817,13 @@ async function play(key) {
   $("clock").style.display = "block";
   $("clockLabel").textContent = P.timed ? "Time since it started" : "Order the ground was reached";
   $("clockNote").textContent = P.clockNote || "";
-  let prevFront = null;
+  // One steady camera for the whole run: framed around everything the flow will reach, looking back towards where it starts
+  if (P.frame && $("follow").checked) { await view.goTo(P.frame, { duration: 1500, easing: "in-out-cubic" }).catch(() => {}); if (t !== playToken) return; }
   for (let b = 0; b < frames.length; b++) {
     if (t !== playToken) return;
     if (frames[b].length) layers[key].addMany(frames[b]);
     if (use3D && P.mesh[b].length) meshLayers[key].addMany(P.mesh[b]);
     $("clockTime").textContent = P.timed ? fmtDur(P.binEnd[b]) : Math.round((b + 1) / frames.length * 100) + "%";
-    if (P.follow && $("follow").checked && P.fronts[b] && b % 2 === 0) {
-      // camera ahead of the front, looking back up the valley at the oncoming flow, backing away as it advances
-      const F = P.fronts[b], ahead = CAM.ahead / Math.cos(latC * Math.PI / 180), rad = F.heading * Math.PI / 180;
-      const cam = { position: { x: F.x + Math.sin(rad) * ahead, y: F.y + Math.cos(rad) * ahead, z: F.z + CAM.height, spatialReference: { wkid: 3857 } },
-        heading: (F.heading + 180) % 360, tilt: CAM.tilt };
-      view.goTo(cam, { duration: prevFront ? P.frameMs * 2 : 1200, easing: prevFront ? "linear" : "in-out-cubic" }).catch(() => {});
-      prevFront = F;
-      if (b === 0) await new Promise(r => setTimeout(r, 1200));
-    }
     await new Promise(r => setTimeout(r, P.frameMs));
   }
 }
@@ -906,15 +928,17 @@ async function runModel() {
     const NB = 40, timed = !!anim.times, B = binCells(cells, timed ? anim.times : dists, NB);
     coneLayer.removeAll();
     if (anim.cone && $("cone").checked) coneLayer.addMany(coneGraphics(anim.cone.vent, anim.cone.Hh, anim.cone.k, anim.cone.sector, h));
-    // Camera targets: the furthest point along the flow path reached by the end of each frame
-    let fronts = null;
-    if (anim.path) {
-      const pv = anim.pathVal, fr = [];
-      for (let b = 0; b < NB; b++) { let p = 0; while (p + 1 < pv.length && pv[p + 1] <= B.binEnd[b]) p++; fr.push(p); }
-      fronts = fr.map(p => { const a = anim.path[Math.max(0, p - 25)], c = anim.path[Math.min(anim.path.length - 1, p + 5)], q = anim.path[p];
-        const [ax, ay] = cellXY(a), [cx, cy] = cellXY(c), [qx, qy] = cellXY(q);
-        return { x: qx, y: qy, z: h[q], heading: (Math.atan2(cx - ax, cy - ay) * 180 / Math.PI + 360) % 360 }; });
-    }
+    // Camera: frame everything reached (and the start), seen from beyond the flow looking back towards the start
+    let frame = null;
+    { const all = anim.prox && anim.prox.length ? cells.concat(anim.prox) : cells, [sx, sy] = cellXY(start);
+      let x0 = sx, x1 = sx, y0 = sy, y1 = sy, zmax = h[start], cx = 0, cy = 0;
+      for (const c of all) { const [x, y] = cellXY(c); if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; cx += x; cy += y; if (h[c] > zmax) zmax = h[c]; }
+      cx /= Math.max(1, all.length); cy /= Math.max(1, all.length);
+      const f = 1 / Math.cos(latC * Math.PI / 180), mx = (x0 + x1) / 2, my = (y0 + y1) / 2;
+      const hx = Math.max((x1 - x0) / 2 * (1 + CAM.pad), CAM.minHalf * f), hy = Math.max((y1 - y0) / 2 * (1 + CAM.pad), CAM.minHalf * f);
+      const dx = sx - cx, dy = sy - cy, heading = Math.hypot(dx, dy) > 500 * f ? (Math.atan2(dx, dy) * 180 / Math.PI + 360) % 360 : 0;
+      const pts = [[mx - hx, my - hy, zmax], [mx + hx, my - hy, zmax], [mx + hx, my + hy, zmax], [mx - hx, my + hy, zmax]];
+      frame = { target: { type: "multipoint", points: pts, hasZ: true, spatialReference: { wkid: 3857 } }, heading, tilt: CAM.tilt }; }
     let proxGraphic = [];
     if (anim.prox && anim.prox.length) {
       const bp = new Int16Array(W * H).fill(-1); for (const c of anim.prox) bp[c] = 0;
@@ -924,7 +948,7 @@ async function runModel() {
         symbol: { type: "simple-line", color: [...hz.color, 1], width: 6, cap: "round", join: "round" } }));
     }
     lastPlay[key] = { prox: proxGraphic, draped: drapedFrames(B, hz.color), mesh: anim.level ? meshFrames(B, anim.level, hz.color) : null,
-      binEnd: B.binEnd, timed, fronts, follow: !!fronts, frameMs: 220,
+      binEnd: B.binEnd, timed, frame, frameMs: 220,
       clockNote: timed ? (anim.clockNote || "Speed estimated from the slope, within the USGS range.") : "We found no reliable speed for the avalanche." };
     $("replay").disabled = false;
     await play(key);
