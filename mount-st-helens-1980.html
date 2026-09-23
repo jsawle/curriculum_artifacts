@@ -64,6 +64,8 @@
   details ol, details ul { padding-left: 20px; margin: 6px 0; }
   .sources { font-size: 12.5px; color: var(--muted); }
   .sources a { color: inherit; }
+  .kicker .ver { color: var(--muted); font-weight: 500; letter-spacing: 0; text-transform: none; }
+  #camRead { font-variant-numeric: tabular-nums; }
   #legend { position: absolute; right: 12px; bottom: 28px; background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 10px 12px; font-size: 12.5px; box-shadow: 0 2px 10px rgba(0,0,0,.15); }
   #legend .t { font-weight: 700; margin-bottom: 4px; }
   #legend .k { display: flex; align-items: center; gap: 8px; margin: 2px 0; }
@@ -102,7 +104,7 @@
 <body>
 <div id="app">
   <aside id="panel">
-    <div class="kicker">Volcanoes</div>
+    <div class="kicker">Volcanoes <span class="ver" id="verTop">· version 1.12</span></div>
     <h1>Mount St Helens, 18 May 1980</h1>
     <p class="lede">One morning, four hazards. Run each one and compare it with what really happened.</p>
 
@@ -145,7 +147,7 @@
       <label class="check"><input type="checkbox" id="keep" checked /> Keep earlier hazards on the map</label>
       <label class="check"><input type="checkbox" id="td" checked /> Show avalanche and lahars in 3D</label>
       <label class="check"><input type="checkbox" id="cone" checked /> Show the energy cone (blast, pyroclastic flows)</label>
-      <label class="check"><input type="checkbox" id="follow" checked /> Move the camera back to the overview when a flow runs</label>
+      <label class="check"><input type="checkbox" id="follow" checked /> Zoom out when a flow runs beyond the view</label>
       <div class="btns" style="margin-top:6px">
         <button id="moveStart">Move start point</button>
         <button id="resetStart">Reset this hazard</button>
@@ -180,13 +182,14 @@
         <a href="https://gscommunitycodes.usf.edu/geoscicommunitycodes/public/energy-cone/energy_cone.php" target="_blank" rel="noopener">Energy cone model</a> ·
         <a href="https://volcano.oregonstate.edu/mount-st-helens-fact-sheet" target="_blank" rel="noopener">Oregon State Volcano World fact sheet</a>
       </div>
-      <div class="hint" id="version" style="margin-top:10px">Model version 1.11 · 23 September 2026</div>
+      <div class="hint" id="version" style="margin-top:10px">Model version 1.12 · 23 September 2026</div>
+      <div class="hint" id="camRead"></div>
     </details>
   </aside>
 
   <main id="mapwrap">
     <arcgis-scene basemap="hybrid" ground="world-elevation"
-      camera-position="-122.33, 46.40, 9500" camera-heading="150" camera-tilt="62">
+      camera-position="-122.25, 46.40, 11000" camera-heading="180" camera-tilt="58">
       <arcgis-zoom slot="top-left"></arcgis-zoom>
       <arcgis-navigation-toggle slot="top-left"></arcgis-navigation-toggle>
       <arcgis-compass slot="top-left"></arcgis-compass>
@@ -450,10 +453,11 @@
 
 <script type="module">
 const HM = window.HazardModels;
-const MODEL_VERSION = "1.11";
+const MODEL_VERSION = "1.12";
+document.title = "Mount St Helens 1980: Four Hazards (v" + MODEL_VERSION + ")";
 // One fixed overview camera: always looking the same way (east-north-east, back up the North Fork Toutle towards the volcano).
 // It frames the mountain box, which holds the avalanche, blast and pyroclastic flows; a lahar that runs beyond it zooms out along the same line.
-const CAM = { heading: 70, tilt: 58, box: [-122.50, 46.08, -121.92, 46.44] };
+const CAM = { heading: 180, tilt: 58, start: { lon: -122.25, lat: 46.40, z: 11000 }, box: [-122.50, 46.08, -121.92, 46.44] };
 console.info("Mount St Helens 1980 hazard explorer, model version " + MODEL_VERSION);
 const $ = (id) => document.getElementById(id);
 const status = (t) => { $("status").textContent = t; };
@@ -582,8 +586,13 @@ function overviewFrame(x0, y0, x1, y1) {
   const pts = [[x0, y0, 1500], [x1, y0, 1500], [x1, y1, 1500], [x0, y1, 1500], [(x0 + x1) / 2, (y0 + y1) / 2, 2950]];
   return { target: { type: "multipoint", points: pts, hasZ: true, spatialReference: { wkid: 3857 } }, heading: CAM.heading, tilt: CAM.tilt };
 }
-const homeFrame = overviewFrame(...toMerc(CAM.box[0], CAM.box[1]), ...toMerc(CAM.box[2], CAM.box[3]));
+// Starting view: from north of the North Fork Toutle valley, looking south to the volcano
+const homeFrame = { position: { type: "point", longitude: CAM.start.lon, latitude: CAM.start.lat, z: CAM.start.z }, heading: CAM.heading, tilt: CAM.tilt };
 view.goTo(homeFrame, { animate: false }).catch(() => {});
+// Live camera read-out (teachers can note a view they like)
+const camRead = () => { const c = view.camera; if (!c || !c.position) return; const p = c.position, ll = p.spatialReference && p.spatialReference.isWebMercator ? fromMerc(p.x, p.y) : [p.longitude, p.latitude];
+  $("camRead").textContent = `View: ${ll[0].toFixed(3)}, ${ll[1].toFixed(3)}, ${Math.round(p.z)} m high, heading ${Math.round(c.heading)}°, tilt ${Math.round(c.tilt)}°`; };
+$arcgis.import("@arcgis/core/core/reactiveUtils.js").then(ru => ru.watch(() => view.camera, camRead, { initial: true })).catch(() => {});
 function labelSymbol(text, color, size = 11) {
   return { type: "point-3d", symbolLayers: [
       { type: "icon", size, resource: { primitive: "circle" }, material: { color }, outline: { color: "white", size: 1.2 } },
@@ -846,7 +855,7 @@ async function play(key) {
   $("clockLabel").textContent = P.timed ? "Time since it started" : "Order the ground was reached";
   $("clockNote").textContent = P.clockNote || "";
   // One steady camera for the whole run: framed around everything the flow will reach, looking back towards where it starts
-  if (P.frame && $("follow").checked && JSON.stringify(P.frame) !== lastFrame) {
+  if (P.frame && $("follow").checked && JSON.stringify(P.frame) !== lastFrame) {  // only a flow that runs beyond the starting view moves the camera
     lastFrame = JSON.stringify(P.frame); await view.goTo(P.frame, { duration: 1500, easing: "in-out-cubic" }).catch(() => {}); if (t !== playToken) return; }
   for (let b = 0; b < frames.length; b++) {
     if (t !== playToken) return;
@@ -963,7 +972,8 @@ async function runModel() {
     { const all = anim.prox && anim.prox.length ? cells.concat(anim.prox) : cells;
       let [x0, y0] = toMerc(CAM.box[0], CAM.box[1]), [x1, y1] = toMerc(CAM.box[2], CAM.box[3]); const pad = 1500 / Math.cos(latC * Math.PI / 180);
       for (const c of all) { const [x, y] = cellXY(c); if (x - pad < x0) x0 = x - pad; if (x + pad > x1) x1 = x + pad; if (y - pad < y0) y0 = y - pad; if (y + pad > y1) y1 = y + pad; }
-      frame = overviewFrame(x0, y0, x1, y1); }
+      const [bx0, by0] = toMerc(CAM.box[0], CAM.box[1]), [bx1, by1] = toMerc(CAM.box[2], CAM.box[3]);
+      frame = (x0 < bx0 || y0 < by0 || x1 > bx1 || y1 > by1) ? overviewFrame(x0, y0, x1, y1) : null; }
     let proxGraphic = [];
     if (anim.prox && anim.prox.length) {
       const bp = new Int16Array(W * H).fill(-1); for (const c of anim.prox) bp[c] = 0;
