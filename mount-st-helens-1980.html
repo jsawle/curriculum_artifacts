@@ -68,6 +68,16 @@
   #legend .t { font-weight: 700; margin-bottom: 4px; }
   #legend .k { display: flex; align-items: center; gap: 8px; margin: 2px 0; }
   #legend .sw { width: 18px; height: 12px; border-radius: 2px; flex: none; }
+  #legend button.k { width: 100%; border: 0; background: none; font: inherit; color: inherit; text-align: left; padding: 3px 4px; margin: 1px -4px; border-radius: 6px; cursor: pointer; }
+  #legend button.k:hover:not(:disabled) { background: rgba(0,0,0,.06); }
+  #legend button.k:disabled { cursor: default; color: var(--muted); }
+  #legend button.k:disabled .sw { opacity: .35; }
+  #legend .tick { width: 14px; height: 14px; border: 1.5px solid var(--muted); border-radius: 3px; flex: none; display: grid; place-items: center; font-size: 11px; line-height: 1; }
+  #legend button.k[aria-pressed="true"] .tick { background: var(--ink); border-color: var(--ink); color: #fff; }
+  #legend button.k[aria-pressed="true"] .tick::after { content: "✓"; }
+  #legend button.k[aria-pressed="false"]:not(:disabled) .sw { opacity: .35; }
+  #legend [hidden] { display: none !important; }
+  #legend .hint2 { color: var(--muted); font-size: 11.5px; margin-top: 4px; }
   #surfaceTag { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); background: var(--panel); border: 1px solid var(--rule); border-radius: 20px; padding: 6px 14px; font-size: 13px; font-weight: 600; box-shadow: 0 2px 10px rgba(0,0,0,.12); max-width: calc(100% - 120px); text-align: center; cursor: pointer; color: var(--ink); line-height: 1.3; }
   #surfaceTag .sw { display: inline-block; width: 30px; height: 16px; border-radius: 8px; background: var(--rule); vertical-align: -3px; margin-right: 8px; position: relative; }
   #surfaceTag .sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: #fff; transition: left .15s; }
@@ -83,7 +93,8 @@
     #mapwrap { height: 50%; flex: none; }
     #legend { right: 8px; bottom: 20px; padding: 6px 8px; font-size: 11px; }
     #clock { left: 8px; bottom: 20px; padding: 6px 8px; font-size: 11px; max-width: 150px; } #clock .big { font-size: 16px; }
-    #legend, #clockNote, #surfaceSub { display: none !important; }
+    #legend .note, #legend .hint2, #clockNote, #surfaceSub { display: none !important; }
+    #legend .t { display: none; }
     #surfaceTag { font-size: 11.5px; top: 8px; max-width: calc(100% - 90px); }
   }
 </style>
@@ -134,7 +145,7 @@
       <label class="check"><input type="checkbox" id="keep" checked /> Keep earlier hazards on the map</label>
       <label class="check"><input type="checkbox" id="td" checked /> Show avalanche and lahars in 3D</label>
       <label class="check"><input type="checkbox" id="cone" checked /> Show the energy cone (blast, pyroclastic flows)</label>
-      <label class="check"><input type="checkbox" id="follow" checked /> Camera shows the whole flow</label>
+      <label class="check"><input type="checkbox" id="follow" checked /> Move the camera back to the overview when a flow runs</label>
       <div class="btns" style="margin-top:6px">
         <button id="moveStart">Move start point</button>
         <button id="resetStart">Reset this hazard</button>
@@ -169,7 +180,7 @@
         <a href="https://gscommunitycodes.usf.edu/geoscicommunitycodes/public/energy-cone/energy_cone.php" target="_blank" rel="noopener">Energy cone model</a> ·
         <a href="https://volcano.oregonstate.edu/mount-st-helens-fact-sheet" target="_blank" rel="noopener">Oregon State Volcano World fact sheet</a>
       </div>
-      <div class="hint" id="version" style="margin-top:10px">Model version 1.8 · 23 September 2026</div>
+      <div class="hint" id="version" style="margin-top:10px">Model version 1.10 · 23 September 2026</div>
     </details>
   </aside>
 
@@ -185,11 +196,13 @@
     <div id="clock"><div id="clockLabel">Time since it started</div><div class="big" id="clockTime">0 s</div><div id="clockNote" class="hint"></div></div>
     <div id="legend">
       <div class="t">18 May 1980 hazards</div>
-      <div class="k"><span class="sw" style="background:var(--c-aval)"></span>Debris avalanche</div>
-      <div class="k"><span class="sw" style="background:var(--c-blast)"></span>Lateral blast</div>
-      <div class="k"><span class="sw" style="background:var(--c-pf)"></span>Pyroclastic flows</div>
-      <div class="k"><span class="sw" style="background:var(--c-lahar)"></span>Lahars</div>
-      <div class="k"><span class="sw" style="background:linear-gradient(90deg, rgba(138,90,43,.5) 50%, rgba(14,116,144,.5) 50%)"></span>Paler shade: danger zone near the summit</div>
+      <button class="k" data-l="aval" aria-pressed="false" disabled><span class="tick"></span><span class="sw" style="background:var(--c-aval)"></span>Debris avalanche</button>
+      <button class="k" data-l="blast" aria-pressed="false" disabled><span class="tick"></span><span class="sw" style="background:var(--c-blast)"></span>Lateral blast</button>
+      <button class="k" data-l="pf" aria-pressed="false" disabled><span class="tick"></span><span class="sw" style="background:var(--c-pf)"></span>Pyroclastic flows</button>
+      <button class="k" data-l="lahar" aria-pressed="false" disabled><span class="tick"></span><span class="sw" style="background:var(--c-lahar)"></span>Lahars</button>
+      <button class="k" data-l="cone" aria-pressed="false" disabled hidden><span class="tick"></span><span class="sw" style="background:rgba(160,160,160,.5);border:1px solid #999"></span>Energy cone</button>
+      <div class="k note"><span class="sw" style="background:linear-gradient(90deg, rgba(138,90,43,.5) 50%, rgba(14,116,144,.5) 50%)"></span>Paler shade: danger zone near the summit</div>
+      <div class="hint2" id="legendHint">Run a hazard, then tap it here to show or hide it.</div>
     </div>
   </main>
 </div>
@@ -433,8 +446,10 @@
 
 <script type="module">
 const HM = window.HazardModels;
-const MODEL_VERSION = "1.8";
-const CAM = { tilt: 55, pad: 0.12, minHalf: 7000 };   // framing camera: tilt in degrees, padding around the flow, smallest half-width in metres
+const MODEL_VERSION = "1.10";
+// One fixed overview camera: always looking the same way (east-north-east, back up the North Fork Toutle towards the volcano).
+// It frames the mountain box, which holds the avalanche, blast and pyroclastic flows; a lahar that runs beyond it zooms out along the same line.
+const CAM = { heading: 70, tilt: 58, box: [-122.50, 46.08, -121.92, 46.44] };
 console.info("Mount St Helens 1980 hazard explorer, model version " + MODEL_VERSION);
 const $ = (id) => document.getElementById(id);
 const status = (t) => { $("status").textContent = t; };
@@ -557,6 +572,12 @@ for (const k of ["lahar", "aval"]) meshLayers[k] = new GraphicsLayer({ title: HA
 const coneLayer = new GraphicsLayer({ title: "Energy cone", elevationInfo: { mode: "absolute-height" } });
 map.addMany([layers.lahar, layers.pf, layers.blast, layers.aval, meshLayers.lahar, meshLayers.aval, coneLayer, markLayer]);
 const merc = (x, y) => ({ type: "point", x, y, spatialReference: { wkid: 3857 } });
+function overviewFrame(x0, y0, x1, y1) {
+  const pts = [[x0, y0, 1500], [x1, y0, 1500], [x1, y1, 1500], [x0, y1, 1500], [(x0 + x1) / 2, (y0 + y1) / 2, 2950]];
+  return { target: { type: "multipoint", points: pts, hasZ: true, spatialReference: { wkid: 3857 } }, heading: CAM.heading, tilt: CAM.tilt };
+}
+const homeFrame = overviewFrame(...toMerc(CAM.box[0], CAM.box[1]), ...toMerc(CAM.box[2], CAM.box[3]));
+view.goTo(homeFrame, { animate: false }).catch(() => {});
 function labelSymbol(text, color, size = 11) {
   return { type: "point-3d", symbolLayers: [
       { type: "icon", size, resource: { primitive: "circle" }, material: { color }, outline: { color: "white", size: 1.2 } },
@@ -807,21 +828,24 @@ function coneGraphics(vent, Hh, k, sector, h) {
 
 const fmtDur = (t) => { t = Math.round(t); if (t < 60) return t + " s"; const m = Math.floor(t / 60), sec = t % 60;
   if (m < 60) return m + " min" + (sec && m < 10 ? " " + sec + " s" : ""); const hh = Math.floor(m / 60), mm = m % 60; return hh + " h" + (mm ? " " + mm + " min" : ""); };
-let playToken = 0, lastPlay = {};
+let playToken = 0, lastPlay = {}, lastFrame = JSON.stringify(homeFrame);
 async function play(key) {
   const P = lastPlay[key]; if (!P) return;
   const t = ++playToken;
   layers[key].removeAll(); if (meshLayers[key]) meshLayers[key].removeAll();
+  for (const l of legendLayers(key)) l.visible = true; coneLayer.visible = true;
   const use3D = P.mesh && $("td").checked, frames = P.draped;   // the draped fill is always drawn, so thin mud never shows gaps
   if (P.prox && P.prox.length) layers[key].addMany(P.prox);      // the danger zone around the summit, where the flow starts
   $("clock").style.display = "block";
   $("clockLabel").textContent = P.timed ? "Time since it started" : "Order the ground was reached";
   $("clockNote").textContent = P.clockNote || "";
   // One steady camera for the whole run: framed around everything the flow will reach, looking back towards where it starts
-  if (P.frame && $("follow").checked) { await view.goTo(P.frame, { duration: 1500, easing: "in-out-cubic" }).catch(() => {}); if (t !== playToken) return; }
+  if (P.frame && $("follow").checked && JSON.stringify(P.frame) !== lastFrame) {
+    lastFrame = JSON.stringify(P.frame); await view.goTo(P.frame, { duration: 1500, easing: "in-out-cubic" }).catch(() => {}); if (t !== playToken) return; }
   for (let b = 0; b < frames.length; b++) {
     if (t !== playToken) return;
     if (frames[b].length) layers[key].addMany(frames[b]);
+    if (b === 0) syncLegend();
     if (use3D && P.mesh[b].length) meshLayers[key].addMany(P.mesh[b]);
     $("clockTime").textContent = P.timed ? fmtDur(P.binEnd[b]) : Math.round((b + 1) / frames.length * 100) + "%";
     await new Promise(r => setTimeout(r, P.frameMs));
@@ -928,17 +952,12 @@ async function runModel() {
     const NB = 40, timed = !!anim.times, B = binCells(cells, timed ? anim.times : dists, NB);
     coneLayer.removeAll();
     if (anim.cone && $("cone").checked) coneLayer.addMany(coneGraphics(anim.cone.vent, anim.cone.Hh, anim.cone.k, anim.cone.sector, h));
-    // Camera: frame everything reached (and the start), seen from beyond the flow looking back towards the start
+    // Camera: the fixed overview, widened only if this flow runs outside the mountain box
     let frame = null;
-    { const all = anim.prox && anim.prox.length ? cells.concat(anim.prox) : cells, [sx, sy] = cellXY(start);
-      let x0 = sx, x1 = sx, y0 = sy, y1 = sy, zmax = h[start], cx = 0, cy = 0;
-      for (const c of all) { const [x, y] = cellXY(c); if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; cx += x; cy += y; if (h[c] > zmax) zmax = h[c]; }
-      cx /= Math.max(1, all.length); cy /= Math.max(1, all.length);
-      const f = 1 / Math.cos(latC * Math.PI / 180), mx = (x0 + x1) / 2, my = (y0 + y1) / 2;
-      const hx = Math.max((x1 - x0) / 2 * (1 + CAM.pad), CAM.minHalf * f), hy = Math.max((y1 - y0) / 2 * (1 + CAM.pad), CAM.minHalf * f);
-      const dx = sx - cx, dy = sy - cy, heading = Math.hypot(dx, dy) > 500 * f ? (Math.atan2(dx, dy) * 180 / Math.PI + 360) % 360 : 0;
-      const pts = [[mx - hx, my - hy, zmax], [mx + hx, my - hy, zmax], [mx + hx, my + hy, zmax], [mx - hx, my + hy, zmax]];
-      frame = { target: { type: "multipoint", points: pts, hasZ: true, spatialReference: { wkid: 3857 } }, heading, tilt: CAM.tilt }; }
+    { const all = anim.prox && anim.prox.length ? cells.concat(anim.prox) : cells;
+      let [x0, y0] = toMerc(CAM.box[0], CAM.box[1]), [x1, y1] = toMerc(CAM.box[2], CAM.box[3]); const pad = 1500 / Math.cos(latC * Math.PI / 180);
+      for (const c of all) { const [x, y] = cellXY(c); if (x - pad < x0) x0 = x - pad; if (x + pad > x1) x1 = x + pad; if (y - pad < y0) y0 = y - pad; if (y + pad > y1) y1 = y + pad; }
+      frame = overviewFrame(x0, y0, x1, y1); }
     let proxGraphic = [];
     if (anim.prox && anim.prox.length) {
       const bp = new Int16Array(W * H).fill(-1); for (const c of anim.prox) bp[c] = 0;
@@ -957,7 +976,21 @@ async function runModel() {
 }
 $("run").onclick = runModel;
 $("replay").onclick = () => { if (!busy) play(current); };
-$("cone").onchange = () => { if (!$("cone").checked) coneLayer.removeAll(); };
+$("cone").onchange = () => { if (!$("cone").checked) coneLayer.removeAll(); syncLegend(); };
+// Legend: each hazard that has been run can be shown or hidden
+const legendLayers = (k) => k === "cone" ? [coneLayer] : [layers[k], meshLayers[k]].filter(Boolean);
+function syncLegend() {
+  let any = false;
+  document.querySelectorAll("#legend button.k").forEach(b => {
+    const k = b.dataset.l, L = legendLayers(k), has = L.some(l => l.graphics.length > 0);
+    b.disabled = !has; b.setAttribute("aria-pressed", String(has && L[0].visible));
+    if (k === "cone") b.hidden = !has; if (has) any = true;
+    b.title = has ? (L[0].visible ? "Hide" : "Show") : "Not run yet";
+  });
+  $("legendHint").textContent = any ? "Tap a hazard to show or hide it." : "Run a hazard, then tap it here to show or hide it.";
+}
+document.querySelectorAll("#legend button.k").forEach(b => b.onclick = () => {
+  const L = legendLayers(b.dataset.l), v = !L[0].visible; for (const l of L) l.visible = v; syncLegend(); });
 document.querySelectorAll(".steps button").forEach(b => b.onclick = () => {
   current = b.dataset.h; placing = false; renderControls(); drawStart(); $("results").style.display = "none";
   $("replay").disabled = !lastPlay[current]; $("clock").style.display = "none";
