@@ -52,7 +52,11 @@
   table.cmp th { text-align: right; font-size: 12px; color: var(--muted); font-weight: 600; padding: 4px 0 4px 8px; border-bottom: 1px solid var(--rule); }
   table.cmp th:first-child, table.cmp td:first-child { text-align: left; padding-left: 0; }
   table.cmp td { text-align: right; padding: 6px 0 6px 8px; border-bottom: 1px solid var(--rule); font-variant-numeric: tabular-nums; }
-  table.cmp td.n { font-weight: 700; }
+  table.cmp td.n { font-weight: 700; white-space: nowrap; }
+  ol.qs { padding-left: 20px; margin: 4px 0 14px; font-size: 14px; } ol.qs li { margin: 4px 0; }
+  details.teacher { margin-top: 10px; border: 1px solid var(--rule); border-radius: 10px; padding: 8px 12px; }
+  details.teacher > summary { font-size: 13px; color: var(--muted); }
+  details.teacher details { border-top: 1px solid var(--rule); padding: 8px 0; }
   details { border-top: 1px solid var(--rule); padding: 10px 0; }
   details:last-of-type { border-bottom: 1px solid var(--rule); }
   summary { cursor: pointer; font-weight: 600; }
@@ -79,6 +83,7 @@
     #mapwrap { height: 50%; flex: none; }
     #legend { right: 8px; bottom: 20px; padding: 6px 8px; font-size: 11px; }
     #clock { left: 8px; bottom: 20px; padding: 6px 8px; font-size: 11px; max-width: 150px; } #clock .big { font-size: 16px; }
+    #legend, #clockNote, #surfaceSub { display: none !important; }
     #surfaceTag { font-size: 11.5px; top: 8px; max-width: calc(100% - 90px); }
   }
 </style>
@@ -86,12 +91,10 @@
 <body>
 <div id="app">
   <aside id="panel">
-    <div class="kicker">Physical processes · Volcanoes</div>
+    <div class="kicker">Volcanoes</div>
     <h1>Mount St Helens, 18 May 1980</h1>
-    <div class="hint" id="version" style="margin:-2px 0 6px">Model version 1.5 · 22 September 2026</div>
-    <p class="lede">One morning, four different hazards. Model each one with the methods scientists use for hazard maps, then compare your result with what really happened.</p>
+    <p class="lede">One morning, four hazards. Run each one and compare it with what really happened.</p>
 
-    <h2>Choose a hazard</h2>
     <div class="steps" role="group" aria-label="Hazard">
       <button data-h="aval" aria-pressed="true"><span class="n">1 · The mountain collapses</span><span class="sw" style="background:var(--c-aval)"></span>Debris avalanche</button>
       <button data-h="blast" aria-pressed="false"><span class="n">2 · Seconds later</span><span class="sw" style="background:var(--c-blast)"></span>Lateral blast</button>
@@ -101,69 +104,72 @@
 
     <div class="row" id="story" style="margin-top:14px"></div>
 
-    <h2>Settings</h2>
     <div id="controls"></div>
-    <label class="check"><input type="checkbox" id="keep" checked /> Keep the other hazards on the map, so you can build up the whole day</label>
-    <label class="check"><input type="checkbox" id="td" checked /> Show the avalanche and lahars in 3D, at the depth the model works out</label>
-    <label class="check"><input type="checkbox" id="cone" checked /> Show the energy cone for the blast and pyroclastic flows</label>
-    <label class="check"><input type="checkbox" id="follow" checked /> Camera follows the flow</label>
     <div class="btns">
-      <button id="run" class="primary" disabled>Run the model</button>
-      <button id="moveStart">Move start point</button>
-      <button id="resetStart">Reset</button>
+      <button id="run" class="primary" disabled>Run</button>
       <button id="replay" disabled>Replay</button>
     </div>
-    <div id="status">Loading terrain…</div>
+    <div id="status">Loading the mountain…</div>
     <div class="bar"><div id="prog"></div></div>
 
     <div id="results">
       <table class="cmp">
-        <thead><tr><th></th><th>Your model</th><th>1980</th></tr></thead>
+        <thead><tr><th></th><th>Model</th><th>1980</th></tr></thead>
         <tbody id="cmpRows"></tbody>
       </table>
       <div class="hint" id="resNote" style="margin-top:8px"></div>
     </div>
 
-    <h2>Explore</h2>
-    <details open>
-      <summary>Try this</summary>
-      <ol>
-        <li>Run all four hazards in order. Which one reached furthest from the volcano? Which covered the most ground?</li>
-        <li>For the blast, change the direction to the south and run it again. Why do scientists think the direction of the blast mattered so much?</li>
-        <li>For the pyroclastic flows, raise the collapse height. Why do the flows still go north?</li>
-        <li>For lahars, compare the North Fork Toutle with Pine Creek. Why did the biggest lahar go where it did?</li>
-      </ol>
-    </details>
-    <details>
-      <summary>How the models work</summary>
-      <p><b>Energy cone</b> (pyroclastic flows and the blast). Picture a cone upside down, with its tip high above the vent. A flow starts at that height and loses a fixed amount of height for every metre it travels, set by the <i>mobility</i> (H/L). It can reach any spot where that falling line stays above the ground. A high ridge stops it; a low one is swept over. Scientists use mobility values from 0.05 (very mobile) to 0.5.</p>
-      <p><b>LAHARZ</b> (lahars and the avalanche). From a US Geological Survey method: the bigger the volume, the more of each valley it fills and the more ground it covers. Lahars are runny, so they spread over ten times more ground than a rock avalanche of the same volume. The model follows the river downhill, fills each stretch of valley to the right depth, and stops when it has covered its total area. Close to the summit, everything is treated as a danger zone: an energy cone from the summit with a mobility of 0.23, the value the method's authors used at Mount Rainier. Valley-filling starts where the flow leaves that zone.</p>
-    </details>
-    <details>
-      <summary>What these models can't tell you</summary>
-      <ul>
-        <li><b>The blast is an approximation.</b> The real blast was a sideways explosion. There's no simple standard method for that, so this uses an energy cone limited to one side of the volcano.</li>
-        <li><b>The clock is an estimate.</b> The models show where each hazard could reach, not when. The clock adds speeds reported by the USGS: the blast at least 480 km/h, pyroclastic flows 80–130 km/h (the page uses 105), and lahars up to about 145 km/h on steep upper slopes, slowing to about 5 km/h on flatter ground. In between, the page estimates a lahar's speed from the slope. We didn't find a reliable speed for the avalanche, so it plays in order without a clock.</li>
-        <li><b>Tidied edges.</b> The map smooths out one-square spikes and fills tiny holes so the flow is easier to read. The distance and area in the results come from the model before tidying.</li>
-        <li><b>3D depth.</b> The 3D surface shows how high the model fills each stretch of valley. The real flows were deepest at their peak and left much thinner deposits behind.</li>
-        <li><b>Only one flow at a time.</b> In 1980 lahars ran down several valleys at once. Run each one separately.</li>
-        <li><b>The ground.</b> Hazards 1 and 2 use the 1952 mapped surface, the best record of the mountain before 1980. Beyond its edges, and for hazards 3 and 4, the model uses today's ground. Hazards 3 and 4 happened after the avalanche had already reshaped the land, so today's ground is closer to what they flowed over, but it has also changed since 1980.</li>
-        <li><b>Start points are approximate.</b> The model moves each start to the nearest channel, so check the marker is where you expect. The South Fork, Pine Creek and Muddy River lahars start on the volcano. The North Fork lahar starts down the valley on the avalanche deposit, because that's where the USGS says it formed.</li>
-      </ul>
-    </details>
+    <h2>Think about it</h2>
+    <ol class="qs">
+      <li>Run all four in order. Which hazard reached furthest? Which covered the most ground?</li>
+      <li>Turn the blast to face south. Who would have been in danger then?</li>
+      <li>Make the pyroclastic flows' column taller. Why do they still go north?</li>
+      <li>Why did the biggest lahar go down the North Fork Toutle?</li>
+    </ol>
 
-    <h2>Sources</h2>
-    <div class="sources">
-      <a href="https://www.usgs.gov/volcanoes/mount-st.-helens/science/1980-cataclysmic-eruption" target="_blank" rel="noopener">USGS: 1980 cataclysmic eruption</a> ·
-      <a href="https://pubs.usgs.gov/gip/msh/mudflows.html" target="_blank" rel="noopener">USGS: mudflows and floods</a> ·
-      <a href="https://www.usgs.gov/volcanoes/mount-st.-helens/science/lahar-hazards-mount-st-helens" target="_blank" rel="noopener">USGS: lahar hazards at Mount St Helens</a> ·
-      <a href="https://www.academia.edu/23914199/Numerical_simulation_of_some_lahars_from_Mount_St_Helens" target="_blank" rel="noopener">Numerical simulation of some lahars from Mount St Helens (lahar volumes)</a> ·
-      <a href="https://doi.org/10.5066/P91W7C1L" target="_blank" rel="noopener">Bard &amp; Phillips-Netherton (2024), pre-1980 elevation model, USGS</a> ·
-      <a href="https://www.morageology.com/pubs/110.pdf" target="_blank" rel="noopener">LAHARZ: Iverson, Schilling &amp; Vallance (1998)</a> ·
-      <a href="https://www.usgs.gov/publications/mobility-statistics-and-automated-hazard-mapping-debris-flows-and-rock-avalanches" target="_blank" rel="noopener">Griswold &amp; Iverson (2008), avalanche coefficients</a> ·
-      <a href="https://gscommunitycodes.usf.edu/geoscicommunitycodes/public/energy-cone/energy_cone.php" target="_blank" rel="noopener">Energy cone model</a> ·
-      <a href="https://volcano.oregonstate.edu/mount-st-helens-fact-sheet" target="_blank" rel="noopener">Oregon State Volcano World fact sheet</a>
-    </div>
+    <details class="teacher">
+      <summary>For teachers</summary>
+      <div id="advControls"></div>
+      <label class="check"><input type="checkbox" id="keep" checked /> Keep earlier hazards on the map</label>
+      <label class="check"><input type="checkbox" id="td" checked /> Show avalanche and lahars in 3D</label>
+      <label class="check"><input type="checkbox" id="cone" checked /> Show the energy cone (blast, pyroclastic flows)</label>
+      <label class="check"><input type="checkbox" id="follow" checked /> Camera follows the flow</label>
+      <div class="btns" style="margin-top:6px">
+        <button id="moveStart">Move start point</button>
+        <button id="resetStart">Reset this hazard</button>
+      </div>
+      <details>
+        <summary>How the models work</summary>
+        <p><b>Energy cone</b> (pyroclastic flows and the blast). Picture a cone upside down, with its tip high above the vent. A flow starts at that height and loses a fixed amount of height for every metre it travels, set by the <i>mobility</i> (H/L). It can reach any spot where that falling line stays above the ground. A high ridge stops it; a low one is swept over. Scientists use mobility values from 0.05 (very mobile) to 0.5.</p>
+        <p><b>LAHARZ</b> (lahars and the avalanche). From a US Geological Survey method: the bigger the volume, the more of each valley it fills and the more ground it covers. Lahars are runny, so they spread over ten times more ground than a rock avalanche of the same volume. The model follows the river downhill, fills each stretch of valley to the right depth, and stops when it has covered its total area. Close to the summit, everything is treated as a danger zone: an energy cone from the summit with a mobility of 0.23, the value the method's authors used at Mount Rainier. Valley-filling starts where the flow leaves that zone.</p>
+      </details>
+      <details>
+        <summary>What these models can't tell you</summary>
+        <ul>
+          <li><b>The blast is an approximation.</b> The real blast was a sideways explosion. There's no simple standard method for that, so this uses an energy cone limited to one side of the volcano.</li>
+          <li><b>The clock is an estimate.</b> The models show where each hazard could reach, not when. The clock adds speeds reported by the USGS: the blast at least 480 km/h, pyroclastic flows 80–130 km/h (the page uses 105), and lahars up to about 145 km/h on steep upper slopes, slowing to about 5 km/h on flatter ground. In between, the page estimates a lahar's speed from the slope. We didn't find a reliable speed for the avalanche, so it plays in order without a clock.</li>
+          <li><b>Tidied edges.</b> The map smooths out one-square spikes and fills tiny holes so the flow is easier to read. The distance and area in the results come from the model before tidying.</li>
+          <li><b>3D depth.</b> The 3D surface shows how high the model fills each stretch of valley. The real flows were deepest at their peak and left much thinner deposits behind.</li>
+          <li><b>Only one flow at a time.</b> In 1980 lahars ran down several valleys at once. Run each one separately.</li>
+          <li><b>The ground.</b> Hazards 1 and 2 use the 1952 mapped surface, the best record of the mountain before 1980. Beyond its edges, and for hazards 3 and 4, the model uses today's ground. Hazards 3 and 4 happened after the avalanche had already reshaped the land, so today's ground is closer to what they flowed over, but it has also changed since 1980.</li>
+          <li><b>Start points are approximate.</b> The model moves each start to the nearest channel, so check the marker is where you expect. The South Fork, Pine Creek and Muddy River lahars start on the volcano. The North Fork lahar starts down the valley on the avalanche deposit, because that's where the USGS says it formed.</li>
+        </ul>
+      </details>
+      <p style="font-size:13px;font-weight:600;margin:12px 0 4px">Sources</p>
+      <div class="sources">
+        <a href="https://www.usgs.gov/volcanoes/mount-st.-helens/science/1980-cataclysmic-eruption" target="_blank" rel="noopener">USGS: 1980 cataclysmic eruption</a> ·
+        <a href="https://pubs.usgs.gov/gip/msh/mudflows.html" target="_blank" rel="noopener">USGS: mudflows and floods</a> ·
+        <a href="https://www.usgs.gov/volcanoes/mount-st.-helens/science/lahar-hazards-mount-st-helens" target="_blank" rel="noopener">USGS: lahar hazards at Mount St Helens</a> ·
+        <a href="https://www.academia.edu/23914199/Numerical_simulation_of_some_lahars_from_Mount_St_Helens" target="_blank" rel="noopener">Numerical simulation of some lahars from Mount St Helens (lahar volumes)</a> ·
+        <a href="https://doi.org/10.5066/P91W7C1L" target="_blank" rel="noopener">Bard &amp; Phillips-Netherton (2024), pre-1980 elevation model, USGS</a> ·
+        <a href="https://www.morageology.com/pubs/110.pdf" target="_blank" rel="noopener">LAHARZ: Iverson, Schilling &amp; Vallance (1998)</a> ·
+        <a href="https://www.usgs.gov/publications/mobility-statistics-and-automated-hazard-mapping-debris-flows-and-rock-avalanches" target="_blank" rel="noopener">Griswold &amp; Iverson (2008), avalanche coefficients</a> ·
+        <a href="https://gscommunitycodes.usf.edu/geoscicommunitycodes/public/energy-cone/energy_cone.php" target="_blank" rel="noopener">Energy cone model</a> ·
+        <a href="https://volcano.oregonstate.edu/mount-st-helens-fact-sheet" target="_blank" rel="noopener">Oregon State Volcano World fact sheet</a>
+      </div>
+      <div class="hint" id="version" style="margin-top:10px">Model version 1.7 · 22 September 2026</div>
+    </details>
   </aside>
 
   <main id="mapwrap">
@@ -182,7 +188,7 @@
       <div class="k"><span class="sw" style="background:var(--c-blast)"></span>Lateral blast</div>
       <div class="k"><span class="sw" style="background:var(--c-pf)"></span>Pyroclastic flows</div>
       <div class="k"><span class="sw" style="background:var(--c-lahar)"></span>Lahars</div>
-      <div class="k"><span class="sw" style="background:linear-gradient(90deg, rgba(138,90,43,.35) 50%, rgba(14,116,144,.35) 50%)"></span>Paler shade: danger zone near the summit</div>
+      <div class="k"><span class="sw" style="background:linear-gradient(90deg, rgba(138,90,43,.5) 50%, rgba(14,116,144,.5) 50%)"></span>Paler shade: danger zone near the summit</div>
     </div>
   </main>
 </div>
@@ -426,7 +432,7 @@
 
 <script type="module">
 const HM = window.HazardModels;
-const MODEL_VERSION = "1.5";
+const MODEL_VERSION = "1.7";
 const CAM = { ahead: 5000, height: 4000, tilt: 50 };   // follow camera: metres ahead of the front, metres above it, tilt in degrees
 console.info("Mount St Helens 1980 hazard explorer, model version " + MODEL_VERSION);
 const $ = (id) => document.getElementById(id);
@@ -454,36 +460,36 @@ const cellLL = (c) => fromMerc(...cellXY(c));
 const HAZ = {
   aval: {
     name: "Debris avalanche", color: [138, 90, 43], surface: "past",
-    story: "An earthquake shook loose the bulging north side of the mountain. About 2.5 km³ of rock slid away: the largest landslide in recorded history. It swept around and up ridges to the north, but most of it turned west down the North Fork Toutle River valley.",
+    story: "An earthquake shook loose the bulging north side of the mountain. About 2.5 km³ of rock slid away: the largest landslide in recorded history. Most of it rushed west down the North Fork Toutle River valley.",
     start: { lon: -122.1968, lat: 46.2138, label: "North flank" },
-    controls: [{ id: "vol", label: "Volume of rock", min: 0.1, max: 5, step: 0.1, value: 2.5, fmt: v => v.toFixed(1) + " km³", hint: "1980: about 2.5 km³." }],
+    controls: [{ id: "vol", label: "How much rock slides", min: 0.1, max: 5, step: 0.1, value: 2.5, fmt: v => v.toFixed(1) + " km³", hint: "In 1980: about 2.5 km³." }],
     record: [["How far it travelled", "23 km"]]
   },
   blast: {
     name: "Lateral blast", color: [109, 40, 217], surface: "past",
-    story: "The landslide uncorked the gas-rich magma inside the mountain. It exploded sideways, not upwards, and a blast of hot rock and gas raced north at more than 480 km per hour. Near the volcano almost no trees were left standing.",
+    story: "The landslide uncorked the gas-rich magma inside the mountain. It exploded sideways and raced north at more than 480 km per hour. Near the volcano, almost no trees were left standing.",
     start: { lon: -122.1918, lat: 46.2120, label: "Blast source" },
     controls: [
-      { id: "Hb", label: "Starting height above the source", min: 100, max: 1500, step: 50, value: 400, fmt: v => v + " m", hint: "How high the exploding cloud started above the mountainside." },
-      { id: "kb", label: "Mobility (H/L)", min: 0.03, max: 0.3, step: 0.005, value: 0.08, fmt: v => v.toFixed(3), hint: "Lower means it travels further. Scientists use 0.05–0.5 for these currents." },
-      { id: "dir", label: "Direction", min: 0, max: 355, step: 5, value: 0, fmt: v => v + "° " + compass(v), hint: "1980: north." },
-      { id: "spread", label: "Spread", min: 30, max: 360, step: 10, value: 180, fmt: v => v + "°", hint: "How wide a fan it covers. 360° is all the way round." }
+      { id: "Hb", adv: true, label: "Blast: starting height above the source", min: 100, max: 1500, step: 50, value: 400, fmt: v => v + " m", hint: "How high the exploding cloud started above the mountainside." },
+      { id: "kb", adv: true, label: "Blast: mobility (H/L)", min: 0.03, max: 0.3, step: 0.005, value: 0.08, fmt: v => v.toFixed(3), hint: "Lower means it travels further. Scientists use 0.05–0.5 for these currents." },
+      { id: "dir", label: "Which way the blast faces", min: 0, max: 355, step: 5, value: 0, fmt: v => compass(v), hint: "In 1980: north." },
+      { id: "spread", adv: true, label: "Blast: spread", min: 30, max: 360, step: 10, value: 180, fmt: v => v + "°", hint: "How wide a fan it covers. 360° is all the way round." }
     ],
     record: [["Area devastated", "600 km²"], ["Width, west to east", "nearly 30 km"], ["Reach to the north", "more than 20 km"]]
   },
   pf: {
     name: "Pyroclastic flows", color: [220, 38, 38], surface: "today",
-    story: "All day, the eruption column collapsed again and again. Avalanches of hot pumice and ash poured out of the new crater at 80–130 km per hour and spread over the ground north of the volcano, building the Pumice Plain.",
+    story: "All day, the eruption column collapsed again and again. Avalanches of hot ash and pumice poured out of the new crater at 80–130 km per hour.",
     start: { lon: -122.1890, lat: 46.1990, label: "Crater", lowest: 12 },
     controls: [
-      { id: "Hp", label: "Collapse height above the crater", min: 50, max: 1500, step: 25, value: 200, fmt: v => v + " m", hint: "How high the column rose before it collapsed." },
-      { id: "kp", label: "Mobility (H/L)", min: 0.05, max: 0.5, step: 0.005, value: 0.11, fmt: v => v.toFixed(3), hint: "Lower means it travels further. Scientists use 0.05–0.5." }
+      { id: "Hp", label: "How tall the column is before it collapses", min: 50, max: 1500, step: 25, value: 200, fmt: v => v + " m", hint: "A taller column falls from higher up, so the flows have more energy." },
+      { id: "kp", adv: true, label: "Pyroclastic flows: mobility (H/L)", min: 0.05, max: 0.5, step: 0.005, value: 0.11, fmt: v => v.toFixed(3), hint: "Lower means it travels further. Scientists use 0.05–0.5." }
     ],
     record: [["Reach to the north", "about 8 km"]]
   },
   lahar: {
     name: "Lahars", color: [14, 116, 144], surface: "today",
-    story: "Hot rock and gas melted snow and ice on the volcano, and the water mixed with loose rock to form lahars: fast mudflows like wet concrete. Several poured down the volcano into the river valleys. The largest, in the North Fork Toutle, formed differently: water escaped from inside the avalanche deposit through most of the day. Lahars destroyed more than 200 homes and choked the Cowlitz and Columbia Rivers.",
+    story: "Hot rock melted snow and ice, making fast mudflows called lahars. The biggest, in the North Fork Toutle, formed from water escaping the avalanche deposit. Lahars destroyed more than 200 homes.",
     presets: {
       // USGS: the North Fork lahar "was formed by water ... escaping from inside the huge landslide deposit through most of the day",
       // so it starts on the upper avalanche deposit. The others "poured down the volcano", so they start on its flanks.
@@ -494,8 +500,8 @@ const HAZ = {
       muddy: { label: "Muddy River", lon: -122.1600, lat: 46.1900, vol: 5.5 }
     },
     controls: [
-      { id: "valley", type: "select", label: "Which valley?", options: [["nf", "North Fork Toutle (from the avalanche deposit)"], ["sf", "South Fork Toutle"], ["pine", "Pine Creek"], ["muddy", "Muddy River"]], value: "nf" },
-      { id: "lvol", label: "Volume of mud", min: 0.5, max: 500, step: 0.5, value: 140, fmt: v => v + " million m³", hint: "1980 estimates: North Fork 140, South Fork 13, Pine Creek 8, Muddy River 5.5 million m³." }
+      { id: "valley", type: "select", label: "Valley", options: [["nf", "North Fork Toutle (from the avalanche deposit)"], ["sf", "South Fork Toutle"], ["pine", "Pine Creek"], ["muddy", "Muddy River"]], value: "nf" },
+      { id: "lvol", label: "How much mud", min: 0.5, max: 500, step: 0.5, value: 140, fmt: v => v + " million m³", hint: "In 1980: North Fork 140, South Fork 13, Pine Creek 8, Muddy River 5.5 million m³." }
     ],
     record: [["Largest lahar (North Fork)", "grew until about 80 km downstream"], ["River channels affected", "about 220 km"]]
   }
@@ -510,8 +516,9 @@ let startOverride = {};               // hazard -> {lon, lat}
 function renderControls() {
   const hz = HAZ[current];
   $("story").textContent = hz.story;
-  const box = $("controls"); box.innerHTML = "";
+  const box0 = $("controls"), box1 = $("advControls"); box0.innerHTML = ""; box1.innerHTML = "";
   for (const c of hz.controls) {
+    const box = c.adv ? box1 : box0;
     const row = document.createElement("div"); row.className = "row";
     if (c.type === "select") {
       row.innerHTML = `<label class="ctl" for="${c.id}">${c.label}</label><select id="${c.id}">${c.options.map(([v, l]) => `<option value="${v}">${l}</option>`).join("")}</select>`;
@@ -692,7 +699,7 @@ view.on("click", (e) => {
   const lon = e.mapPoint.longitude, lat = e.mapPoint.latitude;
   if (idxOf(lon, lat) < 0) { toast("That's outside the modelled area."); return; }
   startOverride[current] = { lon, lat, label: "Your start" };
-  placing = false; $("moveStart").setAttribute("aria-pressed", "false"); drawStart(); toast("Start moved. Press Run the model.");
+  placing = false; $("moveStart").setAttribute("aria-pressed", "false"); drawStart(); toast("Start moved. Press Run.");
 });
 
 // ---------- Drawing and animation ----------
@@ -866,12 +873,13 @@ async function runModel() {
       if (key === "lahar") { const T = laharTimes(r, h); anim.times = dists.map(T); anim.pathVal = r.pathDist.map(T); }
       anim.proxKm = r.proximalExit > 0 ? r.pathDist[r.proximalExit] / 1000 : 0;
       if (!(r.proximalExit > 0)) anim.prox = null;   // only shade the summit danger zone when the flow starts inside it
+      else anim.route = r.path.slice(0, r.proximalExit + 1);   // the flow's route through the danger zone
       console.log("LAHARZ", key, { start: cellLL(start), end: cellLL(r.path[r.path.length - 1]), km: r.length / 1000, km2: r.area / 1e6, reason: r.reason, endZ: h[r.path[r.path.length - 1]] });
-      const why = ({ area: "It had covered all the ground its volume allows.", edge: "It reached the edge of the modelled area.", sea: "It reached sea level." }[r.reason] || "") +
-        (anim.proxKm > 0 ? ` The paler shading around the summit is the danger zone near the volcano, where the method counts all the ground as at risk. The flow is mapped in full from where it leaves that zone, ${anim.proxKm.toFixed(1)} km from the start.` : "");
+      const why = ({ area: "It stopped when it ran out of material.", edge: "It reached the edge of the map.", sea: "It reached the sea." }[r.reason] || "") +
+        (anim.proxKm > 0 ? " The pale area around the summit is the danger zone next to the volcano. The solid line is the flow's path through it." : "");
       if (key === "aval") showResults(key, [["How far it travelled", km(r.length), "23 km"], ["Ground covered", km2(r.area), "–"]], why);
       else showResults(key, [["Distance along the river", km(r.length), values.valley === "nf" ? "grew until about 80 km downstream" : "–"], ["Ground covered", km2(r.area), "–"]],
-        why + " In 1980 lahars affected about 220 km of river channels in all.");
+        why);
     } else {
       if (key === "pf") {
         // put the vent on the lowest point of the crater floor near the start
@@ -890,11 +898,11 @@ async function runModel() {
         clockNote: key === "blast" ? "At 480 km/h, the lowest speed the USGS reports, so real times were shorter." : "At 105 km/h, the middle of the USGS range of 80–130 km/h." });
       const st = extentStats(cells, start), area = cells.length * GRID.cell * GRID.cell;
       if (key === "blast") showResults(key, [["Area devastated", km2(area), "600 km²"], ["Width, west to east", km(st.westEast), "nearly 30 km"], ["Reach to the north", km(Math.max(0, st.north)), "more than 20 km"]],
-        "Try changing the height and mobility to match 1980. The real blast swept over ridges near the volcano and was blocked by others further out.");
+        "The real blast swept over some ridges and was blocked by others.");
       else showResults(key, [["Reach to the north", km(Math.max(0, st.north)), "about 8 km"], ["Furthest reach, any direction", km(st.far), "–"], ["Ground covered", km2(area), "–"]],
-        "The starting values were chosen so the flows reach about 8 km, like 1980. Change them to see what a bigger eruption could do.");
+        "Try a taller column to see what a bigger eruption could do.");
     }
-    status(`Done: ${hz.name.toLowerCase()} modelled on ${hz.surface === "past" ? "the pre-1980 ground" : "today's ground"}.`);
+    status(`Done: ${hz.name.toLowerCase()}.`);
     const NB = 40, timed = !!anim.times, B = binCells(cells, timed ? anim.times : dists, NB);
     coneLayer.removeAll();
     if (anim.cone && $("cone").checked) coneLayer.addMany(coneGraphics(anim.cone.vent, anim.cone.Hh, anim.cone.k, anim.cone.sector, h));
@@ -910,7 +918,10 @@ async function runModel() {
     let proxGraphic = [];
     if (anim.prox && anim.prox.length) {
       const bp = new Int16Array(W * H).fill(-1); for (const c of anim.prox) bp[c] = 0;
-      proxGraphic = drapedFrames({ bin: bp, lists: [anim.prox] }, hz.color, 0.28)[0];
+      proxGraphic = drapedFrames({ bin: bp, lists: [anim.prox] }, hz.color, 0.45)[0].slice();
+      if (anim.route && anim.route.length > 1) proxGraphic.push(new Graphic({
+        geometry: { type: "polyline", paths: [anim.route.map(cellXY)], spatialReference: { wkid: 3857 } },
+        symbol: { type: "simple-line", color: [...hz.color, 1], width: 6, cap: "round", join: "round" } }));
     }
     lastPlay[key] = { prox: proxGraphic, draped: drapedFrames(B, hz.color), mesh: anim.level ? meshFrames(B, anim.level, hz.color) : null,
       binEnd: B.binEnd, timed, fronts, follow: !!fronts, frameMs: 220,
@@ -936,7 +947,7 @@ try {
   today = await loadToday();
   past = dem52 ? buildPast(today) : today;
   setDisplaySurface(HAZ[current].surface);
-  status("Terrain ready. Press Run the model.");
+  status("Ready. Pick a hazard and press Run.");
   $("run").disabled = false;
 } catch (e) { console.error(e); status("Couldn't load the elevation data. Check your connection and reload the page."); }
 </script>
