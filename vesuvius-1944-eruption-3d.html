@@ -99,7 +99,7 @@
 <body>
 <div id="app">
   <aside id="panel">
-    <div class="kicker">Physical processes · Volcanoes <span class="ver" id="appVer">v0.3</span></div>
+    <div class="kicker">Physical processes · Volcanoes <span class="ver" id="appVer">v0.4</span></div>
     <h1>Vesuvius 1944: the eruption in 3D</h1>
     <p class="lede">In March 1944 lava from Mount Vesuvius destroyed the towns of San Sebastiano al Vesuvio and Massa di Somma. Watch the eruption unfold on real ArcGIS terrain: lava flows, lava fountains, then the ash cloud. Then run the lava model yourself.</p>
 
@@ -117,7 +117,7 @@
         <label><input type="checkbox" id="eGround" checked /> Ash on the ground <span class="ver">v0.2</span></label>
         <label><input type="checkbox" id="eSound" checked /> Sound <span class="ver">v0.1</span></label>
       </div>
-      <p class="note">The lava's path comes from the lava model below <span class="ver">v1.0</span>, drawn as molten lava <span class="ver">v0.1</span>. After the eruption, run the model to see it as a hazard map. The fountains, ash cloud and ash on the ground are an <b>illustration</b> based on accounts of 1944. They are not modelled.</p>
+      <p class="note">The lava's path comes from the lava model below <span class="ver">v1.0</span>, drawn as one molten flow along the most likely path <span class="ver">v0.2</span>. Run the model to see the full hazard map of where lava could go. The fountains, ash cloud and ash on the ground are an <b>illustration</b> based on accounts of 1944. They are not modelled.</p>
     </div>
 
     <h2>Vent</h2>
@@ -237,9 +237,9 @@
       <summary>Versions</summary>
       <table class="vers">
         <tr><th>Part</th><th>Version</th><th>What it is</th></tr>
-        <tr><td>App</td><td>0.3</td><td>Test page: eruption animation inside the ArcGIS 3D scene</td></tr>
+        <tr><td>App</td><td>0.4</td><td>Test page: eruption animation inside the ArcGIS 3D scene</td></tr>
         <tr><td>Lava model</td><td>1.0</td><td>DOWNFLOW-style steepest descent with pit filling, 20 m grid</td></tr>
-        <tr><td>Lava look and timing</td><td>0.1</td><td>The model's lava zone (20% or more of flows) drawn as molten lava: glowing front, cooling to a crust with glowing cracks. Timed so the northern flow reaches San Sebastiano early on 21 March</td></tr>
+        <tr><td>Lava look and timing</td><td>0.2</td><td>One flow, like 1944: the model's most likely path (and the hollows it fills), widened to the Flow width setting, drawn as molten lava with a glowing front that cools to a crust with glowing cracks. Timed along the path so the northern flow reaches San Sebastiano early on 21 March. 0.1 used every area reached by 20% or more of flows</td></tr>
         <tr><td>Sound</td><td>0.1</td><td>Made in the browser (no recordings): rumble, roar, explosions and crackling lava. Louder when you are closer</td></tr>
         <tr><td>Ash cloud and fountains</td><td>0.2</td><td>Illustrative particles drawn with an ArcGIS RenderNode (custom WebGL). 0.2: grey column with glow only near the vent, dimmer fountains, lumpier cloud</td></tr>
         <tr><td>Ash on the ground</td><td>0.2</td><td>Illustrative ash-fall lobes: east 22–23 March, south-west 23–29 March. 0.2: faded in by symbol colour instead of layer opacity</td></tr>
@@ -944,8 +944,8 @@ $("replay").onclick = () => { if (lastFrames) { eruption.stop(); play(lastFrames
 // Lava comes from the model above. Fountains, the ash cloud and ash on the ground are illustrative, following
 // INGV and contemporary accounts. Particles are drawn with an ArcGIS RenderNode: custom WebGL inside the SceneView,
 // so they sit in the same 3D scene as the terrain and are hidden by it.
-const APP_VERSION = "0.3";
-const VERSIONS = { app: APP_VERSION, lava: "1.0", lavaLook: "0.1", cloud: "0.2", ground: "0.2", sound: "0.1" };
+const APP_VERSION = "0.4";
+const VERSIONS = { app: APP_VERSION, lava: "1.0", lavaLook: "0.2", cloud: "0.2", ground: "0.2", sound: "0.1" };
 console.info("Vesuvius 1944 eruption 3D", VERSIONS);
 
 // Timeline in hours from 00:00 on 18 March 1944 (same as the VR version)
@@ -1109,8 +1109,18 @@ function mul4(out, a, b) {   // column-major 4x4: out = a * b, in double precisi
 const LAVA_T = { townArrival: 3 * 24 + 6, thick: 6 };
 let lavaSurf = null;
 function buildLavaSurface(res) {
-  const n = W * H, mask = new Uint8Array(n), dist = new Float64Array(n).fill(Infinity);
-  for (let c = 0; c < n; c++) if (res.count[c] / res.runs >= 0.2 && res.first[c] >= 0) { mask[c] = 1; dist[c] = res.first[c] * GRID.cell * 1.2; }
+  // One flow: the most likely path widened to the Flow width setting, plus the hollows it fills on the way.
+  // Distance is measured along the path, so the front advances like a single flow.
+  const n = W * H, mask = new Uint8Array(n), dist = new Float64Array(n).fill(Infinity), path = res.bestPath || [];
+  if (!path.length) return null;
+  const along = new Float64Array(path.length);
+  for (let k = 1; k < path.length; k++) along[k] = along[k - 1] + Math.hypot((path[k] % W) - (path[k - 1] % W), ((path[k] / W) | 0) - ((path[k - 1] / W) | 0)) * GRID.cell;
+  const rad = Math.max(GRID.cell, +$("width").value / 2), R = Math.ceil(rad / GRID.cell);
+  const put = (c, d) => { if (heights[c] > 0 && d < dist[c]) { dist[c] = d; mask[c] = 1; } };
+  path.forEach((c, k) => { const ci = c % W, cj = (c / W) | 0;
+    for (let dj = -R; dj <= R; dj++) for (let di = -R; di <= R; di++) { const i = ci + di, j = cj + dj;
+      if (i >= 0 && j >= 0 && i < W && j < H && Math.hypot(di, dj) * GRID.cell <= rad) put(j * W + i, along[k]); } });
+  for (const p of res.bestPonds || []) { const k = path.indexOf(p.outlet), d = k >= 0 ? along[k] : along[0]; for (const c of p.cells) put(c, d); }
   let speed = 85, townReached = false;                     // metres per hour; 85 m/h = 5 km in about 60 hours
   if (vent.key === "north") {
     const c0 = idxOf(TOWNS[0].lon, TOWNS[0].lat), i0 = c0 % W, j0 = (c0 / W) | 0, rr = Math.round(400 / GRID.cell); let d = Infinity;
