@@ -99,7 +99,7 @@
 <body>
 <div id="app">
   <aside id="panel">
-    <div class="kicker">Physical processes · Volcanoes <span class="ver" id="appVer">v0.1</span></div>
+    <div class="kicker">Physical processes · Volcanoes <span class="ver" id="appVer">v0.2</span></div>
     <h1>Vesuvius 1944: the eruption in 3D</h1>
     <p class="lede">In March 1944 lava from Mount Vesuvius destroyed the towns of San Sebastiano al Vesuvio and Massa di Somma. Watch the eruption unfold on real ArcGIS terrain: lava flows, lava fountains, then the ash cloud. Then run the lava model yourself.</p>
 
@@ -113,8 +113,8 @@
       </div>
       <p class="phase" id="ePhase">Loading terrain…</p>
       <div class="tg">
-        <label><input type="checkbox" id="eCloud" checked /> Ash cloud and lava fountains <span class="ver">v0.1</span></label>
-        <label><input type="checkbox" id="eGround" checked /> Ash on the ground <span class="ver">v0.1</span></label>
+        <label><input type="checkbox" id="eCloud" checked /> Ash cloud and lava fountains <span class="ver">v0.2</span></label>
+        <label><input type="checkbox" id="eGround" checked /> Ash on the ground <span class="ver">v0.2</span></label>
       </div>
       <p class="note">The lava comes from the lava model below <span class="ver">v1.0</span>. The fountains, ash cloud and ash on the ground are an <b>illustration</b> based on accounts of 1944. They are not modelled.</p>
     </div>
@@ -236,10 +236,10 @@
       <summary>Versions</summary>
       <table class="vers">
         <tr><th>Part</th><th>Version</th><th>What it is</th></tr>
-        <tr><td>App</td><td>0.1</td><td>Test page: eruption animation inside the ArcGIS 3D scene</td></tr>
+        <tr><td>App</td><td>0.2</td><td>Test page: eruption animation inside the ArcGIS 3D scene</td></tr>
         <tr><td>Lava model</td><td>1.0</td><td>DOWNFLOW-style steepest descent with pit filling, 20 m grid</td></tr>
-        <tr><td>Ash cloud and fountains</td><td>0.1</td><td>Illustrative particles drawn with an ArcGIS RenderNode (custom WebGL)</td></tr>
-        <tr><td>Ash on the ground</td><td>0.1</td><td>Illustrative ash-fall lobes: east 22–23 March, south-west 23–29 March</td></tr>
+        <tr><td>Ash cloud and fountains</td><td>0.2</td><td>Illustrative particles drawn with an ArcGIS RenderNode (custom WebGL). 0.2: grey column with glow only near the vent, dimmer fountains, lumpier cloud</td></tr>
+        <tr><td>Ash on the ground</td><td>0.2</td><td>Illustrative ash-fall lobes: east 22–23 March, south-west 23–29 March. 0.2: faded in by symbol colour instead of layer opacity</td></tr>
       </table>
     </details>
 
@@ -941,8 +941,8 @@ $("replay").onclick = () => { if (lastFrames) { eruption.stop(); play(lastFrames
 // Lava comes from the model above. Fountains, the ash cloud and ash on the ground are illustrative, following
 // INGV and contemporary accounts. Particles are drawn with an ArcGIS RenderNode: custom WebGL inside the SceneView,
 // so they sit in the same 3D scene as the terrain and are hidden by it.
-const APP_VERSION = "0.1";
-const VERSIONS = { app: APP_VERSION, lava: "1.0", cloud: "0.1", ground: "0.1" };
+const APP_VERSION = "0.2";
+const VERSIONS = { app: APP_VERSION, lava: "1.0", cloud: "0.2", ground: "0.2" };
 console.info("Vesuvius 1944 eruption 3D", VERSIONS);
 
 // Timeline in hours from 00:00 on 18 March 1944 (same as the VR version)
@@ -1004,7 +1004,7 @@ const rnd = (a, b) => a + Math.random() * (b - a);
 function makeSystem(n) {
   return { n, next: 0, acc: 0, wind: [0, 0], P: new Float32Array(n * 3), D: new Float32Array(n * 4),
     x: new Float64Array(n), y: new Float64Array(n), z: new Float64Array(n), vx: new Float64Array(n), vy: new Float64Array(n), vz: new Float64Array(n),
-    age: new Float64Array(n).fill(1e9), life: new Float64Array(n), st: new Uint8Array(n), top: new Float64Array(n) };
+    age: new Float64Array(n).fill(1e9), life: new Float64Array(n), st: new Uint8Array(n), top: new Float64Array(n), heat0: new Float64Array(n) };
 }
 const ash = makeSystem(3000), ftn = makeSystem(901);           // the last fountain slot is the crater glow
 const GLOW = ftn.n - 1;
@@ -1015,7 +1015,7 @@ function emitAsh(st) {
   p.x[k] = Math.cos(a) * r; p.y[k] = Math.sin(a) * r; p.z[k] = craterZ + 30;
   p.vx[k] = rnd(-60, 60); p.vy[k] = rnd(-60, 60); p.vz[k] = st.top / rnd(1.2, 1.8);
   p.age[k] = 0; p.life[k] = rnd(6, 9); p.st[k] = 0; p.top[k] = st.top * rnd(0.8, 1.05);
-  p.D[k * 4 + 2] = st.heat; p.D[k * 4 + 3] = Math.random();
+  p.heat0[k] = st.heat; p.D[k * 4 + 2] = st.heat; p.D[k * 4 + 3] = Math.random();
   p.wind = [Math.sin(st.windB * Math.PI / 180) * st.windV, Math.cos(st.windB * Math.PI / 180) * st.windV];
 }
 function emitFountain() {
@@ -1041,9 +1041,9 @@ function stepParticles(dt, st) {
     if (Math.abs(p.x[k]) > LIMIT || Math.abs(p.y[k]) > LIMIT || p.z[k] < g + 40) { p.age[k] = 1e9; p.D[o + 1] = 0; continue; }
     p.P[k * 3] = p.x[k]; p.P[k * 3 + 1] = p.y[k]; p.P[k * 3 + 2] = p.z[k];
     const f = p.age[k] / p.life[k];
-    p.D[o] = p.st[k] === 0 ? 700 + 900 * f : 1500 + 2200 * f;                 // size in metres: a column is kilometres wide
-    p.D[o + 1] = Math.min(1, p.age[k] / 0.3) * (1 - Math.max(0, (f - 0.7) / 0.3)) * (p.st[k] === 0 ? 0.75 : 0.5) * Math.min(1, (p.z[k] - g) / 400);
-    if (p.st[k] === 1) p.D[o + 2] *= 0.9;
+    p.D[o] = (p.st[k] === 0 ? 550 + 700 * f : 1100 + 1700 * f) * (0.75 + 0.5 * p.D[o + 3]);   // size in metres, varied per puff
+    p.D[o + 1] = Math.min(1, p.age[k] / 0.3) * (1 - Math.max(0, (f - 0.7) / 0.3)) * (p.st[k] === 0 ? 0.8 : 0.45) * Math.min(1, (p.z[k] - g) / 400);
+    p.D[o + 2] = p.st[k] === 0 ? p.heat0[k] * Math.max(0, 1 - (p.z[k] - craterZ) / 900) : p.D[o + 2] * 0.85;   // glow only low in the column
   }
   // fountains: glowing lava thrown up and falling back
   const q = ftn;
@@ -1052,12 +1052,12 @@ function stepParticles(dt, st) {
     q.age[k] += dt; q.vz[k] -= 380 * dt; q.x[k] += q.vx[k] * dt; q.y[k] += q.vy[k] * dt; q.z[k] += q.vz[k] * dt;
     if (q.z[k] < hAt(q.x[k], q.y[k])) { q.age[k] = 1e9; q.D[o + 1] = 0; continue; }
     q.P[k * 3] = q.x[k]; q.P[k * 3 + 1] = q.y[k]; q.P[k * 3 + 2] = q.z[k];
-    const f = q.age[k] / q.life[k]; q.D[o] = 90 + 60 * (1 - f); q.D[o + 1] = 0.9 * (1 - f * 0.6); q.D[o + 2] = Math.max(0, 1 - f * 1.4);
+    const f = q.age[k] / q.life[k]; q.D[o] = 80 + 50 * (1 - f); q.D[o + 1] = 0.35 * (1 - f * 0.6); q.D[o + 2] = Math.max(0, 1 - f * 1.4);
   }
 }
 function setGlow(st, now) {
   const o = GLOW * 4; ftn.P[GLOW * 3] = 0; ftn.P[GLOW * 3 + 1] = 0; ftn.P[GLOW * 3 + 2] = craterZ + 250;
-  ftn.D[o] = 1400 + 900 * st.glow; ftn.D[o + 1] = Math.min(1, st.glow) * (0.8 + 0.2 * Math.sin(now / 90) * Math.sin(now / 37)) * 0.6; ftn.D[o + 2] = 0.6; ftn.D[o + 3] = 1;
+  ftn.D[o] = 900 + 600 * st.glow; ftn.D[o + 1] = Math.min(1, st.glow) * (0.8 + 0.2 * Math.sin(now / 90) * Math.sin(now / 37)) * 0.22; ftn.D[o + 2] = 0.6; ftn.D[o + 3] = 1;
 }
 
 // ---------- WebGL (RenderNode) ----------
@@ -1078,13 +1078,16 @@ in vec2 vUv; in vec4 vD; uniform int uMode; out vec4 o;
 void main() {
   float r = length(vUv - 0.5) * 2.0;
   if (uMode == 0) {
-    float a = smoothstep(1.0, 0.25, r) * vD.y; if (a < 0.01) discard;
-    vec3 c = mix(vec3(0.42, 0.40, 0.38), vec3(0.76, 0.74, 0.71), vUv.y * 0.7 + vD.w * 0.3);
-    c = mix(c, vec3(1.0, 0.55, 0.25), vD.z);
+    vec2 d = vUv - 0.5; float ang = atan(d.y, d.x) + vD.w * 6.2832;
+    float edge = 0.78 + 0.12 * sin(ang * 3.0 + vD.w * 11.0) + 0.08 * sin(ang * 7.0 - vD.w * 5.0);
+    float a = smoothstep(edge, edge * 0.3, r) * vD.y; if (a < 0.01) discard;
+    float shade = clamp(vUv.y * 0.8 + vD.w * 0.35 - r * 0.25, 0.0, 1.0);
+    vec3 c = mix(vec3(0.30, 0.28, 0.26), vec3(0.66, 0.63, 0.59), shade);
+    c = mix(c, vec3(0.95, 0.42, 0.12), vD.z * 0.8);
     o = vec4(c * a, a);
   } else {
     float a = smoothstep(1.0, 0.0, r) * vD.y; if (a < 0.01) discard;
-    vec3 c = mix(vec3(1.0, 0.45, 0.08), vec3(1.0, 0.95, 0.70), vD.z);
+    vec3 c = mix(vec3(0.95, 0.30, 0.04), vec3(1.0, 0.80, 0.40), vD.z);
     o = vec4(c * a, a);
   }
 }`;
@@ -1165,8 +1168,8 @@ const EruptionNode = RenderNode.createSubclass({
 const ASHG = { lonMin: 14.28, lonMax: 14.76, latMin: 40.60, latMax: 40.93, cell: 250 };
 const ASH_CLASSES = [0.1, 0.3, 0.55, 0.8], ASH_ALPHA = [0.18, 0.32, 0.46, 0.62];
 const ashLayers = {
-  E: new GraphicsLayer({ title: "Ash fall to the east, 22–23 March (illustration)", elevationInfo: { mode: "on-the-ground" }, opacity: 0 }),
-  W: new GraphicsLayer({ title: "Ash fall to the south-west, 23–29 March (illustration)", elevationInfo: { mode: "on-the-ground" }, opacity: 0 })
+  E: new GraphicsLayer({ title: "Ash fall to the east, 22–23 March (illustration)", elevationInfo: { mode: "on-the-ground" } }),
+  W: new GraphicsLayer({ title: "Ash fall to the south-west, 23–29 March (illustration)", elevationInfo: { mode: "on-the-ground" } })
 };
 map.addMany([ashLayers.E, ashLayers.W], 0);          // under the lava
 function lobe(dx, dy, bearing, len, width0) {
@@ -1194,15 +1197,19 @@ function buildAshGround() {
     }
     ashLayers[key].addMany(rings.map((r, c) => r.length && new Graphic({
       geometry: { type: "polygon", rings: r, spatialReference: { wkid: 3857 } },
-      symbol: { type: "simple-fill", color: [58, 54, 50, ASH_ALPHA[c]], outline: { width: 0 } }
+      symbol: ashSymbol(c, 0), attributes: { cls: c }
     })).filter(Boolean));
+    console.info("Ash on the ground", key, ashLayers[key].graphics.length, "graphics,", rings.reduce((n, r) => n + r.length, 0), "rectangles");
   }
 }
+function ashSymbol(c, v) { return { type: "simple-fill", color: [58, 54, 50, ASH_ALPHA[c] * v], outline: { width: 0 } }; }
 let ashOpacity = { E: -1, W: -1 };
 function setAshGround(st) {
   for (const k of ["E", "W"]) {
-    const v = opts.ground ? (k === "E" ? st.ashE : st.ashW) : 0;
-    if (Math.abs(v - ashOpacity[k]) > 0.02 || (v === 0) !== (ashOpacity[k] === 0)) { ashLayers[k].opacity = v; ashOpacity[k] = v; }
+    const v = opts.ground ? Math.round((k === "E" ? st.ashE : st.ashW) * 20) / 20 : 0;   // 5% steps: few symbol updates
+    if (v === ashOpacity[k]) continue;
+    ashOpacity[k] = v; ashLayers[k].visible = v > 0;
+    for (const g of ashLayers[k].graphics.toArray()) g.symbol = ashSymbol(g.attributes.cls, v);
   }
 }
 
