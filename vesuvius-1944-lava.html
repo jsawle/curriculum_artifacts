@@ -7,6 +7,7 @@
 <meta name="description" content="Grades 6-8 lava flow explorer: a probabilistic steepest-descent lava model (DOWNFLOW-style) run on real ArcGIS terrain around Mount Vesuvius, based on the March 1944 eruption." />
 <script type="module" src="https://js.arcgis.com/5.1/"></script>
 <script src="https://cdn.jsdelivr.net/npm/geotiff@3.0.5/dist-browser/geotiff.js"></script>
+<script src="vesuvius-1944-archive.js"></script>
 <style>
   :root {
     --bg: #f6f4ef; --panel: #fffdf8; --ink: #22201c; --muted: #6b665c; --rule: #ddd6c8;
@@ -62,6 +63,9 @@
   table.imp th:first-child, table.imp td:first-child { text-align: left; padding-left: 0; }
   table.imp td { text-align: right; padding: 5px 0 5px 8px; border-bottom: 1px solid var(--rule); font-variant-numeric: tabular-nums; }
   table.imp td.n { font-weight: 700; }
+  .ver { font: 600 11px/1 ui-monospace, Menlo, Consolas, monospace; color: var(--muted); background: var(--chip); border: 1px solid var(--rule); border-radius: 4px; padding: 2px 5px; vertical-align: 2px; margin-left: 6px; }
+  table.vers { border-collapse: collapse; width: 100%; font-size: 13px; }
+  table.vers td, table.vers th { text-align: left; padding: 4px 6px; border-top: 1px solid var(--rule); }
   table.imp .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
   details { border-top: 1px solid var(--rule); padding: 10px 0; }
   details:last-of-type { border-bottom: 1px solid var(--rule); }
@@ -90,7 +94,7 @@
 <body>
 <div id="app">
   <aside id="panel">
-    <div class="kicker">Physical processes · Volcanoes</div>
+    <div class="kicker">Physical processes · Volcanoes <span class="ver">v1.1</span></div>
     <h1>Vesuvius 1944: where would the lava go?</h1>
     <p class="lede">In March 1944 lava from Mount Vesuvius destroyed the towns of San Sebastiano al Vesuvio and Massa di Somma. Run a real lava-hazard method on today's terrain and see where the lava is most likely to flow.</p>
 
@@ -110,7 +114,7 @@
       </div>
     </div>
 
-    <h2>Model settings</h2>
+    <h2>Model settings <span class="ver">lava model v1.0</span></h2>
     <div class="row">
       <label class="ctl" for="runs">Number of simulated flows <span class="val" id="runsVal">500</span></label>
       <input id="runs" type="range" min="100" max="1500" step="100" value="500" />
@@ -159,6 +163,9 @@
       </div>
     </div>
 
+    <h2>Evidence from 1944 <span class="ver">archive v1.0</span></h2>
+    <div id="vaPanel"></div>
+
     <h2>Explore</h2>
     <details open>
       <summary>Try this</summary>
@@ -177,7 +184,8 @@
         <li><b>21–22 March:</b> lava fountains.</li>
         <li><b>22–29 March:</b> explosions. Ash fell to the east and damaged dozens of American B-25 bombers at a nearby airfield.</li>
       </ul>
-      <p>Lava moved slowly enough that most people escaped. It was the most recent eruption of Vesuvius, which is dormant, not extinct.</p>
+      <p>Lava moved slowly enough that most people escaped: Allied troops helped about 7,000 people leave before it arrived. The ash was deadlier. About 26 people died, most when ash piled up on roofs until they collapsed, and about 10,000–12,000 people lost their homes. It was the most recent eruption of Vesuvius, which is dormant, not extinct.</p>
+      <p><a href="#" onclick="VesuviusArchive.open('voices');return false">Read what eyewitnesses saw →</a></p>
     </details>
     <details>
       <summary>How the model works</summary>
@@ -207,6 +215,16 @@
       <p>Pompeii and Herculaneum were not destroyed by lava. At Pompeii, falling pumice and ash piled up to 3 m deep. Then pyroclastic density currents swept through: fast, ground-hugging clouds of hot gas and ash. A lava model can't show that, so this explorer uses 1944, when lava really was the main hazard.</p>
     </details>
 
+    <details>
+      <summary>Versions</summary>
+      <table class="vers">
+        <tr><th>Part</th><th>Version</th><th>What it is</th></tr>
+        <tr><td>App</td><td>1.1</td><td>1.1: adds the 1944 archive (newsreels, photographs, eyewitness accounts, historian tasks) and the death toll. 1.0: lava explorer with building and population counts</td></tr>
+        <tr><td>Lava model</td><td>1.0</td><td>DOWNFLOW-style steepest descent with pit filling, 20 m grid</td></tr>
+        <tr><td>1944 archive</td><td>1.0</td><td>Shared with the 3D eruption page (vesuvius-1944-archive.js): 2 newsreels, 12 photographs, 7 eyewitness accounts, 5 tasks</td></tr>
+      </table>
+    </details>
+
     <h2>Sources</h2>
     <div class="sources">
       <a href="https://www.ov.ingv.it/index.php/storia-vesuvio/1944" target="_blank" rel="noopener">INGV Osservatorio Vesuviano: the 1944 eruption</a> ·
@@ -218,7 +236,12 @@
       <a href="https://fard.research.vub.be/q-lavha" target="_blank" rel="noopener">Q-LavHA (pit filling)</a> ·
       <a href="https://www.nature.com/articles/s41598-021-84456-7" target="_blank" rel="noopener">AD 79 pyroclastic currents (Scientific Reports)</a> ·
       <a href="https://hub.arcgis.com/datasets/652793c501a145b992a4cfd35b4c910e_0/about" target="_blank" rel="noopener">OpenStreetMap Buildings for Europe (Esri Living Atlas)</a> ·
-      <a href="https://www.esri.com/arcgis-blog/products/arcgis-pro/announcements/worldpop-100m-gridded-population-layers-now-available-in-the-living-atlas" target="_blank" rel="noopener">WorldPop 100 m population (Esri Living Atlas)</a>
+      <a href="https://www.esri.com/arcgis-blog/products/arcgis-pro/announcements/worldpop-100m-gridded-population-layers-now-available-in-the-living-atlas" target="_blank" rel="noopener">WorldPop 100 m population (Esri Living Atlas)</a> ·
+      <a href="https://www.youtube.com/watch?v=A-P6qQfc5fw" target="_blank" rel="noopener">British Pathé: Vesuvius Eruption (1944)</a> ·
+      <a href="https://archive.org/details/72052fVesuviusErupts" target="_blank" rel="noopener">Castle Films newsreel, 1944 (Internet Archive)</a> ·
+      <a href="https://www.flickr.com/photos/smu_cul_digitalcollections/albums/72157622529519240/" target="_blank" rel="noopener">Melvin C. Shaffer photographs, DeGolyer Library, SMU</a> ·
+      <a href="https://alcpress.org/kaiser/489thbs/vesuvius/" target="_blank" rel="noopener">340th Bomb Group eyewitness accounts (Don Kaiser)</a> ·
+      <a href="https://volcano.si.edu/volcano.cfm?vn=211020" target="_blank" rel="noopener">Smithsonian Global Volcanism Program: Vesuvius</a>
     </div>
   </aside>
 
@@ -906,6 +929,10 @@ try {
   console.error(e);
   status("Couldn't load the elevation data. Check your connection and reload the page.");
 }
+</script>
+<script>
+  console.info("Vesuvius 1944 lava explorer", { app: "1.1", lava: "1.0", archive: VesuviusArchive.version });
+  VesuviusArchive.mount({ panel: document.getElementById("vaPanel"), page: "lava", mapwrap: document.getElementById("mapwrap") });
 </script>
 </body>
 </html>
