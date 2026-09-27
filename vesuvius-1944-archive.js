@@ -1,12 +1,12 @@
 // Vesuvius 1944 archive: newsreels, photographs and eyewitness accounts, shared by
 // vesuvius-1944-lava.html and vesuvius-1944-eruption-3d.html.
-// Archive version 1.1. 1.1: removed the Wikimedia Commons B-25 photo (licence not verified). Bump ARCHIVE_VERSION whenever the content or behaviour changes.
+// Archive version 1.2. 1.2: B-25 photo restored, licence confirmed as USGOV-PD. 1.1: B-25 photo removed pending licence check. Bump ARCHIVE_VERSION whenever the content or behaviour changes.
 //
 // Usage: VesuviusArchive.mount({ panel: element, page: "lava" | "3d", mapwrap: element })
 //        VesuviusArchive.atHour(h, active)  // 3D page only: h = hours from 00:00, 18 March 1944
 (function () {
   "use strict";
-  const ARCHIVE_VERSION = "1.1";
+  const ARCHIVE_VERSION = "1.2";
 
   // ---------- Content ----------
   const SMU = "Melvin C. Shaffer, US Army. DeGolyer Library, Southern Methodist University (no known copyright restrictions)";
@@ -42,6 +42,11 @@
     { id: "night", src: "https://live.staticflickr.com/2650/3987029415_3fc6fe360d_z.jpg", page: FLICKR + "3987029415/",
       title: "Vesuvius at night", date: "March 1944", credit: SMU,
       look: "At night the glowing lava and fountains were visible for tens of kilometres." },
+    { id: "b25", src: "https://commons.wikimedia.org/wiki/Special:FilePath/North_American_B-25_after_1944_Mount_Versuvius_eruption_at_Pompeii_Airfield.jpg?width=800",
+      page: "https://commons.wikimedia.org/wiki/File:North_American_B-25_after_1944_Mount_Versuvius_eruption_at_Pompeii_Airfield.jpg",
+      title: "A B-25C bomber of the 321st Bomb Group, damaged by the ash fall at Pompeii Airfield", date: "March 1944",
+      credit: "US Army Air Forces photograph. Public domain (work of the US federal government), via Wikimedia Commons",
+      look: "The lava never came this way. Ash and cinders did, carried east by the wind. Why can ash reach places that lava can’t?" },
     { id: "couple", src: "https://live.staticflickr.com/2582/3987952640_9437053ae4_z.jpg", page: FLICKR + "3987952640/",
       title: "A couple watching Vesuvius from Naples", date: "Spring 1944", credit: SMU,
       look: "Millions of people live around Vesuvius today. Why do people choose to live next to an active volcano?" }
@@ -69,11 +74,11 @@
       caption: "The lava reaches San Sebastiano al Vesuvio. Allied troops had already helped thousands of people to leave." },
     { h: 114, who: "Dr Leander K. Powers", role: "US Army flight surgeon", when: "Diary, 22 March 1944",
       quote: "I learned from an Allied Military Government officer that 78 planes (B-25) were destroyed on the Pompeii airfield.",
-      src: "https://alcpress.org/kaiser/489thbs/vesuvius/", srcName: "Don Kaiser, 489th Bomb Squadron history", photo: "height",
+      src: "https://alcpress.org/kaiser/489thbs/vesuvius/", srcName: "Don Kaiser, 489th Bomb Squadron history", photo: "b25",
       think: "Estimates range from 78 to 88 aircraft. Why might eyewitnesses give different numbers?" },
     { h: 120, who: "1st Lt Dana Craig", role: "486th Bomb Squadron, 340th Bomb Group", when: "Around midnight, 22–23 March 1944",
       quote: "While outside, in a mild drizzle, I was hit on the head by what I thought was a small rock … the light revealed a layer of damp cinders on the ground.",
-      src: "https://alcpress.org/kaiser/489thbs/vesuvius/", srcName: "Don Kaiser, 489th Bomb Squadron history", photo: "height",
+      src: "https://alcpress.org/kaiser/489thbs/vesuvius/", srcName: "Don Kaiser, 489th Bomb Squadron history", photo: "b25",
       think: "The airfield was about 7 km east of the crater, and no lava went that way. What carried the cinders there?" },
     { h: 126, photoOnly: true, photo: "height", when: "22–23 March 1944",
       caption: "The explosive phase, seen from Naples. Ash piled up on roofs to the east until some collapsed." },
@@ -234,7 +239,7 @@
       </div>`).join("") + `<p class="va-small">Newsreel footage © British Pathé, embedded with the YouTube player as British Pathé allows without a licence. Castle Films newsreel from the Periscope Film collection, embedded with the Internet Archive player from their public upload.</p>`;
     if (tab === "photos") {
       if (arg) return viewPhoto(arg);
-      body.innerHTML = `<p style="margin:0 0 10px;font-size:14px">All of these were taken in 1944 by Melvin C. Shaffer, a US Army medical photographer. Credit: DeGolyer Library, Southern Methodist University. Choose a photo to look closely.</p>
+      body.innerHTML = `<p style="margin:0 0 10px;font-size:14px">Most of these were taken in 1944 by Melvin C. Shaffer, a US Army medical photographer (credit: DeGolyer Library, Southern Methodist University). The B-25 photo is by the US Army Air Forces. Choose a photo to look closely.</p>
         <div class="va-grid">${PHOTOS.map(p => `<button data-p="${p.id}">${img(p)}<span>${esc(p.title)}</span></button>`).join("")}</div>`;
     }
     if (tab === "voices") body.innerHTML = VOICES.filter(v => !v.photoOnly).map(v => {
@@ -285,7 +290,7 @@
   // ---------- Panel section ----------
   function mount({ panel, page, mapwrap }) {
     const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
-    const v = VOICES[1], strip = ["sansebnight", "front", "church", "naples"].map(id => P[id]);
+    const v = VOICES[1], strip = ["sansebnight", "front", "church", "b25"].map(id => P[id]);
     panel.innerHTML = `
       <div class="va-strip">${strip.map(p => `<button data-p="${p.id}" aria-label="Photo: ${esc(p.title)}">${img(p)}</button>`).join("")}</div>
       <p class="va-q">“${esc(v.quote)}”</p>

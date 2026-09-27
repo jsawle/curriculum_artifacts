@@ -94,7 +94,7 @@
 <body>
 <div id="app">
   <aside id="panel">
-    <div class="kicker">Physical processes · Volcanoes <span class="ver">v1.2</span></div>
+    <div class="kicker">Physical processes · Volcanoes <span class="ver">v1.3</span></div>
     <h1>Vesuvius 1944: where would the lava go?</h1>
     <p class="lede">In March 1944 lava from Mount Vesuvius destroyed the towns of San Sebastiano al Vesuvio and Massa di Somma. Run a real lava-hazard method on today's terrain and see where the lava is most likely to flow.</p>
 
@@ -163,7 +163,7 @@
       </div>
     </div>
 
-    <h2>Evidence from 1944 <span class="ver">archive v1.1</span></h2>
+    <h2>Evidence from 1944 <span class="ver">archive v1.2</span></h2>
     <div id="vaPanel"></div>
 
     <h2>Explore</h2>
@@ -219,9 +219,9 @@
       <summary>Versions</summary>
       <table class="vers">
         <tr><th>Part</th><th>Version</th><th>What it is</th></tr>
-        <tr><td>App</td><td>1.2</td><td>1.2: archive 1.1 (licence check). 1.1: adds the 1944 archive (newsreels, photographs, eyewitness accounts, historian tasks) and the death toll. 1.0: lava explorer with building and population counts</td></tr>
+        <tr><td>App</td><td>1.3</td><td>1.3: archive 1.2 (B-25 photo restored). 1.2: archive 1.1 (licence check). 1.1: adds the 1944 archive (newsreels, photographs, eyewitness accounts, historian tasks) and the death toll. 1.0: lava explorer with building and population counts</td></tr>
         <tr><td>Lava model</td><td>1.0</td><td>DOWNFLOW-style steepest descent with pit filling, 20 m grid</td></tr>
-        <tr><td>1944 archive</td><td>1.1</td><td>1.1: removed one photo whose licence couldn't be verified. Shared with the 3D eruption page (vesuvius-1944-archive.js): 2 newsreels, 11 photographs, 7 eyewitness accounts, 5 tasks</td></tr>
+        <tr><td>1944 archive</td><td>1.2</td><td>1.2: B-25 photo restored after its public-domain licence was confirmed. 1.1: that photo removed pending the check. Shared with the 3D eruption page (vesuvius-1944-archive.js): 2 newsreels, 12 photographs, 7 eyewitness accounts, 5 tasks</td></tr>
       </table>
     </details>
 
@@ -931,7 +931,7 @@ try {
 }
 </script>
 <script>
-  console.info("Vesuvius 1944 lava explorer", { app: "1.2", lava: "1.0", archive: VesuviusArchive.version });
+  console.info("Vesuvius 1944 lava explorer", { app: "1.3", lava: "1.0", archive: VesuviusArchive.version });
   VesuviusArchive.mount({ panel: document.getElementById("vaPanel"), page: "lava", mapwrap: document.getElementById("mapwrap") });
 </script>
 </body>
