@@ -1,0 +1,1162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+<title>Vesuvius 1944: The Eruption, Step by Step</title>
+<meta name="description" content="Grades 6-8: follow the March 1944 eruption of Mount Vesuvius moment by moment in 3D, with photographs, newsreels and eyewitness accounts." />
+<script type="module" src="https://js.arcgis.com/5.1/"></script>
+<script src="vesuvius-1944-archive.js"></script>
+<style>
+  :root {
+    --bg: #f6f4ef; --panel: #fffdf8; --ink: #22201c; --muted: #6b665c; --rule: #ddd6c8;
+    --accent: #b4381c; --accent-ink: #fff; --chip: #efe9dd;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #161513; --panel: #1f1d1a; --ink: #ece8df; --muted: #a39c8e; --rule: #3a3630;
+      --accent: #e0643f; --accent-ink: #1a0f0a; --chip: #2b2823;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #161513; --panel: #1f1d1a; --ink: #ece8df; --muted: #a39c8e; --rule: #3a3630;
+    --accent: #e0643f; --accent-ink: #1a0f0a; --chip: #2b2823;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  #app { display: flex; height: 100%; }
+  #story { width: 420px; flex: none; display: flex; flex-direction: column; background: var(--panel); border-right: 1px solid var(--rule); }
+  #mapwrap { position: relative; flex: 1; min-width: 0; }
+  arcgis-scene { display: block; width: 100%; height: 100%; }
+  .top { padding: 14px 20px 10px; border-bottom: 1px solid var(--rule); }
+  .kicker { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); font-weight: 700; }
+  .ver { font: 600 11px/1 ui-monospace, Menlo, Consolas, monospace; color: var(--muted); background: var(--chip); border: 1px solid var(--rule); border-radius: 4px; padding: 2px 5px; margin-left: 6px; text-transform: none; letter-spacing: 0; vertical-align: 1px; }
+  .dots { display: flex; gap: 6px; margin-top: 10px; }
+  .dots button { flex: 1; height: 8px; padding: 0; border: 0; border-radius: 4px; background: var(--rule); cursor: pointer; }
+  .dots button[aria-current="step"] { background: var(--accent); }
+  .dots button.seen { background: color-mix(in srgb, var(--accent) 40%, var(--rule)); }
+  #mBody { flex: 1; overflow-y: auto; padding: 16px 20px 8px; }
+  #mWhen { font-weight: 700; color: var(--muted); font-size: 14px; }
+  #mTitle { font-size: 24px; line-height: 1.2; margin: 2px 0 8px; letter-spacing: -0.01em; }
+  #mText { margin: 0 0 12px; }
+  .ev { margin: 0 0 12px; }
+  .ev figure { margin: 0 0 10px; }
+  .ev img { width: 100%; max-height: 250px; object-fit: contain; border-radius: 8px; display: block; background: #222; cursor: zoom-in; }
+  .ev figcaption { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .ev .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .ev blockquote { margin: 0 0 4px; padding: 10px 14px; border-left: 4px solid var(--accent); background: var(--chip); border-radius: 0 8px 8px 0;
+    font: 17px/1.45 Georgia, "Times New Roman", serif; }
+  .ev .who { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+  .ev a, .links a { color: var(--accent); }
+  .va-broken { display: flex; align-items: center; justify-content: center; aspect-ratio: 4 / 3; background: var(--chip); color: var(--muted); font-size: 13px; padding: 8px; text-align: center; border-radius: 8px; }
+  .q { border: 2px solid var(--accent); border-radius: 10px; padding: 10px 14px; margin: 4px 0 12px; }
+  .q b { display: block; color: var(--accent); font-size: 13px; text-transform: uppercase; letter-spacing: .06em; }
+  .links { display: flex; flex-direction: column; gap: 8px; margin: 4px 0 12px; }
+  .nav { display: flex; gap: 8px; padding: 12px 20px 16px; border-top: 1px solid var(--rule); }
+  button { font: inherit; font-weight: 600; border-radius: 8px; padding: 10px 14px; cursor: pointer; border: 1px solid var(--rule); background: var(--chip); color: var(--ink); }
+  button:disabled { opacity: 0.45; cursor: default; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  button:focus-visible, .dots button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .nav #play { flex: 1; }
+  .nav #next.pulse { animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 30%, transparent); } }
+  @media (prefers-reduced-motion: reduce) { .nav #next.pulse { animation: none; } }
+  #clock { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); z-index: 3; background: var(--panel); border: 1px solid var(--rule);
+    border-radius: 12px; padding: 8px 14px 10px; min-width: 300px; max-width: calc(100% - 140px); box-shadow: 0 2px 12px rgba(0,0,0,.2); text-align: center; }
+  #cDate { font-weight: 700; font-size: 17px; font-variant-numeric: tabular-nums; }
+  #cPhase { font-size: 13px; color: var(--muted); }
+  #cBar { position: relative; height: 6px; background: var(--rule); border-radius: 3px; margin-top: 6px; }
+  #cFill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--accent); border-radius: 3px; width: 0; }
+  #note { font-size: 12.5px; color: var(--accent); }
+  #tools { position: absolute; right: 12px; top: 12px; z-index: 3; display: flex; flex-direction: column; gap: 6px; }
+  #tools button { font-size: 13px; padding: 7px 10px; box-shadow: 0 2px 8px rgba(0,0,0,.15); background: var(--panel); }
+  #tools button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  #key { position: absolute; right: 12px; bottom: 28px; z-index: 3; background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 8px 12px; font-size: 12.5px; box-shadow: 0 2px 10px rgba(0,0,0,.15); max-width: 250px; }
+  #key .k { display: flex; align-items: center; gap: 8px; margin: 3px 0; }
+  #key .sw { width: 16px; height: 12px; border-radius: 2px; flex: none; }
+  #key .tag { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; padding: 1px 5px; border-radius: 8px; margin-left: auto; }
+  #key .model { background: #dbeafe; color: #1e3a8a; } #key .illus { background: #ede9fe; color: #4c1d95; }
+  #loading { position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; background: color-mix(in srgb, var(--bg) 70%, transparent); font-weight: 600; }
+  #loading .bar { width: 220px; height: 6px; background: var(--rule); border-radius: 3px; overflow: hidden; }
+  #prog { height: 100%; width: 0; background: var(--accent); }
+  dialog.info { width: min(760px, calc(100vw - 32px)); max-height: calc(100vh - 32px); border: 1px solid var(--rule); border-radius: 12px; background: var(--panel); color: var(--ink); padding: 0; }
+  dialog.info::backdrop { background: rgba(10,8,6,.6); }
+  dialog.info .hd { position: sticky; top: 0; background: var(--panel); padding: 14px 20px 10px; border-bottom: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  dialog.info h2 { margin: 0; font-size: 19px; }
+  dialog.info .bd { padding: 12px 20px 20px; font-size: 15px; }
+  dialog.info h3 { font-size: 15px; margin: 16px 0 4px; }
+  dialog.info table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+  dialog.info td, dialog.info th { text-align: left; padding: 5px 6px; border-top: 1px solid var(--rule); vertical-align: top; }
+  dialog.info a { color: var(--accent); }
+  @media (max-width: 760px) {
+    #app { flex-direction: column-reverse; }
+    #story { width: 100%; height: 55%; border-right: 0; border-top: 1px solid var(--rule); }
+    #mapwrap { height: 45%; flex: none; }
+    #mTitle { font-size: 20px; }
+    #clock { min-width: 0; left: 56px; transform: none; max-width: none; padding: 6px 10px 8px; }
+    #cDate { font-size: 14px; } #cPhase { font-size: 12px; }
+    #key { display: none; }
+    #clock { right: 8px; }
+    #tools { left: 8px; right: 8px; top: auto; bottom: 8px; flex-direction: row; overflow-x: auto; }
+    #tools button { padding: 5px 8px; font-size: 12px; white-space: nowrap; flex: none; }
+    .nav { padding: 8px 12px 10px; } .nav button { padding: 9px 10px; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="story" aria-label="The story of the eruption">
+    <div class="top">
+      <div class="kicker">Vesuvius, March 1944 <span class="ver" id="appVer">v0.1</span></div>
+      <div class="dots" id="dots" aria-label="Moments"></div>
+    </div>
+    <div id="mBody" aria-live="polite">
+      <div id="mWhen"></div>
+      <h1 id="mTitle">Loading…</h1>
+      <p id="mText"></p>
+      <div class="ev" id="mEv"></div>
+      <div class="q" id="mQwrap"><b>Think about it</b><span id="mQ"></span></div>
+      <div class="links" id="mLinks"></div>
+    </div>
+    <div class="nav">
+      <button id="back" aria-label="Previous moment">◀ Back</button>
+      <button id="play" disabled>▶ Play</button>
+      <button id="next" class="primary" disabled>Next ▶</button>
+    </div>
+  </aside>
+  <main id="mapwrap">
+    <arcgis-scene basemap="hybrid" ground="world-elevation"
+      camera-position="14.335, 40.905, 5200" camera-heading="140" camera-tilt="62">
+      <arcgis-zoom slot="top-left"></arcgis-zoom>
+      <arcgis-navigation-toggle slot="top-left"></arcgis-navigation-toggle>
+      <arcgis-compass slot="top-left"></arcgis-compass>
+    </arcgis-scene>
+    <div id="clock" aria-live="off">
+      <div id="cDate">18 March 1944</div>
+      <div id="cPhase">Before the eruption</div>
+      <div id="cBar"><div id="cFill"></div></div>
+      <div id="note"></div>
+    </div>
+    <div id="tools">
+      <button id="snd" aria-pressed="false">🔈 Sound</button>
+      <button id="film">▶ Newsreels</button>
+      <button id="evid">Photos &amp; eyewitnesses</button>
+      <button id="teach">For teachers</button>
+      <button id="about">About</button>
+    </div>
+    <div id="key">
+      <div class="k"><span class="sw" style="background:#e8591a"></span>Lava<span class="tag model">Model</span></div>
+      <div class="k"><span class="sw" style="background:#9a948c"></span>Ash cloud and fountains<span class="tag illus">Illustration</span></div>
+      <div class="k"><span class="sw" style="background:#3a3632;opacity:.6"></span>Ash on the ground<span class="tag illus">Illustration</span></div>
+    </div>
+    <div id="loading"><div id="loadMsg">Loading the volcano…</div><div class="bar"><div id="prog"></div></div></div>
+  </main>
+</div>
+
+<dialog class="info" id="dTeach" aria-labelledby="dTeachT">
+  <div class="hd"><h2 id="dTeachT">For teachers</h2><button data-close>Close</button></div>
+  <div class="bd">
+    <p>This page tells the story of the March 1944 eruption of Mount Vesuvius in eight moments. Each moment plays one part of the eruption on real terrain, then pauses on a photograph or eyewitness account and one question. Students move on when they're ready. It was written for grades 6–8 and runs in a web browser, with no sign-in.</p>
+    <h3>Some ways it could be used</h3>
+    <ul>
+      <li><b>Whole class, about 20 minutes:</b> on a projector, pausing on each question for discussion.</li>
+      <li><b>Pairs or small groups, about 30–40 minutes:</b> students work through the moments and note their answers.</li>
+      <li><b>As a starting point for the “what if” explorer:</b> after seeing what happened in 1944, students test what lava might do at Vesuvius or another volcano today.</li>
+      <li><b>For a history or literacy lesson:</b> the Photos &amp; eyewitnesses button has the newsreels, 12 photographs, 7 accounts and 5 source-analysis tasks.</li>
+    </ul>
+    <h3>Standards it can support</h3>
+    <ul>
+      <li>NGSS <b>MS-ESS3-2</b> (natural hazards and forecasting), <b>MS-ESS2-2</b> (processes that change Earth's surface, including catastrophic events), <b>HS-ESS3-1</b> (how natural hazards have influenced human activity).</li>
+      <li>Common Core literacy in history/social studies <b>RH.6-8.1</b>, <b>RH.6-8.6</b>, <b>RH.6-8.7</b> and <b>RH.6-8.9</b> (primary and secondary sources, point of view, integrating photos, video and maps).</li>
+    </ul>
+    <h3>Notes on the questions</h3>
+    <ol id="tNotes"></ol>
+    <h3>What is modeled and what is illustrated</h3>
+    <p>The <b>lava</b> comes from a computer model (the DOWNFLOW method) run on today's elevation data from the two places the 1944 flows started. It follows the most likely downhill path and stops at the heights recorded in 1944. Its timing is set so the northern flow reaches San Sebastiano early on 21 March, as recorded. The <b>ash cloud, lava fountains and ash on the ground</b> are illustrations that follow the directions, heights and dates in the scientific record. They are not modeled.</p>
+    <h3>If videos or photos don't load</h3>
+    <p>The newsreels play from YouTube and the Internet Archive, and most photos load from Flickr and Wikimedia Commons. Some school networks block these. Every item has a link to its source, and the lesson still works without them.</p>
+  </div>
+</dialog>
+
+<dialog class="info" id="dAbout" aria-labelledby="dAboutT">
+  <div class="hd"><h2 id="dAboutT">About this page</h2><button data-close>Close</button></div>
+  <div class="bd">
+    <h3>Versions</h3>
+    <table>
+      <tr><th>Part</th><th>Version</th><th>What it is</th></tr>
+      <tr><td>App</td><td>0.1</td><td>First version of the guided story: eight moments with Back and Next, each pausing on evidence and a question</td></tr>
+      <tr><td>Lava model</td><td>1.0</td><td>DOWNFLOW-style steepest descent with hollow filling, on a 20 m grid of Esri World Elevation (same code as the lava explorer). Here it traces the single most likely path for each 1944 flow</td></tr>
+      <tr><td>Lava look and timing</td><td>0.3</td><td>Both 1944 flows (north, stopping at about 140 m; south-east, stopping at about 350 m), 200 m wide, at one speed timed so the northern flow reaches San Sebastiano early on 21 March</td></tr>
+      <tr><td>Ash cloud and fountains</td><td>0.2</td><td>Illustration drawn in the 3D scene: eight lava fountains up to about 4 km, then an ash column over 5 km blown east, then smaller bursts blown south-west</td></tr>
+      <tr><td>Ash on the ground</td><td>0.2</td><td>Illustration: ash-fall areas to the east (22–23 March) and south-west (23–29 March)</td></tr>
+      <tr><td>Sound</td><td>0.1</td><td>Made in the browser, no recordings. Off until you turn it on</td></tr>
+      <tr><td>1944 archive</td><td id="archVer">–</td><td>Photos, newsreels and eyewitness accounts, shared with the other Vesuvius pages (vesuvius-1944-archive.js)</td></tr>
+    </table>
+    <h3>Sources</h3>
+    <p>
+      <a href="https://www.ov.ingv.it/index.php/storia-vesuvio/1944" target="_blank" rel="noopener">INGV Vesuvius Observatory: the 1944 eruption</a> ·
+      <a href="https://www.aivulc.it/dettnews-leruzione_del_1944_e_le_pseudocolate_del_vesuvio/4_682/it/" target="_blank" rel="noopener">AIVulc: the 1944 eruption (Italian)</a> ·
+      <a href="https://www.earthmagazine.org/article/benchmarks-march-17-1944-most-recent-eruption-mount-vesuvius/" target="_blank" rel="noopener">EARTH Magazine</a> ·
+      <a href="https://www.protezionecivile.gov.it/en/approfondimento/national-civil-protection-plan-volcanic-risk-vesuvius/" target="_blank" rel="noopener">Italian Civil Protection: Vesuvius emergency plan</a> ·
+      <a href="https://www.researchgate.net/publication/282203833_Simulating_the_area_covered_by_lava_flows_using_the_DOWNFLOW_code" target="_blank" rel="noopener">DOWNFLOW method</a> ·
+      <a href="https://www.forgottenairfields.com/airfield-pompeii-559.html" target="_blank" rel="noopener">Pompeii Airfield location</a>
+    </p>
+    <p>Elevation: Esri World Elevation. Imagery: Esri World Imagery. Photographs, films and accounts are credited where they appear.</p>
+    <p>Other Vesuvius pages: <a href="vesuvius-1944-eruption-3d.html">3D eruption with model settings</a> · <a href="vesuvius-1944-lava.html">lava hazard explorer</a> · <a href="https://jsawle.github.io/vr/vesuvius-1944-vr.html">VR version</a></p>
+  </div>
+</dialog>
+
+<!-- Lava model (DOWNFLOW-style). Kept identical to lava-model.js so it can be tested on its own. -->
+<script>
+/* Lava flow model — DOWNFLOW-style probabilistic steepest descent.
+   Principle (Favalli et al. 2005): lava follows the steepest downhill path;
+   repeat N times over topography randomly perturbed by ±dh; count how often
+   each cell is crossed.
+   Pit handling (in the spirit of Q-LavHA's pit-filling correction): when a
+   path reaches a hollow with no downhill neighbour, the hollow is filled
+   (priority flood) up to its spill point, the filled cells count as covered,
+   and the path continues from the spill point. This also handles a vent
+   placed inside a crater. */
+(function (root) {
+  "use strict";
+
+  // Deterministic noise in [-1, 1] for (run, cell).
+  function noise(run, idx, seed) {
+    let h = (Math.imul(run + 1, 0x9E3779B1) ^ Math.imul(idx + 1, 0x85EBCA77) ^ seed) >>> 0;
+    h = Math.imul(h ^ (h >>> 16), 0x7FEB352D) >>> 0;
+    h = Math.imul(h ^ (h >>> 15), 0x846CA68B) >>> 0;
+    h = (h ^ (h >>> 16)) >>> 0;
+    return h / 2147483647.5 - 1;
+  }
+
+  const DI = [-1, 0, 1, -1, 1, -1, 0, 1];
+  const DJ = [-1, -1, -1, 0, 0, 1, 1, 1];
+  const DD = [Math.SQRT2, 1, Math.SQRT2, 1, 1, Math.SQRT2, 1, Math.SQRT2];
+
+  function Heap() { this.k = []; this.v = []; }
+  Heap.prototype.push = function (key, val) {
+    const K = this.k, V = this.v; K.push(key); V.push(val); let i = K.length - 1;
+    while (i > 0) {
+      const p = (i - 1) >> 1; if (K[p] <= K[i]) break;
+      [K[p], K[i]] = [K[i], K[p]]; [V[p], V[i]] = [V[i], V[p]]; i = p;
+    }
+  };
+  Heap.prototype.pop = function () {
+    const K = this.k, V = this.v; const tk = K[0], tv = V[0];
+    const lk = K.pop(), lv = V.pop();
+    if (K.length) {
+      K[0] = lk; V[0] = lv; let i = 0;
+      for (;;) {
+        const l = 2 * i + 1, r = l + 1; let m = i;
+        if (l < K.length && K[l] < K[m]) m = l;
+        if (r < K.length && K[r] < K[m]) m = r;
+        if (m === i) break;
+        [K[m], K[i]] = [K[i], K[m]]; [V[m], V[i]] = [V[i], V[m]]; i = m;
+      }
+    }
+    this.lastKey = tk; return tv;
+  };
+  Heap.prototype.size = function () { return this.k.length; };
+
+  /* Fill the hollow containing `start` on surface Z(idx) until it spills.
+     Returns { outlet, pond:[idx], level } or { capped:true } / { edge:true, outlet }. */
+  function fillHollow(Z, valid, w, ht, start, maxCells) {
+    const seen = new Set([start]);
+    const heap = new Heap();
+    heap.push(Z(start), start);
+    let level = -Infinity;
+    const pond = [];
+    while (heap.size()) {
+      const c = heap.pop(); const hc = heap.lastKey;
+      if (hc < level) return { outlet: c, pond, level };
+      level = hc; pond.push(c);
+      if (pond.length > maxCells) return { capped: true, pond, level };
+      const ci = c % w, cj = (c / w) | 0;
+      for (let k = 0; k < 8; k++) {
+        const ni = ci + DI[k], nj = cj + DJ[k];
+        if (ni < 0 || nj < 0 || ni >= w || nj >= ht) return { edge: true, outlet: c, pond, level };
+        const n = nj * w + ni;
+        if (seen.has(n) || !valid(n)) continue;
+        seen.add(n); heap.push(Z(n), n);
+      }
+    }
+    return { capped: true, pond, level };
+  }
+
+  /* One lava path. dh = 0 gives the unperturbed "most likely" path.
+     onCell(idx, step, isPond) is called for every cell covered (path + filled hollows). */
+  function descend(h, w, ht, start, run, dh, seed, cellTrue, maxLen, maxPond, onCell, stopElev) {
+    stopElev = stopElev == null ? -Infinity : stopElev;
+    const raised = new Map();                // cells filled with lava in this run → lava surface height
+    const base = (i) => h[i] + (dh ? dh * noise(run, i, seed) : 0);
+    const Z = (i) => { const r = raised.get(i); return r === undefined ? base(i) : r; };
+    const valid = (i) => isFinite(h[i]);
+    const ponds = [];
+    let cur = start, step = 0, len = 0, reason = "flat";
+    onCell(cur, 0);
+    for (let guard = 0; guard < 100000; guard++) {
+      if (h[cur] <= 0) { reason = "sea"; break; }
+      if (step > 0 && h[cur] < stopElev) { reason = "height"; break; }
+      const ci = cur % w, cj = (cur / w) | 0;
+      const zc = Z(cur);
+      let best = -1, bestSlope = 0, bestD = 1, hitEdge = false;
+      for (let k = 0; k < 8; k++) {
+        const ni = ci + DI[k], nj = cj + DJ[k];
+        if (ni < 0 || nj < 0 || ni >= w || nj >= ht) { hitEdge = true; continue; }
+        const n = nj * w + ni;
+        if (!valid(n)) continue;
+        const s = (zc - Z(n)) / DD[k];
+        if (s > bestSlope) { bestSlope = s; best = n; bestD = DD[k]; }
+      }
+      if (best < 0) {
+        if (hitEdge) { reason = "edge"; break; }
+        const f = fillHollow(Z, valid, w, ht, cur, maxPond);
+        if (f.capped) { reason = "flat"; break; }
+        const lvl = f.level + 0.01;
+        for (const c of f.pond) { if (!raised.has(c)) onCell(c, step, true); raised.set(c, lvl); }
+        ponds.push({ cells: f.pond, level: f.level, outlet: f.outlet });
+        if (f.edge) { reason = "edge"; break; }
+        const d = Math.hypot((f.outlet % w) - ci, ((f.outlet / w) | 0) - cj) * cellTrue;
+        if (len + d > maxLen) { reason = "length"; break; }
+        len += d; cur = f.outlet; step++;
+        onCell(cur, step);
+        continue;
+      }
+      if (len + bestD * cellTrue > maxLen) { reason = "length"; break; }
+      len += bestD * cellTrue; cur = best; step++;
+      onCell(cur, step);
+    }
+    return { end: cur, steps: step, length: len, reason, ponds };
+  }
+
+  /* opts: h (Float32Array heights in m, NaN = no data, <=0 = sea), w, ht,
+     cellTrue (m per cell), vent (idx), runs, dh (m), maxLen (m), seed,
+     stopElev (m, optional: a flow ends once it drops below this height),
+     width (m, optional: each path is widened to this footprint before counting — real flows are tens to hundreds of metres wide),
+     targets: [{name, cells:Int32Array}] */
+  // Incremental runner: call step(n) repeatedly (lets a page yield between batches), then result().
+  function createRunner(opts) {
+    const { h, w, ht, cellTrue, vent } = opts;
+    const runs = opts.runs | 0, dh = +opts.dh, maxLen = +opts.maxLen, seed = (opts.seed | 0) >>> 0;
+    const maxPond = opts.maxPond || 4000;
+    const N = w * ht;
+    const count = new Int32Array(N);
+    const first = new Int32Array(N).fill(-1);
+    const targets = (opts.targets || []).map(t => {
+      const m = new Uint8Array(N); for (const c of t.cells) m[c] = 1;
+      return { name: t.name, mask: m, hits: 0 };
+    });
+    const lengths = [], reasons = { sea: 0, edge: 0, flat: 0, length: 0, height: 0 };
+    const seenRun = new Int32Array(N).fill(-1);
+    const stopElev = opts.stopElev == null ? -Infinity : +opts.stopElev;
+    const rad = Math.max(0, (+opts.width || 0) / 2 / cellTrue);
+    const offs = [];                                   // disc of cells around each path cell
+    const R = Math.floor(rad);
+    for (let dj = -R; dj <= R; dj++) for (let di = -R; di <= R; di++) if (di * di + dj * dj <= rad * rad + 1e-9) offs.push([di, dj]);
+    if (!offs.length) offs.push([0, 0]);
+    let done = 0;
+
+    function step(n) {
+      const end = Math.min(runs, done + n);
+      for (let r = done; r < end; r++) {
+        const hit = new Uint8Array(targets.length);
+        const mark = (c, s) => {
+          if (seenRun[c] === r) return; seenRun[c] = r;
+          count[c]++;
+          if (first[c] < 0 || s < first[c]) first[c] = s;
+          for (let t = 0; t < targets.length; t++) if (targets[t].mask[c]) hit[t] = 1;
+        };
+        const res = descend(h, w, ht, vent, r, dh, seed, cellTrue, maxLen, maxPond, (c, s) => {
+          const ci = c % w, cj = (c / w) | 0;
+          for (const [di, dj] of offs) {
+            const ni = ci + di, nj = cj + dj;
+            if (ni < 0 || nj < 0 || ni >= w || nj >= ht) continue;
+            const n = nj * w + ni;
+            if (h[n] > 0) mark(n, s);                  // footprint doesn't spread onto the sea
+          }
+        }, stopElev);
+        for (let t = 0; t < targets.length; t++) targets[t].hits += hit[t];
+        lengths.push(res.length); reasons[res.reason]++;
+      }
+      done = end;
+      return done;
+    }
+
+    function result() {
+      const best = [];
+      const bestRes = descend(h, w, ht, vent, 0, 0, seed, cellTrue, maxLen, maxPond, (c, s, pond) => { if (!pond) best.push(c); }, stopElev);
+      const L = lengths.slice().sort((a, b) => a - b);
+      let covered = 0; for (let i = 0; i < N; i++) if (count[i] > 0) covered++;
+      return {
+        count, first, runs: done,
+        bestPath: best, bestPathLength: bestRes.length, bestPonds: bestRes.ponds, bestReason: bestRes.reason,
+        medianLength: L[L.length >> 1] || 0, maxLength: L[L.length - 1] || 0,
+        reasons, coveredCells: covered,
+        targets: targets.map(t => ({ name: t.name, hits: t.hits, fraction: done ? t.hits / done : 0 }))
+      };
+    }
+    return { step, result, get done() { return done; }, runs };
+  }
+
+  function run(opts) { const r = createRunner(opts); r.step(r.runs); return r.result(); }
+
+  const api = { run, createRunner, descend, fillHollow, noise };
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else root.LavaModel = api;
+})(typeof window !== "undefined" ? window : globalThis);
+
+</script>
+
+<script type="module">
+const LavaModel = window.LavaModel;
+
+// ---------- Versions (also listed in About) ----------
+const APP_VERSION = "0.1";
+const VERSIONS = { app: APP_VERSION, lava: "1.0", lavaLook: "0.3", cloud: "0.2", ground: "0.2", sound: "0.1", archive: window.VesuviusArchive ? VesuviusArchive.version : "missing" };
+
+// ---------- Setup ----------
+const CRATER = { lon: 14.4269, lat: 40.8211 };        // Gran Cono summit crater
+// INGV Osservatorio Vesuviano: in 1944 two flows left the crater, one to the south-east and one to the north
+// (then turned west by Monte Somma into San Sebastiano and Massa di Somma). The start points below sit about
+// 450 m from the crater centre on those flanks; they are approximate, not surveyed vent positions.
+const VENTS = {
+  north:     { stop: 140, lon: 14.4269, lat: 40.8252, label: "Starts just below the crater on the north flank. In 1944 this flow was turned west by Monte Somma and reached San Sebastiano and Massa di Somma, stopping at about 140 m above sea level." },
+  southeast: { stop: 350, lon: 14.4307, lat: 40.8182, label: "Starts just below the crater on the south-east flank. In 1944 this flow stopped at about 350 m above sea level, before reaching any town." },
+  crater:    { stop: 0, lon: CRATER.lon, lat: CRATER.lat, label: "Lava fills today's crater until it spills over the lowest point of the rim. The rim changed in 1944, when part of the north side of the cone collapsed, so today's spill point need not match 1944." }
+};
+const GRID = { lonMin: 14.32, lonMax: 14.50, latMin: 40.76, latMax: 40.87, cell: 20 }; // cell in true metres
+const TOWNS = [                                        // label positions are approximate
+  { name: "San Sebastiano al Vesuvio", lon: 14.3704, lat: 40.8418, hit1944: true },
+  { name: "Massa di Somma",            lon: 14.3753, lat: 40.8483, hit1944: true },
+  { name: "Ercolano", lon: 14.3474, lat: 40.8059 }, { name: "Torre del Greco", lon: 14.3657, lat: 40.7867 },
+  { name: "Boscotrecase", lon: 14.4611, lat: 40.7744 }, { name: "Terzigno", lon: 14.4936, lat: 40.8092 },
+  { name: "Poggiomarino", lon: 14.5406, lat: 40.8021 }, { name: "Pompei", lon: 14.4990, lat: 40.7489 },
+  { name: "Scafati", lon: 14.5284, lat: 40.7489 }, { name: "Angri", lon: 14.5695, lat: 40.7446 },
+  { name: "Nocera Inferiore", lon: 14.6417, lat: 40.7442 },
+  { name: "Pompeii Airfield (1944)", lon: 14.5081, lat: 40.7989, airfield: true }   // forgottenairfields.com: 40°47'56"N 14°30'29"E
+];
+const FLOW_WIDTH = 200;   // m: where a hiking trail crosses the 1944 flow today it is almost 200 m wide
+const TOWN_RADIUS = 300; // m, approximate town-centre zone
+const CLASSES = [
+  { min: 0.8,  color: [127, 29, 29, 0.85] },
+  { min: 0.5,  color: [220, 38, 38, 0.8] },
+  { min: 0.2,  color: [249, 115, 22, 0.78] },
+  { min: 0.05, color: [251, 191, 36, 0.75] },
+  { min: 0,    color: [253, 230, 138, 0.7] }
+];
+
+const $ = (id) => document.getElementById(id);
+const status = (t) => { const el = $("loadMsg"); if (el) el.textContent = t; };
+const prog = (f) => { const el = $("prog"); if (el) el.style.width = Math.round(f * 100) + "%"; };
+function toast(t, ms = 3500) { const el = $("toast"); el.textContent = t; el.style.display = "block"; clearTimeout(toast._t); if (ms) toast._t = setTimeout(() => el.style.display = "none", ms); }
+
+// Web Mercator helpers (grid is built in Web Mercator so it lines up with the scene)
+const R = 6378137;
+const toMerc = (lon, lat) => [lon * Math.PI / 180 * R, R * Math.log(Math.tan(Math.PI / 4 + lat * Math.PI / 360))];
+const fromMerc = (x, y) => [x / R * 180 / Math.PI, (2 * Math.atan(Math.exp(y / R)) - Math.PI / 2) * 180 / Math.PI];
+
+const latC = (GRID.latMin + GRID.latMax) / 2;
+const cellM = GRID.cell / Math.cos(latC * Math.PI / 180);   // cell size in Mercator units
+const [xmin, ymin] = toMerc(GRID.lonMin, GRID.latMin);
+const [xmax0, ymax0] = toMerc(GRID.lonMax, GRID.latMax);
+const W = Math.floor((xmax0 - xmin) / cellM), H = Math.floor((ymax0 - ymin) / cellM);
+const xmax = xmin + W * cellM, ymax = ymin + H * cellM;
+const idxOf = (lon, lat) => {
+  const [x, y] = toMerc(lon, lat);
+  const i = Math.floor((x - xmin) / cellM), j = Math.floor((ymax - y) / cellM);
+  return (i < 0 || j < 0 || i >= W || j >= H) ? -1 : j * W + i;
+};
+const cellCenter = (idx) => { const i = idx % W, j = (idx / W) | 0; return [xmin + (i + 0.5) * cellM, ymax - (j + 0.5) * cellM]; };
+
+// ---------- ArcGIS ----------
+const [Graphic, GraphicsLayer, Extent, RenderNode, webgl, SpatialReference] = await $arcgis.import([
+  "@arcgis/core/Graphic.js",
+  "@arcgis/core/layers/GraphicsLayer.js",
+  "@arcgis/core/geometry/Extent.js",
+  "@arcgis/core/views/3d/webgl/RenderNode.js",
+  "@arcgis/core/views/3d/webgl.js",
+  "@arcgis/core/geometry/SpatialReference.js"
+]);
+const sceneEl = document.querySelector("arcgis-scene");
+await sceneEl.viewOnReady();
+const view = sceneEl.view;
+const map = sceneEl.map;
+
+const markLayer = new GraphicsLayer({ title: "Towns", elevationInfo: { mode: "relative-to-ground" } });
+map.add(markLayer);
+
+function labelSymbol(text, color, size = 10) {
+  return {
+    type: "point-3d",
+    symbolLayers: [
+      { type: "icon", size, resource: { primitive: "circle" }, material: { color }, outline: { color: "white", size: 1.2 } },
+      { type: "text", text, size: 11, material: { color: "white" }, halo: { color: [0, 0, 0, 0.75], size: 1.4 }, verticalAlignment: "bottom", font: { weight: "bold" } }
+    ],
+    verticalOffset: { screenLength: 18, maxWorldLength: 400, minWorldLength: 20 },
+    callout: { type: "line", size: 1, color: [255, 255, 255, 0.9] }
+  };
+}
+const merc = (x, y) => ({ type: "point", x, y, spatialReference: { wkid: 3857 } });
+
+function drawTowns() {
+  for (const t of TOWNS) {
+    const [x, y] = toMerc(t.lon, t.lat);
+    markLayer.add(new Graphic({ geometry: merc(x, y), symbol: labelSymbol(t.name, t.airfield ? "#1e3a8a" : t.hit1944 ? "#b4381c" : "#475569", t.hit1944 ? 10 : 8), attributes: { kind: "town" } }));
+  }
+}
+drawTowns();
+
+// ---------- Terrain ----------
+let heights = null;
+async function loadTerrain() {
+  status("Loading terrain around Vesuvius…");
+  await map.ground.load();
+  const ext = new Extent({ xmin, ymin, xmax, ymax, spatialReference: { wkid: 3857 } });
+  const elevLayer = map.ground.layers.getItemAt(0);
+  let sampler;
+  try { sampler = await elevLayer.createElevationSampler(ext, { demResolution: GRID.cell }); }
+  catch (e) { console.warn("Fixed-resolution sampler failed, using auto", e); sampler = await map.ground.createElevationSampler(ext); }
+  const sr = sampler.spatialReference;
+  const geographic = sr && (sr.isGeographic || sr.wkid === 4326);
+  const nd = sampler.noDataValue;
+  const h = new Float32Array(W * H);
+  for (let j = 0; j < H; j++) {
+    const y = ymax - (j + 0.5) * cellM;
+    for (let i = 0; i < W; i++) {
+      const x = xmin + (i + 0.5) * cellM;
+      let z;
+      if (geographic) { const [lon, lat] = fromMerc(x, y); z = sampler.elevationAt(lon, lat); }
+      else z = sampler.elevationAt(x, y);
+      h[j * W + i] = (z === nd || z == null || !isFinite(z)) ? NaN : z;
+    }
+    if (j % 60 === 0) { prog(j / H); await new Promise(r => setTimeout(r)); }
+  }
+  prog(1);
+  const ci = idxOf(CRATER.lon, CRATER.lat);
+  console.log("Grid", W, "x", H, "cells of", GRID.cell, "m; crater elevation", h[ci].toFixed(0), "m; sampler resolution", sampler.demResolution);
+  return h;
+}
+
+// Timeline in hours from 00:00 on 18 March 1944 (same as the VR version)
+const T = { start: 16.5,              // 16:30, 18 March: lava flows begin
+  fountains: 3 * 24 + 17,             // about 17:00, 21 March: lava fountains
+  column: 4 * 24 + 14,                // afternoon of 22 March: explosions, column over 5 km, ash east
+  phase4: 5 * 24 + 12,                // from 12:00, 23 March: smaller explosions, ash south-west
+  end: 12 * 24 };                     // end of 29 March
+// Seconds of playback given to each phase (the lava phase gets the most)
+const SEG = [[T.start, T.fountains, 26], [T.fountains, T.column, 12], [T.column, T.phase4, 14], [T.phase4, T.end, 12]];
+const PLAY_S = SEG.reduce((s, g) => s + g[2], 0);
+function hoursAt(sec) { let s = sec; for (const [a, b, d] of SEG) { if (s <= d) return a + (b - a) * s / d; s -= d; } return T.end; }
+
+
+const ASH_AXIS_E = 112, ASH_AXIS_W = 225;   // downwind bearings (degrees): east over Terzigno–Pompei–Cava, then south-west
+const FOUNTAIN_N = 8;                       // eight successive lava fountains
+function stateAt(h) {
+  const s = { phase: 0, ashRate: 0, ftnRate: 0, top: 0, windB: ASH_AXIS_E, windV: 0, heat: 0, glow: 0, ashE: 0, ashW: 0, rumble: 0.25, roar: 0, booms: 0 };
+  if (h < T.start) return s;
+  if (h < T.fountains) { s.phase = 1; s.glow = 0.25; }
+  else if (h < T.column) { s.phase = 2; const f = (h - T.fountains) / (T.column - T.fountains), pulse = Math.pow(Math.max(0, Math.sin(f * FOUNTAIN_N * Math.PI)), 0.6);
+    s.ftnRate = 60 + 520 * pulse; s.ashRate = 90 + 160 * pulse; s.top = 4000; s.windV = 900; s.heat = 0.5; s.glow = 0.4 + 0.8 * pulse; s.rumble = 0.45 + 0.3 * pulse; s.roar = 0.12 + 0.35 * pulse; }
+  else if (h < T.phase4) { s.phase = 3; const f = (h - T.column) / (T.phase4 - T.column);
+    s.ashRate = 380; s.top = 6000; s.windV = 2200; s.heat = 0.15; s.glow = 0.3; s.ashE = f; s.rumble = 0.8; s.roar = 0.45; s.booms = 0.8; }
+  else if (h < T.end) { s.phase = 4; const f = (h - T.phase4) / (T.end - T.phase4), burst = Math.pow(Math.max(0, Math.sin(f * 14 * Math.PI)), 3) * (1 - f * 0.6);
+    s.ashRate = 220 * burst; s.top = 3000; s.windB = ASH_AXIS_W; s.windV = 1500; s.glow = 0.1; s.ashE = 1; s.ashW = f; s.rumble = 0.2 + 0.4 * burst; s.roar = 0.2 * burst; s.booms = 0.5 * burst; }
+  else { s.phase = 5; s.ashE = 1; s.ashW = 1; s.rumble = 0; }
+  return s;
+}
+const PHASE_TEXT = [
+  "Press Play to watch the eruption of March 1944.",
+  "<b>Lava flows.</b> Two flows left the crater. The northern one was turned west by Monte Somma and moved at 50–300 m an hour towards San Sebastiano and Massa di Somma. The lava you see comes from the model.",
+  "<b>Lava fountains.</b> Eight fountains of lava, one after another, threw material up to about 4 km.",
+  "<b>Explosions.</b> An eruption column more than 5 km high. The wind carried ash 15–20 km east over Terzigno, Pompei, Scafati, Angri, Nocera, Poggiomarino and Cava, and damaged dozens of B-25 bombers at a nearby airfield.",
+  "<b>Smaller explosions.</b> Ash plumes blew to the south-west, until the eruption ended on 29 March.",
+  "<b>The end of the eruption.</b> Vesuvius has not erupted since. It is dormant, not extinct."
+];
+
+// Local frame: metres east (x), north (y) and up (z) from the crater. Web Mercator distances are true distance / cos(lat).
+const COSLAT = Math.cos(CRATER.lat * Math.PI / 180);
+const [CXM, CYM] = toMerc(CRATER.lon, CRATER.lat);
+function hAt(x, y) {
+  if (!heights) return 0;
+  const i = Math.floor((CXM + x / COSLAT - xmin) / cellM), j = Math.floor((ymax - (CYM + y / COSLAT)) / cellM);
+  if (i < 0 || j < 0 || i >= W || j >= H) return 0;          // outside the lava grid: the plain and the bay, near sea level
+  const v = heights[j * W + i]; return isFinite(v) && v > 0 ? v : 0;
+}
+let craterZ = 1200;
+function findCraterTop() {
+  const c = idxOf(CRATER.lon, CRATER.lat), ci = c % W, cj = (c / W) | 0, r = Math.round(400 / GRID.cell); let top = 0;
+  for (let dj = -r; dj <= r; dj++) for (let di = -r; di <= r; di++) { const i = ci + di, j = cj + dj;
+    if (i >= 0 && j >= 0 && i < W && j < H && isFinite(heights[j * W + i])) top = Math.max(top, heights[j * W + i]); }
+  if (top > 0) craterZ = top;
+}
+
+// ---------- Particles (same behaviour as the VR version, in the local frame) ----------
+const rnd = (a, b) => a + Math.random() * (b - a);
+function makeSystem(n) {
+  return { n, next: 0, acc: 0, wind: [0, 0], P: new Float32Array(n * 3), D: new Float32Array(n * 4),
+    x: new Float64Array(n), y: new Float64Array(n), z: new Float64Array(n), vx: new Float64Array(n), vy: new Float64Array(n), vz: new Float64Array(n),
+    age: new Float64Array(n).fill(1e9), life: new Float64Array(n), st: new Uint8Array(n), top: new Float64Array(n), heat0: new Float64Array(n) };
+}
+const ash = makeSystem(3000), ftn = makeSystem(901);           // the last fountain slot is the crater glow
+const GLOW = ftn.n - 1;
+function clearParticles() { for (const p of [ash, ftn]) { p.age.fill(1e9); p.D.fill(0); p.acc = 0; } }
+function emitAsh(st) {
+  const p = ash, k = p.next; p.next = (k + 1) % p.n;
+  const a = rnd(0, Math.PI * 2), r = rnd(0, 180);
+  p.x[k] = Math.cos(a) * r; p.y[k] = Math.sin(a) * r; p.z[k] = craterZ + 30;
+  p.vx[k] = rnd(-60, 60); p.vy[k] = rnd(-60, 60); p.vz[k] = st.top / rnd(1.2, 1.8);
+  p.age[k] = 0; p.life[k] = rnd(6, 9); p.st[k] = 0; p.top[k] = st.top * rnd(0.8, 1.05);
+  p.heat0[k] = st.heat; p.D[k * 4 + 2] = st.heat; p.D[k * 4 + 3] = Math.random();
+  p.wind = [Math.sin(st.windB * Math.PI / 180) * st.windV, Math.cos(st.windB * Math.PI / 180) * st.windV];
+}
+function emitFountain() {
+  const p = ftn, k = p.next; p.next = (k + 1) % GLOW;
+  p.x[k] = rnd(-90, 90); p.y[k] = rnd(-90, 90); p.z[k] = craterZ;
+  p.vx[k] = rnd(-110, 110); p.vy[k] = rnd(-110, 110); p.vz[k] = rnd(420, 820); p.age[k] = 0; p.life[k] = 3.2;
+}
+const LIMIT = 30000;
+function stepParticles(dt, st) {
+  if (st.ashRate > 0) { ash.acc += st.ashRate * dt; while (ash.acc >= 1) { emitAsh(st); ash.acc--; } }
+  if (st.ftnRate > 0) { ftn.acc += st.ftnRate * dt; while (ftn.acc >= 1) { emitFountain(); ftn.acc--; } }
+  // ash: rises in a column, spreads under its top, drifts downwind and settles
+  const p = ash, [wx, wy] = p.wind;
+  for (let k = 0; k < p.n; k++) {
+    const o = k * 4; if (p.age[k] > p.life[k]) { p.D[o + 1] = 0; continue; }
+    p.age[k] += dt; const ztop = craterZ + p.top[k];
+    if (p.st[k] === 0 && p.z[k] >= ztop) { p.st[k] = 1; const a = Math.atan2(p.y[k], p.x[k]) + rnd(-0.6, 0.6);
+      p.vx[k] = Math.cos(a) * rnd(300, 900); p.vy[k] = Math.sin(a) * rnd(300, 900); p.vz[k] = -p.top[k] / rnd(5, 8); }
+    if (p.st[k] === 1) { p.vx[k] += (wx - p.vx[k]) * Math.min(1, dt * 0.8); p.vy[k] += (wy - p.vy[k]) * Math.min(1, dt * 0.8); }
+    else { p.vx[k] += wx * 0.15 * dt; p.vy[k] += wy * 0.15 * dt; }
+    p.x[k] += p.vx[k] * dt; p.y[k] += p.vy[k] * dt; p.z[k] += p.vz[k] * dt;
+    const g = hAt(p.x[k], p.y[k]);
+    if (Math.abs(p.x[k]) > LIMIT || Math.abs(p.y[k]) > LIMIT || p.z[k] < g + 40) { p.age[k] = 1e9; p.D[o + 1] = 0; continue; }
+    p.P[k * 3] = p.x[k]; p.P[k * 3 + 1] = p.y[k]; p.P[k * 3 + 2] = p.z[k];
+    const f = p.age[k] / p.life[k];
+    p.D[o] = (p.st[k] === 0 ? 550 + 700 * f : 1100 + 1700 * f) * (0.75 + 0.5 * p.D[o + 3]);   // size in metres, varied per puff
+    p.D[o + 1] = Math.min(1, p.age[k] / 0.3) * (1 - Math.max(0, (f - 0.7) / 0.3)) * (p.st[k] === 0 ? 0.8 : 0.45) * Math.min(1, (p.z[k] - g) / 400);
+    p.D[o + 2] = p.st[k] === 0 ? p.heat0[k] * Math.max(0, 1 - (p.z[k] - craterZ) / 900) : p.D[o + 2] * 0.85;   // glow only low in the column
+  }
+  // fountains: glowing lava thrown up and falling back
+  const q = ftn;
+  for (let k = 0; k < GLOW; k++) {
+    const o = k * 4; if (q.age[k] > q.life[k]) { q.D[o + 1] = 0; continue; }
+    q.age[k] += dt; q.vz[k] -= 380 * dt; q.x[k] += q.vx[k] * dt; q.y[k] += q.vy[k] * dt; q.z[k] += q.vz[k] * dt;
+    if (q.z[k] < hAt(q.x[k], q.y[k])) { q.age[k] = 1e9; q.D[o + 1] = 0; continue; }
+    q.P[k * 3] = q.x[k]; q.P[k * 3 + 1] = q.y[k]; q.P[k * 3 + 2] = q.z[k];
+    const f = q.age[k] / q.life[k]; q.D[o] = 80 + 50 * (1 - f); q.D[o + 1] = 0.35 * (1 - f * 0.6); q.D[o + 2] = Math.max(0, 1 - f * 1.4);
+  }
+}
+function setGlow(st, now) {
+  const o = GLOW * 4; ftn.P[GLOW * 3] = 0; ftn.P[GLOW * 3 + 1] = 0; ftn.P[GLOW * 3 + 2] = craterZ + 250;
+  ftn.D[o] = 900 + 600 * st.glow; ftn.D[o + 1] = Math.min(1, st.glow) * (0.8 + 0.2 * Math.sin(now / 90) * Math.sin(now / 37)) * 0.22; ftn.D[o + 2] = 0.6; ftn.D[o + 3] = 1;
+}
+
+// ---------- WebGL (RenderNode) ----------
+const VS = `#version 300 es
+in vec2 aCorner; in vec3 iPos; in vec4 iData;
+uniform mat4 uMV; uniform mat4 uP;
+out vec2 vUv; out vec4 vD;
+void main() {
+  vUv = aCorner + 0.5; vD = iData;
+  vec4 mv = uMV * vec4(iPos, 1.0);
+  mv.xy += aCorner * (iData.y > 0.0 ? iData.x : 0.0);
+  gl_Position = uP * mv;
+}`;
+// Colours are sRGB. uMode 0 = ash (premultiplied "over"), 1 = glowing lava (added light).
+const FS = `#version 300 es
+precision highp float;
+in vec2 vUv; in vec4 vD; uniform int uMode; out vec4 o;
+void main() {
+  float r = length(vUv - 0.5) * 2.0;
+  if (uMode == 0) {
+    vec2 d = vUv - 0.5; float ang = atan(d.y, d.x) + vD.w * 6.2832;
+    float edge = 0.78 + 0.12 * sin(ang * 3.0 + vD.w * 11.0) + 0.08 * sin(ang * 7.0 - vD.w * 5.0);
+    float a = smoothstep(edge, edge * 0.3, r) * vD.y; if (a < 0.01) discard;
+    float shade = clamp(vUv.y * 0.8 + vD.w * 0.35 - r * 0.25, 0.0, 1.0);
+    vec3 c = mix(vec3(0.30, 0.28, 0.26), vec3(0.66, 0.63, 0.59), shade);
+    c = mix(c, vec3(0.95, 0.42, 0.12), vD.z * 0.8);
+    o = vec4(c * a, a);
+  } else {
+    float a = smoothstep(1.0, 0.0, r) * vD.y; if (a < 0.01) discard;
+    vec3 c = mix(vec3(0.95, 0.30, 0.04), vec3(1.0, 0.80, 0.40), vD.z);
+    o = vec4(c * a, a);
+  }
+}`;
+function mul4(out, a, b) {   // column-major 4x4: out = a * b, in double precision
+  for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) {
+    out[c * 4 + r] = a[r] * b[c * 4] + a[4 + r] * b[c * 4 + 1] + a[8 + r] * b[c * 4 + 2] + a[12 + r] * b[c * 4 + 3];
+  }
+  return out;
+}
+
+
+// ---------- Molten lava surface (same look as the VR version) ----------
+// Squares reached by 20% or more of the simulated flows form the lava. Arrival time comes from how many steps the
+// fastest simulated flow took to get there, at a speed set so the northern flow reaches San Sebastiano early on
+// 21 March (as recorded). The surface follows the 20 m terrain grid and is drawn by the RenderNode.
+const LAVA_T = { townArrival: 3 * 24 + 6, thick: 6 };
+let lavaSurf = null;
+function buildLavaSurface(flows) {
+  // Each flow is its most likely path widened to the Flow width setting, plus the hollows it fills on the way.
+  // Distance is measured along each path, so each front advances like a single flow. In 1944 two flows left
+  // the crater (north, then west into San Sebastiano; and south-east), so the eruption plays both.
+  const n = W * H, mask = new Uint8Array(n), rad = Math.max(GRID.cell, FLOW_WIDTH / 2), R = Math.ceil(rad / GRID.cell);
+  const dists = [];
+  for (const { res, key } of flows) {
+    const path = (res && res.bestPath) || []; if (!path.length) continue;
+    const dist = new Float64Array(n).fill(Infinity), along = new Float64Array(path.length);
+    for (let k = 1; k < path.length; k++) along[k] = along[k - 1] + Math.hypot((path[k] % W) - (path[k - 1] % W), ((path[k] / W) | 0) - ((path[k - 1] / W) | 0)) * GRID.cell;
+    const put = (c, d) => { if (heights[c] > 0 && d < dist[c]) { dist[c] = d; mask[c] = 1; } };
+    path.forEach((c, k) => { const ci = c % W, cj = (c / W) | 0;
+      for (let dj = -R; dj <= R; dj++) for (let di = -R; di <= R; di++) { const i = ci + di, j = cj + dj;
+        if (i >= 0 && j >= 0 && i < W && j < H && Math.hypot(di, dj) * GRID.cell <= rad) put(j * W + i, along[k]); } });
+    for (const p of res.bestPonds || []) { const k = path.indexOf(p.outlet), d = k >= 0 ? along[k] : along[0]; for (const c of p.cells) put(c, d); }
+    dists.push({ key, dist });
+  }
+  if (!dists.length) return null;
+  // One speed for every flow, set so the northern flow reaches San Sebastiano early on 21 March (as recorded).
+  let speed = 85, townReached = false;                     // metres per hour; 85 m/h = 5 km in about 60 hours
+  const north = dists.find(f => f.key === "north");
+  if (north) {
+    const c0 = idxOf(TOWNS[0].lon, TOWNS[0].lat), i0 = c0 % W, j0 = (c0 / W) | 0, rr = Math.round(400 / GRID.cell); let d = Infinity;
+    for (let dj = -rr; dj <= rr; dj++) for (let di = -rr; di <= rr; di++) { const i = i0 + di, j = j0 + dj; if (i >= 0 && j >= 0 && i < W && j < H && north.dist[j * W + i] < d) d = north.dist[j * W + i]; }
+    if (isFinite(d)) { speed = d / (LAVA_T.townArrival - T.start); townReached = true; }
+  }
+  const dist = new Float64Array(n).fill(Infinity);
+  for (const f of dists) for (let c = 0; c < n; c++) if (f.dist[c] < dist[c]) dist[c] = f.dist[c];
+  const arr = new Float64Array(n).fill(Infinity); let i0 = W, i1 = -1, j0 = H, j1 = -1;
+  for (let c = 0; c < n; c++) if (mask[c]) { arr[c] = T.start + dist[c] / speed; const i = c % W, j = (c / W) | 0;
+    if (i < i0) i0 = i; if (i > i1) i1 = i; if (j < j0) j0 = j; if (j > j1) j1 = j; }
+  if (i1 < 0) return null;
+  i0 = Math.max(0, i0 - 2); j0 = Math.max(0, j0 - 2); i1 = Math.min(W - 1, i1 + 2); j1 = Math.min(H - 1, j1 + 2);
+  const nx = i1 - i0 + 1, ny = j1 - j0 + 1, nv = nx * ny;
+  const pos = new Float32Array(nv * 3), nrm = new Float32Array(nv * 3), lav = new Float32Array(nv * 2);
+  const hh = (i, j) => { i = Math.max(0, Math.min(W - 1, i)); j = Math.max(0, Math.min(H - 1, j)); const v = heights[j * W + i]; return isFinite(v) ? Math.max(0, v) : 0; };
+  for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+    const v = (j - j0) * nx + (i - i0), c = j * W + i, [mx, my] = cellCenter(c);
+    pos[v * 3] = (mx - CXM) * COSLAT; pos[v * 3 + 1] = (my - CYM) * COSLAT; pos[v * 3 + 2] = hh(i, j);
+    const gx = (hh(i + 1, j) - hh(i - 1, j)) / (2 * GRID.cell), gy = (hh(i, j - 1) - hh(i, j + 1)) / (2 * GRID.cell), L = Math.hypot(gx, gy, 1);
+    nrm[v * 3] = -gx / L; nrm[v * 3 + 1] = -gy / L; nrm[v * 3 + 2] = 1 / L;
+    let a = arr[c];
+    if (!isFinite(a)) for (let dj = -2; dj <= 2; dj++) for (let di = -2; di <= 2; di++) { const ii = i + di, jj = j + dj;
+      if (ii >= 0 && jj >= 0 && ii < W && jj < H && arr[jj * W + ii] < a) a = arr[jj * W + ii]; }
+    lav[v * 2] = isFinite(a) ? a : 1e6; lav[v * 2 + 1] = mask[c];
+  }
+  const idx = [];
+  for (let j = 0; j < ny - 1; j++) for (let i = 0; i < nx - 1; i++) {
+    const a = j * nx + i, b = a + 1, c = a + nx, d = c + 1;
+    if (lav[a * 2 + 1] + lav[b * 2 + 1] + lav[c * 2 + 1] + lav[d * 2 + 1] > 0) idx.push(a, c, b, b, c, d);
+  }
+  const arrivals = []; for (let c = 0; c < n; c++) if (mask[c]) arrivals.push(arr[c]); arrivals.sort((p, q) => p - q);
+  console.info("Lava surface:", dists.map(f => f.key).join(" + "), arrivals.length, "squares,", nv, "vertices, speed", Math.round(speed), "m/h, town reached:", townReached);
+  return { pos, nrm, lav, idx: new Uint32Array(idx), arrivals, ver: (lavaSurf ? lavaSurf.ver : 0) + 1 };
+}
+function lavaFront(h) {                     // how much lava arrived in the last 1.5 hours (for the crackling)
+  const a = lavaSurf && lavaSurf.arrivals; if (!a || !a.length) return 0;
+  const lo = (x) => { let l = 0, r = a.length; while (l < r) { const m = (l + r) >> 1; if (a[m] < x) l = m + 1; else r = m; } return l; };
+  return Math.min(1, (lo(h) - lo(h - 1.5)) / 40);
+}
+const LAVA_VS = `#version 300 es
+in vec3 aPos; in vec3 aNrm; in vec2 aLava;
+uniform mat4 uMV; uniform mat4 uP; uniform float uT;
+out vec2 vXY; out vec3 vN; out vec2 vL;
+void main() {
+  vXY = aPos.xy; vN = aNrm; vL = aLava;
+  vec3 p = aPos;
+  p.z += 2.0 + ${LAVA_T.thick.toFixed(1)} * smoothstep(0.3, 0.7, aLava.y) * smoothstep(aLava.x, aLava.x + 0.35, uT);
+  vec4 mv = uMV * vec4(p, 1.0);
+  mv.xyz *= 0.996;                          // nudge towards the camera so the lava sits on the ArcGIS terrain at any zoom
+  gl_Position = uP * mv;
+}`;
+const LAVA_FS = `#version 300 es
+precision highp float;
+in vec2 vXY; in vec3 vN; in vec2 vL;
+uniform float uT; uniform float uClock;
+out vec4 o;
+float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float vnoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y); }
+void main() {
+  float inside = smoothstep(0.3, 0.7, vL.y);
+  float reveal = smoothstep(vL.x, vL.x + 0.35, uT);                      // soft front, about 20 minutes wide
+  float a = inside * reveal; if (a < 0.01) discard;
+  float age = max(0.0, uT - vL.x);                                       // hours since the lava arrived
+  vec3 c = mix(vec3(1.0, 0.93, 0.55), vec3(1.0, 0.45, 0.06), smoothstep(0.0, 1.5, age));
+  c = mix(c, vec3(0.62, 0.08, 0.02), smoothstep(1.5, 8.0, age));
+  c = mix(c, vec3(0.30, 0.12, 0.08), smoothstep(8.0, 60.0, age));        // cooled crust: dark red-brown
+  float n = vnoise(vXY / 28.6 + vec2(0.0, uClock * 0.3)) * 0.6 + vnoise(vXY / 9.5 - uClock * 0.2) * 0.4;
+  float cracks = smoothstep(0.60, 0.72, n) * smoothstep(6.0, 16.0, age) * exp(-age / 120.0);   // glowing cracks for days
+  c = mix(c, vec3(1.0, 0.38, 0.05), cracks);
+  float lit = 0.55 + 0.45 * max(dot(normalize(vN), normalize(vec3(-0.5, 0.35, 0.8))), 0.0), hot = 1.0 - smoothstep(4.0, 20.0, age);
+  c = mix(c * lit, c * (1.0 + 0.25 * (n - 0.5)), hot);                  // hot lava glows; the crust is lit like the ground
+  c = pow(clamp(c, 0.0, 1.0), vec3(1.0 / 2.2));                          // linear to sRGB (the VR version's colours)
+  o = vec4(c * a, a);
+}`;
+
+// ---------- Sound (made in the browser, no recordings; from the VR version) ----------
+const snd = { ctx: null, on: false };   // sound is off until the student turns it on
+function initSound() {
+  if (snd.ctx) { if (snd.ctx.state !== "running") snd.ctx.resume(); return; }
+  const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+  const ctx = new AC(); snd.ctx = ctx;
+  const master = ctx.createGain(); master.gain.value = snd.on ? 0.9 : 0; snd.master = master;
+  const pan = ctx.createStereoPanner(); pan.connect(master); master.connect(ctx.destination); snd.pan = pan;
+  const dist = ctx.createGain(); dist.gain.value = 1; dist.connect(pan); snd.dist = dist;     // quieter when the camera is far away
+  const noise = (seconds, brown) => { const b = ctx.createBuffer(1, ctx.sampleRate * seconds, ctx.sampleRate), d = b.getChannelData(0); let last = 0;
+    for (let i = 0; i < d.length; i++) { const w = Math.random() * 2 - 1; if (brown) { last = (last + 0.02 * w) / 1.02; d[i] = last * 3.5; } else d[i] = w; } return b; };
+  const loop = (buf, filterType, freq, q) => { const s = ctx.createBufferSource(); s.buffer = buf; s.loop = true;
+    const f = ctx.createBiquadFilter(); f.type = filterType; f.frequency.value = freq; f.Q.value = q; const g = ctx.createGain(); g.gain.value = 0;
+    s.connect(f); f.connect(g); g.connect(dist); s.start(); return g; };
+  const brown = noise(4, true), white = noise(2, false);
+  snd.rumble = loop(brown, "lowpass", 110, 0.7);        // deep rumble of the volcano
+  snd.roar = loop(white, "bandpass", 420, 0.6);         // roar of the fountains and the column
+  snd.crackleBuf = white; snd.nextCrackle = 0; snd.nextBoom = 0;
+}
+function crackle(ctx, t, gain) {
+  const s = ctx.createBufferSource(); s.buffer = snd.crackleBuf; const f = ctx.createBiquadFilter(); f.type = "highpass"; f.frequency.value = rnd(1800, 4000);
+  const g = ctx.createGain(); g.gain.setValueAtTime(gain, t); g.gain.exponentialRampToValueAtTime(0.0001, t + rnd(0.01, 0.04));
+  s.connect(f); f.connect(g); g.connect(snd.dist); s.start(t, Math.random() * 1.5, 0.06);
+}
+function boom(ctx, t, gain) {
+  const s = ctx.createBufferSource(); s.buffer = snd.crackleBuf; const f = ctx.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = 180;
+  const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(gain, t + 0.03); g.gain.exponentialRampToValueAtTime(0.0001, t + 1.8);
+  s.connect(f); f.connect(g); g.connect(snd.dist); s.start(t, Math.random(), 1.9);
+}
+function stepSound(st, front, playing) {
+  const ctx = snd.ctx; if (!ctx) return;
+  const t = ctx.currentTime, k = playing ? 1 : 0, cam = view.camera, p = cam.position;
+  // distance and direction from the camera to the crater: volume and left/right balance
+  const dx = (p.longitude - CRATER.lon) * 111320 * COSLAT, dy = (p.latitude - CRATER.lat) * 110540, dz = (p.z || 0) - craterZ;
+  const d = Math.max(500, Math.hypot(dx, dy, dz)), bearing = Math.atan2(-dx, -dy), rel = bearing - cam.heading * Math.PI / 180;
+  snd.dist.gain.setTargetAtTime(Math.min(1.2, 7000 / d), t, 0.2);
+  snd.pan.pan.setTargetAtTime(0.8 * Math.sin(rel), t, 0.2);
+  snd.rumble.gain.setTargetAtTime(k * st.rumble, t, 0.3); snd.roar.gain.setTargetAtTime(k * st.roar, t, 0.3);
+  if (playing && front > 0 && t > snd.nextCrackle) { crackle(ctx, t + 0.01, 0.35 * front); snd.nextCrackle = t + rnd(0.02, 0.12) / Math.max(0.2, front); }
+  if (playing && st.booms > 0 && t > snd.nextBoom) { boom(ctx, t + 0.02, 0.9 * st.booms); snd.nextBoom = t + rnd(0.8, 2.6) / st.booms; }
+}
+function setSound(on) {
+  snd.on = on; if (on) initSound();
+  if (snd.master) snd.master.gain.setTargetAtTime(on ? 0.9 : 0, snd.ctx.currentTime, 0.05);
+}
+
+const pb = { h: 0, target: 0, rate: 0, playing: false, last: 0, phase: -1, active: false };
+const opts = { cloud: true, ground: true };
+
+const EruptionNode = RenderNode.createSubclass({
+  initialize() {
+    this.consumes.required.push("transparent-color");
+    this.produces = "transparent-color";
+    this.MV = new Float64Array(16); this.MV32 = new Float32Array(16); this.local = new Float64Array(16);
+  },
+  setup(gl) {
+    const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
+    const p = gl.createProgram(); gl.attachShader(p, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(p, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(p);
+    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+    this.prog = p;
+    const pl = gl.createProgram(); gl.attachShader(pl, sh(gl.VERTEX_SHADER, LAVA_VS)); gl.attachShader(pl, sh(gl.FRAGMENT_SHADER, LAVA_FS)); gl.linkProgram(pl);
+    if (!gl.getProgramParameter(pl, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(pl));
+    this.lprog = pl;
+    this.lloc = { pos: gl.getAttribLocation(pl, "aPos"), nrm: gl.getAttribLocation(pl, "aNrm"), lava: gl.getAttribLocation(pl, "aLava"),
+      mv: gl.getUniformLocation(pl, "uMV"), proj: gl.getUniformLocation(pl, "uP"), t: gl.getUniformLocation(pl, "uT"), clock: gl.getUniformLocation(pl, "uClock") };
+    this.loc = { corner: gl.getAttribLocation(p, "aCorner"), pos: gl.getAttribLocation(p, "iPos"), data: gl.getAttribLocation(p, "iData"),
+      mv: gl.getUniformLocation(p, "uMV"), proj: gl.getUniformLocation(p, "uP"), mode: gl.getUniformLocation(p, "uMode") };
+    const quad = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, quad);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5]), gl.STATIC_DRAW);
+    this.sys = [ash, ftn].map(s => {
+      const vao = gl.createVertexArray(); gl.bindVertexArray(vao);
+      gl.bindBuffer(gl.ARRAY_BUFFER, quad); gl.enableVertexAttribArray(this.loc.corner); gl.vertexAttribPointer(this.loc.corner, 2, gl.FLOAT, false, 0, 0);
+      const pos = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, pos); gl.bufferData(gl.ARRAY_BUFFER, s.P.byteLength, gl.DYNAMIC_DRAW);
+      gl.enableVertexAttribArray(this.loc.pos); gl.vertexAttribPointer(this.loc.pos, 3, gl.FLOAT, false, 0, 0); gl.vertexAttribDivisor(this.loc.pos, 1);
+      const dat = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, dat); gl.bufferData(gl.ARRAY_BUFFER, s.D.byteLength, gl.DYNAMIC_DRAW);
+      gl.enableVertexAttribArray(this.loc.data); gl.vertexAttribPointer(this.loc.data, 4, gl.FLOAT, false, 0, 0); gl.vertexAttribDivisor(this.loc.data, 1);
+      gl.bindVertexArray(null);
+      return { s, vao, pos, dat };
+    });
+  },
+  uploadLava(gl) {
+    const L = lavaSurf, lc = this.lloc;
+    if (!this.lvao) { this.lvao = gl.createVertexArray(); this.lbuf = [gl.createBuffer(), gl.createBuffer(), gl.createBuffer()]; this.libuf = gl.createBuffer(); }
+    gl.bindVertexArray(this.lvao);
+    [[L.pos, lc.pos, 3], [L.nrm, lc.nrm, 3], [L.lav, lc.lava, 2]].forEach(([data, loc, size], i) => {
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.lbuf[i]); gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+      gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, size, gl.FLOAT, false, 0, 0); });
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.libuf); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, L.idx, gl.STATIC_DRAW);
+    gl.bindVertexArray(null);
+    this.lavaVer = L.ver; this.lavaCount = L.idx.length;
+  },
+  render(inputs) {
+    const fbo = this.bindRenderTarget();
+    const gl = this.gl;
+    try {
+      if (!this.prog) this.setup(gl);
+      const now = performance.now();
+      tick(now);
+      const showLava = pb.active && lavaSurf;
+      if ((opts.cloud || showLava) && heights) {
+        webgl.renderCoordinateTransformAt(this.view, [CXM, CYM, 0], SpatialReference.WebMercator, this.local);
+        mul4(this.MV, this.camera.viewMatrix, this.local); this.MV32.set(this.MV);
+        const emissive = fbo.getAttachment(gl.COLOR_ATTACHMENT1);
+        if (emissive) gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.NONE]);
+        gl.enable(gl.DEPTH_TEST); gl.depthMask(false); gl.disable(gl.CULL_FACE); gl.enable(gl.BLEND);
+        if (showLava) {
+          if (this.lavaVer !== lavaSurf.ver) this.uploadLava(gl);
+          gl.useProgram(this.lprog);
+          gl.uniformMatrix4fv(this.lloc.mv, false, this.MV32);
+          gl.uniformMatrix4fv(this.lloc.proj, false, this.camera.projectionMatrix);
+          gl.uniform1f(this.lloc.t, pb.h); gl.uniform1f(this.lloc.clock, now / 1000);
+          gl.blendFuncSeparate(gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ZERO, gl.ONE);
+          gl.bindVertexArray(this.lvao); gl.drawElements(gl.TRIANGLES, this.lavaCount, gl.UNSIGNED_INT, 0); gl.bindVertexArray(null);
+        }
+      }
+      if (opts.cloud && heights) {
+        gl.useProgram(this.prog);
+        gl.uniformMatrix4fv(this.loc.mv, false, this.MV32);
+        gl.uniformMatrix4fv(this.loc.proj, false, this.camera.projectionMatrix);
+        this.sys.forEach(({ s, vao, pos, dat }, i) => {
+          gl.bindBuffer(gl.ARRAY_BUFFER, pos); gl.bufferSubData(gl.ARRAY_BUFFER, 0, s.P);
+          gl.bindBuffer(gl.ARRAY_BUFFER, dat); gl.bufferSubData(gl.ARRAY_BUFFER, 0, s.D);
+          if (i === 0) gl.blendFuncSeparate(gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ZERO, gl.ONE);   // ash over the scene
+          else gl.blendFuncSeparate(gl.ONE, gl.ONE, gl.ZERO, gl.ONE);                         // glowing lava adds light
+          gl.uniform1i(this.loc.mode, i);
+          gl.bindVertexArray(vao); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, s.n);
+        });
+        gl.bindVertexArray(null);
+      }
+      if ((opts.cloud || showLava) && heights && fbo.getAttachment(gl.COLOR_ATTACHMENT1)) gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1]);
+    } catch (e) {
+      if (!this.failed) { this.failed = true; console.error("Eruption animation failed", e); $("note").textContent = "The lava and ash cloud couldn't be drawn on this device."; }
+    }
+    this.resetWebGLState();
+    if (pb.playing || (pb.active && lavaSurf)) this.requestRender();   // keep the cracks glowing while the lava is shown
+    return fbo;
+  }
+});
+
+// ---------- Ash on the ground (illustration) ----------
+const ASHG = { lonMin: 14.28, lonMax: 14.76, latMin: 40.60, latMax: 40.93, cell: 250 };
+const ASH_CLASSES = [0.1, 0.3, 0.55, 0.8], ASH_ALPHA = [0.18, 0.32, 0.46, 0.62];
+const ashLayers = {
+  E: new GraphicsLayer({ title: "Ash fall to the east, 22–23 March (illustration)", elevationInfo: { mode: "on-the-ground" } }),
+  W: new GraphicsLayer({ title: "Ash fall to the south-west, 23–29 March (illustration)", elevationInfo: { mode: "on-the-ground" } })
+};
+map.addMany([ashLayers.E, ashLayers.W], 0);          // under the lava
+function lobe(dx, dy, bearing, len, width0) {
+  const b = bearing * Math.PI / 180, ax = Math.sin(b), ay = Math.cos(b);
+  const along = dx * ax + dy * ay, across = -dx * ay + dy * ax; if (along < -1500) return 0;
+  const sig = width0 + 0.35 * Math.max(0, along), f = Math.exp(-(across * across) / (2 * sig * sig));
+  return f * Math.min(1, (along + 1500) / 2500) * Math.exp(-Math.max(0, along) / len);
+}
+function buildAshGround() {
+  const cm = ASHG.cell / COSLAT, [x0, y0] = toMerc(ASHG.lonMin, ASHG.latMin), [x1, y1] = toMerc(ASHG.lonMax, ASHG.latMax);
+  const nx = Math.floor((x1 - x0) / cm), ny = Math.floor((y1 - y0) / cm);
+  const fns = { E: (dx, dy) => Math.min(1, 1.29 * lobe(dx, dy, ASH_AXIS_E, 12000, 2200)), W: (dx, dy) => Math.min(1, 0.7 * lobe(dx, dy, ASH_AXIS_W, 6000, 1200)) };
+  for (const key of ["E", "W"]) {
+    const rings = ASH_CLASSES.map(() => []), cls = (v) => { let c = -1; for (let k = 0; k < ASH_CLASSES.length; k++) if (v >= ASH_CLASSES[k]) c = k; return c; };
+    for (let j = 0; j < ny; j++) {
+      const yb = y0 + j * cm, yc = yb + cm / 2; let i = 0;
+      const clsAt = (ii) => cls(fns[key]((x0 + (ii + 0.5) * cm - CXM) * COSLAT, (yc - CYM) * COSLAT));
+      while (i < nx) {
+        const c = clsAt(i); if (c < 0) { i++; continue; }
+        let e = i + 1; while (e < nx && clsAt(e) === c) e++;
+        const xa = x0 + i * cm, xb = x0 + e * cm;
+        rings[c].push([[xa, yb], [xa, yb + cm], [xb, yb + cm], [xb, yb], [xa, yb]]);
+        i = e;
+      }
+    }
+    ashLayers[key].addMany(rings.map((r, c) => r.length && new Graphic({
+      geometry: { type: "polygon", rings: r, spatialReference: { wkid: 3857 } },
+      symbol: ashSymbol(c, 0), attributes: { cls: c }
+    })).filter(Boolean));
+    console.info("Ash on the ground", key, ashLayers[key].graphics.length, "graphics,", rings.reduce((n, r) => n + r.length, 0), "rectangles");
+  }
+}
+function ashSymbol(c, v) { return { type: "simple-fill", color: [58, 54, 50, ASH_ALPHA[c] * v], outline: { width: 0 } }; }
+let ashOpacity = { E: -1, W: -1 };
+function setAshGround(st) {
+  for (const k of ["E", "W"]) {
+    const v = opts.ground ? Math.round((k === "E" ? st.ashE : st.ashW) * 20) / 20 : 0;   // 5% steps: few symbol updates
+    if (v === ashOpacity[k]) continue;
+    ashOpacity[k] = v; ashLayers[k].visible = v > 0;
+    for (const g of ashLayers[k].graphics.toArray()) g.symbol = ashSymbol(g.attributes.cls, v);
+  }
+}
+
+
+// ---------- The story: eight moments ----------
+// Each moment plays one stretch of the eruption (h0 to h1, in hours from 00:00 on 18 March 1944) over `dur`
+// seconds, then pauses. Camera positions: [longitude, latitude, height in m], heading and tilt in degrees.
+const MOMENTS = [
+  { h0: 0, h1: 0, dur: 0, cam: [14.335, 40.905, 5200, 140, 62],
+    when: "Before the eruption", title: "A volcano next to a city",
+    text: "Mount Vesuvius rises above the Bay of Naples in southern Italy. In March 1944, during World War II, Allied soldiers were based all around it, and thousands of families lived on its slopes. This is the story of its last eruption, told with a computer model, photographs and the words of people who were there.",
+    ev: { photo: "couple" },
+    q: "Find the towns on the map. Which ones do you think are most at risk from lava? Why?",
+    note: "Any reasoned answer. Students often pick the closest towns; the story shows that the shape of the land decides where lava goes." },
+  { h0: 16.5, h1: 42, dur: 16, cam: [14.395, 40.868, 3600, 150, 64],
+    when: "18 March 1944, 4:30 p.m.", title: "Lava pours out",
+    text: "Late in the afternoon, lava began to spill from the crater. Two flows set off: one to the north and one to the south-east. Lava is heavy, so it always runs downhill and follows valleys, like water does, but far more slowly.",
+    ev: { voice: 0 },
+    q: "Watch the two flows. What decides which way each one goes?",
+    note: "The slope of the ground: lava follows the steepest way downhill and collects in valleys." },
+  { h0: 42, h1: 70, dur: 14, cam: [14.352, 40.866, 2600, 128, 66],
+    when: "19–20 March 1944", title: "A slow, unstoppable wall",
+    text: "The northern flow ran into the wall of an older volcano, Monte Somma, and turned west down the valley. It moved at 50 to 300 meters an hour, often slower than you walk. Its front was a heap of hot, broken rock that pushed over anything in its way.",
+    ev: { voice: 1, photo: "front" },
+    q: "At 100 meters an hour, how long would the lava take to travel the 5 km to San Sebastiano?",
+    note: "5,000 m ÷ 100 m per hour = 50 hours, about two days. At 300 m an hour it is under 17 hours; at 50 m an hour, 100 hours." },
+  { h0: 70, h1: 89, dur: 12, cam: [14.356, 40.857, 1300, 128, 70],
+    when: "21 March 1944, early morning", title: "The lava reaches San Sebastiano",
+    text: "Early on 21 March the lava entered San Sebastiano al Vesuvio and Massa di Somma. Allied soldiers had already helped about 7,000 people leave. The lava buried streets, homes and the church, and stopped on 22 March about 140 meters above sea level.",
+    ev: { photo: "sansebnight", photo2: "church" },
+    q: "Lava destroyed two towns, but almost no one was killed by it. Why not?",
+    note: "It moved slowly enough for people to be warned and to walk away; soldiers helped about 7,000 people leave before it arrived." },
+  { h0: 89, h1: 110, dur: 14, cam: [14.325, 40.905, 6800, 140, 58],
+    when: "21–22 March 1944", title: "Fountains of fire",
+    text: "On the evening of 21 March the eruption changed. Gas bursting out of the magma threw eight fountains of glowing lava into the sky, one after another, up to about 4 km high. That is about three times the height of the volcano itself.",
+    ev: { voice: 2, photo: "naples" },
+    q: "Norman Lewis called it “majestic and terrible.” What in the scene could be called majestic, and what terrible?",
+    note: "Open answer. Majestic: the size, height and glow of the fountains. Terrible: the danger to homes and people, and the power no one could stop." },
+  { h0: 110, h1: 132, dur: 14, cam: [14.30, 40.845, 7500, 100, 62],
+    when: "22–23 March 1944", title: "Ash falls from the sky",
+    text: "Next came explosions. A column of ash rose more than 5 km and the wind carried it east. Ash and cinders fell on towns up to 20 km away, and on Pompeii Airfield, about 7 km from the crater, where they wrecked 78 to 88 American B-25 bombers.",
+    ev: { photo: "b25", voice: 6 },
+    q: "No lava reached the airfield. How did the volcano destroy the planes?",
+    note: "Hot ash and cinders were blown there by the wind and fell from the sky; they damaged engines, windows and control surfaces and piled up on the aircraft." },
+  { h0: 132, h1: 288, dur: 16, cam: [14.43, 40.935, 9500, 182, 56],
+    when: "23–29 March 1944", title: "The eruption fades",
+    text: "Smaller explosions went on for a week, and the wind now blew the ash to the south-west. About 26 people died, most of them when heavy ash piled up on roofs until they collapsed. About 10,000 to 12,000 people lost their homes. By 29 March the eruption was over.",
+    ev: { photo: "children" },
+    q: "Lava or ash: which caused more harm to people in 1944? Why?",
+    note: "Ash. Lava destroyed buildings but moved slowly; ash spread far with the wind, and its weight collapsed roofs, which caused most of the deaths." },
+  { h0: 288, h1: 288, dur: 0, cam: [14.335, 40.905, 5200, 140, 62],
+    when: "Vesuvius today", title: "Will it erupt again?",
+    text: "Vesuvius has not erupted since 1944, but it is dormant, not extinct. About 670,000 people live in the “red zone” around it. Scientists at the Vesuvius Observatory watch it day and night for earthquakes, ground movement and gas, and Italy's emergency plan is to move everyone in the red zone out within 72 hours if it starts to wake.",
+    ev: { voice: 8 },
+    q: "If you lived in San Sebastiano today, what would you want scientists to tell you?",
+    note: "Open answer: for example, what signs they watch for, how much warning there would be, where to go and how, which hazards (lava, ash, pyroclastic flows) could reach the town.",
+    links: true }
+];
+const PHASE_NAME = ["Before the eruption", "Lava flows", "Lava fountains", "Explosions and ash", "Smaller explosions", "The eruption is over"];
+
+const A = window.VesuviusArchive, D = A ? A.data : null;
+const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function photoHTML(id) {
+  const p = D && D.PHOTOS.find(x => x.id === id); if (!p) return "";
+  return `<figure><img src="${p.src}" alt="${esc(p.title + ", " + p.date)}" referrerpolicy="no-referrer" data-va-src="${p.page}" data-p="${p.id}" />
+    <figcaption>${esc(p.title)}, ${esc(p.date)}. <a href="${p.page}" target="_blank" rel="noopener">Source</a></figcaption></figure>`;
+}
+function voiceHTML(i) {
+  const v = D && D.VOICES[i]; if (!v) return "";
+  if (!v.quote) return `<blockquote style="font:15px/1.5 system-ui,sans-serif">${esc(v.para)}</blockquote>
+    <div class="who"><b>${esc(v.who)}</b>, ${esc(v.role)} · <a href="${v.src}" target="_blank" rel="noopener">${esc(v.srcName)}</a></div>`;
+  return `<blockquote>“${esc(v.quote)}”</blockquote>
+    <div class="who"><b>${esc(v.who)}</b>, ${esc(v.role)} · ${esc(v.when)} · <a href="${v.src}" target="_blank" rel="noopener">Source</a></div>`;
+}
+
+let cur = -1, seen = new Set();
+const dots = $("dots");
+MOMENTS.forEach((m, i) => { const b = document.createElement("button"); b.setAttribute("aria-label", `Moment ${i + 1}: ${m.title}`);
+  b.onclick = () => showMoment(i); dots.appendChild(b); });
+
+function showMoment(i) {
+  if (i < 0 || i >= MOMENTS.length) return;
+  cur = i; seen.add(i); const m = MOMENTS[i];
+  [...dots.children].forEach((b, k) => { if (k === i) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current"); b.classList.toggle("seen", seen.has(k) && k !== i); });
+  $("mWhen").textContent = `${i + 1} of ${MOMENTS.length} · ${m.when}`;
+  $("mTitle").textContent = m.title;
+  $("mText").textContent = m.text;
+  let ev = "";
+  if (m.ev.voice != null) ev += voiceHTML(m.ev.voice);
+  if (m.ev.photo && m.ev.photo2) ev += `<div class="pair">${photoHTML(m.ev.photo)}${photoHTML(m.ev.photo2)}</div>`;
+  else if (m.ev.photo) ev += photoHTML(m.ev.photo);
+  $("mEv").innerHTML = ev;
+  $("mEv").querySelectorAll("img[data-p]").forEach(im => im.onclick = () => A && A.open("photos", im.dataset.p));
+  if (A && A.guardImages) A.guardImages($("mEv"));
+  $("mQ").textContent = " " + m.q;
+  $("mLinks").innerHTML = m.links ? `
+    <button onclick="VesuviusArchive.open('film')">▶ Watch the 1944 newsreels</button>
+    <button onclick="VesuviusArchive.open('tasks')">Be a historian: 5 tasks with the evidence</button>
+    <a href="volcano-what-if.html?v=vesuvius">What if Vesuvius erupted today? Try the “what if” explorer →</a>` : "";
+  $("mBody").scrollTop = 0;
+  $("back").disabled = i === 0;
+  $("next").disabled = i === MOMENTS.length - 1;
+  $("next").textContent = i === 0 ? "Start ▶" : "Next ▶";
+  $("next").classList.toggle("pulse", i === 0);
+  // move the camera, set the clock to the start of this moment, and play it
+  const [lon, lat, z, heading, tilt] = m.cam;
+  view.goTo({ position: { longitude: lon, latitude: lat, z }, heading, tilt }, { duration: reduceMotion ? 0 : 2200 }).catch(() => {});
+  pb.h = m.h0; pb.target = m.h1; pb.rate = m.dur ? (m.h1 - m.h0) / m.dur : 0; clearParticles(); setPlaying(false);
+  updatePlayButton();
+  if (m.dur) { clearTimeout(showMoment.t); showMoment.t = setTimeout(() => { if (cur === i) setPlaying(true); }, reduceMotion ? 300 : 2300); }
+  else setDone();
+  node.requestRender();
+}
+function setDone() { $("next").classList.toggle("pulse", cur < MOMENTS.length - 1); updatePlayButton(); }
+function updatePlayButton() {
+  const m = MOMENTS[cur], b = $("play");
+  if (!m || !m.dur) { b.disabled = true; b.textContent = "▶ Play"; return; }
+  b.disabled = false;
+  b.textContent = pb.playing ? "❚❚ Pause" : pb.h >= m.h1 ? "↺ Play again" : "▶ Play";
+}
+$("play").onclick = () => {
+  const m = MOMENTS[cur]; if (!m || !m.dur) return;
+  if (snd.on) initSound();
+  if (pb.playing) setPlaying(false);
+  else { if (pb.h >= m.h1) { pb.h = m.h0; clearParticles(); } setPlaying(true); }
+};
+$("next").onclick = () => showMoment(cur + 1);
+$("back").onclick = () => showMoment(cur - 1);
+
+// ---------- Playback ----------
+const reduceMotion = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+function tick(now) {
+  const dt = Math.min(0.05, (now - (pb.last || now)) / 1000); pb.last = now;
+  if (!heights) return;
+  if (pb.playing) { pb.h = Math.min(pb.target, pb.h + pb.rate * dt); if (pb.h >= pb.target) { setPlaying(false); setDone(); } }
+  const st = stateAt(pb.h);
+  stepParticles(dt, st);                               // the eruption keeps moving while a moment is paused
+  setGlow(st, now);
+  setAshGround(st);
+  stepSound(st, pb.active ? lavaFront(pb.h) : 0, snd.on && st.phase > 0 && st.phase < 5);
+  const date = pb.h < T.start && cur <= 0 ? "March 1944" : pb.h >= T.end ? "After 29 March 1944" : fmtDate(pb.h);
+  if (date !== pb.date) { pb.date = date; $("cDate").textContent = date; $("cFill").style.width = Math.min(100, pb.h / T.end * 100) + "%"; }
+  if (st.phase !== pb.phase) { pb.phase = st.phase; $("cPhase").textContent = PHASE_NAME[st.phase]; }
+}
+function setPlaying(v) { pb.playing = v; if (v) { $("next").classList.remove("pulse"); node.requestRender(); } updatePlayButton(); }
+function fmtDate(h) { const day = 18 + Math.floor(h / 24), hh = Math.floor(h % 24), ampm = hh < 12 ? "a.m." : "p.m.", h12 = hh % 12 === 0 ? 12 : hh % 12;
+  return `${day} March 1944, ${h12}:${String(Math.floor((h % 1) * 6) * 10).padStart(2, "0")} ${ampm}`; }
+
+// ---------- Buttons on the map ----------
+$("snd").onclick = () => { const on = !snd.on; setSound(on); $("snd").setAttribute("aria-pressed", String(on)); $("snd").textContent = on ? "🔊 Sound on" : "🔈 Sound"; };
+$("film").onclick = () => A ? A.open("film") : null;
+$("evid").onclick = () => A ? A.open("voices") : null;
+for (const [btn, dlg] of [["teach", "dTeach"], ["about", "dAbout"]]) $(btn).onclick = () => $(dlg).showModal();
+document.querySelectorAll("dialog.info [data-close]").forEach(b => b.onclick = () => b.closest("dialog").close());
+document.querySelectorAll("dialog.info").forEach(d => d.addEventListener("click", e => { if (e.target === d) d.close(); }));
+$("tNotes").innerHTML = MOMENTS.map((m, i) => `<li><b>${esc(m.title)}:</b> ${esc(m.q)}<br><i>${esc(m.note)}</i></li>`).join("");
+$("archVer").textContent = A ? A.version : "not loaded";
+
+// ---------- Go ----------
+const node = new EruptionNode({ view });
+try {
+  heights = await loadTerrain();
+  findCraterTop(); buildAshGround();
+  const flows = ["north", "southeast"].map(key => {
+    const V = VENTS[key], r = LavaModel.createRunner({ h: heights, w: W, ht: H, cellTrue: GRID.cell, vent: idxOf(V.lon, V.lat),
+      runs: 0, dh: 0, maxLen: 10000, stopElev: V.stop, width: FLOW_WIDTH, seed: 1944, maxPond: 30000 });
+    return { res: r.result(), key };
+  });
+  lavaSurf = buildLavaSurface(flows); pb.active = !!lavaSurf;
+  $("loading").remove();
+  $("next").disabled = false;
+  console.info("Vesuvius 1944 story", VERSIONS, "crater top", Math.round(craterZ), "m");
+  showMoment(0);
+} catch (e) {
+  console.error(e);
+  $("loadMsg").textContent = "Couldn't load the elevation data. Check your connection and reload the page.";
+}
+</script>
+</body>
+</html>

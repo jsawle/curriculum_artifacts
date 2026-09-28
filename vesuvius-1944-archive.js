@@ -1,6 +1,6 @@
 // Vesuvius 1944 archive: newsreels, photographs and eyewitness accounts, shared by
 // vesuvius-1944-lava.html and vesuvius-1944-eruption-3d.html.
-// Archive version 1.3. 1.3: works in the VR page (card on screen, momentAt() for the headset panel), version labels filled in automatically. 1.2: B-25 photo restored, licence confirmed as USGOV-PD. 1.1: B-25 photo removed pending licence check. Bump ARCHIVE_VERSION whenever the content or behaviour changes.
+// Archive version 1.4. 1.4: exposes the content as VesuviusArchive.data for the story page; US spelling. 1.3: works in the VR page (card on screen, momentAt() for the headset panel), version labels filled in automatically. 1.2: B-25 photo restored, licence confirmed as USGOV-PD. 1.1: B-25 photo removed pending licence check. Bump ARCHIVE_VERSION whenever the content or behaviour changes.
 //
 // Usage: VesuviusArchive.mount({ panel: element, page: "lava" | "3d" | "vr", mapwrap: element })
 //        VesuviusArchive.atHour(h, active)   // 3D and VR pages: h = hours from 00:00, 18 March 1944
@@ -8,7 +8,7 @@
 // Any element with class "va-ver" gets the archive version written into it.
 (function () {
   "use strict";
-  const ARCHIVE_VERSION = "1.3";
+  const ARCHIVE_VERSION = "1.4";
 
   // ---------- Content ----------
   const SMU = "Melvin C. Shaffer, US Army. DeGolyer Library, Southern Methodist University (no known copyright restrictions)";
@@ -106,7 +106,7 @@
   const ACTIVITIES = [
     { t: "Test the model against an eyewitness", b: "Dr Powers described the lava front as “20 feet high and 200 yards wide” (about 6 m and 180 m). Set <b>Flow width</b> to 180 m and run the model with the 1944 northern flow. Does the most likely path reach San Sebastiano, where the photos were taken?" },
     { t: "Was there time to escape?", b: "The lava moved at 50–300 m an hour and San Sebastiano is about 5 km from the crater. Work out the fastest and slowest time the lava could take to get there. Then look at the photo of the children. Why did few people die from the lava?" },
-    { t: "Which hazard went furthest?", b: "Lava travelled about 5 km, and only where the ground led it downhill, towards San Sebastiano. Ash went wherever the wind blew it. It fell on Pompeii Airfield, about 7 km east of the crater, wrecking 78–88 bombers, and on towns more than 20 km away, such as Cava. About 26 people died, most when ash piled up on roofs until they collapsed. Which hazard is harder to plan for, and why?" },
+    { t: "Which hazard went furthest?", b: "Lava traveled about 5 km, and only where the ground led it downhill, toward San Sebastiano. Ash went wherever the wind blew it. It fell on Pompeii Airfield, about 7 km east of the crater, wrecking 78–88 bombers, and on towns more than 20 km away, such as Cava. About 26 people died, most when ash piled up on roofs until they collapsed. Which hazard is harder to plan for, and why?" },
     { t: "Same eruption, different views", b: "A pilot called it “a beautiful sight”. An intelligence officer called it “majestic and terrible”. Choose two eyewitnesses. How did where they were, and who they were, change what they noticed?" },
     { t: "Read the newsreel like a historian", b: "A newsreel is a primary source, but it was edited to tell a story for cinema audiences. What did the filmmakers choose to show? What might they have left out? The people of San Sebastiano and Massa di Somma are seen but not heard." }
   ];
@@ -369,5 +369,6 @@
     if (e.key === "ArrowLeft") viewPhoto(PHOTOS[(i + PHOTOS.length - 1) % PHOTOS.length].id);
   });
 
-  window.VesuviusArchive = { version: ARCHIVE_VERSION, mount, open, atHour, momentAt, setCards };
+  window.VesuviusArchive = { version: ARCHIVE_VERSION, mount, open, atHour, momentAt, setCards,
+    data: { PHOTOS, VOICES, FILMS, ACTIVITIES, FACTS }, guardImages };
 })();
