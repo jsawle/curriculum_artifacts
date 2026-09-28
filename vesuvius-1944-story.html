@@ -986,58 +986,19 @@ function setAshGround(st) {
 
 // ---------- The story: eight moments ----------
 // Each moment plays one stretch of the eruption (h0 to h1, in hours from 00:00 on 18 March 1944) over `dur`
-// seconds, then pauses. Camera positions: [longitude, latitude, height in m], heading and tilt in degrees.
-const MOMENTS = [
-  { h0: 0, h1: 0, dur: 0, cam: [14.335, 40.905, 5200, 140, 62],
-    when: "Before the eruption", title: "A volcano next to a city",
-    text: "Mount Vesuvius rises above the Bay of Naples in southern Italy. In March 1944, during World War II, Allied soldiers were based all around it, and thousands of families lived on its slopes. This is the story of its last eruption, told with a computer model, photographs and the words of people who were there.",
-    ev: { photo: "couple" },
-    q: "Find the towns on the map. Which ones do you think are most at risk from lava? Why?",
-    note: "Any reasoned answer. Students often pick the closest towns; the story shows that the shape of the land decides where lava goes." },
-  { h0: 16.5, h1: 42, dur: 16, cam: [14.395, 40.868, 3600, 150, 64],
-    when: "18 March 1944, 4:30 p.m.", title: "Lava pours out",
-    text: "Late in the afternoon, lava began to spill from the crater. Two flows set off: one to the north and one to the south-east. Lava is heavy, so it always runs downhill and follows valleys, like water does, but far more slowly.",
-    ev: { voice: 0 },
-    q: "Watch the two flows. What decides which way each one goes?",
-    note: "The slope of the ground: lava follows the steepest way downhill and collects in valleys." },
-  { h0: 42, h1: 70, dur: 14, cam: [14.352, 40.866, 2600, 128, 66],
-    when: "19–20 March 1944", title: "A slow, unstoppable wall",
-    text: "The northern flow ran into the wall of an older volcano, Monte Somma, and turned west down the valley. It moved at 50 to 300 meters an hour, often slower than you walk. Its front was a heap of hot, broken rock that pushed over anything in its way.",
-    ev: { voice: 1, photo: "front" },
-    q: "At 100 meters an hour, how long would the lava take to travel the 5 km to San Sebastiano?",
-    note: "5,000 m ÷ 100 m per hour = 50 hours, about two days. At 300 m an hour it is under 17 hours; at 50 m an hour, 100 hours." },
-  { h0: 70, h1: 89, dur: 12, cam: [14.356, 40.857, 1300, 128, 70],
-    when: "21 March 1944, early morning", title: "The lava reaches San Sebastiano",
-    text: "Early on 21 March the lava entered San Sebastiano al Vesuvio and Massa di Somma. Allied soldiers had already helped about 7,000 people leave. The lava buried streets, homes and the church, and stopped on 22 March about 140 meters above sea level.",
-    ev: { photo: "sansebnight", photo2: "church" },
-    q: "Lava destroyed two towns, but almost no one was killed by it. Why not?",
-    note: "It moved slowly enough for people to be warned and to walk away; soldiers helped about 7,000 people leave before it arrived." },
-  { h0: 89, h1: 110, dur: 14, cam: [14.325, 40.905, 6800, 140, 58],
-    when: "21–22 March 1944", title: "Fountains of fire",
-    text: "On the evening of 21 March the eruption changed. Gas bursting out of the magma threw eight fountains of glowing lava into the sky, one after another, up to about 4 km high. That is about three times the height of the volcano itself.",
-    ev: { voice: 2, photo: "naples" },
-    q: "Norman Lewis called it “majestic and terrible.” What in the scene could be called majestic, and what terrible?",
-    note: "Open answer. Majestic: the size, height and glow of the fountains. Terrible: the danger to homes and people, and the power no one could stop." },
-  { h0: 110, h1: 132, dur: 14, cam: [14.30, 40.845, 7500, 100, 62],
-    when: "22–23 March 1944", title: "Ash falls from the sky",
-    text: "Next came explosions. A column of ash rose more than 5 km and the wind carried it east. Ash and cinders fell on towns up to 20 km away, and on Pompeii Airfield, about 7 km from the crater, where they wrecked 78 to 88 American B-25 bombers.",
-    ev: { photo: "b25", voice: 6 },
-    q: "No lava reached the airfield. How did the volcano destroy the planes?",
-    note: "Hot ash and cinders were blown there by the wind and fell from the sky; they damaged engines, windows and control surfaces and piled up on the aircraft." },
-  { h0: 132, h1: 288, dur: 16, cam: [14.43, 40.935, 9500, 182, 56],
-    when: "23–29 March 1944", title: "The eruption fades",
-    text: "Smaller explosions went on for a week, and the wind now blew the ash to the south-west. About 26 people died, most of them when heavy ash piled up on roofs until they collapsed. About 10,000 to 12,000 people lost their homes. By 29 March the eruption was over.",
-    ev: { photo: "children" },
-    q: "Lava or ash: which caused more harm to people in 1944? Why?",
-    note: "Ash. Lava destroyed buildings but moved slowly; ash spread far with the wind, and its weight collapsed roofs, which caused most of the deaths." },
-  { h0: 288, h1: 288, dur: 0, cam: [14.335, 40.905, 5200, 140, 62],
-    when: "Vesuvius today", title: "Will it erupt again?",
-    text: "Vesuvius has not erupted since 1944, but it is dormant, not extinct. About 670,000 people live in the “red zone” around it. Scientists at the Vesuvius Observatory watch it day and night for earthquakes, ground movement and gas, and Italy's emergency plan is to move everyone in the red zone out within 72 hours if it starts to wake.",
-    ev: { voice: 8 },
-    q: "If you lived in San Sebastiano today, what would you want scientists to tell you?",
-    note: "Open answer: for example, what signs they watch for, how much warning there would be, where to go and how, which hazards (lava, ash, pyroclastic flows) could reach the town.",
-    links: true }
+// seconds, then pauses.
+// Camera for each moment: [longitude, latitude, height in m, heading, tilt]. The moments themselves live in vesuvius-1944-archive.js.
+const CAMS = [
+  [14.335, 40.905, 5200, 140, 62],
+  [14.395, 40.868, 3600, 150, 64],
+  [14.352, 40.866, 2600, 128, 66],
+  [14.356, 40.857, 1300, 128, 70],
+  [14.325, 40.905, 6800, 140, 58],
+  [14.30, 40.845, 7500, 100, 62],
+  [14.43, 40.935, 9500, 182, 56],
+  [14.335, 40.905, 5200, 140, 62]
 ];
+const MOMENTS = window.VesuviusArchive.data.STORY.map((m, i) => ({ ...m, cam: CAMS[i] }));
 const PHASE_NAME = ["Before the eruption", "Lava flows", "Lava fountains", "Explosions and ash", "Smaller explosions", "The eruption is over"];
 
 const A = window.VesuviusArchive, D = A ? A.data : null;

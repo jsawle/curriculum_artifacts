@@ -1,6 +1,6 @@
 // Vesuvius 1944 archive: newsreels, photographs and eyewitness accounts, shared by
 // vesuvius-1944-lava.html and vesuvius-1944-eruption-3d.html.
-// Archive version 1.4. 1.4: exposes the content as VesuviusArchive.data for the story page; US spelling. 1.3: works in the VR page (card on screen, momentAt() for the headset panel), version labels filled in automatically. 1.2: B-25 photo restored, licence confirmed as USGOV-PD. 1.1: B-25 photo removed pending licence check. Bump ARCHIVE_VERSION whenever the content or behaviour changes.
+// Archive version 1.5. 1.5: holds the eight story moments (text, evidence, questions, teacher notes) shared by the 3D and VR stories. 1.4: exposes the content as VesuviusArchive.data for the story page; US spelling. 1.3: works in the VR page (card on screen, momentAt() for the headset panel), version labels filled in automatically. 1.2: B-25 photo restored, licence confirmed as USGOV-PD. 1.1: B-25 photo removed pending licence check. Bump ARCHIVE_VERSION whenever the content or behaviour changes.
 //
 // Usage: VesuviusArchive.mount({ panel: element, page: "lava" | "3d" | "vr", mapwrap: element })
 //        VesuviusArchive.atHour(h, active)   // 3D and VR pages: h = hours from 00:00, 18 March 1944
@@ -8,7 +8,7 @@
 // Any element with class "va-ver" gets the archive version written into it.
 (function () {
   "use strict";
-  const ARCHIVE_VERSION = "1.4";
+  const ARCHIVE_VERSION = "1.5";
 
   // ---------- Content ----------
   const SMU = "Melvin C. Shaffer, US Army. DeGolyer Library, Southern Methodist University (no known copyright restrictions)";
@@ -109,6 +109,61 @@
     { t: "Which hazard went furthest?", b: "Lava traveled about 5 km, and only where the ground led it downhill, toward San Sebastiano. Ash went wherever the wind blew it. It fell on Pompeii Airfield, about 7 km east of the crater, wrecking 78–88 bombers, and on towns more than 20 km away, such as Cava. About 26 people died, most when ash piled up on roofs until they collapsed. Which hazard is harder to plan for, and why?" },
     { t: "Same eruption, different views", b: "A pilot called it “a beautiful sight”. An intelligence officer called it “majestic and terrible”. Choose two eyewitnesses. How did where they were, and who they were, change what they noticed?" },
     { t: "Read the newsreel like a historian", b: "A newsreel is a primary source, but it was edited to tell a story for cinema audiences. What did the filmmakers choose to show? What might they have left out? The people of San Sebastiano and Massa di Somma are seen but not heard." }
+  ];
+
+  // The eight moments of the guided story (used by vesuvius-1944-story.html and the VR story).
+  // h0-h1: hours from 00:00 on 18 March 1944; dur: seconds of playback; ev: evidence by photo id / voice index.
+  const STORY = [
+    { h0: 0, h1: 0, dur: 0,
+      when: "Before the eruption", title: "A volcano next to a city",
+      text: "Mount Vesuvius rises above the Bay of Naples in southern Italy. In March 1944, during World War II, Allied soldiers were based all around it, and thousands of families lived on its slopes. This is the story of its last eruption, told with a computer model, photographs and the words of people who were there.",
+      ev: { photo: "couple" },
+      q: "Find the towns on the map. Which ones do you think are most at risk from lava? Why?",
+      note: "Any reasoned answer. Students often pick the closest towns; the story shows that the shape of the land decides where lava goes." },
+    { h0: 16.5, h1: 42, dur: 16,
+      when: "18 March 1944, 4:30 p.m.", title: "Lava pours out",
+      text: "Late in the afternoon, lava began to spill from the crater. Two flows set off: one to the north and one to the south-east. Lava is heavy, so it always runs downhill and follows valleys, like water does, but far more slowly.",
+      ev: { voice: 0 },
+      q: "Watch the two flows. What decides which way each one goes?",
+      note: "The slope of the ground: lava follows the steepest way downhill and collects in valleys." },
+    { h0: 42, h1: 70, dur: 14,
+      when: "19–20 March 1944", title: "A slow, unstoppable wall",
+      text: "The northern flow ran into the wall of an older volcano, Monte Somma, and turned west down the valley. It moved at 50 to 300 meters an hour, often slower than you walk. Its front was a heap of hot, broken rock that pushed over anything in its way.",
+      ev: { voice: 1, photo: "front" },
+      q: "At 100 meters an hour, how long would the lava take to travel the 5 km to San Sebastiano?",
+      note: "5,000 m ÷ 100 m per hour = 50 hours, about two days. At 300 m an hour it is under 17 hours; at 50 m an hour, 100 hours." },
+    { h0: 70, h1: 89, dur: 12,
+      when: "21 March 1944, early morning", title: "The lava reaches San Sebastiano",
+      text: "Early on 21 March the lava entered San Sebastiano al Vesuvio and Massa di Somma. Allied soldiers had already helped about 7,000 people leave. The lava buried streets, homes and the church, and stopped on 22 March about 140 meters above sea level.",
+      ev: { photo: "sansebnight", photo2: "church" },
+      q: "Lava destroyed two towns, but almost no one was killed by it. Why not?",
+      note: "It moved slowly enough for people to be warned and to walk away; soldiers helped about 7,000 people leave before it arrived.",
+      vrHint: "Try “Stand in San Sebastiano” to see the lava arrive at full size." },
+    { h0: 89, h1: 110, dur: 14,
+      when: "21–22 March 1944", title: "Fountains of fire",
+      text: "On the evening of 21 March the eruption changed. Gas bursting out of the magma threw eight fountains of glowing lava into the sky, one after another, up to about 4 km high. That is about three times the height of the volcano itself.",
+      ev: { voice: 2, photo: "naples" },
+      q: "Norman Lewis called it “majestic and terrible.” What in the scene could be called majestic, and what terrible?",
+      note: "Open answer. Majestic: the size, height and glow of the fountains. Terrible: the danger to homes and people, and the power no one could stop." },
+    { h0: 110, h1: 132, dur: 14,
+      when: "22–23 March 1944", title: "Ash falls from the sky",
+      text: "Next came explosions. A column of ash rose more than 5 km and the wind carried it east. Ash and cinders fell on towns up to 20 km away, and on Pompeii Airfield, about 7 km from the crater, where they wrecked 78 to 88 American B-25 bombers.",
+      ev: { photo: "b25", voice: 6 },
+      q: "No lava reached the airfield. How did the volcano destroy the planes?",
+      note: "Hot ash and cinders were blown there by the wind and fell from the sky; they damaged engines, windows and control surfaces and piled up on the aircraft." },
+    { h0: 132, h1: 288, dur: 16,
+      when: "23–29 March 1944", title: "The eruption fades",
+      text: "Smaller explosions went on for a week, and the wind now blew the ash to the south-west. About 26 people died, most of them when heavy ash piled up on roofs until they collapsed. About 10,000 to 12,000 people lost their homes. By 29 March the eruption was over.",
+      ev: { photo: "children" },
+      q: "Lava or ash: which caused more harm to people in 1944? Why?",
+      note: "Ash. Lava destroyed buildings but moved slowly; ash spread far with the wind, and its weight collapsed roofs, which caused most of the deaths." },
+    { h0: 288, h1: 288, dur: 0,
+      when: "Vesuvius today", title: "Will it erupt again?",
+      text: "Vesuvius has not erupted since 1944, but it is dormant, not extinct. About 670,000 people live in the “red zone” around it. Scientists at the Vesuvius Observatory watch it day and night for earthquakes, ground movement and gas, and Italy's emergency plan is to move everyone in the red zone out within 72 hours if it starts to wake.",
+      ev: { voice: 8 },
+      q: "If you lived in San Sebastiano today, what would you want scientists to tell you?",
+      note: "Open answer: for example, what signs they watch for, how much warning there would be, where to go and how, which hazards (lava, ash, pyroclastic flows) could reach the town.",
+      links: true }
   ];
 
   const FACTS = "18–29 March 1944 · about 26 deaths, mostly from roofs collapsing under ash · about 10,000–12,000 people made homeless · San Sebastiano al Vesuvio and Massa di Somma destroyed · 78–88 US bombers wrecked by ash";
@@ -370,5 +425,5 @@
   });
 
   window.VesuviusArchive = { version: ARCHIVE_VERSION, mount, open, atHour, momentAt, setCards,
-    data: { PHOTOS, VOICES, FILMS, ACTIVITIES, FACTS }, guardImages };
+    data: { PHOTOS, VOICES, FILMS, ACTIVITIES, FACTS, STORY }, guardImages };
 })();
