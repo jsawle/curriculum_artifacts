@@ -1,12 +1,14 @@
 // Vesuvius 1944 archive: newsreels, photographs and eyewitness accounts, shared by
 // vesuvius-1944-lava.html and vesuvius-1944-eruption-3d.html.
-// Archive version 1.2. 1.2: B-25 photo restored, licence confirmed as USGOV-PD. 1.1: B-25 photo removed pending licence check. Bump ARCHIVE_VERSION whenever the content or behaviour changes.
+// Archive version 1.3. 1.3: works in the VR page (card on screen, momentAt() for the headset panel), version labels filled in automatically. 1.2: B-25 photo restored, licence confirmed as USGOV-PD. 1.1: B-25 photo removed pending licence check. Bump ARCHIVE_VERSION whenever the content or behaviour changes.
 //
-// Usage: VesuviusArchive.mount({ panel: element, page: "lava" | "3d", mapwrap: element })
-//        VesuviusArchive.atHour(h, active)  // 3D page only: h = hours from 00:00, 18 March 1944
+// Usage: VesuviusArchive.mount({ panel: element, page: "lava" | "3d" | "vr", mapwrap: element })
+//        VesuviusArchive.atHour(h, active)   // 3D and VR pages: h = hours from 00:00, 18 March 1944
+//        VesuviusArchive.momentAt(h, active) // plain-text account for the VR headset panel, or null
+// Any element with class "va-ver" gets the archive version written into it.
 (function () {
   "use strict";
-  const ARCHIVE_VERSION = "1.2";
+  const ARCHIVE_VERSION = "1.3";
 
   // ---------- Content ----------
   const SMU = "Melvin C. Shaffer, US Army. DeGolyer Library, Southern Methodist University (no known copyright restrictions)";
@@ -159,6 +161,7 @@
   #vaCard .va-broken { aspect-ratio: auto; height: 44px; }
   #vaCard { position: absolute; left: 12px; bottom: 28px; z-index: 4; width: 300px; max-width: calc(100% - 24px); background: var(--panel); color: var(--ink);
     border: 1px solid var(--rule); border-radius: 10px; box-shadow: 0 4px 18px rgba(0,0,0,.3); overflow: hidden; display: none; }
+  #vaCard.va-vr { position: fixed; left: auto; right: 12px; top: 12px; bottom: auto; }
   #vaCard.on { display: block; animation: vaIn .35s ease-out; }
   @keyframes vaIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
   #vaCard img { width: 100%; height: 130px; object-fit: cover; display: block; filter: grayscale(1); cursor: pointer; }
@@ -174,6 +177,7 @@
     .va-voice { grid-template-columns: 72px minmax(0, 1fr); }
     .va-voice img { width: 72px; }
     #vaCard { width: 220px; left: 8px; bottom: 20px; }
+    #vaCard.va-vr { left: auto; right: 8px; top: auto; bottom: 110px; }
     #vaCard img { height: 80px; }
     #vaCard blockquote { font-size: 12.5px; }
   }`;
@@ -301,28 +305,42 @@
         <button data-open="photos">Photos</button>
         <button data-open="tasks">Be a historian</button>
       </div>
-      <p class="hint" style="margin-top:8px">${page === "3d"
+      <p class="hint" style="margin-top:8px">${page === "vr"
+        ? "Eyewitness accounts appear as the eruption plays, on screen and on the menu in the headset. Newsreels and photos open here, not in the headset."
+        : page === "3d"
         ? "Eyewitness accounts pop up on the map as the eruption plays, at the time they were written."
         : "Real photographs, newsreels and diaries from March 1944. Use them to check what the model gets right and what it can’t show."}</p>`;
     panel.querySelectorAll("[data-open]").forEach(b => b.onclick = () => open(b.dataset.open));
     panel.querySelectorAll("[data-p]").forEach(b => b.onclick = () => open("photos", b.dataset.p));
     guardImages(panel);
-    if (page === "3d" && mapwrap) {
+    if ((page === "3d" || page === "vr") && mapwrap) {
       card = document.createElement("div"); card.id = "vaCard"; card.setAttribute("aria-live", "polite");
+      if (page === "vr") card.classList.add("va-vr");
       mapwrap.appendChild(card);
     }
+    document.querySelectorAll(".va-ver").forEach(el => { el.textContent = "archive v" + ARCHIVE_VERSION; });
   }
 
   // ---------- Timeline cards (3D page) ----------
   let card = null, shownIdx = -1, cardsOn = true;
   const TL = VOICES.filter(v => v.h != null).sort((a, b) => a.h - b.h);
-  function atHour(h, active) {
-    if (!card) return;
+  function indexAt(h, active) {
     let idx = -1;
     if (active && cardsOn) for (let i = 0; i < TL.length; i++) {
       const until = Math.min(TL[i].h + 24, i + 1 < TL.length ? TL[i + 1].h : Infinity);
       if (h >= TL[i].h && h < until) idx = i;
     }
+    return idx;
+  }
+  function momentAt(h, active) {
+    const i = indexAt(h, active); if (i < 0) return null;
+    const v = TL[i];
+    return v.photoOnly ? { when: v.when, text: v.caption, who: "" }
+                       : { when: v.when, text: "“" + v.quote + "”", who: v.who + ", " + v.role };
+  }
+  function atHour(h, active) {
+    if (!card) return;
+    const idx = indexAt(h, active);
     if (idx === shownIdx) return;
     shownIdx = idx;
     if (idx < 0) { card.classList.remove("on"); card.innerHTML = ""; return; }
@@ -351,5 +369,5 @@
     if (e.key === "ArrowLeft") viewPhoto(PHOTOS[(i + PHOTOS.length - 1) % PHOTOS.length].id);
   });
 
-  window.VesuviusArchive = { version: ARCHIVE_VERSION, mount, open, atHour, setCards };
+  window.VesuviusArchive = { version: ARCHIVE_VERSION, mount, open, atHour, momentAt, setCards };
 })();

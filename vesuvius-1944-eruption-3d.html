@@ -100,7 +100,7 @@
 <body>
 <div id="app">
   <aside id="panel">
-    <div class="kicker">Physical processes · Volcanoes <span class="ver" id="appVer">v0.7</span></div>
+    <div class="kicker">Physical processes · Volcanoes <span class="ver" id="appVer">v0.8</span></div>
     <h1>Vesuvius 1944: the eruption in 3D</h1>
     <p class="lede">In March 1944 lava from Mount Vesuvius destroyed the towns of San Sebastiano al Vesuvio and Massa di Somma. Watch the eruption unfold on real ArcGIS terrain: lava flows, lava fountains, then the ash cloud. Then run the lava model yourself.</p>
 
@@ -117,7 +117,7 @@
         <label><input type="checkbox" id="eCloud" checked /> Ash cloud and lava fountains <span class="ver">v0.2</span></label>
         <label><input type="checkbox" id="eGround" checked /> Ash on the ground <span class="ver">v0.2</span></label>
         <label><input type="checkbox" id="eSound" checked /> Sound <span class="ver">v0.1</span></label>
-        <label><input type="checkbox" id="eVoices" checked onchange="VesuviusArchive.setCards(this.checked)" /> Eyewitness cards <span class="ver">archive v1.2</span></label>
+        <label><input type="checkbox" id="eVoices" checked onchange="VesuviusArchive.setCards(this.checked)" /> Eyewitness cards <span class="ver va-ver">archive v1.3</span></label>
       </div>
       <p class="note">The lava's path comes from the lava model below <span class="ver">v1.0</span>, drawn as one molten flow along the most likely path <span class="ver">v0.2</span>. Run the model to see the full hazard map of where lava could go. The fountains, ash cloud and ash on the ground are an <b>illustration</b> based on accounts of 1944. They are not modelled.</p>
     </div>
@@ -187,7 +187,7 @@
       </div>
     </div>
 
-    <h2>Evidence from 1944 <span class="ver">archive v1.2</span></h2>
+    <h2>Evidence from 1944 <span class="ver va-ver">archive v1.3</span></h2>
     <div id="vaPanel"></div>
 
     <h2>Explore</h2>
@@ -243,12 +243,12 @@
       <summary>Versions</summary>
       <table class="vers">
         <tr><th>Part</th><th>Version</th><th>What it is</th></tr>
-        <tr><td>App</td><td>0.7</td><td>0.7: archive 1.2 (B-25 photo restored). 0.6: archive 1.1 (licence check). Test page: eruption animation inside the ArcGIS 3D scene. 0.5: adds the 1944 archive and eyewitness cards on the timeline</td></tr>
+        <tr><td>App</td><td>0.8</td><td>0.8: archive 1.3, version labels read from the archive file. 0.7: archive 1.2 (B-25 photo restored). 0.6: archive 1.1 (licence check). Test page: eruption animation inside the ArcGIS 3D scene. 0.5: adds the 1944 archive and eyewitness cards on the timeline</td></tr>
         <tr><td>Lava model</td><td>1.0</td><td>DOWNFLOW-style steepest descent with pit filling, 20 m grid</td></tr>
         <tr><td>Lava look and timing</td><td>0.2</td><td>One flow, like 1944: the model's most likely path (and the hollows it fills), widened to the Flow width setting, drawn as molten lava with a glowing front that cools to a crust with glowing cracks. Timed along the path so the northern flow reaches San Sebastiano early on 21 March. 0.1 used every area reached by 20% or more of flows</td></tr>
         <tr><td>Sound</td><td>0.1</td><td>Made in the browser (no recordings): rumble, roar, explosions and crackling lava. Louder when you are closer</td></tr>
         <tr><td>Ash cloud and fountains</td><td>0.2</td><td>Illustrative particles drawn with an ArcGIS RenderNode (custom WebGL). 0.2: grey column with glow only near the vent, dimmer fountains, lumpier cloud</td></tr>
-        <tr><td>1944 archive and eyewitness cards</td><td>1.2</td><td>1.2: B-25 photo restored after its public-domain licence was confirmed. 1.1: that photo removed pending the check. Shared with the lava explorer (vesuvius-1944-archive.js): 2 newsreels, 12 photographs, 7 eyewitness accounts, 5 tasks. Cards appear on the map at the time each account was written</td></tr>
+        <tr><td>1944 archive and eyewitness cards</td><td>1.3</td><td>1.3: also used by the VR page (jsawle/vr). 1.2: B-25 photo restored after its public-domain licence was confirmed. 1.1: that photo removed pending the check. Shared with the lava explorer and VR page (vesuvius-1944-archive.js): 2 newsreels, 12 photographs, 7 eyewitness accounts, 5 tasks. Cards appear on the map at the time each account was written</td></tr>
         <tr><td>Ash on the ground</td><td>0.2</td><td>Illustrative ash-fall lobes: east 22–23 March, south-west 23–29 March. 0.2: faded in by symbol colour instead of layer opacity</td></tr>
       </table>
     </details>
@@ -956,7 +956,7 @@ $("replay").onclick = () => { if (lastFrames) { eruption.stop(); play(lastFrames
 // Lava comes from the model above. Fountains, the ash cloud and ash on the ground are illustrative, following
 // INGV and contemporary accounts. Particles are drawn with an ArcGIS RenderNode: custom WebGL inside the SceneView,
 // so they sit in the same 3D scene as the terrain and are hidden by it.
-const APP_VERSION = "0.7";
+const APP_VERSION = "0.8";
 const VERSIONS = { app: APP_VERSION, lava: "1.0", lavaLook: "0.2", cloud: "0.2", ground: "0.2", sound: "0.1", archive: window.VesuviusArchive ? VesuviusArchive.version : "missing" };
 console.info("Vesuvius 1944 eruption 3D", VERSIONS);
 
