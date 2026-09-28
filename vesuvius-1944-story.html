@@ -32,15 +32,39 @@
   .top { padding: 14px 20px 10px; border-bottom: 1px solid var(--rule); }
   .kicker { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); font-weight: 700; }
   .ver { font: 600 11px/1 ui-monospace, Menlo, Consolas, monospace; color: var(--muted); background: var(--chip); border: 1px solid var(--rule); border-radius: 4px; padding: 2px 5px; margin-left: 6px; text-transform: none; letter-spacing: 0; vertical-align: 1px; }
-  .dots { display: flex; gap: 6px; margin-top: 4px; }
-  .dots button { flex: 1; height: 24px; padding: 0; border: 0; background: none; cursor: pointer; position: relative; }
-  .dots button::before { content: ""; position: absolute; left: 0; right: 0; top: 8px; height: 8px; border-radius: 4px; background: var(--rule); }
-  .dots button[aria-current="step"]::before { background: var(--accent); }
-  .dots button.seen::before { background: color-mix(in srgb, var(--accent) 40%, var(--rule)); }
-  #mBody { flex: 1; overflow-y: auto; padding: 16px 20px 8px; }
-  #mWhen { font-weight: 700; color: var(--muted); font-size: 14px; }
-  #mTitle { font-size: 24px; line-height: 1.2; margin: 2px 0 8px; letter-spacing: -0.01em; }
+  #vBody { flex: 1; overflow-y: auto; padding: 14px 20px 16px; }
+  #vBody h1 { font-size: 23px; line-height: 1.2; margin: 2px 0 6px; letter-spacing: -0.01em; }
+  .lede { margin: 0 0 12px; color: var(--muted); }
+  #watch { width: 100%; font-size: 17px; padding: 12px; }
+  .endbox { border: 2px solid var(--accent); border-radius: 12px; padding: 10px 14px; margin: 0 0 12px; background: color-mix(in srgb, var(--accent) 8%, var(--panel)); }
+  .endbox b { color: var(--accent); }
+  .tools2 { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 0; }
+  .tools2 button, .tools2 a { font-size: 13.5px; padding: 7px 10px; }
+  .tools2 a { color: var(--accent); font-weight: 600; align-self: center; }
+  .chapters { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+  .chap { width: 100%; display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 10px; align-items: center; text-align: left; font-weight: 400; padding: 6px; }
+  .chap img, .chap .ph { width: 56px; height: 56px; border-radius: 6px; object-fit: cover; background: var(--rule); display: block; filter: grayscale(1); }
+  .chap .ph { display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--muted); filter: none; }
+  .chap .w { font-size: 12px; font-weight: 700; color: var(--muted); }
+  .chap .t { font-weight: 700; font-size: 15px; line-height: 1.25; }
+  .chap .b { font-size: 12px; color: var(--muted); }
+  .chap.now { border-color: var(--accent); box-shadow: inset 4px 0 0 var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--chip)); }
+  .chap.ahead { opacity: .6; }
+  .chap .va-broken { width: 56px; height: 56px; aspect-ratio: auto; font-size: 0; padding: 0; }
+  .detail-nav { display: flex; justify-content: space-between; gap: 8px; margin: 12px 0 0; }
+  #mWhen { font-weight: 700; color: var(--muted); font-size: 14px; margin-top: 8px; }
+  #mTitle { font-size: 23px; line-height: 1.2; margin: 2px 0 8px; letter-spacing: -0.01em; }
   #mText { margin: 0 0 12px; }
+  #cap { position: absolute; left: 12px; bottom: 28px; z-index: 3; width: min(520px, calc(100% - 360px)); background: rgba(20,18,16,.82); color: #fff;
+    border-radius: 12px; padding: 10px 16px; box-shadow: 0 4px 18px rgba(0,0,0,.3); display: none; }
+  #cap.on { display: block; animation: capIn .4s ease-out; }
+  @keyframes capIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { #cap.on { animation: none; } }
+  #cap .k { font-size: 11.5px; letter-spacing: .07em; text-transform: uppercase; color: #fdba74; font-weight: 700; }
+  #cap .t { font-size: 18px; font-weight: 700; line-height: 1.25; }
+  #cap .x { font-size: 14px; line-height: 1.4; margin-top: 2px; }
+  #cTicks { position: absolute; inset: 0; }
+  #cTicks i { position: absolute; top: -2px; width: 2px; height: 10px; background: var(--muted); opacity: .6; }
   .ev { margin: 0 0 12px; }
   .ev figure { margin: 0 0 10px; }
   .ev img { width: 100%; max-height: 250px; object-fit: contain; border-radius: 8px; display: block; background: #222; cursor: zoom-in; }
@@ -54,15 +78,13 @@
   .q { border: 2px solid var(--accent); border-radius: 10px; padding: 10px 14px; margin: 4px 0 12px; }
   .q b { display: block; color: var(--accent); font-size: 13px; text-transform: uppercase; letter-spacing: .06em; }
   .links { display: flex; flex-direction: column; gap: 8px; margin: 4px 0 12px; }
-  .nav { display: flex; gap: 8px; padding: 12px 20px 16px; border-top: 1px solid var(--rule); }
   button { font: inherit; font-weight: 600; border-radius: 8px; padding: 10px 14px; cursor: pointer; border: 1px solid var(--rule); background: var(--chip); color: var(--ink); }
   button:disabled { opacity: 0.45; cursor: default; }
   button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
-  button:focus-visible, .dots button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-  .nav #play { flex: 1; }
-  .nav #next.pulse { animation: pulse 1.6s ease-in-out infinite; }
+  button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  #watch.pulse { animation: pulse 1.6s ease-in-out infinite; }
   @keyframes pulse { 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 30%, transparent); } }
-  @media (prefers-reduced-motion: reduce) { .nav #next.pulse { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { #watch.pulse { animation: none; } }
   #clock { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); z-index: 3; background: var(--panel); border: 1px solid var(--rule);
     border-radius: 12px; padding: 8px 14px 10px; min-width: 300px; max-width: calc(100% - 140px); box-shadow: 0 2px 12px rgba(0,0,0,.2); text-align: center; }
   #cDate { font-weight: 700; font-size: 17px; font-variant-numeric: tabular-nums; }
@@ -95,14 +117,16 @@
     #app { flex-direction: column-reverse; }
     #story { width: 100%; height: 55%; border-right: 0; border-top: 1px solid var(--rule); }
     #mapwrap { height: 45%; flex: none; }
-    #mTitle { font-size: 20px; }
+    #mTitle, #vBody h1 { font-size: 20px; }
+    #cap { width: auto; left: 8px; right: 8px; bottom: 48px; padding: 6px 10px; }
+    #cap .t { font-size: 15px; } #cap .x { display: none; }
+    @keyframes capIn { from { opacity: 0; } to { opacity: 1; } }
     #clock { min-width: 0; left: 56px; transform: none; max-width: none; padding: 6px 10px 8px; }
     #cDate { font-size: 14px; } #cPhase { font-size: 12px; }
     #key { display: none; }
     #clock { right: 8px; }
     #tools { left: 8px; right: 8px; top: auto; bottom: 8px; flex-direction: row; overflow-x: auto; }
     #tools button { padding: 5px 8px; font-size: 12px; white-space: nowrap; flex: none; }
-    .nav { padding: 8px 12px 10px; } .nav button { padding: 9px 10px; }
   }
 </style>
 </head>
@@ -110,21 +134,28 @@
 <div id="app">
   <aside id="story" aria-label="The story of the eruption">
     <div class="top">
-      <div class="kicker">Vesuvius, March 1944 <span class="ver" id="appVer">v0.2</span></div>
-      <div class="dots" id="dots" aria-label="Moments"></div>
+      <div class="kicker">Vesuvius, March 1944 <span class="ver" id="appVer">v0.3</span></div>
     </div>
-    <div id="mBody" aria-live="polite">
-      <div id="mWhen"></div>
-      <h1 id="mTitle">Loading…</h1>
-      <p id="mText"></p>
-      <div class="ev" id="mEv"></div>
-      <div class="q" id="mQwrap"><b>Think about it</b><span id="mQ"></span></div>
-      <div class="links" id="mLinks"></div>
-    </div>
-    <div class="nav">
-      <button id="back" aria-label="Previous moment">◀ Back</button>
-      <button id="play" disabled>▶ Play</button>
-      <button id="next" class="primary" disabled>Next ▶</button>
+    <div id="vBody" aria-live="polite">
+      <div id="vList">
+        <div id="listHead">
+          <h1>The last eruption of Vesuvius</h1>
+          <p class="lede">In March 1944, during World War II, Mount Vesuvius erupted for eleven days. Watch the whole eruption on real terrain, then explore photographs, eyewitness accounts and questions for each moment.</p>
+        </div>
+        <button id="watch" class="primary pulse" disabled>▶ Watch the eruption (1½ minutes)</button>
+        <ol class="chapters" id="chapters" aria-label="Moments of the eruption"></ol>
+      </div>
+      <div id="vDetail" hidden>
+        <button id="toList">◀ All moments</button>
+        <div id="mWhen"></div>
+        <h1 id="mTitle"></h1>
+        <p id="mText"></p>
+        <div class="ev" id="mEv"></div>
+        <div class="q"><b>Think about it</b><span id="mQ"></span></div>
+        <div class="links" id="mLinks"></div>
+        <button id="replayPart" class="primary" style="width:100%">↺ Replay this part</button>
+        <div class="detail-nav"><button id="prevM">◀ Previous moment</button><button id="nextM">Next moment ▶</button></div>
+      </div>
     </div>
   </aside>
   <main id="mapwrap">
@@ -137,9 +168,10 @@
     <div id="clock" aria-live="off">
       <div id="cDate">18 March 1944</div>
       <div id="cPhase">Before the eruption</div>
-      <div id="cBar"><div id="cFill"></div></div>
+      <div id="cBar"><div id="cFill"></div><div id="cTicks"></div></div>
       <div id="note"></div>
     </div>
+    <div id="cap" aria-live="polite"><div class="k" id="capK"></div><div class="t" id="capT"></div><div class="x" id="capX"></div></div>
     <div id="tools">
       <button id="snd" aria-pressed="false">🔈 Sound</button>
       <button id="film">▶ Newsreels</button>
@@ -159,11 +191,11 @@
 <dialog class="info" id="dTeach" aria-labelledby="dTeachT">
   <div class="hd"><h2 id="dTeachT">For teachers</h2><button data-close>Close</button></div>
   <div class="bd">
-    <p>This page tells the story of the March 1944 eruption of Mount Vesuvius in eight moments. Each moment plays one part of the eruption on real terrain, then pauses on a photograph or eyewitness account and one question. Students move on when they're ready. It was written for grades 6–8 and runs in a web browser, with no sign-in.</p>
+    <p>This page tells the story of the March 1944 eruption of Mount Vesuvius. First the whole eruption plays on real terrain in about 1½ minutes, with a caption for each of its eight moments. Then students open the moments one by one to see a photograph or eyewitness account, answer a question and replay that part. It was written for grades 6–8 and runs in a web browser, with no sign-in.</p>
     <h3>Some ways it could be used</h3>
     <ul>
-      <li><b>Whole class, about 20 minutes:</b> on a projector, pausing on each question for discussion.</li>
-      <li><b>Pairs or small groups, about 30–40 minutes:</b> students work through the moments and note their answers.</li>
+      <li><b>Whole class, about 20 minutes:</b> on a projector, watch it through once, then open the moments together for discussion.</li>
+      <li><b>Pairs or small groups, about 30–40 minutes:</b> students watch, then work through the moments and note their answers.</li>
       <li><b>As a starting point for the “what if” explorer:</b> after seeing what happened in 1944, students test what lava might do at Vesuvius or another volcano today.</li>
       <li><b>For a history or literacy lesson:</b> the Photos &amp; eyewitnesses button has the newsreels, 12 photographs, 7 accounts and 5 source-analysis tasks.</li>
     </ul>
@@ -187,7 +219,7 @@
     <h3>Versions</h3>
     <table>
       <tr><th>Part</th><th>Version</th><th>What it is</th></tr>
-      <tr><td>App</td><td>0.2</td><td>0.2: fixes from review (photo window styling, Play beats the automatic start, model versions on the map key, larger moment buttons). 0.1: first version of the guided story, eight moments with Back and Next, each pausing on evidence and a question</td></tr>
+      <tr><td>App</td><td>0.3</td><td>0.3: the eruption plays straight through (about 1½ minutes) with a caption for each moment, then the moments open one by one with their evidence, question and a replay. 0.2: fixes from review (photo window styling, Play beats the automatic start, model versions on the map key, larger moment buttons). 0.1: first version of the guided story, eight moments with Back and Next, each pausing on evidence and a question</td></tr>
       <tr><td>Lava model</td><td>1.0</td><td>DOWNFLOW-style steepest descent with hollow filling, on a 20 m grid of Esri World Elevation (same code as the lava explorer). Here it traces the single most likely path for each 1944 flow</td></tr>
       <tr><td>Lava look and timing</td><td>0.3</td><td>Both 1944 flows (north, stopping at about 140 m; south-east, stopping at about 350 m), 200 m wide, at one speed timed so the northern flow reaches San Sebastiano early on 21 March</td></tr>
       <tr><td>Ash cloud and fountains</td><td>0.3</td><td>Illustration drawn in the 3D scene: eight lava fountains up to about 4 km, then an ash column over 5 km blown east, then smaller bursts under 2 km blown south-west. 0.3: smaller bursts lowered from 3 km to under 2 km (INGV)</td></tr>
@@ -414,7 +446,7 @@
 const LavaModel = window.LavaModel;
 
 // ---------- Versions (also listed in About) ----------
-const APP_VERSION = "0.2";
+const APP_VERSION = "0.3";
 const VERSIONS = { app: APP_VERSION, lava: "1.0", lavaLook: "0.3", cloud: "0.3", ground: "0.2", sound: "0.1", archive: window.VesuviusArchive ? VesuviusArchive.version : "missing" };
 
 // ---------- Setup ----------
@@ -842,7 +874,7 @@ function setSound(on) {
   if (snd.master) snd.master.gain.setTargetAtTime(on ? 0.9 : 0, snd.ctx.currentTime, 0.05);
 }
 
-const pb = { h: 0, target: 0, rate: 0, playing: false, last: 0, phase: -1, active: false };
+const pb = { h: 0, sec: 0, playing: false, last: 0, phase: -1, active: false };
 const opts = { cloud: true, ground: true };
 
 const EruptionNode = RenderNode.createSubclass({
@@ -1018,77 +1050,119 @@ function voiceHTML(i) {
     <div class="who"><b>${esc(v.who)}</b>, ${esc(v.role)} · ${esc(v.when)} · <a href="${v.src}" target="_blank" rel="noopener">Source</a></div>`;
 }
 
-let cur = -1, seen = new Set();
-const dots = $("dots");
-MOMENTS.forEach((m, i) => { const b = document.createElement("button"); b.setAttribute("aria-label", `Moment ${i + 1}: ${m.title}`);
-  b.onclick = () => showMoment(i); dots.appendChild(b); });
+// The whole eruption plays without stopping; each moment's evidence and question are opened from the list.
+// Playable moments (dur > 0) are laid end to end: SEGS = [startSecond, endSecond, index].
+// The opening moment is held for a few seconds so its caption can be read before the lava starts.
+const INTRO_S = 5;
+const SEGS = []; { let t = 0; MOMENTS.forEach((m, i) => { const d = m.dur || (i === 0 ? INTRO_S : 0); if (d) { SEGS.push([t, t + d, i]); t += d; } }); }
+const TOTAL_S = SEGS.length ? SEGS[SEGS.length - 1][1] : 0;
+function hAtSec(sec) { for (const [a, b, i] of SEGS) if (sec <= b) { const m = MOMENTS[i]; return m.h0 + (m.h1 - m.h0) * Math.max(0, sec - a) / (b - a); }
+  return MOMENTS.length ? MOMENTS[MOMENTS.length - 1].h1 : 0; }
+function momentAtSec(sec) { if (sec <= 0) return 0; for (const [a, b, i] of SEGS) if (sec < b) return i; return MOMENTS.length - 1; }
+const segOf = (i) => SEGS.find(s => s[2] === i);
+const view_ = { mode: "intro", open: -1, cur: 0, stopAt: TOTAL_S, finished: false };
 
-function showMoment(i) {
-  if (i < 0 || i >= MOMENTS.length) return;
-  cur = i; seen.add(i); const m = MOMENTS[i];
-  [...dots.children].forEach((b, k) => { if (k === i) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current"); b.classList.toggle("seen", seen.has(k) && k !== i); });
-  $("mWhen").textContent = `${i + 1} of ${MOMENTS.length} · ${m.when}`;
-  $("mTitle").textContent = m.title;
-  $("mText").textContent = m.text;
+function badges(m) { const b = []; if (m.ev.photo) b.push(m.ev.photo2 ? "2 photos" : "photo"); if (m.ev.voice != null) b.push(D && D.VOICES[m.ev.voice] && D.VOICES[m.ev.voice].quote ? "eyewitness" : "scientist"); b.push("question"); return b.join(" · "); }
+function thumb(m) { const id = m.ev.photo; const p = id && D && D.PHOTOS.find(x => x.id === id);
+  return p ? `<img src="${p.src}" alt="" referrerpolicy="no-referrer" data-va-src="${p.page}" />` : `<span class="ph" aria-hidden="true">“ ”</span>`; }
+function drawList() {
+  $("chapters").innerHTML = MOMENTS.map((m, i) => `<li><button class="chap" data-m="${i}">${thumb(m)}<span><span class="w">${i + 1} · ${esc(m.when)}</span><br><span class="t">${esc(m.title)}</span><br><span class="b">${badges(m)}</span></span></button></li>`).join("");
+  $("chapters").querySelectorAll("[data-m]").forEach(b => b.onclick = () => openMoment(+b.dataset.m));
+  if (A && A.guardImages) A.guardImages($("chapters"));
+  const ticks = SEGS.map(([a]) => `<i style="left:${(hAtSec(a) / T.end * 100).toFixed(2)}%"></i>`).join(""); $("cTicks").innerHTML = ticks;
+}
+function markList() {
+  const playing = view_.mode === "watch";
+  $("chapters").querySelectorAll("[data-m]").forEach(b => { const i = +b.dataset.m;
+    b.classList.toggle("now", playing && i === view_.cur); b.classList.toggle("ahead", playing && !view_.finished && i > view_.cur);
+    if (playing && i === view_.cur) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current"); });
+}
+function setHead() {
+  if (view_.finished && view_.mode !== "watch") {
+    $("listHead").innerHTML = `<h1>Now explore the evidence</h1>
+      <div class="endbox"><b>That was the whole eruption.</b> Now open each moment below to see photographs, read what people saw, and answer a question. You can replay any part.</div>
+      <div class="tools2"><button onclick="VesuviusArchive.open('film')">▶ 1944 newsreels</button><button onclick="VesuviusArchive.open('tasks')">Be a historian</button><a href="volcano-what-if.html?v=vesuvius">What if it erupted today? →</a></div>`;
+  }
+}
+function updateWatch() {
+  const b = $("watch");
+  b.textContent = view_.mode === "watch" ? "❚❚ Pause" : view_.mode === "paused" && pb.sec < TOTAL_S ? "▶ Keep watching" : view_.finished ? "↺ Watch the whole eruption again" : "▶ Watch the eruption (1½ minutes)";
+  b.classList.toggle("primary", !view_.finished || view_.mode === "watch"); b.classList.toggle("pulse", view_.mode === "intro");
+}
+function caption(i) {
+  const m = MOMENTS[i]; if (!m) { $("cap").classList.remove("on"); return; }
+  $("capK").textContent = `${i + 1} of ${MOMENTS.length} · ${m.when}`; $("capT").textContent = m.title;
+  $("capX").textContent = m.text.split(/(?<=\.)\s/)[0];
+  $("cap").classList.remove("on"); void $("cap").offsetWidth; $("cap").classList.add("on");
+}
+function flyTo(i, fast) {
+  const c = MOMENTS[i] && MOMENTS[i].cam; if (!c) return;
+  view.goTo({ position: { longitude: c[0], latitude: c[1], z: c[2] }, heading: c[3], tilt: c[4] }, { duration: reduceMotion ? 0 : fast ? 1500 : 3000 }).catch(() => {});
+}
+function enterMoment(i) {                                  // the playback has reached moment i
+  view_.cur = i; caption(i); flyTo(i); markList();
+  const li = $("chapters").querySelector(`[data-m="${i}"]`); if (li && view_.mode === "watch") li.scrollIntoView({ block: "nearest", behavior: reduceMotion ? "auto" : "smooth" });
+}
+function watch() {                                         // play (or keep playing) the whole eruption
+  if (snd.on) initSound();
+  if (view_.mode === "watch") { setPlaying(false); view_.mode = "paused"; updateWatch(); markList(); return; }
+  showList();
+  if (view_.mode !== "paused" || pb.sec >= TOTAL_S) { pb.sec = 0; clearParticles(); view_.cur = -1; }
+  view_.stopAt = TOTAL_S; view_.mode = "watch"; setPlaying(true); updateWatch();
+}
+function finish() {                                        // the whole eruption has played
+  view_.finished = true; view_.mode = "done"; setPlaying(false);
+  enterMoment(MOMENTS.length - 1); setHead(); updateWatch(); markList();
+  $("vBody").scrollTop = 0;
+}
+function showList() { $("vDetail").hidden = true; $("vList").hidden = false; view_.open = -1; }
+function openMoment(i) {                                   // look closely at one moment: paused on its end state
+  if (view_.mode === "watch") { setPlaying(false); view_.mode = "paused"; updateWatch(); }
+  const m = MOMENTS[i]; view_.open = i; view_.cur = i;
+  const seg = segOf(i); pb.sec = seg ? Math.max(seg[0], seg[1] - 0.05) : i === 0 ? 0 : TOTAL_S; clearParticles();   // just before the moment ends
+  $("vList").hidden = true; $("vDetail").hidden = false;
+  $("mWhen").textContent = `${i + 1} of ${MOMENTS.length} · ${m.when}`; $("mTitle").textContent = m.title; $("mText").textContent = m.text;
   let ev = "";
   if (m.ev.voice != null) ev += voiceHTML(m.ev.voice);
-  if (m.ev.photo && m.ev.photo2) ev += `<div class="pair">${photoHTML(m.ev.photo)}${photoHTML(m.ev.photo2)}</div>`;
-  else if (m.ev.photo) ev += photoHTML(m.ev.photo);
+  if (m.ev.photo && m.ev.photo2) ev += `<div class="pair">${photoHTML(m.ev.photo)}${photoHTML(m.ev.photo2)}</div>`; else if (m.ev.photo) ev += photoHTML(m.ev.photo);
   $("mEv").innerHTML = ev;
   $("mEv").querySelectorAll("img[data-p]").forEach(im => im.onclick = () => A && A.open("photos", im.dataset.p));
   if (A && A.guardImages) A.guardImages($("mEv"));
   $("mQ").textContent = " " + m.q;
-  $("mLinks").innerHTML = m.links ? `
-    <button onclick="VesuviusArchive.open('film')">▶ Watch the 1944 newsreels</button>
+  $("mLinks").innerHTML = m.links ? `<button onclick="VesuviusArchive.open('film')">▶ Watch the 1944 newsreels</button>
     <button onclick="VesuviusArchive.open('tasks')">Be a historian: 5 tasks with the evidence</button>
     <a href="volcano-what-if.html?v=vesuvius">What if Vesuvius erupted today? Try the “what if” explorer →</a>` : "";
-  $("mBody").scrollTop = 0;
-  $("back").disabled = i === 0;
-  $("next").disabled = i === MOMENTS.length - 1;
-  $("next").textContent = i === 0 ? "Start ▶" : "Next ▶";
-  $("next").classList.toggle("pulse", i === 0);
-  // move the camera, set the clock to the start of this moment, and play it
-  const [lon, lat, z, heading, tilt] = m.cam;
-  view.goTo({ position: { longitude: lon, latitude: lat, z }, heading, tilt }, { duration: reduceMotion ? 0 : 2200 }).catch(() => {});
-  pb.h = m.h0; pb.target = m.h1; pb.rate = m.dur ? (m.h1 - m.h0) / m.dur : 0; clearParticles(); setPlaying(false);
-  updatePlayButton();
-  if (m.dur) { clearTimeout(showMoment.t); showMoment.t = setTimeout(() => { if (cur === i) setPlaying(true); }, reduceMotion ? 300 : 2300); }
-  else setDone();
-  node.requestRender();
+  $("replayPart").hidden = !seg || !m.dur; $("prevM").disabled = i === 0; $("nextM").disabled = i === MOMENTS.length - 1;
+  caption(i); flyTo(i, true); $("vBody").scrollTop = 0; $("toList").focus({ preventScroll: true });
 }
-function setDone() { $("next").classList.toggle("pulse", cur < MOMENTS.length - 1); updatePlayButton(); }
-function updatePlayButton() {
-  const m = MOMENTS[cur], b = $("play");
-  if (!m || !m.dur) { b.disabled = true; b.textContent = "▶ Play"; return; }
-  b.disabled = false;
-  b.textContent = pb.playing ? "❚❚ Pause" : pb.h >= m.h1 ? "↺ Play again" : "▶ Play";
-}
-$("play").onclick = () => {
-  const m = MOMENTS[cur]; if (!m || !m.dur) return;
-  clearTimeout(showMoment.t);                          // a click beats the automatic start
-  if (snd.on) initSound();
-  if (pb.playing) setPlaying(false);
-  else { if (pb.h >= m.h1) { pb.h = m.h0; clearParticles(); } setPlaying(true); }
-};
-$("next").onclick = () => showMoment(cur + 1);
-$("back").onclick = () => showMoment(cur - 1);
+$("watch").onclick = watch;
+$("toList").onclick = () => { showList(); markList(); const b = $("chapters").querySelector(`[data-m="${view_.cur}"]`); if (b) b.focus(); };
+$("prevM").onclick = () => openMoment(view_.open - 1);
+$("nextM").onclick = () => openMoment(view_.open + 1);
+$("replayPart").onclick = () => { const seg = segOf(view_.open); if (!seg) return; if (snd.on) initSound();
+  pb.sec = seg[0]; view_.stopAt = seg[1]; clearParticles(); view_.mode = "part"; setPlaying(true); };
 
 // ---------- Playback ----------
 const reduceMotion = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
 function tick(now) {
   const dt = Math.min(0.05, (now - (pb.last || now)) / 1000); pb.last = now;
   if (!heights) return;
-  if (pb.playing) { pb.h = Math.min(pb.target, pb.h + pb.rate * dt); if (pb.h >= pb.target) { setPlaying(false); setDone(); } }
+  if (pb.playing) {
+    pb.sec = Math.min(view_.stopAt, pb.sec + dt);
+    if (view_.mode === "watch") { const i = momentAtSec(pb.sec); if (i !== view_.cur) enterMoment(i); }
+    if (pb.sec >= view_.stopAt) { setPlaying(false); if (view_.mode === "watch") finish(); else if (view_.mode === "part") view_.mode = "paused"; }
+  }
+  pb.h = view_.mode === "intro" ? 0 : hAtSec(pb.sec);
   const st = stateAt(pb.h);
   stepParticles(dt, st);                               // the eruption keeps moving while a moment is paused
   setGlow(st, now);
   setAshGround(st);
   stepSound(st, pb.active ? lavaFront(pb.h) : 0, snd.on && st.phase > 0 && st.phase < 5);
-  const date = pb.h < T.start && cur <= 0 ? "March 1944" : pb.h >= T.end ? "After 29 March 1944" : fmtDate(pb.h);
+  const date = pb.h < T.start ? "March 1944" : pb.h >= T.end ? "After 29 March 1944" : fmtDate(pb.h);
   if (date !== pb.date) { pb.date = date; $("cDate").textContent = date; $("cFill").style.width = Math.min(100, pb.h / T.end * 100) + "%"; }
   if (st.phase !== pb.phase) { pb.phase = st.phase; $("cPhase").textContent = PHASE_NAME[st.phase]; }
 }
-function setPlaying(v) { pb.playing = v; if (v) { $("next").classList.remove("pulse"); node.requestRender(); } updatePlayButton(); }
+function setPlaying(v) { pb.playing = v; if (v) node.requestRender(); }
 function fmtDate(h) { const day = 18 + Math.floor(h / 24), hh = Math.floor(h % 24), ampm = hh < 12 ? "a.m." : "p.m.", h12 = hh % 12 === 0 ? 12 : hh % 12;
   return `${day} March 1944, ${h12}:${String(Math.floor((h % 1) * 6) * 10).padStart(2, "0")} ${ampm}`; }
 
@@ -1115,9 +1189,9 @@ try {
   lavaSurf = buildLavaSurface(flows); pb.active = !!lavaSurf;
   if (!MOMENTS.length) throw new Error("The story text (vesuvius-1944-archive.js) didn't load");
   $("loading").remove();
-  $("next").disabled = false;
+  $("watch").disabled = false;
   console.info("Vesuvius 1944 story", VERSIONS, "crater top", Math.round(craterZ), "m");
-  showMoment(0);
+  drawList(); updateWatch(); caption(0); flyTo(0, true);
 } catch (e) {
   console.error(e);
   $("loadMsg").textContent = MOMENTS.length ? "Couldn't load the elevation data. Check your connection and reload the page." : "Couldn't load the story. Check your connection and reload the page.";
