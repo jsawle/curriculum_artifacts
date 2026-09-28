@@ -1,6 +1,6 @@
 // Vesuvius 1944 archive: newsreels, photographs and eyewitness accounts, shared by
 // vesuvius-1944-lava.html and vesuvius-1944-eruption-3d.html.
-// Archive version 1.5. 1.5: holds the eight story moments (text, evidence, questions, teacher notes) shared by the 3D and VR stories. 1.4: exposes the content as VesuviusArchive.data for the story page; US spelling. 1.3: works in the VR page (card on screen, momentAt() for the headset panel), version labels filled in automatically. 1.2: B-25 photo restored, licence confirmed as USGOV-PD. 1.1: B-25 photo removed pending licence check. Bump ARCHIVE_VERSION whenever the content or behaviour changes.
+// Archive version 1.6. 1.6: styles load when the dialog opens (story page); "had to leave their homes" (INGV: forced to evacuate); photo caption without the unit; activities no longer refer to model settings; Naples about 14 km. 1.5: holds the eight story moments (text, evidence, questions, teacher notes) shared by the 3D and VR stories. 1.4: exposes the content as VesuviusArchive.data for the story page; US spelling. 1.3: works in the VR page (card on screen, momentAt() for the headset panel), version labels filled in automatically. 1.2: B-25 photo restored, licence confirmed as USGOV-PD. 1.1: B-25 photo removed pending licence check. Bump ARCHIVE_VERSION whenever the content or behaviour changes.
 //
 // Usage: VesuviusArchive.mount({ panel: element, page: "lava" | "3d" | "vr", mapwrap: element })
 //        VesuviusArchive.atHour(h, active)   // 3D and VR pages: h = hours from 00:00, 18 March 1944
@@ -8,7 +8,7 @@
 // Any element with class "va-ver" gets the archive version written into it.
 (function () {
   "use strict";
-  const ARCHIVE_VERSION = "1.5";
+  const ARCHIVE_VERSION = "1.6";
 
   // ---------- Content ----------
   const SMU = "Melvin C. Shaffer, US Army. DeGolyer Library, Southern Methodist University (no known copyright restrictions)";
@@ -28,25 +28,25 @@
       look: "Lava moved slowly enough for people to leave, but it destroyed almost every building it reached." },
     { id: "church", src: "https://live.staticflickr.com/2499/3987145623_99e7ecd7a1_z.jpg", page: FLICKR + "3987145623/",
       title: "Church destroyed by lava, San Sebastiano al Vesuvio", date: "March 1944", credit: SMU,
-      look: "Lava pushes walls over and buries what is left. Compare this with the buildings count in the model." },
+      look: "Lava pushes walls over and buries what is left. How many buildings like this do you think the lava reached?" },
     { id: "churchin", src: "https://live.staticflickr.com/2562/3987946178_a6d83f3b57_z.jpg", page: FLICKR + "3987946178/",
       title: "Inside the church destroyed by lava, San Sebastiano", date: "1944", credit: SMU,
       look: "How high did the lava reach inside the building? Use the people or doorways for scale." },
     { id: "children", src: "https://live.staticflickr.com/3524/3987052447_e85eafa0a8_z.jpg", page: FLICKR + "3987052447/",
       title: "Vesuvius, and children whose homes were covered by the lava", date: "1944", credit: SMU,
-      look: "About 10,000–12,000 people lost their homes. What would a family need straight after an eruption like this?" },
+      look: "About 10,000–12,000 people had to leave their homes. What would a family need straight after an eruption like this?" },
     { id: "naples", src: "https://live.staticflickr.com/3471/3987122833_fb1b5f5d9a_z.jpg", page: FLICKR + "3987122833/",
       title: "The eruption seen from Naples", date: "1944", credit: SMU,
-      look: "Naples is about 12 km from the crater. The lava never got there, but the eruption column could be seen from everywhere in the city." },
+      look: "Naples is about 14 km from the crater. The lava never got there, but the eruption column could be seen from everywhere in the city." },
     { id: "height", src: "https://live.staticflickr.com/2597/3987153387_f8a3670e7b_z.jpg", page: FLICKR + "3987153387/",
       title: "Naples at the height of the eruption", date: "1944", credit: SMU,
-      look: "This is the explosive phase: a column of ash several kilometres high. Which way is the wind blowing it?" },
+      look: "This is the explosive phase: a column of ash several kilometers high. Which way is the wind blowing it?" },
     { id: "night", src: "https://live.staticflickr.com/2650/3987029415_3fc6fe360d_z.jpg", page: FLICKR + "3987029415/",
       title: "Vesuvius at night", date: "March 1944", credit: SMU,
-      look: "At night the glowing lava and fountains were visible for tens of kilometres." },
+      look: "At night the glowing lava and fountains were visible for tens of kilometers." },
     { id: "b25", src: "https://commons.wikimedia.org/wiki/Special:FilePath/North_American_B-25_after_1944_Mount_Versuvius_eruption_at_Pompeii_Airfield.jpg?width=800",
       page: "https://commons.wikimedia.org/wiki/File:North_American_B-25_after_1944_Mount_Versuvius_eruption_at_Pompeii_Airfield.jpg",
-      title: "A B-25C bomber of the 321st Bomb Group, damaged by the ash fall at Pompeii Airfield", date: "March 1944",
+      title: "A B-25C bomber damaged by the ash fall at Pompeii Airfield", date: "March 1944",
       credit: "US Army Air Forces photograph. Public domain (work of the US federal government), via Wikimedia Commons",
       look: "The lava never came this way. Ash and cinders did, carried east by the wind. Why can ash reach places that lava can’t?" },
     { id: "couple", src: "https://live.staticflickr.com/2582/3987952640_9437053ae4_z.jpg", page: FLICKR + "3987952640/",
@@ -63,7 +63,7 @@
     { h: 42, who: "Dr Leander K. Powers", role: "US Army flight surgeon", when: "Diary, 19 March 1944",
       quote: "A huge mass of fiery coals some 20 feet high and 200 yards wide destroying everything in its path.",
       src: "https://alcpress.org/kaiser/489thbs/vesuvius/", srcName: "Don Kaiser, 489th Bomb Squadron history", photo: "front",
-      think: "20 feet is about 6 m and 200 yards is about 180 m. Compare that with the model's Flow width setting." },
+      think: "20 feet is about 6 m and 200 yards is about 180 m. Compare that with the width of the lava on the map." },
     { h: 50, who: "Norman Lewis", role: "British Army intelligence officer in Naples", when: "Diary, March 1944, published in Naples ’44 (1978)",
       quote: "It was the most majestic and terrible sight I have ever seen …",
       src: "https://www.travelbooks.co.uk/norman-lewis-1/2017/5/24norman-lewis-on-naples", srcName: "Norman Lewis, Naples ’44 (short extract)", photo: "naples",
@@ -92,7 +92,7 @@
   const FILMS = [
     { title: "Vesuvius Eruption (1944)", by: "British Pathé newsreel", embed: "https://www.youtube-nocookie.com/embed/A-P6qQfc5fw?rel=0",
       page: "https://www.youtube.com/watch?v=A-P6qQfc5fw",
-      about: "Shown in British cinemas in spring 1944. Pathé’s catalogue describes the eruption from the air, lava moving down the slopes, people leaving Cercola, and lava moving through the streets of San Sebastiano.",
+      about: "Shown in British cinemas in spring 1944. Pathé’s catalog describes the eruption from the air, lava moving down the slopes, people leaving Cercola, and lava moving through the streets of San Sebastiano.",
       watch: ["How fast does the lava front move? Does it look like a river or a moving pile of rubble?",
               "What are people carrying as they leave? What does that tell you about how much warning they had?",
               "This film was made for wartime audiences in Britain. Whose voices are missing?"] },
@@ -104,7 +104,7 @@
   ];
 
   const ACTIVITIES = [
-    { t: "Test the model against an eyewitness", b: "Dr Powers described the lava front as “20 feet high and 200 yards wide” (about 6 m and 180 m). Set <b>Flow width</b> to 180 m and run the model with the 1944 northern flow. Does the most likely path reach San Sebastiano, where the photos were taken?" },
+    { t: "Test the model against an eyewitness", b: "Dr Powers described the lava front as “20 feet high and 200 yards wide” (about 6 m and 180 m). Look at the lava on the map: is it about that wide? Now picture a wall of hot rock 6 m high, about two stories, moving down a street. What could people save, and what couldn't they?" },
     { t: "Was there time to escape?", b: "The lava moved at 50–300 m an hour and San Sebastiano is about 5 km from the crater. Work out the fastest and slowest time the lava could take to get there. Then look at the photo of the children. Why did few people die from the lava?" },
     { t: "Which hazard went furthest?", b: "Lava traveled about 5 km, and only where the ground led it downhill, toward San Sebastiano. Ash went wherever the wind blew it. It fell on Pompeii Airfield, about 7 km east of the crater, wrecking 78–88 bombers, and on towns more than 20 km away, such as Cava. About 26 people died, most when ash piled up on roofs until they collapsed. Which hazard is harder to plan for, and why?" },
     { t: "Same eruption, different views", b: "A pilot called it “a beautiful sight”. An intelligence officer called it “majestic and terrible”. Choose two eyewitnesses. How did where they were, and who they were, change what they noticed?" },
@@ -153,7 +153,7 @@
       note: "Hot ash and cinders were blown there by the wind and fell from the sky; they damaged engines, windows and control surfaces and piled up on the aircraft." },
     { h0: 132, h1: 288, dur: 16,
       when: "23–29 March 1944", title: "The eruption fades",
-      text: "Smaller explosions went on for a week, and the wind now blew the ash to the south-west. About 26 people died, most of them when heavy ash piled up on roofs until they collapsed. About 10,000 to 12,000 people lost their homes. By 29 March the eruption was over.",
+      text: "Smaller explosions went on for a week, and the wind now blew the ash to the south-west. About 26 people died, most of them when heavy ash piled up on roofs until they collapsed. About 10,000 to 12,000 people had to leave their homes. By 29 March the eruption was over.",
       ev: { photo: "children" },
       q: "Lava or ash: which caused more harm to people in 1944? Why?",
       note: "Ash. Lava destroyed buildings but moved slowly; ash spread far with the wind, and its weight collapsed roofs, which caused most of the deaths." },
@@ -166,7 +166,7 @@
       links: true }
   ];
 
-  const FACTS = "18–29 March 1944 · about 26 deaths, mostly from roofs collapsing under ash · about 10,000–12,000 people made homeless · San Sebastiano al Vesuvio and Massa di Somma destroyed · 78–88 US bombers wrecked by ash";
+  const FACTS = "18–29 March 1944 · about 26 deaths, mostly from roofs collapsing under ash · about 10,000–12,000 people forced to leave their homes · San Sebastiano al Vesuvio and Massa di Somma destroyed · 78–88 US bombers wrecked by ash";
 
   // ---------- Styles (use each page's colour tokens) ----------
   const css = `
@@ -295,7 +295,7 @@
           <b style="font-size:14px">Watch for</b>
           <ul>${f.watch.map(w => `<li>${esc(w)}</li>`).join("")}</ul>
         </div>
-      </div>`).join("") + `<p class="va-small">Newsreel footage © British Pathé, embedded with the YouTube player as British Pathé allows without a licence. Castle Films newsreel from the Periscope Film collection, embedded with the Internet Archive player from their public upload.</p>`;
+      </div>`).join("") + `<p class="va-small">Newsreel footage © British Pathé, embedded with the YouTube player as British Pathé allows without a license. Castle Films newsreel from the Periscope Film collection, embedded with the Internet Archive player from their public upload.</p>`;
     if (tab === "photos") {
       if (arg) return viewPhoto(arg);
       body.innerHTML = `<p style="margin:0 0 10px;font-size:14px">Most of these were taken in 1944 by Melvin C. Shaffer, a US Army medical photographer (credit: DeGolyer Library, Southern Methodist University). The B-25 photo is by the US Army Air Forces. Choose a photo to look closely.</p>
@@ -341,14 +341,19 @@
   }
 
   function open(tab = "film", arg) {
+    ensureStyles();
     if (!dlg) buildDialog();
     show(tab, arg);
     if (!dlg.open) dlg.showModal();
   }
 
   // ---------- Panel section ----------
+  function ensureStyles() {
+    if (document.getElementById("va-styles")) return;
+    const st = document.createElement("style"); st.id = "va-styles"; st.textContent = css; document.head.appendChild(st);
+  }
   function mount({ panel, page, mapwrap }) {
-    const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
+    ensureStyles();
     const v = VOICES[1], strip = ["sansebnight", "front", "church", "b25"].map(id => P[id]);
     panel.innerHTML = `
       <div class="va-strip">${strip.map(p => `<button data-p="${p.id}" aria-label="Photo: ${esc(p.title)}">${img(p)}</button>`).join("")}</div>

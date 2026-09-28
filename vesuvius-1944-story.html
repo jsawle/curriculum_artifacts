@@ -32,10 +32,11 @@
   .top { padding: 14px 20px 10px; border-bottom: 1px solid var(--rule); }
   .kicker { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); font-weight: 700; }
   .ver { font: 600 11px/1 ui-monospace, Menlo, Consolas, monospace; color: var(--muted); background: var(--chip); border: 1px solid var(--rule); border-radius: 4px; padding: 2px 5px; margin-left: 6px; text-transform: none; letter-spacing: 0; vertical-align: 1px; }
-  .dots { display: flex; gap: 6px; margin-top: 10px; }
-  .dots button { flex: 1; height: 8px; padding: 0; border: 0; border-radius: 4px; background: var(--rule); cursor: pointer; }
-  .dots button[aria-current="step"] { background: var(--accent); }
-  .dots button.seen { background: color-mix(in srgb, var(--accent) 40%, var(--rule)); }
+  .dots { display: flex; gap: 6px; margin-top: 4px; }
+  .dots button { flex: 1; height: 24px; padding: 0; border: 0; background: none; cursor: pointer; position: relative; }
+  .dots button::before { content: ""; position: absolute; left: 0; right: 0; top: 8px; height: 8px; border-radius: 4px; background: var(--rule); }
+  .dots button[aria-current="step"]::before { background: var(--accent); }
+  .dots button.seen::before { background: color-mix(in srgb, var(--accent) 40%, var(--rule)); }
   #mBody { flex: 1; overflow-y: auto; padding: 16px 20px 8px; }
   #mWhen { font-weight: 700; color: var(--muted); font-size: 14px; }
   #mTitle { font-size: 24px; line-height: 1.2; margin: 2px 0 8px; letter-spacing: -0.01em; }
@@ -72,7 +73,8 @@
   #tools { position: absolute; right: 12px; top: 12px; z-index: 3; display: flex; flex-direction: column; gap: 6px; }
   #tools button { font-size: 13px; padding: 7px 10px; box-shadow: 0 2px 8px rgba(0,0,0,.15); background: var(--panel); }
   #tools button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-  #key { position: absolute; right: 12px; bottom: 28px; z-index: 3; background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 8px 12px; font-size: 12.5px; box-shadow: 0 2px 10px rgba(0,0,0,.15); max-width: 250px; }
+  #key { position: absolute; right: 12px; bottom: 28px; z-index: 3; background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 8px 12px; font-size: 12.5px; box-shadow: 0 2px 10px rgba(0,0,0,.15); max-width: 320px; }
+  #key .ver { margin-left: 2px; }
   #key .k { display: flex; align-items: center; gap: 8px; margin: 3px 0; }
   #key .sw { width: 16px; height: 12px; border-radius: 2px; flex: none; }
   #key .tag { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; padding: 1px 5px; border-radius: 8px; margin-left: auto; }
@@ -108,7 +110,7 @@
 <div id="app">
   <aside id="story" aria-label="The story of the eruption">
     <div class="top">
-      <div class="kicker">Vesuvius, March 1944 <span class="ver" id="appVer">v0.1</span></div>
+      <div class="kicker">Vesuvius, March 1944 <span class="ver" id="appVer">v0.2</span></div>
       <div class="dots" id="dots" aria-label="Moments"></div>
     </div>
     <div id="mBody" aria-live="polite">
@@ -146,9 +148,9 @@
       <button id="about">About</button>
     </div>
     <div id="key">
-      <div class="k"><span class="sw" style="background:#e8591a"></span>Lava<span class="tag model">Model</span></div>
-      <div class="k"><span class="sw" style="background:#9a948c"></span>Ash cloud and fountains<span class="tag illus">Illustration</span></div>
-      <div class="k"><span class="sw" style="background:#3a3632;opacity:.6"></span>Ash on the ground<span class="tag illus">Illustration</span></div>
+      <div class="k"><span class="sw" style="background:#e8591a"></span>Lava <span class="ver">v1.0 / 0.3</span><span class="tag model">Model</span></div>
+      <div class="k"><span class="sw" style="background:#9a948c"></span>Ash cloud, fountains <span class="ver">v0.3</span><span class="tag illus">Illustration</span></div>
+      <div class="k"><span class="sw" style="background:#3a3632;opacity:.6"></span>Ash on the ground <span class="ver">v0.2</span><span class="tag illus">Illustration</span></div>
     </div>
     <div id="loading"><div id="loadMsg">Loading the volcano…</div><div class="bar"><div id="prog"></div></div></div>
   </main>
@@ -167,7 +169,7 @@
     </ul>
     <h3>Standards it can support</h3>
     <ul>
-      <li>NGSS <b>MS-ESS3-2</b> (natural hazards and forecasting), <b>MS-ESS2-2</b> (processes that change Earth's surface, including catastrophic events), <b>HS-ESS3-1</b> (how natural hazards have influenced human activity).</li>
+      <li>NGSS <b>MS-ESS3-2</b> (natural hazards and forecasting), <b>MS-ESS2-2</b> (processes that change Earth's surface, including catastrophic events), and, for high school, <b>HS-ESS3-1</b> (how natural hazards have influenced human activity).</li>
       <li>Common Core literacy in history/social studies <b>RH.6-8.1</b>, <b>RH.6-8.6</b>, <b>RH.6-8.7</b> and <b>RH.6-8.9</b> (primary and secondary sources, point of view, integrating photos, video and maps).</li>
     </ul>
     <h3>Notes on the questions</h3>
@@ -185,10 +187,10 @@
     <h3>Versions</h3>
     <table>
       <tr><th>Part</th><th>Version</th><th>What it is</th></tr>
-      <tr><td>App</td><td>0.1</td><td>First version of the guided story: eight moments with Back and Next, each pausing on evidence and a question</td></tr>
+      <tr><td>App</td><td>0.2</td><td>0.2: fixes from review (photo window styling, Play beats the automatic start, model versions on the map key, larger moment buttons). 0.1: first version of the guided story, eight moments with Back and Next, each pausing on evidence and a question</td></tr>
       <tr><td>Lava model</td><td>1.0</td><td>DOWNFLOW-style steepest descent with hollow filling, on a 20 m grid of Esri World Elevation (same code as the lava explorer). Here it traces the single most likely path for each 1944 flow</td></tr>
       <tr><td>Lava look and timing</td><td>0.3</td><td>Both 1944 flows (north, stopping at about 140 m; south-east, stopping at about 350 m), 200 m wide, at one speed timed so the northern flow reaches San Sebastiano early on 21 March</td></tr>
-      <tr><td>Ash cloud and fountains</td><td>0.2</td><td>Illustration drawn in the 3D scene: eight lava fountains up to about 4 km, then an ash column over 5 km blown east, then smaller bursts blown south-west</td></tr>
+      <tr><td>Ash cloud and fountains</td><td>0.3</td><td>Illustration drawn in the 3D scene: eight lava fountains up to about 4 km, then an ash column over 5 km blown east, then smaller bursts under 2 km blown south-west. 0.3: smaller bursts lowered from 3 km to under 2 km (INGV)</td></tr>
       <tr><td>Ash on the ground</td><td>0.2</td><td>Illustration: ash-fall areas to the east (22–23 March) and south-west (23–29 March)</td></tr>
       <tr><td>Sound</td><td>0.1</td><td>Made in the browser, no recordings. Off until you turn it on</td></tr>
       <tr><td>1944 archive</td><td id="archVer">–</td><td>Photos, newsreels and eyewitness accounts, shared with the other Vesuvius pages (vesuvius-1944-archive.js)</td></tr>
@@ -203,7 +205,7 @@
       <a href="https://www.forgottenairfields.com/airfield-pompeii-559.html" target="_blank" rel="noopener">Pompeii Airfield location</a>
     </p>
     <p>Elevation: Esri World Elevation. Imagery: Esri World Imagery. Photographs, films and accounts are credited where they appear.</p>
-    <p>Other Vesuvius pages: <a href="vesuvius-1944-eruption-3d.html">3D eruption with model settings</a> · <a href="vesuvius-1944-lava.html">lava hazard explorer</a> · <a href="https://jsawle.github.io/vr/vesuvius-1944-vr.html">VR version</a></p>
+    <p>Other Vesuvius pages: <a href="vesuvius-1944-eruption-3d.html">3D eruption with model settings</a> · <a href="vesuvius-1944-lava.html">lava hazard explorer</a> · <a href="https://jsawle.github.io/vr/vesuvius-1944-vr-story.html">VR version of this story</a> · <a href="volcano-what-if.html?v=vesuvius">What if a volcano erupted?</a></p>
   </div>
 </dialog>
 
@@ -412,8 +414,8 @@
 const LavaModel = window.LavaModel;
 
 // ---------- Versions (also listed in About) ----------
-const APP_VERSION = "0.1";
-const VERSIONS = { app: APP_VERSION, lava: "1.0", lavaLook: "0.3", cloud: "0.2", ground: "0.2", sound: "0.1", archive: window.VesuviusArchive ? VesuviusArchive.version : "missing" };
+const APP_VERSION = "0.2";
+const VERSIONS = { app: APP_VERSION, lava: "1.0", lavaLook: "0.3", cloud: "0.3", ground: "0.2", sound: "0.1", archive: window.VesuviusArchive ? VesuviusArchive.version : "missing" };
 
 // ---------- Setup ----------
 const CRATER = { lon: 14.4269, lat: 40.8211 };        // Gran Cono summit crater
@@ -561,7 +563,7 @@ function stateAt(h) {
   else if (h < T.phase4) { s.phase = 3; const f = (h - T.column) / (T.phase4 - T.column);
     s.ashRate = 380; s.top = 6000; s.windV = 2200; s.heat = 0.15; s.glow = 0.3; s.ashE = f; s.rumble = 0.8; s.roar = 0.45; s.booms = 0.8; }
   else if (h < T.end) { s.phase = 4; const f = (h - T.phase4) / (T.end - T.phase4), burst = Math.pow(Math.max(0, Math.sin(f * 14 * Math.PI)), 3) * (1 - f * 0.6);
-    s.ashRate = 220 * burst; s.top = 3000; s.windB = ASH_AXIS_W; s.windV = 1500; s.glow = 0.1; s.ashE = 1; s.ashW = f; s.rumble = 0.2 + 0.4 * burst; s.roar = 0.2 * burst; s.booms = 0.5 * burst; }
+    s.ashRate = 220 * burst; s.top = 1800; s.windB = ASH_AXIS_W; s.windV = 1500; s.glow = 0.1; s.ashE = 1; s.ashW = f; s.rumble = 0.2 + 0.4 * burst; s.roar = 0.2 * burst; s.booms = 0.5 * burst; }
   else { s.phase = 5; s.ashE = 1; s.ashW = 1; s.rumble = 0; }
   return s;
 }
@@ -998,7 +1000,7 @@ const CAMS = [
   [14.43, 40.935, 9500, 182, 56],
   [14.335, 40.905, 5200, 140, 62]
 ];
-const MOMENTS = window.VesuviusArchive.data.STORY.map((m, i) => ({ ...m, cam: CAMS[i] }));
+const MOMENTS = (window.VesuviusArchive && VesuviusArchive.data && VesuviusArchive.data.STORY || []).map((m, i) => ({ ...m, cam: CAMS[i] }));
 const PHASE_NAME = ["Before the eruption", "Lava flows", "Lava fountains", "Explosions and ash", "Smaller explosions", "The eruption is over"];
 
 const A = window.VesuviusArchive, D = A ? A.data : null;
@@ -1063,6 +1065,7 @@ function updatePlayButton() {
 }
 $("play").onclick = () => {
   const m = MOMENTS[cur]; if (!m || !m.dur) return;
+  clearTimeout(showMoment.t);                          // a click beats the automatic start
   if (snd.on) initSound();
   if (pb.playing) setPlaying(false);
   else { if (pb.h >= m.h1) { pb.h = m.h0; clearParticles(); } setPlaying(true); }
@@ -1110,13 +1113,14 @@ try {
     return { res: r.result(), key };
   });
   lavaSurf = buildLavaSurface(flows); pb.active = !!lavaSurf;
+  if (!MOMENTS.length) throw new Error("The story text (vesuvius-1944-archive.js) didn't load");
   $("loading").remove();
   $("next").disabled = false;
   console.info("Vesuvius 1944 story", VERSIONS, "crater top", Math.round(craterZ), "m");
   showMoment(0);
 } catch (e) {
   console.error(e);
-  $("loadMsg").textContent = "Couldn't load the elevation data. Check your connection and reload the page.";
+  $("loadMsg").textContent = MOMENTS.length ? "Couldn't load the elevation data. Check your connection and reload the page." : "Couldn't load the story. Check your connection and reload the page.";
 }
 </script>
 </body>

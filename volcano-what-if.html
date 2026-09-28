@@ -58,6 +58,7 @@
   .tile .t { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 700; }
   .tile .v { font-size: 20px; font-weight: 700; line-height: 1.25; }
   .tile .s { font-size: 13px; color: var(--muted); }
+  .key .sw { display: inline-block; width: 12px; height: 10px; border-radius: 2px; margin: 0 3px 0 6px; vertical-align: -1px; }
   .real { background: var(--chip); border-radius: 10px; padding: 10px 12px; margin-top: 8px; font-size: 14px; }
   .real a { color: var(--accent); }
   .q { border: 2px solid var(--accent); border-radius: 10px; padding: 10px 12px; margin-top: 8px; font-size: 14.5px; }
@@ -92,7 +93,7 @@
 <body>
 <div id="app">
   <aside id="panel">
-    <div class="kicker">Volcano hazards · What if? <span class="ver">v0.1</span></div>
+    <div class="kicker">Volcano hazards · What if? <span class="ver">v0.2</span></div>
     <h1>What if a volcano erupted?</h1>
     <p class="lede">Choose a real volcano, where the eruption starts and what kind of lava comes out. A computer model shows where the lava could go, how fast, and who lives in its path.</p>
 
@@ -110,24 +111,25 @@
     </section>
 
     <section class="step">
-      <h2><span class="n">3</span>What kind of lava? <span class="ver">speed model v0.1</span></h2>
+      <h2><span class="n">3</span>What kind of lava? <span class="ver">speed model v0.2</span></h2>
       <div class="grid" id="lavas"></div>
       <p class="hint" id="lavaNote"></p>
     </section>
 
     <section class="step">
       <button id="erupt" class="primary" disabled>▶ Erupt!</button>
-      <div id="status">Loading…</div>
+      <div class="hint" style="margin-top:4px">Lava path model <span class="ver">v1.0</span> · speed model <span class="ver">v0.2</span> · people <span class="ver">v0.2</span></div>
+      <div id="status" role="status">Loading…</div>
       <div class="bar"><div id="prog"></div></div>
     </section>
 
     <section class="step" id="results">
       <h2><span class="n">4</span>What happened?</h2>
-      <p class="hint" style="margin:-4px 0 8px">On the map: <b style="color:#7f1d1d">dark red</b> = very likely, <b style="color:#dc2626">red</b> = likely, <b style="color:#ea580c">orange</b> = possible, <b style="color:#b45309">yellow</b> = unlikely.</p>
+      <p class="hint key" style="margin:-4px 0 8px">Chance lava reaches a place: <span class="sw" style="background:var(--l5)"></span>over 80% <span class="sw" style="background:var(--l4)"></span>50–80% <span class="sw" style="background:var(--l3)"></span>20–50% <span class="sw" style="background:var(--l2)"></span>5–20% <span class="sw" style="background:var(--l1)"></span>under 5%. The “likely zone” is 20% or more.</p>
       <div class="tiles">
         <div class="tile"><div class="t">How far</div><div class="v" id="rFar">–</div><div class="s" id="rFarS"></div></div>
         <div class="tile"><div class="t">How fast</div><div class="v" id="rFast">–</div><div class="s" id="rFastS"></div></div>
-        <div class="tile"><div class="t">Who lives in its path <span class="ver">people v0.1</span></div><div class="v" id="rPeople">–</div><div class="s" id="rPeopleS"></div></div>
+        <div class="tile"><div class="t">Who lives in its path <span class="ver">people v0.2</span></div><div class="v" id="rPeople">–</div><div class="s" id="rPeopleS"></div></div>
       </div>
       <div class="real" id="rReal"></div>
       <div class="q" id="rQ"></div>
@@ -148,6 +150,8 @@
         <li><b>How much lava erupts.</b> Real flows stop when the supply stops. Here each kind of lava has a fixed greatest length, based on real flows.</li>
         <li><b>Other hazards.</b> At many volcanoes, ash, pyroclastic flows and mudflows (lahars) are more dangerous than lava. At Mount St. Helens and Vesuvius, sticky or gassy magma makes explosions the main danger.</li>
         <li><b>Today's ground and people.</b> The elevation map and population are from recent years. Buildings, walls and roads also steer real lava.</li>
+        <li><b>Fast lava rivers.</b> The speed model follows the front of a flow. Near a big vent, lava can run in channels much faster.</li>
+        <li><b>Craters and lakes.</b> Lava from a summit vent first fills the crater or caldera, and the model doesn't count the time that takes. Lakes are treated as flat ground.</li>
         <li><b>Vent positions</b> marked “about” are placed by the app from a direction and height given in the sources.</li>
       </ul>
     </details>
@@ -185,10 +189,10 @@
       <summary>Versions and sources</summary>
       <table class="vers">
         <tr><th>Part</th><th>Version</th><th>What it is</th></tr>
-        <tr><td>App</td><td>0.1</td><td>First version: 8 volcanoes, 2–3 start points each, 4 kinds of lava; lava only</td></tr>
+        <tr><td>App</td><td>0.2</td><td>0.2: fixes from review (choices locked while the model runs, corrected facts, clearer results key, reduced motion). 0.1: first version, 8 volcanoes, 1–3 start points each, 4 kinds of lava; lava only</td></tr>
         <tr><td>Lava path model</td><td>1.0</td><td>DOWNFLOW-style steepest descent with hollow filling (same code as the Vesuvius lava explorer), 300 flows with ±3 m random bumps</td></tr>
-        <tr><td>Speed model</td><td>0.1</td><td>Jeffreys equation per step: speed = ρ g sinθ h² / (3η), with ρ = 2,600 kg/m³, slope at least 0.5°, and viscosity η and thickness h set by the kind of lava</td></tr>
-        <tr><td>People in the path</td><td>0.1</td><td>WorldPop 2020, 100 m grid, area-weighted, counted where 20% or more of flows went</td></tr>
+        <tr><td>Speed model</td><td>0.2</td><td>0.2: sticky lava stops at 400 m, like the 200–400 m lobes at Mount St. Helens (was 1 km). Jeffreys equation per step: speed = ρ g sinθ h² / (3η), with ρ = 2,600 kg/m³, slope at least 0.5°, and viscosity η and thickness h set by the kind of lava</td></tr>
+        <tr><td>People in the path</td><td>0.2</td><td>WorldPop 2020, 100 m grid, counted where 20% or more of flows went. Where the model grid is finer than 60 m, people in each 100 m square are shared by area; on coarser grids each 100 m square counts if its center is in the zone. 0.2: the coarse-grid method (0.1 missed some squares on the Mauna Loa grid)</td></tr>
       </table>
       <p class="sources">Volcano facts: <a href="https://volcano.si.edu/" target="_blank" rel="noopener">Smithsonian Global Volcanism Program</a>, USGS, INGV, Italian Civil Protection and the Japan Meteorological Agency (links with each volcano). Method: <a href="https://www.researchgate.net/publication/282203833_Simulating_the_area_covered_by_lava_flows_using_the_DOWNFLOW_code" target="_blank" rel="noopener">DOWNFLOW</a>. Elevation: Esri World Elevation. Population: <a href="https://www.esri.com/arcgis-blog/products/arcgis-pro/announcements/worldpop-100m-gridded-population-layers-now-available-in-the-living-atlas" target="_blank" rel="noopener">WorldPop 100 m (Esri Living Atlas)</a>. Place names: Esri World Geocoding.</p>
       <p class="sources">See a real eruption step by step: <a href="vesuvius-1944-story.html">Vesuvius, March 1944</a>.</p>
@@ -201,7 +205,7 @@
       <arcgis-compass slot="top-left"></arcgis-compass>
     </arcgis-scene>
     <div id="clock"></div>
-    <div id="toast"></div>
+    <div id="toast" role="status" aria-live="polite"></div>
     <div id="legend">
       <div class="t">Chance lava reaches here</div>
       <div class="k"><span class="sw" style="background:var(--l5)"></span>Very likely (over 80%)</div>
@@ -415,8 +419,8 @@
 
 <script type="module">
 const LavaModel = window.LavaModel;
-const APP_VERSION = "0.1";
-const VERSIONS = { app: APP_VERSION, path: "1.0", speed: "0.1", people: "0.1" };
+const APP_VERSION = "0.2";
+const VERSIONS = { app: APP_VERSION, path: "1.0", speed: "0.2", people: "0.2" };
 
 // ---------- Volcanoes ----------
 // Summits from the Smithsonian Global Volcanism Program (GVP) unless noted. Vents: { lat, lon } where a source gives a
@@ -430,7 +434,7 @@ const VOLCANOES = {
       { label: "Summit crater", sub: "Halemaʻumaʻu", lat: 19.4060, lon: -155.2852 },
       { label: "Puʻuʻōʻō", sub: "erupted 1983–2018", lat: 19.3837, lon: -155.1026 },
       { label: "Fissure 8", sub: "Leilani Estates, 2018", lat: 19.4611, lon: -154.9092 } ],
-    real: "In 2018, lava from fissures in Leilani Estates covered over 700 buildings and 35 km² of land, and a lava river from fissure 8 reached the ocean at Kapoho Bay.",
+    real: "In 2018, lava from fissures in Leilani Estates covered over 700 buildings and 35 km² of land, and a lava river from fissure 8 reached the ocean at Kapoho Bay. Lava rivers like that can move much faster than the flow fronts this model follows.",
     realSrc: "https://www.usgs.gov/volcanoes/kilauea/science/2018-lower-east-rift-zone-eruption-and-summit-collapse-kilauea", realName: "USGS" },
   maunaloa: { name: "Mauna Loa", where: "Hawaiʻi, USA", kind: "Shield volcano", lava: "runny",
     summit: [19.475, -155.608], box: [-156.00, 19.05, -155.05, 19.80], cell: 100, view: { zoom: 10, heading: 20, tilt: 55 },
@@ -439,7 +443,7 @@ const VOLCANOES = {
       { label: "Summit caldera", sub: "Mokuʻāweoweo", lat: 19.475, lon: -155.608 },
       { label: "Northeast Rift Zone", sub: "about 3,400 m, toward Hilo (1984, 2022)", bearing: 60, elev: 3400 },
       { label: "Southwest Rift Zone", sub: "about 2,500 m (1950)", bearing: 200, elev: 2500 } ],
-    real: "In 1950, one Mauna Loa lava flow covered 24 km in less than 3 hours. In 1984, lava came within 6 km of Hilo in a matter of days.",
+    real: "In 1950, one Mauna Loa lava flow covered 24 km in less than 3 hours. That's much faster than this model: it follows the slow-moving front of a flow, while lava rivers in channels near a big vent can race ahead.",
     realSrc: "https://www.usgs.gov/volcanoes/mauna-loa/science/1950-mauna-loas-fastest-high-volume-eruption", realName: "USGS" },
   etna: { name: "Etna", where: "Sicily, Italy", kind: "Stratovolcano", lava: "runny",
     summit: [37.748, 14.999], box: [14.80, 37.45, 15.25, 37.90], cell: 60, view: { zoom: 11, heading: 0, tilt: 55 },
@@ -461,7 +465,7 @@ const VOLCANOES = {
     realSrc: "https://www.ov.ingv.it/index.php/storia-vesuvio/1944", realName: "INGV Vesuvius Observatory", story: "vesuvius-1944-story.html" },
   fuji: { name: "Mount Fuji", where: "Japan", kind: "Stratovolcano", lava: "runny",
     summit: [35.3608, 138.7275], box: [138.55, 35.22, 138.92, 35.52], cell: 50, view: { zoom: 11, heading: 0, tilt: 55 },
-    about: "Japan's highest mountain. Its lava is mostly basalt. Lava from the summit and from more than 100 side vents built the mountain and dammed the Fuji Five Lakes.",
+    about: "Japan's highest mountain. Its lava is mostly basalt. Lava from the summit and from about 100 side vents built the mountain and dammed the Fuji Five Lakes.",
     vents: [
       { label: "Summit crater", sub: "top of the volcano", lat: 35.3608, lon: 138.7275 },
       { label: "Nagaoyama", sub: "north-west flank (864)", lat: 35.4356, lon: 138.6769 } ],
@@ -469,7 +473,7 @@ const VOLCANOES = {
     realSrc: "https://www.data.jma.go.jp/vois/data/filing/souran/main/55_Fujisan.pdf", realName: "Japan Meteorological Agency" },
   nyiragongo: { name: "Nyiragongo", where: "Democratic Republic of the Congo", kind: "Stratovolcano", lava: "veryrunny",
     summit: [-1.52, 29.25], box: [29.10, -1.75, 29.35, -1.45], cell: 50, view: { zoom: 11, heading: 0, tilt: 55 },
-    about: "Its lava is among the runniest on Earth, and the city of Goma lies at its foot, about 10 km to the south.",
+    about: "Its lava is among the runniest on Earth, and the city of Goma lies at its foot, about 15 km to the south.",
     vents: [
       { label: "Summit crater", sub: "top of the volcano", lat: -1.52, lon: 29.25 },
       { label: "South flank", sub: "about 2,260 m (2021)", bearing: 160, elev: 2260 } ],
@@ -481,7 +485,7 @@ const VOLCANOES = {
     vents: [
       { label: "Minamidake crater", sub: "summit", lat: 31.5772, lon: 130.6589 },
       { label: "West flank", sub: "about 350 m (1914)", bearing: 270, elev: 350 },
-      { label: "East flank", sub: "about 400 m (1914)", bearing: 90, elev: 400 } ],
+      { label: "South-east flank", sub: "about 400 m (1914)", bearing: 125, elev: 400 } ],
     real: "In 1914, lava from vents on both flanks reached the sea. On the east side it filled the strait and joined Sakurajima to the mainland. 58 people died in that eruption.",
     realSrc: "https://www.data.jma.go.jp/vois/data/filing/souran/main/90_Sakurajima.pdf", realName: "Japan Meteorological Agency" },
   sthelens: { name: "Mount St. Helens", where: "Washington, USA", kind: "Stratovolcano", lava: "sticky",
@@ -495,10 +499,10 @@ const VOLCANOES = {
 // front speeds match documented flows: Nyiragongo 1977 (tens of km/h), basalt fronts (hundreds of m to km per hour),
 // Vesuvius 1944 (50–300 m/h), St Helens dome lobes (about 1–3 m/h).
 const LAVAS = {
-  veryrunny: { label: "Very runny", sub: "flows like syrup", eta: 1e3, h: 1.5, maxLen: 15000, width: 150 },
+  veryrunny: { label: "Very runny", sub: "flows like syrup · for example Nyiragongo's lava", eta: 1e3, h: 1.5, maxLen: 15000, width: 150 },
   runny:     { label: "Runny (basalt)", sub: "flows like honey", eta: 3e4, h: 3, maxLen: 25000, width: 200 },
-  medium:    { label: "Medium (andesite)", sub: "oozes like toothpaste", eta: 1e6, h: 8, maxLen: 6000, width: 200 },
-  sticky:    { label: "Sticky (dacite)", sub: "barely moves, like cold clay", eta: 1e9, h: 30, maxLen: 1000, width: 150 }
+  medium:    { label: "Medium", sub: "oozes like toothpaste · for example andesite", eta: 1e6, h: 8, maxLen: 6000, width: 200 },
+  sticky:    { label: "Sticky (dacite)", sub: "barely moves, like cold clay", eta: 1e9, h: 30, maxLen: 400, width: 150 }
 };
 const RHO = 2600, G = 9.81, MIN_SIN = Math.sin(0.5 * Math.PI / 180), VMAX = 20;   // kg/m³, m/s², slope floor, m/s cap
 const speedOf = (sinT, L) => Math.min(VMAX, RHO * G * sinT * L.h * L.h / (3 * L.eta));
@@ -571,6 +575,7 @@ async function loadTerrain(key) {
 
 // ---------- Choices ----------
 const params = new URLSearchParams(location.search);
+const REDUCE = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
 const state = { v: null, vent: null, lava: null, picking: false, res: null, frames: null, busy: false };
 $("volcanoes").innerHTML = Object.entries(VOLCANOES).map(([k, v]) =>
   `<button class="opt" data-v="${k}" aria-pressed="false"><b>${esc(v.name)}</b><span>${esc(v.where)} · ${esc(v.kind)}</span></button>`).join("");
@@ -579,19 +584,25 @@ $("lavaTable").innerHTML = `<tr><th>Kind of lava</th><th>Viscosity</th><th>Thick
   Object.values(LAVAS).map(L => `<tr><td>${esc(L.label)}</td><td>${L.eta.toExponential(0).replace("e+", " × 10^")} Pa·s</td><td>${L.h} m</td><td>${L.maxLen / 1000} km</td></tr>`).join("");
 const pressed = (box, attr, val) => box.querySelectorAll(`[${attr}]`).forEach(b => b.setAttribute("aria-pressed", String(b.getAttribute(attr) === String(val))));
 
+function setBusy(b) {
+  state.busy = b;
+  document.querySelectorAll("#panel .opt, #pick").forEach(el => { el.disabled = b; });
+  if (b) { state.picking = false; $("pick").setAttribute("aria-pressed", "false"); $("toast").style.display = "none"; }
+  $("erupt").disabled = b || !state.vent || !heights;
+}
 async function chooseVolcano(key) {
   if (state.busy) return;
   const v = VOLCANOES[key]; if (!v) return;
   state.v = key; state.res = null; pressed($("volcanoes"), "data-v", key);
   $("vAbout").textContent = v.about; $("results").style.display = "none"; $("legend").style.display = "none"; $("clock").style.display = "none";
   playToken++; lavaLayer.removeAll(); markLayer.removeAll(); $("erupt").disabled = true; state.vent = null;
-  view.goTo({ center: [v.summit[1], v.summit[0]], zoom: v.view.zoom, heading: v.view.heading, tilt: v.view.tilt }, { duration: 1800 }).catch(() => {});
-  setGrid(v); state.busy = true;
+  view.goTo({ center: [v.summit[1], v.summit[0]], zoom: v.view.zoom, heading: v.view.heading, tilt: v.view.tilt }, { duration: REDUCE ? 0 : 1800 }).catch(() => {});
+  heights = null; $("vents").innerHTML = ""; $("lavas").innerHTML = ""; $("ventNote").textContent = ""; $("lavaNote").textContent = "";
+  setGrid(v); setBusy(true);
   status(`Loading the ground around ${v.name}…`);
   try { heights = await loadTerrain(key); }
-  catch (e) { console.error(e); status("Couldn't load the elevation data. Check your connection and try again."); state.busy = false; return; }
-  state.busy = false;
-  if (state.v !== key) return;
+  catch (e) { console.error(e); heights = null; status("Couldn't load the elevation data. Check your connection, then choose the volcano again."); setBusy(false); return; }
+  setBusy(false);
   $("vents").innerHTML = v.vents.map((vt, i) => `<button class="opt" data-vent="${i}" aria-pressed="false"><b>${esc(vt.label)}</b><span>${esc(vt.sub)}</span></button>`).join("");
   $("vents").querySelectorAll("[data-vent]").forEach(b => b.onclick = () => chooseVent(+b.dataset.vent));
   $("lavas").innerHTML = Object.entries(LAVAS).map(([k, L]) => `<button class="opt" data-lava="${k}" aria-pressed="false">${k === v.lava ? '<span class="usual">Usual here</span>' : ""}<b>${esc(L.label)}</b><span>${esc(L.sub)}</span></button>`).join("");
@@ -610,22 +621,23 @@ function findFlankVent(v, vt) {
   return null;
 }
 function chooseVent(i) {
-  const v = VOLCANOES[state.v], vt = v.vents[i]; let pos = vt.lat != null ? { lon: vt.lon, lat: vt.lat } : findFlankVent(v, vt);
+  if (state.busy) return;
+  const v = VOLCANOES[state.v], vt = v && v.vents[i]; if (!vt) return; let pos = vt.lat != null ? { lon: vt.lon, lat: vt.lat } : findFlankVent(v, vt);
   if (!pos) { toast("Couldn't place that start point on the map."); return; }
   state.vent = { ...pos, label: vt.label, about: vt.lat == null };
   pressed($("vents"), "data-vent", i); $("pick").setAttribute("aria-pressed", "false"); state.picking = false;
   $("ventNote").textContent = vt.lat == null ? "This start point is placed by the app from the height and direction in the sources, so it is approximate." : "";
   drawVent(); $("erupt").disabled = false;
 }
-function chooseLava(k) { state.lava = k; pressed($("lavas"), "data-lava", k);
+function chooseLava(k) { if (state.busy || !LAVAS[k]) return; state.lava = k; pressed($("lavas"), "data-lava", k);
   const v = VOLCANOES[state.v];
   $("lavaNote").textContent = k === v.lava ? `This is the usual kind of lava at ${v.name}.` : `${v.name} doesn't usually erupt this kind of lava. Try it to compare!`; }
 function drawVent() { markLayer.removeAll(); if (!state.vent) return; const [x, y] = toMerc(state.vent.lon, state.vent.lat);
   markLayer.add(new Graphic({ geometry: merc(x, y), symbol: labelSymbol(state.vent.about ? "Vent (about)" : "Vent", "#b4381c", 14) })); }
-$("pick").onclick = () => { if (!state.v || state.busy) return; state.picking = !state.picking; $("pick").setAttribute("aria-pressed", String(state.picking));
+$("pick").onclick = () => { if (!state.v || state.busy || !heights) return; state.picking = !state.picking; $("pick").setAttribute("aria-pressed", String(state.picking));
   if (state.picking) toast("Tap the map where the eruption should start", 0); else $("toast").style.display = "none"; };
 view.on("click", (e) => {
-  if (!state.picking || !e.mapPoint) return;
+  if (!state.picking || state.busy || !heights || !e.mapPoint) return;
   const lon = e.mapPoint.longitude, lat = e.mapPoint.latitude, c = idxOf(lon, lat);
   if (c < 0) { toast("That's outside the area around this volcano. Tap closer to it."); return; }
   if (!(heights[c] > 0)) { toast("That's in the sea. Tap on land."); return; }
@@ -636,8 +648,8 @@ const bindR = (id, fmt) => { const el = $(id), out = $(id + "Val"); const f = ()
 bindR("runs", v => String(v)); bindR("dh", v => v + " m"); bindR("lenx", v => v.toFixed(2).replace(/0$/, "") + "×");
 
 // ---------- Model: where and how fast ----------
-function simulate(onProgress) {
-  const L = LAVAS[state.lava], vent = idxOf(state.vent.lon, state.vent.lat), cell = GRID.cell;
+function simulate(lavaKey, ventPos) {
+  const L = LAVAS[lavaKey], vent = idxOf(ventPos.lon, ventPos.lat), cell = GRID.cell;
   const runs = +$("runs").value, dh = +$("dh").value, maxLen = L.maxLen * +$("lenx").value;
   const N = W * H, count = new Int32Array(N), first = new Float64Array(N).fill(Infinity), seen = new Int32Array(N).fill(-1);
   const rad = L.width / 2 / cell, R0 = Math.floor(rad), offs = [];
@@ -687,7 +699,7 @@ function buildFrames(res, nBins) {
 }
 function fmtDur(s) {
   if (!isFinite(s)) return "–";
-  if (s < 90) return "about a minute"; const m = s / 60; if (m < 60) return `about ${Math.round(m / 5) * 5 || 1} minutes`;
+  if (s < 90) return "about a minute"; const m = s / 60; if (m < 10) return `about ${Math.round(m)} minutes`; if (m < 60) return `about ${Math.round(m / 5) * 5} minutes`;
   const h = m / 60; if (h < 1.5) return "about an hour"; if (h < 36) return `about ${Math.round(h)} hours`;
   const d = h / 24; if (d < 14) return `about ${Math.round(d)} days`; const w = d / 7; if (w < 9) return `about ${Math.round(w)} weeks`; return `about ${Math.round(d / 30)} months`;
 }
@@ -699,7 +711,7 @@ async function play(fr) {
     if (token !== playToken) return;
     if (fr.frames[b].length) lavaLayer.addMany(fr.frames[b]);
     $("clock").innerHTML = `After ${fmtDur(fr.tMax * (b + 1) / n).replace("about ", "about ")}<small>since the eruption began (model)</small>`;
-    await new Promise(r => setTimeout(r, 260));
+    if (!REDUCE) await new Promise(r => setTimeout(r, 260));
   }
 }
 
@@ -741,7 +753,15 @@ async function peopleInPath(res) {
     const q = row * iw + col; covered[q]++;
     const v = data[q] * scale; if (v >= 5 && v < 1e6 && (!firstHome || res.first[c] < firstHome.t)) firstHome = { t: res.first[c], lon: ll[2 * k], lat: ll[2 * k + 1] }; });
   let people = 0;
-  for (let q = 0; q < iw * ih; q++) { const v = data[q]; if (!(v > 0) || v > 1e6 || !total[q] || !covered[q]) continue; people += v * scale * covered[q] / total[q]; }
+  if (GRID.cell <= 60) {             // fine grid: share each 100 m square's people by how much of it is in the zone
+    for (let q = 0; q < iw * ih; q++) { const v = data[q]; if (!(v > 0) || v > 1e6 || !total[q] || !covered[q]) continue; people += v * scale * covered[q] / total[q]; }
+  } else {                           // coarse grid: a 100 m square counts if its center lies in a zone cell
+    for (let row = 0; row < ih; row++) for (let col = 0; col < iw; col++) {
+      const v = data[row * iw + col]; if (!(v > 0) || v > 1e6) continue;
+      const c = idxOf(bbox[0] + (col + 0.5) * pxX, bbox[3] - (row + 0.5) * pxY);
+      if (c >= 0 && res.count[c] / res.runs >= ZONE) people += v * scale;
+    }
+  }
   return { people, firstHome };
 }
 async function placeName(lon, lat) {
@@ -762,19 +782,19 @@ const QUESTIONS = {
 };
 $("erupt").onclick = async () => {
   if (state.busy || !state.vent || !heights) return;
-  const v = VOLCANOES[state.v], L = LAVAS[state.lava], vent = idxOf(state.vent.lon, state.vent.lat);
+  const v = VOLCANOES[state.v], L = LAVAS[state.lava], lavaKey = state.lava, ventPos = { ...state.vent }, vent = idxOf(ventPos.lon, ventPos.lat);
   if (vent < 0 || !(heights[vent] > 0)) { toast("That start point isn't on land in the modeled area."); return; }
-  state.busy = true; $("erupt").disabled = true; playToken++; lavaLayer.removeAll(); $("results").style.display = "none";
-  const sim = simulate();
+  setBusy(true); playToken++; lavaLayer.removeAll(); $("results").style.display = "none";
+  const sim = simulate(lavaKey, ventPos);
   while (sim.done < sim.runs) { sim.stepRuns(10); status(`Simulating flow ${sim.done} of ${sim.runs}…`); prog(sim.done / sim.runs); await new Promise(r => setTimeout(r)); }
-  const res = sim.result(); state.res = res;
+  const res = sim.result(); state.res = res; res.lava = lavaKey;
   status("Drawing the lava…");
   state.frames = buildFrames(res, 30);
   const played = play(state.frames);
   // results
   $("results").style.display = "block"; $("results").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
   // the likely zone: where 20% or more of the modeled flows went. How far its far end is from the vent, and how soon lava gets there.
-  const [vx, vy] = toMerc(state.vent.lon, state.vent.lat); let farD = 0, farT = 0;
+  const [vx, vy] = toMerc(ventPos.lon, ventPos.lat); let farD = 0, farT = 0;
   for (let c = 0; c < res.count.length; c++) if (res.count[c] / res.runs >= ZONE && isFinite(res.first[c])) {
     const [x, y] = cellCenter(c), d = Math.hypot(x - vx, y - vy) * GRID.cell / cellM; if (d > farD) { farD = d; farT = res.first[c]; } }
   const km = (m) => m < 1000 ? `${Math.round(m / 10) * 10} m` : `${(m / 1000).toFixed(m < 10000 ? 1 : 0)} km`;
@@ -784,13 +804,13 @@ $("erupt").onclick = async () => {
   if (res.reasons.sea) why.push("reached the sea");
   if (res.reasons.flat) why.push("spread out in a flat hollow");
   if (res.reasons.edge) why.push("reached the edge of the map");
-  $("rFarS").textContent = `That's the far end of the likely lava zone (red and orange), in a straight line. Single modeled flows went as far as ${km(res.maxLength)} along the ground. They ended when they ${why.join(" or ") || "stopped"}.`;
+  $("rFarS").textContent = `That's the far end of the likely lava zone, in a straight line. Single modeled flows went as far as ${km(res.maxLength)} along the ground. They ended when they ${why.join(" or ") || "stopped"}.`;
   $("rFast").textContent = farD > 0 ? `${fmtDur(farT).replace(/^a/, "A")}` : "–";
   $("rFastS").textContent = "to reach the far end of the likely zone. Working out who lives in its path…";
   $("rPeople").textContent = "…"; $("rPeopleS").textContent = "";
   $("rReal").innerHTML = `<b>What really happened:</b> ${esc(v.real)} <a href="${v.realSrc}" target="_blank" rel="noopener">${esc(v.realName)}</a>` +
     (v.story ? ` · <a href="${v.story}">Watch the 1944 eruption step by step</a>` : "");
-  $("rQ").innerHTML = `<b>Think about it:</b> ${esc(QUESTIONS[state.lava])}`;
+  $("rQ").innerHTML = `<b>Think about it:</b> ${esc(QUESTIONS[lavaKey])}`;
   try {
     const p = await peopleInPath(res);
     $("rPeople").textContent = fmtPeople(p.people);
@@ -802,9 +822,9 @@ $("erupt").onclick = async () => {
   } catch (e) {
     console.error("Population", e); $("rPeople").textContent = "Couldn't load"; $("rPeopleS").textContent = "The population data didn't load. Check your connection and try again."; $("rFastS").textContent = "to reach the far end of the likely zone.";
   }
-  console.info("What if", VERSIONS, { volcano: state.v, lava: state.lava, runs: res.runs, reasons: res.reasons, medianLength: res.medianLength });
+  console.info("What if", VERSIONS, { volcano: state.v, lava: lavaKey, runs: res.runs, reasons: res.reasons, medianLength: res.medianLength });
   status(`Done: ${res.runs} modeled flows of ${L.label.toLowerCase()} lava at ${v.name}.`);
-  state.busy = false; $("erupt").disabled = false;
+  setBusy(false);
   await played;
 };
 $("replay").onclick = () => { if (state.frames) play(state.frames); };

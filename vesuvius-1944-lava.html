@@ -97,7 +97,7 @@
 <div id="app">
   <aside id="panel">
     <div class="newer"><b>For students, try the newer pages:</b> <a href="vesuvius-1944-story.html">Vesuvius 1944, step by step</a> (what happened) and <a href="volcano-what-if.html?v=vesuvius">What if a volcano erupted?</a> (explore 8 volcanoes). This page keeps every model setting for teachers and older students.</div>
-    <div class="kicker">Physical processes · Volcanoes <span class="ver">v1.5</span></div>
+    <div class="kicker">Physical processes · Volcanoes <span class="ver">v1.6</span></div>
     <h1>Vesuvius 1944: where would the lava go?</h1>
     <p class="lede">In March 1944 lava from Mount Vesuvius destroyed the towns of San Sebastiano al Vesuvio and Massa di Somma. Run a real lava-hazard method on today's terrain and see where the lava is most likely to flow.</p>
 
@@ -187,7 +187,7 @@
         <li><b>21–22 March:</b> lava fountains.</li>
         <li><b>22–29 March:</b> explosions. Ash fell to the east and damaged dozens of American B-25 bombers at a nearby airfield.</li>
       </ul>
-      <p>Lava moved slowly enough that most people escaped: Allied troops helped about 7,000 people leave before it arrived. The ash was deadlier. About 26 people died, most when ash piled up on roofs until they collapsed, and about 10,000–12,000 people lost their homes. It was the most recent eruption of Vesuvius, which is dormant, not extinct.</p>
+      <p>Lava moved slowly enough that most people escaped: Allied troops helped about 7,000 people leave before it arrived. The ash was deadlier. About 26 people died, most when ash piled up on roofs until they collapsed, and about 10,000–12,000 people had to leave their homes. It was the most recent eruption of Vesuvius, which is dormant, not extinct.</p>
       <p><a href="#" onclick="VesuviusArchive.open('voices');return false">Read what eyewitnesses saw →</a></p>
     </details>
     <details>
@@ -222,7 +222,7 @@
       <summary>Versions</summary>
       <table class="vers">
         <tr><th>Part</th><th>Version</th><th>What it is</th></tr>
-        <tr><td>App</td><td>1.5</td><td>1.5: links to the new story and what-if pages. 1.4: archive 1.3, version label read from the archive file. 1.3: archive 1.2 (B-25 photo restored). 1.2: archive 1.1 (licence check). 1.1: adds the 1944 archive (newsreels, photographs, eyewitness accounts, historian tasks) and the death toll. 1.0: lava explorer with building and population counts</td></tr>
+        <tr><td>App</td><td>1.6</td><td>1.6: “had to leave their homes” (INGV: forced to evacuate). 1.5: links to the new story and what-if pages. 1.4: archive 1.3, version label read from the archive file. 1.3: archive 1.2 (B-25 photo restored). 1.2: archive 1.1 (licence check). 1.1: adds the 1944 archive (newsreels, photographs, eyewitness accounts, historian tasks) and the death toll. 1.0: lava explorer with building and population counts</td></tr>
         <tr><td>Lava model</td><td>1.0</td><td>DOWNFLOW-style steepest descent with pit filling, 20 m grid</td></tr>
         <tr><td>1944 archive</td><td class="va-ver-n">–</td><td>Shared file vesuvius-1944-archive.js (photos, newsreels, eyewitness accounts; also used by the story and VR pages). The number shown is the version loaded</td></tr>
       </table>
@@ -934,7 +934,7 @@ try {
 }
 </script>
 <script>
-  console.info("Vesuvius 1944 lava explorer", { app: "1.5", lava: "1.0", archive: VesuviusArchive.version });
+  console.info("Vesuvius 1944 lava explorer", { app: "1.6", lava: "1.0", archive: VesuviusArchive.version });
   document.querySelectorAll(".va-ver-n").forEach(el => { el.textContent = VesuviusArchive.version; });
   VesuviusArchive.mount({ panel: document.getElementById("vaPanel"), page: "lava", mapwrap: document.getElementById("mapwrap") });
 </script>
