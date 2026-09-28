@@ -89,12 +89,15 @@
     #legend { right: 8px; bottom: 20px; padding: 6px 8px; font-size: 11px; max-width: 150px; }
     #legend .t { font-size: 11px; }
   }
+  .newer { background: var(--chip); border: 1px solid var(--rule); border-left: 4px solid var(--accent); border-radius: 8px; padding: 8px 12px; margin: 0 0 12px; font-size: 13.5px; }
+  .newer a { color: var(--accent); font-weight: 600; }
 </style>
 </head>
 <body>
 <div id="app">
   <aside id="panel">
-    <div class="kicker">Physical processes · Volcanoes <span class="ver">v1.4</span></div>
+    <div class="newer"><b>For students, try the newer pages:</b> <a href="vesuvius-1944-story.html">Vesuvius 1944, step by step</a> (what happened) and <a href="volcano-what-if.html?v=vesuvius">What if a volcano erupted?</a> (explore 8 volcanoes). This page keeps every model setting for teachers and older students.</div>
+    <div class="kicker">Physical processes · Volcanoes <span class="ver">v1.5</span></div>
     <h1>Vesuvius 1944: where would the lava go?</h1>
     <p class="lede">In March 1944 lava from Mount Vesuvius destroyed the towns of San Sebastiano al Vesuvio and Massa di Somma. Run a real lava-hazard method on today's terrain and see where the lava is most likely to flow.</p>
 
@@ -219,9 +222,9 @@
       <summary>Versions</summary>
       <table class="vers">
         <tr><th>Part</th><th>Version</th><th>What it is</th></tr>
-        <tr><td>App</td><td>1.4</td><td>1.4: archive 1.3, version label read from the archive file. 1.3: archive 1.2 (B-25 photo restored). 1.2: archive 1.1 (licence check). 1.1: adds the 1944 archive (newsreels, photographs, eyewitness accounts, historian tasks) and the death toll. 1.0: lava explorer with building and population counts</td></tr>
+        <tr><td>App</td><td>1.5</td><td>1.5: links to the new story and what-if pages. 1.4: archive 1.3, version label read from the archive file. 1.3: archive 1.2 (B-25 photo restored). 1.2: archive 1.1 (licence check). 1.1: adds the 1944 archive (newsreels, photographs, eyewitness accounts, historian tasks) and the death toll. 1.0: lava explorer with building and population counts</td></tr>
         <tr><td>Lava model</td><td>1.0</td><td>DOWNFLOW-style steepest descent with pit filling, 20 m grid</td></tr>
-        <tr><td>1944 archive</td><td>1.3</td><td>1.3: also used by the VR page (jsawle/vr). 1.2: B-25 photo restored after its public-domain licence was confirmed. 1.1: that photo removed pending the check. Shared with the 3D eruption and VR pages (vesuvius-1944-archive.js): 2 newsreels, 12 photographs, 7 eyewitness accounts, 5 tasks</td></tr>
+        <tr><td>1944 archive</td><td class="va-ver-n">–</td><td>Shared file vesuvius-1944-archive.js (photos, newsreels, eyewitness accounts; also used by the story and VR pages). The number shown is the version loaded</td></tr>
       </table>
     </details>
 
@@ -931,7 +934,8 @@ try {
 }
 </script>
 <script>
-  console.info("Vesuvius 1944 lava explorer", { app: "1.4", lava: "1.0", archive: VesuviusArchive.version });
+  console.info("Vesuvius 1944 lava explorer", { app: "1.5", lava: "1.0", archive: VesuviusArchive.version });
+  document.querySelectorAll(".va-ver-n").forEach(el => { el.textContent = VesuviusArchive.version; });
   VesuviusArchive.mount({ panel: document.getElementById("vaPanel"), page: "lava", mapwrap: document.getElementById("mapwrap") });
 </script>
 </body>
