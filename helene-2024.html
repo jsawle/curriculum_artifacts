@@ -201,13 +201,13 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.4";
+const APP_VERSION = "0.5";
 const APP_DATE = "29 September 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
   ["Rain columns", "0.1", "NOAA MRMS hourly radar estimates, total since 24 Sep 12:00 UTC; 1 in drawn as 500 m"],
   ["Storm winds sketch", "0.2", "Anticlockwise vortex around the NHC track position, 20° inflow; speed = track wind × (60 km / distance)^0.6 beyond 60 km; hidden past 900 km; drawn as arrow shapes on the ground"],
-  ["Rain clouds", "0.1", "180 clouds drifting with the storm winds sketch (south-easterly before Helene is near); rain rate = inverse-distance average of MRMS hourly rain within 35 km; cloud base 1.2 km above an 8 km-smoothed ridge surface"],
+  ["Rain clouds", "0.2", "Drawn only where radar rain is at least 0.03 in/hr; still while paused; 180 clouds drifting with the storm winds sketch (south-easterly before Helene is near); rain rate = inverse-distance average of MRMS hourly rain within 35 km; cloud base 1.2 km above an 8 km-smoothed ridge surface"],
   ["River gauges", "0.1", "USGS 15-minute stage; NWS flood levels; highest stage before 2024 from NOAA crest table; 1 ft drawn as 120 m"],
   ["Landslides and slope test", "0.1", "USGS preliminary inventory; aspect from Esri World Elevation at ~40 m, ±60 m differences, slopes under 8° left out"],
   ["Terrain exaggeration", "0.1", "Esri World Elevation (Terrain3D) multiplied by 1, 2 or 3"]
@@ -268,12 +268,12 @@ const knMph = (k) => Math.round(k * 1.15078 / 5) * 5;
 // ---------- chapters ----------
 const CH = [
   { key: "pre", n: "1 · 24–26 Sep", name: "Rain before the storm", t0: 0, t1: 54,
-    cam: { frame: [[-86.8, 18.6], [-79.8, 37.2]], tilt: 28, heading: 0 }, show: { storm: 1, rain: 1, winds: 1, clouds: 1 },
+    cam: { center: [-83.3, 27.6], zoom: 5.5, tilt: 18, heading: 0 }, show: { storm: 1, rain: 1, winds: 1, clouds: 1 },
     story: `<p>On Wednesday 25 September, Helene was still a hurricane over the Gulf, more than 600 miles from the Appalachian mountains. But rain was already falling hard there.</p>
       <p>A weather front had stalled over the region, and warm, wet air flowing north ahead of the storm was pushed up against the mountains. Forecasters call this a <b>predecessor rain event</b>. By the time Helene arrived, the ground was soaked and rivers were already rising.</p>`,
     qs: ["Press Play. Where do the first tall rain columns appear? Is the storm anywhere near them?", "Pause on Thursday morning. How much rain has fallen at Asheville already?", "Why might rain falling <i>before</i> a storm make the storm's own rain more dangerous?"] },
   { key: "storm", n: "2 · 26–27 Sep", name: "A huge, fast storm", t0: 48, t1: 72,
-    cam: { frame: [[-87.2, 23.5], [-80.0, 36.8]], tilt: 35, heading: 0 }, show: { storm: 1, rain: 1, winds: 1, clouds: 1 },
+    cam: { center: [-83.6, 30.0], zoom: 6.0, tilt: 30, heading: 0 }, show: { storm: 1, rain: 1, winds: 1, clouds: 1 },
     story: `<p>Over very warm water, Helene grew stronger fast. At about 11 pm EDT on Thursday 26 September it came ashore near Perry, in Florida's Big Bend, as a <b>Category 4 hurricane</b> with winds of about 140 mph (225 km/h).</p>
       <p>It was enormous: tropical-storm-force winds reached as far as 360 nautical miles (about 670 km) from the centre. It was also moving fast, about 30 mph (50 km/h), so its centre reached the mountains only about nine hours after landfall.</p>`,
     qs: ["Watch the label on the storm. How quickly does it weaken after it crosses the coast?", "The storm moved fast. Would a fast storm or a slow storm bring more rain to one place? Why?", "Compare the storm's size with the distance from Florida to North Carolina."] },
@@ -318,6 +318,8 @@ await sceneEl.viewOnReady();
 const view = sceneEl.view, map = sceneEl.map;
 view.environment.atmosphereEnabled = true;
 view.popupEnabled = true;
+function setPadding() { const wide = innerWidth > 760; view.padding = { bottom: wide ? 110 : 90, right: wide ? 330 : 0, top: 50 }; }
+setPadding(); addEventListener("resize", setPadding);
 
 // Terrain with adjustable exaggeration
 const TERRAIN_URL = "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer";
@@ -728,13 +730,13 @@ const clouds = (() => {
   function frame(dt) {
     if (!ready || !cloudPuffLayer.visible) return;
     rateClock += dt; if (rateClock > 0.5) { rateClock = 0; setWind(); rates(); }
-    const E = EXAG, spd = playing ? SPEED : SPEED * 0.4;
+    const E = EXAG, spd = playing ? SPEED : 0;
     for (const p of puffs) {
       const c = Math.cos(p.lat * Math.PI / 180);
       p.lat += wind.v * spd * dt / KM_LAT; p.lon += wind.u * spd * dt / (KM_LAT * c);
       if (p.lat < LAT0 || p.lat > LAT1 || p.lon < LON0 || p.lon > LON1) respawn(p);
       const b = active ? bucket(p.rate) : 0, zb = gridAt(base, p.lat, p.lon), zg = gridAt(ground, p.lat, p.lon), L = LOOK[b];
-      p.puff.geometry = { type: "point", longitude: p.lon, latitude: p.lat, z: zb * E + L.h / 2 };
+      p.puff.geometry = b === 0 ? null : { type: "point", longitude: p.lon, latitude: p.lat, z: zb * E + L.h / 2 };   // no cloud drawn where the radar shows no rain
       if (b !== p.b) { p.b = b; p.puff.symbol = puffSym[b]; }
       if (shaftSym[b]) {
         const hgt = Math.round(Math.max(200, (zb - zg) * E) / 250) * 250;   // re-make the symbol only when the height changes noticeably
