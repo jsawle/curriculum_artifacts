@@ -197,10 +197,10 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.1";
+const APP_VERSION = "0.2";
 const APP_DATE = "29 September 2026";
 const MODELS = [
-  ["Storm track and clouds", "0.1", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field"],
+  ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
   ["Rain columns", "0.1", "NOAA MRMS hourly radar estimates, total since 24 Sep 12:00 UTC; 1 in drawn as 500 m"],
   ["Moving air sketch", "0.1", "Schematic south-east flow following Esri World Elevation, lifted 1.2 km above a smoothed ridge line"],
   ["River gauges", "0.1", "USGS 15-minute stage; NWS flood levels; highest stage before 2024 from NOAA crest table; 1 ft drawn as 120 m"],
@@ -398,7 +398,7 @@ function drawStorm(ms, rot) {
     const a0 = rot + arm * 2 * Math.PI / 5, n = 36, len = (0.55 + 0.1 * (arm % 3)) * R;
     for (let k = 0; k <= n; k++) {
       const u = k / n, r = cdo * 0.8 + (len - cdo * 0.8) * u;
-      const a = a0 + u * 1.9 * Math.PI;                                  // winds anticlockwise outward
+      const a = a0 - u * 1.9 * Math.PI;                                  // bands trail the anticlockwise spin: outward they curve clockwise (northern hemisphere)
       const w = (0.16 * R * Math.pow(1 - u, 0.8) + 6) / r;
       outer.push([...offset(s.lat, s.lon, r * Math.cos(a + w), r * Math.sin(a + w)), CLOUD_Z - 300]);
       inner.unshift([...offset(s.lat, s.lon, r * Math.cos(a - w), r * Math.sin(a - w)), CLOUD_Z - 300]);
