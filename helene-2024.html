@@ -133,7 +133,7 @@
         <li><b>River gauges.</b> Each gauge is a column of water whose height is the river's stage (its height above a fixed point at that gauge), measured every 15 minutes by the USGS. The red ring marks the NWS "major flood" level; the white ring marks the highest the river had been measured before Helene. 1 ft of river is drawn 120 m tall. Where a column turns grey, the gauge stopped reporting (many were damaged).</li>
         <li><b>Landslides.</b> Points from the USGS preliminary landslide inventory. The inventory does not record when each slide happened, so the page shows them all from the morning of 27 September, when most occurred.</li>
         <li><b>Storm winds.</b> The white arrows are a sketch of Helene's spin, not measured winds. They turn anticlockwise around the centre and angle slightly inward, and grow longer and brighter closer to the centre, using the storm's strength from the NHC track. Real winds were also steered by other weather systems.</li>
-        <li><b>Air over the Blue Ridge.</b> The see-through slice in step 3 is a cut through the mountains from the south-east (right) to the north-west (left), drawn on the real ground shape. Dots of air move along it; they are orange while warm and wet, white inside the cloud, and grey once they have lost their water. How much rain falls from the slice follows the real radar rain near the slice in that hour. Whether air blows onto the ridge follows the storm winds sketch (or, before Helene is close, the south-easterly flow the NHC report describes).</li>
+        <li><b>Rain clouds.</b> In steps 1–3, clouds drift across the mountains with the wind. Where and how hard they rain is <i>not</i> invented: each cloud rains at the radar-measured rate (NOAA MRMS) for that hour at the places nearest to it. The clouds sit about 1.2 km above a smoothed version of the ground, so they rise over the mountains. Their shapes and movement are a sketch.</li>
         <li><b>The storm.</b> The centre follows the NHC best track (positions every 6 hours, joined with straight lines). The cloud spiral is a drawing to show size and position, not a satellite image.</li>
         <li><b>Terrain.</b> Mountains are drawn 2× taller than they are by default so the Blue Ridge is easy to see. Use the switch at the top to see true height.</li>
       </ul>
@@ -182,7 +182,8 @@
       <div id="nwsKey"></div>
       <button class="k" data-l="winds" aria-pressed="false"><span class="tick"></span><span class="sw" style="background:none;color:inherit;font-size:14px;line-height:12px;text-align:center">➜</span>Storm winds (sketch)</button>
       <div class="sub">Brighter and longer = stronger</div>
-      <button class="k" data-l="slice" aria-pressed="false"><span class="tick"></span>Air over the Blue Ridge (sketch)</button>
+      <button class="k" data-l="clouds" aria-pressed="false"><span class="tick"></span>Rain clouds</button>
+      <div class="sub">Darker cloud, bluer shaft = harder rain (radar)</div>
       <button class="k" data-l="gauges" aria-pressed="false" disabled><span class="tick"></span>River gauges</button>
       <button class="k" data-l="slides" aria-pressed="false" disabled><span class="tick"></span><span class="sw" style="background:#eb6834;border-radius:50%;width:10px;height:10px"></span>Landslides</button>
     </div>
@@ -200,13 +201,13 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.3";
+const APP_VERSION = "0.4";
 const APP_DATE = "29 September 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
   ["Rain columns", "0.1", "NOAA MRMS hourly radar estimates, total since 24 Sep 12:00 UTC; 1 in drawn as 500 m"],
-  ["Storm winds sketch", "0.1", "Anticlockwise vortex around the NHC track position, 20° inflow; speed = track wind × (60 km / distance)^0.6 beyond 60 km; hidden past 900 km"],
-  ["Air over the Blue Ridge", "0.2", "One 170 km slice (SE→NW through Lake Lure) on Esri World Elevation; air 900 m above a smoothed ridge line; rain rate from MRMS towns within 25 km; onshore when storm winds blow from 70–200°"],
+  ["Storm winds sketch", "0.2", "Anticlockwise vortex around the NHC track position, 20° inflow; speed = track wind × (60 km / distance)^0.6 beyond 60 km; hidden past 900 km; drawn as arrow shapes on the ground"],
+  ["Rain clouds", "0.1", "180 clouds drifting with the storm winds sketch (south-easterly before Helene is near); rain rate = inverse-distance average of MRMS hourly rain within 35 km; cloud base 1.2 km above an 8 km-smoothed ridge surface"],
   ["River gauges", "0.1", "USGS 15-minute stage; NWS flood levels; highest stage before 2024 from NOAA crest table; 1 ft drawn as 120 m"],
   ["Landslides and slope test", "0.1", "USGS preliminary inventory; aspect from Esri World Elevation at ~40 m, ±60 m differences, slopes under 8° left out"],
   ["Terrain exaggeration", "0.1", "Esri World Elevation (Terrain3D) multiplied by 1, 2 or 3"]
@@ -267,20 +268,20 @@ const knMph = (k) => Math.round(k * 1.15078 / 5) * 5;
 // ---------- chapters ----------
 const CH = [
   { key: "pre", n: "1 · 24–26 Sep", name: "Rain before the storm", t0: 0, t1: 54,
-    cam: { center: [-83.2, 30.2], zoom: 5.6, tilt: 42, heading: 0 }, show: { storm: 1, rain: 1, winds: 1 },
+    cam: { frame: [[-86.8, 18.6], [-79.8, 37.2]], tilt: 28, heading: 0 }, show: { storm: 1, rain: 1, winds: 1, clouds: 1 },
     story: `<p>On Wednesday 25 September, Helene was still a hurricane over the Gulf, more than 600 miles from the Appalachian mountains. But rain was already falling hard there.</p>
       <p>A weather front had stalled over the region, and warm, wet air flowing north ahead of the storm was pushed up against the mountains. Forecasters call this a <b>predecessor rain event</b>. By the time Helene arrived, the ground was soaked and rivers were already rising.</p>`,
     qs: ["Press Play. Where do the first tall rain columns appear? Is the storm anywhere near them?", "Pause on Thursday morning. How much rain has fallen at Asheville already?", "Why might rain falling <i>before</i> a storm make the storm's own rain more dangerous?"] },
   { key: "storm", n: "2 · 26–27 Sep", name: "A huge, fast storm", t0: 48, t1: 72,
-    cam: { center: [-83.8, 29.2], zoom: 6.1, tilt: 48, heading: 8 }, show: { storm: 1, rain: 1, winds: 1 },
+    cam: { frame: [[-87.2, 23.5], [-80.0, 36.8]], tilt: 35, heading: 0 }, show: { storm: 1, rain: 1, winds: 1, clouds: 1 },
     story: `<p>Over very warm water, Helene grew stronger fast. At about 11 pm EDT on Thursday 26 September it came ashore near Perry, in Florida's Big Bend, as a <b>Category 4 hurricane</b> with winds of about 140 mph (225 km/h).</p>
       <p>It was enormous: tropical-storm-force winds reached as far as 360 nautical miles (about 670 km) from the centre. It was also moving fast, about 30 mph (50 km/h), so its centre reached the mountains only about nine hours after landfall.</p>`,
     qs: ["Watch the label on the storm. How quickly does it weaken after it crosses the coast?", "The storm moved fast. Would a fast storm or a slow storm bring more rain to one place? Why?", "Compare the storm's size with the distance from Florida to North Carolina."] },
   { key: "oro", n: "3 · 25–27 Sep", name: "Mountains squeeze out the rain", t0: 24, t1: 78,
-    cam: { center: [-82.2, 35.5], zoom: 9.2, tilt: 76, heading: 45 }, show: { winds: 1, slice: 1, nws: 1 },
+    cam: { center: [-82.35, 35.55], zoom: 8.4, tilt: 66, heading: 318 }, show: { clouds: 1 },
     story: `<p>Winds from the south-east pushed wet air straight at the <b>Blue Ridge</b>, a steep wall of mountains. When air is forced upward it cools. Cool air can hold less water vapour, so the vapour turns into cloud and rain. This is called <b>orographic</b> rain.</p>
-      <p>The see-through slice cuts through the mountains: the south-east is on the right, and the air flows from right to left. The heaviest rain fell on the slopes facing the wind. Busick, in Yancey County, measured 30.78 inches (782 mm) in three days. Across a wide area, the three-day totals had less than a 1-in-1,000 chance of happening in any year.</p>`,
-    qs: ["Follow one dot of air across the slice. Where does it turn white? Where does it turn grey?", "Press Play and watch the rain under the slice. When is it heaviest? Which way are the storm arrows pointing then?", "Look at the NWS rain map under the slice. Is there more rain on the right (windward) or left side of the ridge top?"] },
+      <p>You are looking north-west, the way the wind blew. Press Play: the clouds rain exactly where and as hard as the radar measured. Watch where the dark clouds and heavy rain gather. The heaviest rain fell on the slopes facing the wind. Busick, in Yancey County, measured 30.78 inches (782 mm) in three days. Across a wide area, the three-day totals had less than a 1-in-1,000 chance of happening in any year.</p>`,
+    qs: ["Follow one cloud. Where does it grow dark and start to rain hard? What is the ground like there?", "Switch the mountains to true height, then 3×. Where do the rain shafts sit compared with the steepest slopes?", "After playing, turn on the NWS rain map. Do the reddest (wettest) areas match the mountain slopes?"] },
   { key: "rivers", n: "4 · 26–28 Sep", name: "Rivers rise", t0: 42, t1: 90,
     cam: { center: [-82.62, 35.62], zoom: 8.7, tilt: 62, heading: 335 }, show: { gauges: 1 },
     story: `<p>All that rain ran off the soaked slopes into streams and rivers at once. At least 63 river gauges broke their records.</p>
@@ -300,8 +301,8 @@ const CH = [
 
 // ---------- state ----------
 let hNow = 0, playing = false, chapter = 0, lastFrame = 0, EXAG = 2;
-const vis = { storm: true, rain: true, nws: false, winds: false, slice: false, gauges: false, slides: false };
-const avail = { storm: true, rain: false, nws: false, winds: true, slice: true, gauges: false, slides: false };
+const vis = { storm: true, rain: true, nws: false, winds: false, clouds: false, gauges: false, slides: false };
+const avail = { storm: true, rain: false, nws: false, winds: true, clouds: true, gauges: false, slides: false };
 const setStatus = (t, p) => { $("status").textContent = t || ""; if (p != null) $("bar").style.width = Math.round(p * 100) + "%"; };
 function toast(t) { const el = $("toast"); el.textContent = t; el.style.display = "block"; clearTimeout(toast._t); toast._t = setTimeout(() => el.style.display = "none", 3500); }
 
@@ -340,7 +341,7 @@ function setExag(f) {
   map.ground.layers.removeAll();
   map.ground.layers.add(f === 1 ? new ElevationLayer({ url: TERRAIN_URL }) : new ExagElevation({ factor: f }));
   document.querySelectorAll("#exag button").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.x === f)));
-  slice.rebuild(); windHour = -1;
+  windHour = -1;
 }
 
 // Camera read-out for teachers
@@ -476,7 +477,7 @@ async function loadRain() {
     popupTemplate: { title: "{name}, {state}", content: (e) => {
       const a = e.graphic.attributes, i = Math.floor(hNow);
       return `<b>${inMm(a["r" + i])}</b> of rain since 8 am EDT Tue 24 Sep, as of ${fmtEDT(tAt(i))} EDT.<br>This hour: ${a["h" + i].toFixed(2)} in (${Math.round(a["h" + i] * 25.4)} mm).<br>By 8 pm EDT Sat 28 Sep: ${inMm(a["r" + HOURS])}.<br><span style="opacity:.75">Radar estimate (NOAA MRMS) at ${a.kind === "City" ? "this town" : "USGS gauge " + a.sid}.</span>`; } } });
-  map.add(rainLayer); rainGraphics = graphics; slice.findNearby();
+  map.add(rainLayer); rainGraphics = graphics; clouds.setSources(graphics);
   avail.rain = true; rainHour = -1; applyVis(); render(true);
   return graphics.length;
 }
@@ -617,7 +618,7 @@ async function runSlopeTest() {
 }
 
 // ---------- storm winds sketch ----------
-const windLayer = new GraphicsLayer({ title: "Storm winds (sketch)", elevationInfo: { mode: "relative-to-ground", offset: 700 }, visible: false });
+const windLayer = new GraphicsLayer({ title: "Storm winds (sketch)", elevationInfo: { mode: "on-the-ground" }, visible: false });
 map.add(windLayer);
 const RM_KM = 60, INFLOW = 20 * Math.PI / 180;
 // Wind the storm's spin alone would give at a place: anticlockwise, angled 20° in towards the centre.
@@ -632,9 +633,15 @@ const COMPASS = ["north", "north-east", "east", "south-east", "south", "south-we
 const compass = (b) => COMPASS[Math.round(b / 45) % 8];
 const windPts = []; for (let lat = 24.5; lat <= 40; lat += 0.9) for (let lon = -92; lon <= -74; lon += 1.1) windPts.push([lat, lon]);
 const windGraphics = windPts.map(() => { const g = new Graphic({ geometry: null }); windLayer.add(g); return g; });
-const windSym = (a, w) => ({ type: "line-3d", symbolLayers: [{ type: "line", size: w, material: { color: [255, 255, 255, a] }, cap: "round", marker: { type: "style", style: "arrow", placement: "end", color: [255, 255, 255, a] } }] });
-const WIND_SYMS = [windSym(0.4, 2), windSym(0.7, 2.5), windSym(0.95, 3.5)];
+const WIND_SYMS = [0.35, 0.6, 0.9].map(a => ({ type: "simple-fill", color: [255, 255, 255, a], outline: { color: [0, 0, 0, 0.35], width: 0.5 } }));
 let windHour = -1;
+// An arrow outline (shaft plus head), pointing along (u, v), centred on lat/lon; sizes in km
+function arrowRing(lat, lon, u, v, L) {
+  const w = L * 0.09, hw = L * 0.24, hl = L * 0.36, px = -v, py = u;   // (px, py) is sideways
+  const pt = (along, side) => offset(lat, lon, u * along + px * side, v * along + py * side);
+  const t = -L / 2, h = L / 2 - hl;
+  return [pt(t, w), pt(h, w), pt(h, hw), pt(L / 2, 0), pt(h, -hw), pt(h, -w), pt(t, -w), pt(t, w)];
+}
 function drawWinds() {
   if (!windLayer.visible) return;
   const key = Math.round(hNow * 2) / 2; if (key === windHour) return; windHour = key;
@@ -643,117 +650,109 @@ function drawWinds() {
     const g = windGraphics[k]; if (!s) { g.geometry = null; return; }
     const w = vortexWind(s, lat, lon);
     if (w.r > 900 || w.r < 30 || w.kt < 12) { g.geometry = null; return; }
-    const half = Math.min(75, 14 + w.kt * 0.7) / 2;
-    g.geometry = { type: "polyline", paths: [[offset(lat, lon, -w.u * half, -w.v * half), offset(lat, lon, w.u * half, w.v * half)]], spatialReference: { wkid: 4326 } };
+    g.geometry = { type: "polygon", rings: [arrowRing(lat, lon, w.u, w.v, Math.min(80, 30 + w.kt * 0.45))], spatialReference: { wkid: 4326 } };
     g.symbol = WIND_SYMS[w.kt >= 64 ? 2 : w.kt >= 34 ? 1 : 0];
   });
 }
 
-// ---------- air over the Blue Ridge: one labelled slice (step 3) ----------
-const sliceLayer = new GraphicsLayer({ title: "Air over the Blue Ridge (sketch)", elevationInfo: { mode: "absolute-height" }, visible: false });
-map.add(sliceLayer);
-const merc = (lon, lat) => [lon * 20037508.342789 / 180, Math.log(Math.tan((90 + lat) * Math.PI / 360)) * 6378137];
-const PRE_FROM = Date.UTC(2024, 8, 25, 0);   // NHC: south-easterly flow onto the mountains from 25 Sep
-const slice = (() => {
-  const A = [34.95, -81.55], B = [36.05, -82.85], N = 171;   // ~170 km, south-east to north-west, through Lake Lure and Chimney Rock
-  const pts = []; for (let i = 0; i < N; i++) { const f = i / (N - 1); pts.push([A[1] + f * (B[1] - A[1]), A[0] + f * (B[0] - A[0])]); }
-  const MID = pts[Math.floor(N / 2)];
-  const TOP = 6000, NP = 48, ND = 90;
-  let gz = null, air = null, ready = false, loading = false, iCond = 0, iPeak = 0, iRise = 0, iLee = 0;
-  let statics = [], parts = [], drops = [], acc = 0, intensity = 0.6, onshore = true, key = "", near = [];
-  const P = (i, z) => [...merc(pts[i][0], pts[i][1]), z];
-  function strip(i0, i1, zb, zt, color) {
-    const pos = [], faces = [];
-    for (let i = i0; i <= i1; i++) pos.push(...P(i, zb(i)), ...P(i, zt(i)));
-    for (let k = 0; k < i1 - i0; k++) { const a = 2 * k; faces.push(a, a + 2, a + 1, a + 1, a + 2, a + 3); }
-    return new Graphic({ geometry: new Mesh({ vertexAttributes: { position: new Float64Array(pos) }, components: [new MeshComponent({ faces: new Uint32Array(faces), material: { color } })], spatialReference: { wkid: 3857 } }),
-      symbol: { type: "mesh-3d", symbolLayers: [{ type: "fill" }] } });
-  }
-  function label(i, z, text) {
-    return new Graphic({ geometry: { type: "point", x: P(i, 0)[0], y: P(i, 0)[1], z, spatialReference: { wkid: 3857 } },
-      symbol: { type: "point-3d", symbolLayers: [{ type: "text", text, size: 11.5, material: { color: "white" }, halo: { color: [0, 0, 0, 0.85], size: 1.5 }, font: { weight: "bold" }, lineHeight: 1.1 }],
-        verticalOffset: { screenLength: 26 }, callout: { type: "line", size: 1, color: [255, 255, 255, 0.85] } } });
+// ---------- rain clouds driven by radar rain (steps 1-3) ----------
+const cloudPuffLayer = new GraphicsLayer({ title: "Rain clouds", elevationInfo: { mode: "absolute-height" }, visible: false });
+const shaftLayer = new GraphicsLayer({ title: "Rain shafts", elevationInfo: { mode: "relative-to-ground" }, visible: false });
+map.addMany([shaftLayer, cloudPuffLayer]);
+const PRE_FROM = Date.UTC(2024, 8, 25, 0);   // NHC: south-easterly flow onto the mountains ahead of Helene
+const clouds = (() => {
+  const LAT0 = 34.3, LAT1 = 37.0, LON0 = -84.4, LON1 = -80.4, STEP = 0.04;
+  const NY = Math.round((LAT1 - LAT0) / STEP) + 1, NX = Math.round((LON1 - LON0) / STEP) + 1;
+  const NPUFF = 180, SPEED = 14;   // km per second on screen
+  let ground = null, base = null, ready = false, loading = false, src = [], puffs = [], wind = { u: -0.7, v: 0.7 }, active = true, rateClock = 0;
+  // cloud looks by rain rate (in/hr): none, light, moderate, heavy, very heavy
+  const LOOK = [
+    { w: 13000, h: 3500, c: [255, 255, 255, 0.35], shaft: null },
+    { w: 17000, h: 4500, c: [236, 239, 243, 0.75], shaft: [150, 190, 245, 0.18] },
+    { w: 21000, h: 5500, c: [196, 202, 211, 0.85], shaft: [110, 165, 240, 0.32] },
+    { w: 25000, h: 6500, c: [148, 156, 168, 0.9], shaft: [70, 135, 235, 0.48] },
+    { w: 29000, h: 7500, c: [104, 112, 126, 0.92], shaft: [40, 105, 225, 0.62] }];
+  const bucket = (r) => r < 0.03 ? 0 : r < 0.15 ? 1 : r < 0.4 ? 2 : r < 0.8 ? 3 : 4;
+  const puffSym = LOOK.map(L => ({ type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "sphere" }, width: L.w, depth: L.w, height: L.h, material: { color: L.c } }] }));
+  const shaftSym = LOOK.map(L => L.shaft && ((hgt) => ({ type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "cylinder" }, width: L.w * 0.55, depth: L.w * 0.55, height: hgt, anchor: "bottom", material: { color: L.shaft } }] })));
+  function gridAt(arr, lat, lon) {
+    const fy = Math.max(0, Math.min(NY - 1.001, (lat - LAT0) / STEP)), fx = Math.max(0, Math.min(NX - 1.001, (lon - LON0) / STEP));
+    const j = Math.floor(fy), i = Math.floor(fx), ty = fy - j, tx = fx - i, k = j * NX + i;
+    return (arr[k] * (1 - tx) + arr[k + 1] * tx) * (1 - ty) + (arr[k + NX] * (1 - tx) + arr[k + NX + 1] * tx) * ty;
   }
   async function build() {
     if (ready || loading) return; loading = true;
     try {
       await trueElev.load();
-      const r = await trueElev.queryElevation(mpoint(pts), { demResolution: 60 });
-      gz = r.geometry.points.map(p => p[2]);
-      const env = gz.map((_, i) => { let m = -1e9; for (let j = Math.max(0, i - 5); j <= Math.min(N - 1, i + 5); j++) m = Math.max(m, gz[j]); return m; });
-      air = env.map((_, i) => { let t = 0, n = 0; for (let j = Math.max(0, i - 4); j <= Math.min(N - 1, i + 4); j++) { t += env[j]; n++; } return t / n + 900; });
-      iPeak = air.indexOf(Math.max(...air));
-      iCond = air.findIndex(z => z - air[0] > 350); if (iCond < 0 || iCond > iPeak) iCond = Math.max(0, iPeak - 25);
-      let best = 0; for (let i = 3; i <= iPeak; i++) { const d = air[i] - air[i - 3]; if (d > best) { best = d; iRise = i; } }
-      iLee = Math.min(N - 1, iPeak + 12);
-      for (let k = 0; k < NP; k++) { const g = new Graphic({ geometry: null }); parts.push({ u: k / NP, j: (Math.random() - 0.5) * 600, g, st: -1 }); sliceLayer.add(g); }
-      const dropSym = { type: "line-3d", symbolLayers: [{ type: "line", size: 2, material: { color: [120, 180, 255, 0.9] }, cap: "round" }] };
-      for (let k = 0; k < ND; k++) { const g = new Graphic({ geometry: null, symbol: dropSym }); drops.push({ live: false, g, i: 0, z: 0 }); sliceLayer.add(g); }
-      ready = true; update(true);
-    } catch (e) { console.warn("slice", e); toast("The Blue Ridge sketch could not load the terrain."); }
+      const pts = []; for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++) pts.push([LON0 + i * STEP, LAT0 + j * STEP]);
+      const r = await trueElev.queryElevation(mpoint(pts), { demResolution: 1000 });
+      ground = Float32Array.from(r.geometry.points.map(p => p[2]));
+      // cloud base: 1.2 km above the ground's high points, smoothed over about 8 km
+      const mx = new Float32Array(ground.length), R2 = 2;
+      for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++) { let m = -1e9;
+        for (let dj = -R2; dj <= R2; dj++) for (let di = -R2; di <= R2; di++) { const jj = j + dj, ii = i + di; if (jj >= 0 && jj < NY && ii >= 0 && ii < NX) m = Math.max(m, ground[jj * NX + ii]); }
+        mx[j * NX + i] = m; }
+      base = new Float32Array(ground.length);
+      for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++) { let t = 0, n = 0;
+        for (let dj = -R2; dj <= R2; dj++) for (let di = -R2; di <= R2; di++) { const jj = j + dj, ii = i + di; if (jj >= 0 && jj < NY && ii >= 0 && ii < NX) { t += mx[jj * NX + ii]; n++; } }
+        base[j * NX + i] = t / n + 1200; }
+      for (let k = 0; k < NPUFF; k++) {
+        const p = { lat: LAT0 + Math.random() * (LAT1 - LAT0), lon: LON0 + Math.random() * (LON1 - LON0), b: -1, rate: 0, puff: new Graphic({ geometry: null }), shaft: new Graphic({ geometry: null }) };
+        puffs.push(p); cloudPuffLayer.add(p.puff); shaftLayer.add(p.shaft);
+      }
+      ready = true; rates();
+    } catch (e) { console.warn("clouds", e); toast("The rain clouds could not load the terrain."); }
     loading = false;
   }
-  function rebuild() {
-    if (!ready) return;
-    sliceLayer.removeMany(statics); const E = EXAG;
-    statics = [
-      strip(0, N - 1, i => gz[i] * E + 20, () => TOP * E, [255, 255, 255, 0.1]),
-      label(Math.round(iCond * 0.35), (air[Math.round(iCond * 0.35)] + 500) * E, "1  Warm, wet air blows in\nfrom the south-east"),
-      label(iRise, (air[iRise] + 400) * E, "2  The Blue Ridge\nforces it upward"),
-      label(Math.round((iCond + iPeak) / 2), TOP * E, "3  Rising air cools and its\nwater vapour turns to cloud"),
-      label(Math.max(0, iRise - 6), gz[Math.max(0, iRise - 6)] * E + 200, "4  Heaviest rain on the\nslopes facing the wind"),
-      label(Math.min(N - 1, iPeak + 35), (air[Math.min(N - 1, iPeak + 35)] + 400) * E, "5  Past the ridge top,\nthe rain eases")
-    ];
-    if (onshore && intensity > 0.02) statics.splice(1, 0, strip(iCond, iLee, i => air[i] * E, i => (TOP - 700 - 800 * Math.max(0, (i - iPeak) / 12)) * E, [236, 240, 245, 0.2 + 0.55 * intensity]));
-    sliceLayer.addMany(statics);
-    drops.forEach(d => { d.live = false; d.g.geometry = null; });
+  // inverse-distance average of this hour's radar rain within 35 km
+  function rateAt(lat, lon, hr) {
+    let wsum = 0, vsum = 0; const c = Math.cos(lat * Math.PI / 180);
+    for (const g of src) { const dx = (g.geometry.longitude - lon) * c * KM_LAT, dy = (g.geometry.latitude - lat) * KM_LAT, d2 = dx * dx + dy * dy;
+      if (d2 > 1225) continue; const w = 1 / (d2 + 25); wsum += w; vsum += w * g.attributes["h" + hr]; }
+    return wsum ? vsum / wsum : 0;
   }
-  function findNearby() {   // radar-rain places within 25 km of the slice
-    const [ax, ay] = [A[1], A[0]], [bx, by] = [B[1], B[0]], c = Math.cos(35.5 * Math.PI / 180);
-    near = rainGraphics.filter(g => { const px = g.geometry.longitude, py = g.geometry.latitude;
-      const vx = (bx - ax) * c, vy = by - ay, wx = (px - ax) * c, wy = py - ay, t = Math.max(0, Math.min(1, (wx * vx + wy * vy) / (vx * vx + vy * vy)));
-      return Math.hypot(wx - t * vx, wy - t * vy) * KM_LAT < 25; });
-    update(true);
+  function rates() { if (!ready) return; const hr = Math.min(HOURS, Math.floor(hNow)); for (const p of puffs) p.rate = src.length ? rateAt(p.lat, p.lon, hr) : 0; }
+  function setWind() {
+    const ms = tAt(hNow), s = stormAt(ms), mid = [35.6, -82.4];
+    const w = s ? vortexWind(s, mid[0], mid[1]) : null;
+    if (w && w.r < 900) { wind = { u: w.u, v: w.v }; active = true; }
+    else if (s && ms >= PRE_FROM && s.lat < 30) { wind = { u: -Math.SQRT1_2, v: Math.SQRT1_2 }; active = true; }   // from the south-east
+    else { wind = { u: -Math.SQRT1_2, v: Math.SQRT1_2 }; active = !!s; }
   }
-  function update(force) {
-    const ms = tAt(hNow), i = Math.min(HOURS, Math.floor(hNow)), s = stormAt(ms);
-    let windTxt;
-    const w = s ? vortexWind(s, MID[1], MID[0]) : null;
-    if (w && w.r < 900) { const b = fromBearing(w.u, w.v); onshore = b >= 70 && b <= 200; windTxt = `from the ${compass(b)} (storm winds sketch)`; }
-    else if (ms >= PRE_FROM && s && s.lat < 30) { onshore = true; windTxt = "from the south-east, flowing north ahead of the storm (NHC report)"; }
-    else { onshore = false; windTxt = s ? "not blowing onto the ridge" : "Helene has gone; winds no longer push air up the ridge"; }
-    let rate = null; if (near.length) rate = near.reduce((t, g) => t + g.attributes["h" + i], 0) / near.length;
-    intensity = rate == null ? (onshore ? 0.6 : 0) : Math.min(1, rate / 0.6);
-    if (!onshore) intensity = Math.min(intensity, 0.15);
-    const el = $("sliceInfo");
-    if (el) el.innerHTML = `<b>${fmtEDT(ms)} EDT.</b> Wind at the Blue Ridge: ${windTxt}.<br>Radar rain near the slice this hour: ${rate == null ? "loading…" : `<b>${rate.toFixed(2)} in (${Math.round(rate * 25.4)} mm)</b>, average of ${near.length} places`}.`;
-    const k = `${onshore}|${Math.round(intensity * 5)}|${EXAG}`;
-    if (ready && (force || k !== key)) { key = k; rebuild(); }
+  function respawn(p) {   // re-enter on the upwind side
+    p.lat = LAT0 + Math.random() * (LAT1 - LAT0); p.lon = LON0 + Math.random() * (LON1 - LON0);
+    for (let k = 0; k < 400; k++) { const c = Math.cos(p.lat * Math.PI / 180), nlat = p.lat - wind.v * 4 / KM_LAT, nlon = p.lon - wind.u * 4 / (KM_LAT * c);
+      if (nlat < LAT0 || nlat > LAT1 || nlon < LON0 || nlon > LON1) break; p.lat = nlat; p.lon = nlon; }
+    p.rate = src.length ? rateAt(p.lat, p.lon, Math.min(HOURS, Math.floor(hNow))) : 0;
   }
-  const SYM = [[255, 176, 96, 0.95], [255, 255, 255, 0.98], [190, 190, 190, 0.9]].map(c => ({ type: "line-3d", symbolLayers: [{ type: "line", size: 4, material: { color: c }, cap: "round" }] }));
   function frame(dt) {
-    if (!ready || !sliceLayer.visible) return;
-    const E = EXAG, spd = onshore ? 9 : 1.5;   // km per second on screen
-    for (const p of parts) {
-      p.u = (p.u + dt * spd / (N - 1)) % 1;
-      const i = Math.floor(p.u * (N - 1)), trail = [];
-      for (let k = Math.max(0, i - 3); k <= i; k++) trail.push(P(k, (air[k] + p.j) * E));
-      if (trail.length < 2) trail.push(P(i, (air[i] + p.j) * E + 1));
-      p.g.geometry = { type: "polyline", paths: [trail], hasZ: true, spatialReference: { wkid: 3857 } };
-      const st = !onshore ? 0 : i < iCond ? 0 : i <= iLee ? 1 : 2;
-      if (st !== p.st) { p.st = st; p.g.symbol = SYM[st]; }
+    if (!ready || !cloudPuffLayer.visible) return;
+    rateClock += dt; if (rateClock > 0.5) { rateClock = 0; setWind(); rates(); }
+    const E = EXAG, spd = playing ? SPEED : SPEED * 0.4;
+    for (const p of puffs) {
+      const c = Math.cos(p.lat * Math.PI / 180);
+      p.lat += wind.v * spd * dt / KM_LAT; p.lon += wind.u * spd * dt / (KM_LAT * c);
+      if (p.lat < LAT0 || p.lat > LAT1 || p.lon < LON0 || p.lon > LON1) respawn(p);
+      const b = active ? bucket(p.rate) : 0, zb = gridAt(base, p.lat, p.lon), zg = gridAt(ground, p.lat, p.lon), L = LOOK[b];
+      p.puff.geometry = { type: "point", longitude: p.lon, latitude: p.lat, z: zb * E + L.h / 2 };
+      if (b !== p.b) { p.b = b; p.puff.symbol = puffSym[b]; }
+      if (shaftSym[b]) {
+        const hgt = Math.round(Math.max(200, (zb - zg) * E) / 250) * 250;   // re-make the symbol only when the height changes noticeably
+        p.shaft.geometry = { type: "point", longitude: p.lon, latitude: p.lat, z: 0 };
+        if (hgt !== p.sh || b !== p.sb) { p.sh = hgt; p.sb = b; p.shaft.symbol = shaftSym[b](hgt); }
+      } else if (p.shaft.geometry) { p.shaft.geometry = null; p.sb = -1; }
     }
-    // rain: more drops when the radar shows harder rain; most fall on the windward slope
-    if (onshore) acc += dt * intensity * 70;
-    while (acc >= 1) { acc--; const d = drops.find(d => !d.live); if (!d) break;
-      d.i = Math.random() < 0.8 ? Math.min(iPeak, iCond + Math.floor(Math.random() * (iPeak - iCond + 1))) : Math.min(N - 1, iPeak + Math.floor(Math.random() * 25));
-      d.z = air[d.i] * E; d.live = true; }
-    for (const d of drops) { if (!d.live) continue;
-      d.z -= dt * 2600 * E; const floor = gz[d.i] * E;
-      if (d.z - 250 * E <= floor) { d.live = false; d.g.geometry = null; continue; }
-      d.g.geometry = { type: "polyline", paths: [[P(d.i, d.z), P(d.i, Math.max(floor, d.z - 250 * E))]], hasZ: true, spatialReference: { wkid: 3857 } }; }
   }
-  return { build, rebuild: () => { key = ""; update(true); }, update, frame, findNearby };
+  function info() {   // panel read-out: where the radar says it is raining hardest this hour
+    const el = $("cloudInfo"); if (!el) return;
+    const hr = Math.min(HOURS, Math.floor(hNow)), ms = tAt(hr);
+    if (!src.length) { el.textContent = "Loading radar rain…"; return; }
+    const top = src.filter(g => g.attributes.kind === "City").map(g => ({ n: g.attributes.name, st: g.attributes.state, r: g.attributes["h" + hr] })).sort((a, b) => b.r - a.r).slice(0, 3);
+    const s = stormAt(ms), w = s ? vortexWind(s, 35.6, -82.4) : null;
+    const windTxt = w && w.r < 900 ? `from the ${compass(fromBearing(w.u, w.v))} (storm winds sketch)` : s && ms >= PRE_FROM && s.lat < 30 ? "from the south-east, flowing north ahead of the storm (NHC report)" : s ? "light" : "Helene has gone";
+    el.innerHTML = `<b>${fmtEDT(ms)} EDT.</b> Wind over the mountains: ${windTxt}.<br>Hardest radar rain this hour: ${top[0].r < 0.01 ? "none" : top.map(t => `${t.n} ${t.st} ${t.r.toFixed(2)} in (${Math.round(t.r * 25.4)} mm)`).join(" · ")}`;
+  }
+  return { build, frame, info, setSources(g) { src = g.filter(x => x.geometry.latitude > LAT0 - 0.5 && x.geometry.latitude < LAT1 + 0.5 && x.geometry.longitude > LON0 - 0.5 && x.geometry.longitude < LON1 + 0.5); rates(); info(); } };
 })();
 
 // ---------- visibility & legend ----------
@@ -762,7 +761,7 @@ function applyVis() {
   if (rainLayer) rainLayer.visible = vis.rain && avail.rain;
   nwsLayer.visible = vis.nws && avail.nws; $("nwsKey").style.display = nwsLayer.visible ? "block" : "none";
   windLayer.visible = vis.winds; windHour = -1;
-  sliceLayer.visible = vis.slice; if (vis.slice) slice.build();
+  cloudPuffLayer.visible = shaftLayer.visible = vis.clouds; if (vis.clouds) clouds.build();
   gaugeLayer.visible = vis.gauges && avail.gauges;
   slideLayer.visible = vis.slides && avail.slides;
   syncLegend(); render(true);
@@ -860,10 +859,9 @@ function renderChapterExtra() {
       ${stackedBars(DEATHS.map(([s, t, f]) => ({ label: s, f, o: t - f })), [{ f: "f", c: "var(--s1)", name: "Flooding and landslides" }, { f: "o", c: "var(--ref)", name: "Other causes" }])}
       <div class="cap" style="font-size:12.5px;color:var(--muted);margin-top:6px">Totals include direct and indirect deaths. "Flooding and landslides" counts direct deaths from freshwater flooding, which the NHC says includes landslides and debris flows. Source: NHC Tropical Cyclone Report, February 2026 update.</div>`;
   } else if (c.key === "oro") {
-    el.innerHTML = `<h2>The slice right now ${mv("Air over the Blue Ridge")}</h2><div class="hint" id="sliceInfo" style="font-size:13.5px;color:var(--ink)"></div>
-      <div class="key" style="margin-top:8px"><span><i style="background:#ffb060"></i>Warm, wet air</span><span><i style="background:#fff;border:1px solid var(--rule)"></i>In the cloud</span><span><i style="background:#bebebe"></i>Dried out</span><span><i style="background:#78b4ff"></i>Rain</span></div>
-      <p class="hint">The slice and the arrows are sketches ${mv("Storm winds sketch")}. The rain under the slice follows real radar measurements for each hour. The coloured map on the ground is the NWS rain total for 24–27 September.</p>`;
-    slice.update(true);
+    el.innerHTML = `<h2>Right now ${mv("Rain clouds")}</h2><div class="hint" id="cloudInfo" style="font-size:13.5px;color:var(--ink)"></div>
+      <p class="hint">Cloud shapes and movement are a sketch. Where they rain, and how hard, comes from the real radar measurements for each hour.</p>`;
+    clouds.info();
   } else el.innerHTML = "";
 }
 
@@ -881,7 +879,8 @@ function goChapter(i, animate = true) {
   for (const k of Object.keys(vis)) vis[k] = !!c.show[k];
   applyVis(); renderChapterExtra();
   setTime(c.t0);
-  view.goTo(c.cam, { duration: animate ? 2500 : 0, easing: "in-out-cubic" }).catch(() => {});
+  const target = c.cam.frame ? { target: { type: "multipoint", points: c.cam.frame, spatialReference: { wkid: 4326 } }, tilt: c.cam.tilt, heading: c.cam.heading } : c.cam;
+  view.goTo(target, { duration: animate ? 2500 : 0, easing: "in-out-cubic" }).catch(() => {});
 }
 
 // ---------- timeline ----------
@@ -892,7 +891,7 @@ function render(force) {
   const ms = tAt(hNow);
   $("tLabel").textContent = fmtEDT(ms) + " EDT";
   $("tUtc").textContent = fmtUTC(ms);
-  drawRain(); drawGauges(); drawSlides(); drawWinds(); slice.update(false);
+  drawRain(); drawGauges(); drawSlides(); drawWinds(); clouds.info();
 }
 $("tSlider").addEventListener("input", (e) => { pause(); setTime(+e.target.value); });
 function play() {
@@ -912,8 +911,8 @@ function loop(ts) {
   }
   // storm clouds turn anticlockwise (about one turn every 20 s) and are redrawn ~15 times a second
   rot += dt * 0.3;
-  if (!loop._n || ts - loop._n > 66) { loop._n = ts; drawStorm(tAt(hNow), rot); }
-  slice.frame(dt);
+  loop._acc = (loop._acc || 0) + dt;
+  if (!loop._n || ts - loop._n > 66) { loop._n = ts; drawStorm(tAt(hNow), rot); clouds.frame(loop._acc); loop._acc = 0; }
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
