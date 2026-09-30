@@ -103,6 +103,24 @@
     #tSub span.far { display: none; }
     #exag { font-size: 11.5px; top: 8px; }
   }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+  .chips button { padding: 6px 10px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+  .chips button i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+  .chips button[aria-pressed="false"] { opacity: .55; }
+  .chips button[aria-pressed="true"] { outline: 2px solid var(--accent); }
+  #revealCap { font-size: 14px; min-height: 2.8em; margin: 6px 0 4px; }
+  .ctl { margin: 10px 0 2px; font-size: 13.5px; font-weight: 600; display: flex; justify-content: space-between; }
+  .ctl span { color: var(--accent); font-variant-numeric: tabular-nums; }
+  input[type=range].th { width: 100%; accent-color: var(--accent); }
+  table.mx { width: 100%; border-collapse: separate; border-spacing: 3px; font-size: 13px; margin-top: 8px; }
+  table.mx th { font-size: 12px; color: var(--muted); font-weight: 600; text-align: center; padding: 2px; }
+  table.mx th.r { text-align: left; }
+  table.mx td { text-align: center; padding: 8px 4px; border-radius: 6px; border: 1px solid var(--rule); }
+  table.mx td b { display: block; font-size: 18px; font-variant-numeric: tabular-nums; }
+  table.mx td span { font-size: 11.5px; color: var(--muted); }
+  .band { display: flex; margin: 2px 0 0 22px; font-size: 11px; color: var(--muted); }
+  .band span { flex: 1; text-align: center; }
+  .band i { flex: 1; height: 8px; }
 </style>
 </head>
 <body>
@@ -110,9 +128,9 @@
   <aside id="panel">
     <div class="kicker">Hurricanes <span class="ver" id="verTop"></span></div>
     <h1>Hurricane Helene, September 2024</h1>
-    <p class="lede">How a hurricane that came ashore in Florida caused record floods and thousands of landslides in the mountains, 400 miles away.</p>
+    <p class="lede">Why did a hurricane that came ashore in Florida cause its worst floods and landslides in one part of the Appalachian mountains, 400 miles away?</p>
 
-    <h2>The story in six steps</h2>
+    <h2>The story in seven steps</h2>
     <div class="steps" id="steps"></div>
 
     <div id="chapter" style="margin-top:14px">
@@ -129,22 +147,22 @@
     <h2>For teachers</h2>
     <details><summary>What the 3D view shows</summary>
       <ul>
-        <li><b>Rain columns.</b> Each blue column stands on a town or river gauge. Its height is the rain that had fallen there since 8 am EDT on Tuesday 24 September; its colour shows how hard it was raining in that hour. Values are radar estimates (NOAA MRMS), prepared by NOAA for its <i>Helene in Southern Appalachia</i> dashboard. Heights are exaggerated a great deal so they can be seen: 1 inch of rain is drawn 500 m tall.</li>
-        <li><b>River gauges.</b> Each gauge is a column of water whose height is the river's stage (its height above a fixed point at that gauge), measured every 15 minutes by the USGS. The red ring marks the NWS "major flood" level; the white ring marks the highest the river had been measured before Helene. 1 ft of river is drawn 120 m tall. Where a column turns grey, the gauge stopped reporting (many were damaged).</li>
-        <li><b>Landslides.</b> Points from the USGS preliminary landslide inventory. The inventory does not record when each slide happened, so the page shows them all from the morning of 27 September, when most occurred.</li>
-        <li><b>Storm winds.</b> The white arrows are a sketch of Helene's spin, not measured winds. They turn anticlockwise around the centre and angle slightly inward, and grow longer and brighter closer to the centre, using the storm's strength from the NHC track. Real winds were also steered by other weather systems.</li>
-        <li><b>Rain clouds.</b> In steps 1–3, clouds drift across the mountains with the wind. Where and how hard they rain is <i>not</i> invented: each cloud rains at the radar-measured rate (NOAA MRMS) for that hour at the places nearest to it. The clouds sit about 1.2 km above a smoothed version of the ground, so they rise over the mountains. Their shapes and movement are a sketch.</li>
-        <li><b>The storm.</b> The centre follows the NHC best track (positions every 6 hours, joined with straight lines). The cloud spiral is a drawing to show size and position, not a satellite image.</li>
-        <li><b>Terrain.</b> Mountains are drawn 2× taller than they are by default so the Blue Ridge is easy to see. Use the switch at the top to see true height.</li>
+        <li><b>Rain so far.</b> The blue shading on the ground is the rain that had fallen since 8 am EDT on Tuesday 24 September, and it grows as the timeline plays. It is made from NOAA's hourly radar estimates (MRMS) at about 390 towns and river gauges, prepared for NOAA's <i>Helene in Southern Appalachia</i> dashboard, spread between those places by inverse-distance weighting. It covers the southern Appalachians only. Click the map to read the value at a spot.</li>
+        <li><b>Steep ground.</b> Slope worked out from Esri World Elevation on a grid about 1.2 km apart, so it describes the steepness of the landscape (mountain sides, the Blue Ridge escarpment), not of single hillsides.</li>
+        <li><b>Heavy rain on steep ground.</b> Places where the total rain and the steepness are both above the thresholds chosen in step 6. Students can change the thresholds.</li>
+        <li><b>River gauges.</b> Each gauge is a column of water whose height is the river's stage, measured every 15 minutes by the USGS. The red ring marks the NWS "major flood" level; the white ring marks the highest the river had been measured before Helene. 1 ft of river is drawn 120 m tall. A grey column means the gauge stopped reporting.</li>
+        <li><b>Landslides.</b> Points from the USGS preliminary landslide inventory. It does not record when each slide happened, so the page shows them from the morning of 27 September, when most occurred.</li>
+        <li><b>Storm and winds.</b> The storm centre follows the NHC best track; the cloud spiral and the wind arrows are drawings of the storm's anticlockwise spin, not measurements.</li>
+        <li><b>Terrain.</b> Mountains are drawn 2× taller by default. Use the switch at the top to see true height.</li>
       </ul>
     </details>
     <details><summary>Limitations</summary>
       <ul>
-        <li>Radar rainfall estimates can differ from rain gauges. The highest gauge total (30.78 in at Busick) is higher than the radar values at nearby towns.</li>
-        <li>River heights from different sources differ slightly: the USGS provisional peak at Asheville is 24.67 ft, the NHC report gives 24.8 ft and the NOAA crest table 24.82 ft.</li>
+        <li>The rain map is spread between about 390 radar points, so it smooths out small, very wet spots. Radar estimates can differ from rain gauges: the highest gauge total, 30.78 in at Busick, is higher than the radar values nearby.</li>
         <li>The landslide inventory is preliminary and misses slides hidden by forest or too small to see from satellites. Some points are at the damage site, not where the slide began.</li>
-        <li>The slope test uses Esri World Elevation at about 40 m detail, so it describes the hillside, not the exact spot.</li>
-        <li>Everything here comes from live services. If a service is down, that layer will say so and the rest of the page still works.</li>
+        <li>Step 6 compares areas, so it shows that landslides and heavy rain on steep ground happened in the same places. It cannot, by itself, prove that one caused the other; the science of why is in step 3 and step 5.</li>
+        <li>River heights from different sources differ slightly: the USGS provisional peak at Asheville is 24.67 ft, the NHC report gives 24.8 ft.</li>
+        <li>Everything comes from live services. If one is down, that layer says so and the rest of the page still works.</li>
       </ul>
     </details>
     <details><summary>Sources</summary>
@@ -154,7 +172,7 @@
         <a href="https://www.usgs.gov/data/preliminary-landslide-inventory-landslides-triggered-hurricane-helene-september-2024" target="_blank" rel="noopener">USGS preliminary landslide inventory</a> ·
         <a href="https://www.usgs.gov/publications/insights-widespread-landsliding-southern-appalachia-hurricane-helene" target="_blank" rel="noopener">USGS: Insights into widespread landsliding (2,217 landslides, south-east-facing slopes)</a> ·
         <a href="https://waterdata.usgs.gov/" target="_blank" rel="noopener">USGS river gauges</a> ·
-        NWS rainfall analysis (GIS Mutual Aid) · Esri World Elevation and imagery
+        NWS rainfall analysis (GIS Mutual Aid) · Esri World Elevation and World Imagery
       </div>
     </details>
     <details id="about"><summary>About and versions</summary>
@@ -164,7 +182,7 @@
   </aside>
 
   <main id="mapwrap">
-    <arcgis-scene basemap="hybrid" camera-position="-83.0, 21.5, 1300000" camera-heading="0" camera-tilt="35">
+    <arcgis-scene basemap="satellite" camera-position="-83.3, 18.0, 2300000" camera-heading="0" camera-tilt="18">
       <arcgis-zoom slot="top-left"></arcgis-zoom>
       <arcgis-navigation-toggle slot="top-left"></arcgis-navigation-toggle>
       <arcgis-compass slot="top-left"></arcgis-compass>
@@ -173,19 +191,18 @@
     <div id="toast"></div>
     <div id="legend">
       <div class="t">Show on the map</div>
-      <button class="k" data-l="storm" aria-pressed="true"><span class="tick"></span>Storm clouds and track</button>
-      <button class="k" data-l="rain" aria-pressed="true" disabled><span class="tick"></span>Rain columns</button>
-      <div class="sub">Height: rain so far · colour: rain this hour</div>
-      <div class="ramp" aria-hidden="true"><i style="background:#cde2fb"></i><i style="background:#86b6ef"></i><i style="background:#3987e5"></i><i style="background:#1c5cab"></i></div>
-      <div class="sub" style="display:flex;justify-content:space-between"><span>none</span><span>1+ in/hr</span></div>
-      <button class="k" data-l="nws" aria-pressed="false" disabled><span class="tick"></span>Rain map, 24–27 Sep (NWS)</button>
-      <div id="nwsKey"></div>
+      <button class="k" data-l="rainSurf" aria-pressed="false" disabled><span class="tick"></span>Rain so far (radar)</button>
+      <div class="band" aria-hidden="true"><i style="background:#cde2fb"></i><i style="background:#86b6ef"></i><i style="background:#3987e5"></i><i style="background:#1c5cab"></i><i style="background:#0d366b"></i></div>
+      <div class="band"><span>2</span><span>5</span><span>10</span><span>15</span><span>20+ in</span></div>
+      <button class="k" data-l="steep" aria-pressed="false" disabled><span class="tick"></span><span class="sw" style="background:#eda100"></span>Steep ground</button>
+      <button class="k" data-l="overlap" aria-pressed="false" disabled><span class="tick"></span><span class="sw" style="background:#d55181"></span>Heavy rain on steep ground</button>
+      <button class="k" data-l="slides" aria-pressed="false" disabled><span class="tick"></span><span class="sw" style="background:#fff;border:2px solid #7a1414;border-radius:50%;width:10px;height:10px"></span>Landslides</button>
+      <button class="k" data-l="records" aria-pressed="false" disabled><span class="tick"></span><span class="sw" style="background:#00b4d8;transform:rotate(45deg);width:10px;height:10px"></span>River broke its record</button>
+      <button class="k" data-l="gauges" aria-pressed="false" disabled><span class="tick"></span>River gauge columns</button>
+      <button class="k" data-l="storm" aria-pressed="true"><span class="tick"></span>Storm and track</button>
       <button class="k" data-l="winds" aria-pressed="false"><span class="tick"></span><span class="sw" style="background:none;color:inherit;font-size:14px;line-height:12px;text-align:center">➜</span>Storm winds (sketch)</button>
-      <div class="sub">Brighter and longer = stronger</div>
-      <button class="k" data-l="clouds" aria-pressed="false"><span class="tick"></span>Rain clouds</button>
-      <div class="sub">Darker cloud, bluer shaft = harder rain (radar)</div>
-      <button class="k" data-l="gauges" aria-pressed="false" disabled><span class="tick"></span>River gauges</button>
-      <button class="k" data-l="slides" aria-pressed="false" disabled><span class="tick"></span><span class="sw" style="background:#eb6834;border-radius:50%;width:10px;height:10px"></span>Landslides</button>
+      <button class="k" data-l="nws" aria-pressed="false" disabled><span class="tick"></span>NWS rain map, 24–27 Sep</button>
+      <div id="nwsKey"></div>
     </div>
     <div id="timebar">
       <button id="playBtn" class="primary" aria-label="Play">▶ Play</button>
@@ -201,14 +218,15 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.5";
-const APP_DATE = "29 September 2026";
+const APP_VERSION = "0.6";
+const APP_DATE = "30 September 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
-  ["Rain columns", "0.1", "NOAA MRMS hourly radar estimates, total since 24 Sep 12:00 UTC; 1 in drawn as 500 m"],
   ["Storm winds sketch", "0.2", "Anticlockwise vortex around the NHC track position, 20° inflow; speed = track wind × (60 km / distance)^0.6 beyond 60 km; hidden past 900 km; drawn as arrow shapes on the ground"],
-  ["Rain clouds", "0.2", "Drawn only where radar rain is at least 0.03 in/hr; still while paused; 180 clouds drifting with the storm winds sketch (south-easterly before Helene is near); rain rate = inverse-distance average of MRMS hourly rain within 35 km; cloud base 1.2 km above an 8 km-smoothed ridge surface"],
-  ["River gauges", "0.1", "USGS 15-minute stage; NWS flood levels; highest stage before 2024 from NOAA crest table; 1 ft drawn as 120 m"],
+  ["Rain so far", "0.1", "NOAA MRMS hourly radar totals since 24 Sep 12:00 UTC at ~390 places, spread to a 0.0125° grid by inverse-distance weighting (6 nearest within 40 km); southern Appalachians only"],
+  ["Steep ground", "0.1", "Slope from Esri World Elevation sampled every 0.0125° (about 1.2 km) at ~150 m detail, central differences across ~2.5 km"],
+  ["Where it lined up", "0.1", "Grid cells split by total rain (24–28 Sep) and steepness thresholds; landslides counted per cell; density per 100 km²"],
+  ["River gauges", "0.2", "USGS 15-minute stage; NWS flood levels; highest stage before 2024 from NOAA crest table; 1 ft drawn as 120 m; names as deconflicted labels"],
   ["Landslides and slope test", "0.1", "USGS preliminary inventory; aspect from Esri World Elevation at ~40 m, ±60 m differences, slopes under 8° left out"],
   ["Terrain exaggeration", "0.1", "Esri World Elevation (Terrain3D) multiplied by 1, 2 or 3"]
 ];
@@ -266,34 +284,40 @@ function category(kt, stage) {
 const knMph = (k) => Math.round(k * 1.15078 / 5) * 5;
 
 // ---------- chapters ----------
+const CAM_MTN = { center: [-82.3, 35.5], zoom: 8.3, tilt: 60, heading: 318 };   // from the south-east, looking north-west over the Blue Ridge
 const CH = [
   { key: "pre", n: "1 · 24–26 Sep", name: "Rain before the storm", t0: 0, t1: 54,
-    cam: { center: [-83.3, 27.6], zoom: 5.5, tilt: 18, heading: 0 }, show: { storm: 1, rain: 1, winds: 1, clouds: 1 },
+    cam: { center: [-83.3, 27.6], zoom: 5.5, tilt: 18, heading: 0 }, show: { storm: 1, winds: 1, rainSurf: 1 },
     story: `<p>On Wednesday 25 September, Helene was still a hurricane over the Gulf, more than 600 miles from the Appalachian mountains. But rain was already falling hard there.</p>
       <p>A weather front had stalled over the region, and warm, wet air flowing north ahead of the storm was pushed up against the mountains. Forecasters call this a <b>predecessor rain event</b>. By the time Helene arrived, the ground was soaked and rivers were already rising.</p>`,
-    qs: ["Press Play. Where do the first tall rain columns appear? Is the storm anywhere near them?", "Pause on Thursday morning. How much rain has fallen at Asheville already?", "Why might rain falling <i>before</i> a storm make the storm's own rain more dangerous?"] },
+    qs: ["Press Play. Where does the blue (rain so far) first appear? Where is the storm at that time?", "Pause on Thursday morning and click near Asheville. How much rain has fallen already?", "Why might rain falling <i>before</i> a storm make the storm's own rain more dangerous?"] },
   { key: "storm", n: "2 · 26–27 Sep", name: "A huge, fast storm", t0: 48, t1: 72,
-    cam: { center: [-83.6, 30.0], zoom: 6.0, tilt: 30, heading: 0 }, show: { storm: 1, rain: 1, winds: 1, clouds: 1 },
+    cam: { center: [-83.6, 30.0], zoom: 6.0, tilt: 30, heading: 0 }, show: { storm: 1, winds: 1, rainSurf: 1 },
     story: `<p>Over very warm water, Helene grew stronger fast. At about 11 pm EDT on Thursday 26 September it came ashore near Perry, in Florida's Big Bend, as a <b>Category 4 hurricane</b> with winds of about 140 mph (225 km/h).</p>
-      <p>It was enormous: tropical-storm-force winds reached as far as 360 nautical miles (about 670 km) from the centre. It was also moving fast, about 30 mph (50 km/h), so its centre reached the mountains only about nine hours after landfall.</p>`,
-    qs: ["Watch the label on the storm. How quickly does it weaken after it crosses the coast?", "The storm moved fast. Would a fast storm or a slow storm bring more rain to one place? Why?", "Compare the storm's size with the distance from Florida to North Carolina."] },
-  { key: "oro", n: "3 · 25–27 Sep", name: "Mountains squeeze out the rain", t0: 24, t1: 78,
-    cam: { center: [-82.35, 35.55], zoom: 8.4, tilt: 66, heading: 318 }, show: { clouds: 1 },
-    story: `<p>Winds from the south-east pushed wet air straight at the <b>Blue Ridge</b>, a steep wall of mountains. When air is forced upward it cools. Cool air can hold less water vapour, so the vapour turns into cloud and rain. This is called <b>orographic</b> rain.</p>
-      <p>You are looking north-west, the way the wind blew. Press Play: the clouds rain exactly where and as hard as the radar measured. Watch where the dark clouds and heavy rain gather. The heaviest rain fell on the slopes facing the wind. Busick, in Yancey County, measured 30.78 inches (782 mm) in three days. Across a wide area, the three-day totals had less than a 1-in-1,000 chance of happening in any year.</p>`,
-    qs: ["Follow one cloud. Where does it grow dark and start to rain hard? What is the ground like there?", "Switch the mountains to true height, then 3×. Where do the rain shafts sit compared with the steepest slopes?", "After playing, turn on the NWS rain map. Do the reddest (wettest) areas match the mountain slopes?"] },
+      <p>It was enormous, and it spun anticlockwise. On its east side the winds blew from the south-east, straight at the mountains. It was also moving fast, so its centre reached the mountains only about nine hours after landfall.</p>`,
+    qs: ["Watch the arrows on the storm's east side as it comes inland. Which way are they pointing when they reach the mountains?", "The storm moved fast. Would a fast storm or a slow storm bring more rain to one place? Why?", "Compare the storm's size with the distance from Florida to North Carolina."] },
+  { key: "oro", n: "3 · 25–27 Sep", name: "Where the rain fell", t0: 24, t1: 84,
+    cam: CAM_MTN, show: { winds: 1, rainSurf: 1 },
+    story: `<p>You are looking north-west over the <b>Blue Ridge</b>, a steep wall of mountains. The winds blew from behind you, straight at it. When air is forced up a mountainside it cools. Cool air can hold less water vapour, so the vapour turns into cloud and rain. This is called <b>orographic</b> rain.</p>
+      <p>Press Play and watch where the blue deepens. Busick, in Yancey County, measured 30.78 inches (782 mm) in three days. Across a wide area, the three-day totals had less than a 1-in-1,000 chance of happening in any year.</p>`,
+    qs: ["Where does the rain pile up fastest: on the flat land in front of the mountains, on the mountain wall, or behind it?", "Switch the mountains to 3×. Does the deepest blue follow the shape of the mountains?", "Click a few places on the map. Which has the most rain? What is the ground like there?"] },
   { key: "rivers", n: "4 · 26–28 Sep", name: "Rivers rise", t0: 42, t1: 90,
-    cam: { center: [-82.62, 35.62], zoom: 8.7, tilt: 62, heading: 335 }, show: { gauges: 1 },
+    cam: { center: [-82.62, 35.62], zoom: 8.7, tilt: 62, heading: 335 }, show: { gauges: 1, rainSurf: 1 },
     story: `<p>All that rain ran off the soaked slopes into streams and rivers at once. At least 63 river gauges broke their records.</p>
-      <p>The French Broad River at Asheville rose to about 24.7 ft, higher than in the great flood of 1916. The Swannanoa River at Biltmore rose more than 6 ft above its 1916 record. Each column is a river gauge: the <b>red ring</b> marks major flooding, the <b>white ring</b> the highest the river had ever been measured before Helene.</p>`,
-    qs: ["Which gauge passes its old record first? Which is last?", "Pick a gauge in the chart. How many hours after the heaviest rain did the river peak?", "Gauges downstream in Tennessee peaked later. Why?"] },
+      <p>The French Broad River at Asheville rose to about 24.7 ft, higher than in the great flood of 1916. Each column is a river gauge: the <b>red ring</b> marks major flooding, the <b>white ring</b> the highest the river had ever been measured before Helene. A ★ by the name means it has broken that record.</p>`,
+    qs: ["Which gauge passes its old record first? Which is last?", "Pick a gauge in the chart. How many hours after the heaviest rain did the river peak?", "Are the gauges that broke records downstream of the deepest blue?"] },
   { key: "slides", n: "5 · 27 Sep", name: "Slopes give way", t0: 60, t1: 84,
-    cam: { center: [-82.28, 35.72], zoom: 9.3, tilt: 62, heading: 20 }, show: { slides: 1, rain: 1 },
+    cam: { center: [-82.28, 35.72], zoom: 9.3, tilt: 62, heading: 20 }, show: { slides: 1, rainSurf: 1 },
     story: `<p>Soil full of water is heavy and loses its grip on the rock beneath. On steep slopes it can slide, and many slides turned into fast <b>debris flows</b> that raced down valleys, carrying trees, rocks and buildings.</p>
       <p>USGS scientists mapped more than 2,000 landslides, most in western North Carolina, and more than half damaged roads, buildings or other property. They found that most began on slopes facing south-east, into the wind. You can test that below.</p>`,
-    qs: ["Where are the landslides most crowded? Compare with where the rain columns are tallest.", "Run the slope test. Which way do most landslide slopes face?", "Why compare the landslides with nearby slopes, not just count them?"] },
-  { key: "cost", n: "6 · Afterwards", name: "Counting the cost", t0: 72, t1: 108,
-    cam: { center: [-82.9, 33.2], zoom: 6.4, tilt: 30, heading: 0 }, show: { slides: 1, storm: 1 },
+    qs: ["Where are the landslides most crowded? Compare with where the blue is deepest.", "Run the slope test. Which way do most landslide slopes face?", "Why compare the landslides with nearby slopes, not just count them?"] },
+  { key: "lined", n: "6 · The pattern", name: "Where it all lined up", t0: 108, t1: 108,
+    cam: { center: [-82.4, 35.6], zoom: 8.1, tilt: 52, heading: 330 }, show: { rainSurf: 1 },
+    story: `<p>Steep mountains, very heavy rain, landslides and record floods did not happen evenly across the region. They happened together, in the same places. Geographers call this a <b>spatial correlation</b>.</p>
+      <p>Build the picture one layer at a time, then test it: how much more common were landslides where heavy rain fell on steep ground?</p>`,
+    qs: ["Which layer lines up best with the landslides: steep ground alone, heavy rain alone, or both together?", "Move the rain threshold up and down. At what amount of rain do landslides become common on steep ground?", "Are there steep places with few landslides? What was different there?"] },
+  { key: "cost", n: "7 · Afterwards", name: "Counting the cost", t0: 72, t1: 108,
+    cam: { center: [-82.9, 33.2], zoom: 6.4, tilt: 30, heading: 0 }, show: { slides: 1, storm: 1, rainSurf: 1 },
     story: `<p>Helene caused at least 250 deaths in the United States, the most for a hurricane on the mainland since Katrina in 2005. In the mountains, most deaths were caused by flooding and landslides, not by wind.</p>
       <p>More than 125,000 homes in western North Carolina were damaged or destroyed. Asheville had no clean tap water for 53 days. Parts of Interstate 40 were washed away. Communities there are still rebuilding.</p>`,
     qs: ["Which states had the most deaths from flooding? Which from wind?", "Asheville is about 500 miles from the sea. Why did an inland city suffer so badly from a hurricane?", "What would you want people in a mountain valley to know before the next big storm?"] }
@@ -301,17 +325,19 @@ const CH = [
 
 // ---------- state ----------
 let hNow = 0, playing = false, chapter = 0, lastFrame = 0, EXAG = 2;
-const vis = { storm: true, rain: true, nws: false, winds: false, clouds: false, gauges: false, slides: false };
-const avail = { storm: true, rain: false, nws: false, winds: true, clouds: true, gauges: false, slides: false };
+const vis = { storm: true, winds: false, rainSurf: false, steep: false, overlap: false, slides: false, records: false, gauges: false, nws: false };
+const avail = { storm: true, winds: true, rainSurf: false, steep: false, overlap: false, slides: false, records: false, gauges: false, nws: false };
 const setStatus = (t, p) => { $("status").textContent = t || ""; if (p != null) $("bar").style.width = Math.round(p * 100) + "%"; };
 function toast(t) { const el = $("toast"); el.textContent = t; el.style.display = "block"; clearTimeout(toast._t); toast._t = setTimeout(() => el.style.display = "none", 3500); }
 
 // ---------- ArcGIS ----------
-const [Graphic, GraphicsLayer, FeatureLayer, ElevationLayer, BaseElevationLayer, TileLayer, reactiveUtils, Multipoint, Mesh, MeshComponent] = await $arcgis.import([
-  "@arcgis/core/Graphic.js", "@arcgis/core/geometry/Multipoint.js", "@arcgis/core/geometry/Mesh.js", "@arcgis/core/geometry/support/MeshComponent.js", "@arcgis/core/layers/GraphicsLayer.js", "@arcgis/core/layers/FeatureLayer.js",
+const mods = await $arcgis.import([
+  "@arcgis/core/Graphic.js", "@arcgis/core/layers/GraphicsLayer.js", "@arcgis/core/layers/FeatureLayer.js",
   "@arcgis/core/layers/ElevationLayer.js", "@arcgis/core/layers/BaseElevationLayer.js", "@arcgis/core/layers/TileLayer.js",
-  "@arcgis/core/core/reactiveUtils.js"
-]).then(m => [m[0], m[4], m[5], m[6], m[7], m[8], m[9], m[1], m[2], m[3]]);
+  "@arcgis/core/core/reactiveUtils.js", "@arcgis/core/geometry/Multipoint.js", "@arcgis/core/geometry/Extent.js",
+  "@arcgis/core/layers/MediaLayer.js", "@arcgis/core/layers/support/ImageElement.js", "@arcgis/core/layers/support/ExtentAndRotationGeoreference.js"
+]);
+const [Graphic, GraphicsLayer, FeatureLayer, ElevationLayer, BaseElevationLayer, TileLayer, reactiveUtils, Multipoint, Extent, MediaLayer, ImageElement, ExtentAndRotationGeoreference] = mods;
 const mpoint = (pts) => new Multipoint({ points: pts, spatialReference: { wkid: 4326 } });
 const sceneEl = document.querySelector("arcgis-scene");
 await sceneEl.viewOnReady();
@@ -343,7 +369,6 @@ function setExag(f) {
   map.ground.layers.removeAll();
   map.ground.layers.add(f === 1 ? new ElevationLayer({ url: TERRAIN_URL }) : new ExagElevation({ factor: f }));
   document.querySelectorAll("#exag button").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.x === f)));
-  windHour = -1;
 }
 
 // Camera read-out for teachers
@@ -352,10 +377,42 @@ reactiveUtils.watch(() => view.camera, (c) => {
   $("camRead").textContent = `View: ${p.longitude.toFixed(3)}, ${p.latitude.toFixed(3)}, ${Math.round(p.z / 1000)} km high, heading ${Math.round(c.heading)}°, tilt ${Math.round(c.tilt)}°`;
 }, { initial: true });
 
-// ---------- layer: NWS 72-hour rainfall analysis (static drape) ----------
+const KM_LAT = 111.32;
+const offset = (lat, lon, dxKm, dyKm) => [lon + dxKm / (KM_LAT * Math.cos(lat * Math.PI / 180)), lat + dyKm / KM_LAT];
+
+// ---------- place labels (the SDK spaces these out so they never overlap) ----------
+const PLACES = [
+  ["Asheville", 35.595, -82.551, "town"], ["Black Mountain", 35.618, -82.321, "town"], ["Chimney Rock", 35.439, -82.247, "town"],
+  ["Hendersonville", 35.318, -82.461, "town"], ["Marion", 35.684, -82.009, "town"], ["Busick", 35.74, -82.22, "town"],
+  ["Spruce Pine", 35.915, -82.065, "town"], ["Boone", 36.217, -81.675, "town"], ["Erwin", 36.145, -82.417, "town"],
+  ["Newport", 35.967, -83.187, "town"], ["Greenville", 34.853, -82.394, "town"], ["Johnson City", 36.313, -82.354, "town"],
+  ["Morganton", 35.745, -81.685, "town"], ["Brevard", 35.233, -82.734, "town"], ["Waynesville", 35.489, -82.989, "town"],
+  ["Marshall", 35.797, -82.684, "town"], ["Lake Lure", 35.427, -82.205, "town"],
+  ["Knoxville", 35.960, -83.921, "city"], ["Charlotte", 35.227, -80.843, "city"], ["Atlanta", 33.749, -84.388, "city"],
+  ["Tampa", 27.951, -82.457, "city"], ["Tallahassee", 30.438, -84.281, "city"],
+  ["FLORIDA", 29.2, -82.3, "region"], ["GEORGIA", 32.6, -83.5, "region"], ["SOUTH CAROLINA", 33.9, -80.9, "region"],
+  ["NORTH CAROLINA", 35.5, -79.3, "region"], ["TENNESSEE", 35.85, -86.4, "region"], ["ALABAMA", 32.8, -86.8, "region"],
+  ["VIRGINIA", 37.4, -78.8, "region"], ["Gulf", 26.0, -86.0, "region"], ["Atlantic Ocean", 30.5, -77.8, "region"], ["CUBA", 22.0, -79.6, "region"]
+];
+const labelSym = (size, color, weight = "normal") => ({ type: "label-3d", symbolLayers: [{ type: "text", material: { color }, halo: { color: [0, 0, 0, 0.8], size: 1.3 }, size, font: { weight } }] });
+const placeLayer = new FeatureLayer({
+  title: "Places", source: PLACES.map(([name, lat, lon, kind], i) => new Graphic({ geometry: { type: "point", longitude: lon, latitude: lat }, attributes: { oid: i + 1, name, kind } })),
+  objectIdField: "oid", fields: [{ name: "oid", type: "oid" }, { name: "name", type: "string" }, { name: "kind", type: "string" }],
+  geometryType: "point", spatialReference: { wkid: 4326 }, elevationInfo: { mode: "relative-to-ground" }, popupEnabled: false, outFields: ["*"],
+  renderer: { type: "unique-value", field: "kind", defaultSymbol: { type: "point-3d", symbolLayers: [{ type: "icon", size: 0.1, resource: { primitive: "circle" }, material: { color: [0, 0, 0, 0] } }] },
+    uniqueValueInfos: [{ value: "town", symbol: { type: "point-3d", symbolLayers: [{ type: "icon", size: 4, resource: { primitive: "circle" }, material: { color: "white" }, outline: { color: [0, 0, 0, 0.6], size: 0.6 } }] } }] },
+  labelingInfo: [
+    { where: "kind = 'town'", labelExpressionInfo: { expression: "$feature.name" }, labelPlacement: "above-center", symbol: labelSym(11, "white"), minScale: 3000000 },
+    { where: "kind = 'city'", labelExpressionInfo: { expression: "$feature.name" }, labelPlacement: "above-center", symbol: labelSym(11, "white") },
+    { where: "kind = 'region'", labelExpressionInfo: { expression: "$feature.name" }, labelPlacement: "center-center", symbol: labelSym(12, [255, 255, 255, 0.8], "bold"), maxScale: 3000000 }
+  ]
+});
+map.add(placeLayer);
+
+// ---------- layer: NWS 72-hour rainfall analysis (static drape, optional) ----------
 const NWS_URL = "https://tiles.arcgis.com/tiles/C8EMgrsFcRFL6LrL/arcgis/rest/services/Helene_72HR_Rainfall_RainfallAnalysis_20240924_1200_20240927_1200_Image/MapServer";
 const nwsLayer = new TileLayer({ url: NWS_URL, opacity: 0.7, visible: false, title: "NWS 72-hour rainfall analysis" });
-map.add(nwsLayer);
+map.add(nwsLayer, 0);
 nwsLayer.load().then(async () => {
   avail.nws = true; syncLegend();
   try {
@@ -370,19 +427,16 @@ nwsLayer.load().then(async () => {
 const trackLayer = new GraphicsLayer({ title: "Track", elevationInfo: { mode: "on-the-ground" } });
 const cloudLayer = new GraphicsLayer({ title: "Storm clouds", elevationInfo: { mode: "absolute-height" } });
 map.addMany([trackLayer, cloudLayer]);
-const trackPts = TRACK.map(p => [p.lon, p.lat]);
-trackLayer.add(new Graphic({ geometry: { type: "polyline", paths: [trackPts], spatialReference: { wkid: 4326 } }, symbol: { type: "simple-line", color: [255, 255, 255, 0.45], width: 1.5, style: "dash" } }));
+trackLayer.add(new Graphic({ geometry: { type: "polyline", paths: [TRACK.map(p => [p.lon, p.lat])], spatialReference: { wkid: 4326 } }, symbol: { type: "simple-line", color: [255, 255, 255, 0.45], width: 1.5, style: "dash" } }));
 const pastTrack = new Graphic({ geometry: null, symbol: { type: "simple-line", color: [255, 214, 90, 0.95], width: 3 } });
 trackLayer.add(pastTrack);
 trackLayer.add(new Graphic({ geometry: { type: "point", longitude: LANDFALL.lon, latitude: LANDFALL.lat },
   symbol: { type: "point-3d", symbolLayers: [{ type: "icon", size: 9, resource: { primitive: "circle" }, material: { color: [255, 214, 90] }, outline: { color: "white", size: 1.2 } },
-    { type: "text", text: "Landfall 11 pm EDT 26 Sep · Category 4", size: 11, material: { color: "white" }, halo: { color: [0, 0, 0, 0.8], size: 1.4 }, verticalAlignment: "bottom" }],
+    { type: "text", text: "Landfall · Category 4", size: 11, material: { color: "white" }, halo: { color: [0, 0, 0, 0.8], size: 1.4 }, verticalAlignment: "bottom" }],
     verticalOffset: { screenLength: 22 }, callout: { type: "line", size: 1, color: [255, 255, 255, 0.9] } } }));
 const cloudGraphics = [];
-for (let i = 0; i < 6; i++) { const g = new Graphic({ geometry: null, symbol: { type: "polygon-3d", symbolLayers: [{ type: "fill", material: { color: [255, 255, 255, 0.5] }, outline: { color: [255, 255, 255, 0], size: 0 } }] } }); cloudGraphics.push(g); cloudLayer.add(g); }
+for (let i = 0; i < 6; i++) { const g = new Graphic({ geometry: null }); cloudGraphics.push(g); cloudLayer.add(g); }
 const stormLabel = new Graphic({ geometry: null, symbol: null }); cloudLayer.add(stormLabel);
-const KM_LAT = 111.32;
-const offset = (lat, lon, dxKm, dyKm) => [lon + dxKm / (KM_LAT * Math.cos(lat * Math.PI / 180)), lat + dyKm / KM_LAT];
 const CLOUD_Z = 9000;
 function drawStorm(ms, rot) {
   const s = stormAt(ms);
@@ -395,17 +449,15 @@ function drawStorm(ms, rot) {
   const strength = s.stage === "low" ? 0.35 : s.stage === "disturbance" ? 0.4 : s.kt >= 64 ? 1 : 0.7;
   const R = 380, eye = s.kt >= 64 ? 22 : 0, cdo = 60 + 50 * strength;
   const ring = (r, a0, a1, n) => { const out = []; for (let k = 0; k <= n; k++) { const a = a0 + (a1 - a0) * k / n; out.push([...offset(s.lat, s.lon, r * Math.cos(a), r * Math.sin(a)), CLOUD_Z]); } return out; };
-  // central dense overcast with the eye as a hole (outer ring clockwise, hole anticlockwise)
   const rings = [ring(cdo, rot + 2 * Math.PI, rot, 48)]; if (eye) rings.push(ring(eye, rot, rot + 2 * Math.PI, 24));
   cloudGraphics[0].geometry = { type: "polygon", rings, hasZ: true, spatialReference: { wkid: 4326 } };
   cloudGraphics[0].symbol = { type: "polygon-3d", symbolLayers: [{ type: "fill", material: { color: [255, 255, 255, 0.78 * strength + 0.1] } }] };
-  // spiral rain bands
   for (let arm = 0; arm < 5; arm++) {
     const outer = [], inner = [];
     const a0 = rot + arm * 2 * Math.PI / 5, n = 36, len = (0.55 + 0.1 * (arm % 3)) * R;
     for (let k = 0; k <= n; k++) {
       const u = k / n, r = cdo * 0.8 + (len - cdo * 0.8) * u;
-      const a = a0 - u * 1.9 * Math.PI;                                  // bands trail the anticlockwise spin: outward they curve clockwise (northern hemisphere)
+      const a = a0 - u * 1.9 * Math.PI;                                  // bands trail the anticlockwise spin (northern hemisphere)
       const w = (0.16 * R * Math.pow(1 - u, 0.8) + 6) / r;
       outer.push([...offset(s.lat, s.lon, r * Math.cos(a + w), r * Math.sin(a + w)), CLOUD_Z - 300]);
       inner.unshift([...offset(s.lat, s.lon, r * Math.cos(a - w), r * Math.sin(a - w)), CLOUD_Z - 300]);
@@ -415,7 +467,44 @@ function drawStorm(ms, rot) {
     g.symbol = { type: "polygon-3d", symbolLayers: [{ type: "fill", material: { color: [255, 255, 255, 0.42 * strength + 0.05] } }] };
   }
   stormLabel.geometry = { type: "point", longitude: s.lon, latitude: s.lat, z: CLOUD_Z + 1500, spatialReference: { wkid: 4326 } };
-  stormLabel.symbol = { type: "point-3d", symbolLayers: [{ type: "text", text: `Helene · ${category(s.kt, s.stage)} · ${knMph(s.kt)} mph`, size: 12, material: { color: "white" }, halo: { color: [0, 0, 0, 0.85], size: 1.5 }, font: { weight: "bold" } }] };
+  stormLabel.symbol = { type: "point-3d", symbolLayers: [{ type: "text", text: `Helene · ${category(s.kt, s.stage)}`, size: 12, material: { color: "white" }, halo: { color: [0, 0, 0, 0.85], size: 1.5 }, font: { weight: "bold" } }] };
+}
+
+// ---------- storm winds sketch ----------
+const windLayer = new GraphicsLayer({ title: "Storm winds (sketch)", elevationInfo: { mode: "on-the-ground" }, visible: false });
+map.add(windLayer);
+const RM_KM = 60, INFLOW = 20 * Math.PI / 180;
+// Wind the storm's spin alone would give at a place: anticlockwise, angled 20° in towards the centre.
+function vortexWind(s, lat, lon) {
+  const dx = (lon - s.lon) * KM_LAT * Math.cos(lat * Math.PI / 180), dy = (lat - s.lat) * KM_LAT, r = Math.hypot(dx, dy) || 1;
+  const u = Math.cos(INFLOW) * (-dy / r) + Math.sin(INFLOW) * (-dx / r), v = Math.cos(INFLOW) * (dx / r) + Math.sin(INFLOW) * (-dy / r);
+  const kt = r < RM_KM ? s.kt * r / RM_KM : s.kt * Math.pow(RM_KM / r, 0.6);
+  return { u, v, kt, r };
+}
+const fromBearing = (u, v) => (Math.atan2(-u, -v) * 180 / Math.PI + 360) % 360;
+const COMPASS = ["north", "north-east", "east", "south-east", "south", "south-west", "west", "north-west"];
+const compass = (b) => COMPASS[Math.round(b / 45) % 8];
+const windPts = []; for (let lat = 24.5; lat <= 40; lat += 0.9) for (let lon = -92; lon <= -74; lon += 1.1) windPts.push([lat, lon]);
+const windGraphics = windPts.map(() => { const g = new Graphic({ geometry: null }); windLayer.add(g); return g; });
+const WIND_SYMS = [0.3, 0.5, 0.75].map(a => ({ type: "simple-fill", color: [255, 255, 255, a], outline: { color: [0, 0, 0, 0.35], width: 0.5 } }));
+let windHour = -1;
+function arrowRing(lat, lon, u, v, L) {
+  const w = L * 0.09, hw = L * 0.24, hl = L * 0.36, px = -v, py = u;
+  const pt = (along, side) => offset(lat, lon, u * along + px * side, v * along + py * side);
+  const t = -L / 2, h = L / 2 - hl;
+  return [pt(t, w), pt(h, w), pt(h, hw), pt(L / 2, 0), pt(h, -hw), pt(h, -w), pt(t, -w), pt(t, w)];
+}
+function drawWinds() {
+  if (!windLayer.visible) return;
+  const key = Math.round(hNow * 2) / 2; if (key === windHour) return; windHour = key;
+  const s = stormAt(tAt(hNow));
+  windPts.forEach(([lat, lon], k) => {
+    const g = windGraphics[k]; if (!s) { g.geometry = null; return; }
+    const w = vortexWind(s, lat, lon);
+    if (w.r > 900 || w.r < 30 || w.kt < 12) { g.geometry = null; return; }
+    g.geometry = { type: "polygon", rings: [arrowRing(lat, lon, w.u, w.v, Math.min(80, 30 + w.kt * 0.45))], spatialReference: { wkid: 4326 } };
+    g.symbol = WIND_SYMS[w.kt >= 64 ? 2 : w.kt >= 34 ? 1 : 0];
+  });
 }
 
 // ---------- data helpers ----------
@@ -434,20 +523,8 @@ async function queryPaged(url, params, pageSize = 1000, onProgress) {
 }
 const sqlTime = (ms) => new Date(ms).toISOString().slice(0, 19).replace("T", " ");
 
-// ---------- layer: rain columns (NOAA MRMS) ----------
-const M_PER_IN = 500;
-let rainLayer = null, rainGraphics = [];
-const RAIN_STOPS = [{ value: 0, color: [205, 226, 251, 0.6] }, { value: 0.2, color: "#86b6ef" }, { value: 0.6, color: "#3987e5" }, { value: 1.2, color: "#1c5cab" }];
-function rainRenderer(i) {
-  return { type: "simple",
-    symbol: { type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "cylinder" }, width: 2600, depth: 2600, height: 100, anchor: "bottom", material: { color: "#3987e5" } }] },
-    visualVariables: [
-      { type: "size", axis: "height", valueExpression: `Max($feature.r${i}, 0) * ${M_PER_IN} + 30`, valueUnit: "meters" },
-      { type: "size", axis: "width-and-depth", useSymbolValue: true },
-      { type: "color", field: `h${i}`, stops: RAIN_STOPS }
-    ] };
-}
-let locations = null;
+// ---------- radar rain at ~390 places (NOAA MRMS) ----------
+let locations = null, rainPts = [];   // {id, name, state, kind, lat, lon, r: Float32Array(HOURS+1) total since T0, h: hourly rate}
 async function loadLocations() {
   const j = await q(NOAA + "Lhhs2_location/FeatureServer/0", { where: "1=1", outFields: "id,name,state,ishape,latitude,longitude", resultRecordCount: 2000 });
   locations = new Map(j.features.map(f => [f.attributes.id, f.attributes]));
@@ -455,56 +532,140 @@ async function loadLocations() {
 async function loadRain() {
   const rows = await queryPaged(NOAA + "Lhhs2_mrms_data/FeatureServer/0",
     { where: `datetime >= TIMESTAMP '${sqlTime(T0 - HR)}' AND datetime <= TIMESTAMP '${sqlTime(tAt(HOURS))}'`, outFields: "id,datetime,F1hour_inch,cum_inch" },
-    1000, p => setStatus(`Loading radar rainfall… ${Math.round(p * 100)}%`, 0.15 + 0.5 * p));
+    1000, p => setStatus(`Loading radar rainfall… ${Math.round(p * 100)}%`, 0.1 + 0.5 * p));
   const byId = new Map();
   for (const r of rows) {
     const i = Math.round((r.datetime - T0) / HR); if (i < -1 || i > HOURS) continue;
     let s = byId.get(r.id); if (!s) { s = { cum: new Array(HOURS + 2).fill(null), rate: new Array(HOURS + 2).fill(0) }; byId.set(r.id, s); }
     s.cum[i + 1] = r.cum_inch; s.rate[i + 1] = r.F1hour_inch || 0;
   }
-  const graphics = []; let oid = 1;
+  rainPts = [];
   for (const [id, s] of byId) {
     const loc = locations.get(id); if (!loc) continue;
-    // forward-fill, then rain since T0
     let last = null; for (let k = 0; k < s.cum.length; k++) { if (s.cum[k] == null) s.cum[k] = last; else last = s.cum[k]; }
-    const base = s.cum[1] ?? s.cum.find(v => v != null) ?? 0;
-    const attrs = { oid: oid++, sid: id, name: loc.name, state: loc.state, kind: loc.ishape };
-    for (let i = 0; i <= HOURS; i++) { attrs["r" + i] = Math.max(0, (s.cum[i + 1] ?? base) - base); attrs["h" + i] = s.rate[i + 1] || 0; }
-    graphics.push(new Graphic({ geometry: { type: "point", longitude: loc.longitude, latitude: loc.latitude }, attributes: attrs }));
+    const base = s.cum[1] ?? s.cum.find(v => v != null) ?? 0, r = new Float32Array(HOURS + 1), h = new Float32Array(HOURS + 1);
+    for (let i = 0; i <= HOURS; i++) { r[i] = Math.max(0, (s.cum[i + 1] ?? base) - base); h[i] = s.rate[i + 1] || 0; }
+    rainPts.push({ id, name: loc.name, state: loc.state, kind: loc.ishape, lat: loc.latitude, lon: loc.longitude, r, h });
   }
-  const fields = [{ name: "oid", type: "oid" }, { name: "sid", type: "string" }, { name: "name", type: "string" }, { name: "state", type: "string" }, { name: "kind", type: "string" }];
-  for (let i = 0; i <= HOURS; i++) fields.push({ name: "r" + i, type: "double" }, { name: "h" + i, type: "double" });
-  rainLayer = new FeatureLayer({ source: graphics, objectIdField: "oid", fields, geometryType: "point", spatialReference: { wkid: 4326 },
-    outFields: ["*"], title: "Rain columns (NOAA MRMS)", elevationInfo: { mode: "relative-to-ground" }, renderer: rainRenderer(0),
-    popupTemplate: { title: "{name}, {state}", content: (e) => {
-      const a = e.graphic.attributes, i = Math.floor(hNow);
-      return `<b>${inMm(a["r" + i])}</b> of rain since 8 am EDT Tue 24 Sep, as of ${fmtEDT(tAt(i))} EDT.<br>This hour: ${a["h" + i].toFixed(2)} in (${Math.round(a["h" + i] * 25.4)} mm).<br>By 8 pm EDT Sat 28 Sep: ${inMm(a["r" + HOURS])}.<br><span style="opacity:.75">Radar estimate (NOAA MRMS) at ${a.kind === "City" ? "this town" : "USGS gauge " + a.sid}.</span>`; } } });
-  map.add(rainLayer); rainGraphics = graphics; clouds.setSources(graphics);
-  avail.rain = true; rainHour = -1; applyVis(); render(true);
-  return graphics.length;
+  return rainPts.length;
 }
-let rainHour = -1;
-function drawRain() { if (!rainLayer) return; const i = Math.min(HOURS, Math.floor(hNow)); if (i !== rainHour) { rainHour = i; rainLayer.renderer = rainRenderer(i); } }
+
+// ---------- study grid over the southern Appalachians: rain surface, steep ground, overlap ----------
+const G = (() => {
+  const LAT0 = 34.6, LAT1 = 36.7, LON0 = -84.1, LON1 = -80.9, STEP = 0.0125;
+  const NY = Math.round((LAT1 - LAT0) / STEP) + 1, NX = Math.round((LON1 - LON0) / STEP) + 1, N = NX * NY;
+  const K = 6, RMAX = 40;
+  let nb = null, nw = null, srcR = null, rainReady = false, slope = null, slopeLoading = false;
+  const total = new Float32Array(N); let totalHour = -1;
+  const finalTotal = new Float32Array(N);
+  const merc = (lat) => Math.log(Math.tan((90 + lat) * Math.PI / 360)) * 6378137;
+  const unmerc = (y) => (2 * Math.atan(Math.exp(y / 6378137)) - Math.PI / 2) * 180 / Math.PI;
+  const X0 = (LON0 - STEP / 2) * 20037508.342789 / 180, X1 = (LON1 + STEP / 2) * 20037508.342789 / 180;
+  const Y0 = merc(LAT0 - STEP / 2), Y1 = merc(LAT1 + STEP / 2);
+  const extent = new Extent({ xmin: X0, xmax: X1, ymin: Y0, ymax: Y1, spatialReference: { wkid: 3857 } });
+  const rowJ = new Int32Array(NY); for (let r = 0; r < NY; r++) { const lat = unmerc(Y1 - (r + 0.5) * (Y1 - Y0) / NY); rowJ[r] = Math.max(0, Math.min(NY - 1, Math.round((lat - LAT0) / STEP))); }
+  const layerOf = (title, opacity) => { const el = new ImageElement({ image: blank(), georeference: new ExtentAndRotationGeoreference({ extent }) });
+    const L = new MediaLayer({ title, source: [el], opacity, visible: false }); map.add(L); return { L, el }; };
+  function blank() { const c = document.createElement("canvas"); c.width = NX; c.height = NY; return c; }
+  // paint(fn): fn(cell) returns [r,g,b,a] or null; drawn north-up on a Web Mercator canvas
+  function paint(target, fn) {
+    const c = blank(), ctx = c.getContext("2d"), img = ctx.createImageData(NX, NY), px = img.data;
+    for (let r = 0; r < NY; r++) { const j = rowJ[r]; for (let i = 0; i < NX; i++) { const col = fn(j * NX + i); if (!col) continue; const o = (r * NX + i) * 4; px[o] = col[0]; px[o + 1] = col[1]; px[o + 2] = col[2]; px[o + 3] = col[3]; } }
+    ctx.putImageData(img, 0, 0); target.el.image = c;
+  }
+  const rain = layerOf("Rain so far (radar)", 0.9), steep = layerOf("Steep ground", 0.85), over = layerOf("Heavy rain on steep ground", 0.9);
+  const BANDS = [[20, [13, 54, 107, 215]], [15, [28, 92, 171, 200]], [10, [57, 135, 229, 180]], [5, [134, 182, 239, 150]], [2, [205, 226, 251, 115]]];
+  const bandColor = (v) => { if (!(v >= 2)) return null; for (const [t, c] of BANDS) if (v >= t) return c; return null; };
+  const cellLat = (c) => LAT0 + Math.floor(c / NX) * STEP, cellLon = (c) => LON0 + (c % NX) * STEP;
+  function setSources(pts) {
+    const src = pts.filter(p => p.lat > LAT0 - 0.5 && p.lat < LAT1 + 0.5 && p.lon > LON0 - 0.5 && p.lon < LON1 + 0.5);
+    srcR = src.map(p => p.r); nb = new Int32Array(N * K).fill(-1); nw = new Float32Array(N * K);
+    for (let c = 0; c < N; c++) {
+      const lat = cellLat(c), lon = cellLon(c), cs = Math.cos(lat * Math.PI / 180), best = [];
+      for (let s = 0; s < src.length; s++) { const dx = (src[s].lon - lon) * cs * KM_LAT, dy = (src[s].lat - lat) * KM_LAT, d2 = dx * dx + dy * dy;
+        if (d2 > RMAX * RMAX) continue; if (best.length < K) { best.push([d2, s]); best.sort((a, b) => a[0] - b[0]); } else if (d2 < best[K - 1][0]) { best[K - 1] = [d2, s]; best.sort((a, b) => a[0] - b[0]); } }
+      best.forEach(([d2, s], k) => { nb[c * K + k] = s; nw[c * K + k] = 1 / (d2 + 4); });
+    }
+    rainReady = true; computeTotal(HOURS, finalTotal); totalHour = -1;
+    avail.rainSurf = true; syncLegend(); applyVis();
+  }
+  function computeTotal(h, out) {
+    for (let c = 0; c < N; c++) { let ws = 0, vs = 0; for (let k = 0; k < K; k++) { const s = nb[c * K + k]; if (s < 0) break; ws += nw[c * K + k]; vs += nw[c * K + k] * srcR[s][h]; } out[c] = ws ? vs / ws : NaN; }
+  }
+  function drawRain() {
+    if (!rainReady || !rain.L.visible) return;
+    const h = Math.min(HOURS, Math.floor(hNow)); if (h === totalHour) return; totalHour = h;
+    computeTotal(h, total); paint(rain, (c) => bandColor(total[c]));
+  }
+  const rainAtPoint = (lat, lon, h) => {   // for clicks: same inverse-distance rule as the grid
+    let ws = 0, vs = 0; const cs = Math.cos(lat * Math.PI / 180);
+    const near = rainPts.map(p => { const dx = (p.lon - lon) * cs * KM_LAT, dy = (p.lat - lat) * KM_LAT; return [dx * dx + dy * dy, p]; }).filter(a => a[0] <= RMAX * RMAX).sort((a, b) => a[0] - b[0]).slice(0, K);
+    near.forEach(([d2, p]) => { ws += 1 / (d2 + 4); vs += p.r[h] / (d2 + 4); });
+    return ws ? { v: vs / ws, near: near[0] && near[0][1] } : null;
+  };
+  async function loadSlope() {
+    if (slope || slopeLoading) return; slopeLoading = true;
+    try {
+      await trueElev.load();
+      const z = new Float32Array(N), CH = 8000;
+      for (let a = 0; a < N; a += CH) {
+        const pts = []; for (let c = a; c < Math.min(N, a + CH); c++) pts.push([cellLon(c), cellLat(c)]);
+        const r = await trueElev.queryElevation(mpoint(pts), { demResolution: 150 });
+        r.geometry.points.forEach((p, k) => z[a + k] = p[2]);
+        setStatus(`Measuring the mountains… ${Math.round(100 * Math.min(1, (a + CH) / N))}%`, Math.min(1, (a + CH) / N));
+      }
+      slope = new Float32Array(N);
+      for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++) {
+        const c = j * NX + i, jl = Math.max(0, j - 1), jh = Math.min(NY - 1, j + 1), il = Math.max(0, i - 1), ih = Math.min(NX - 1, i + 1);
+        const dx = (ih - il) * STEP * KM_LAT * 1000 * Math.cos(cellLat(c) * Math.PI / 180), dy = (jh - jl) * STEP * KM_LAT * 1000;
+        const gx = (z[j * NX + ih] - z[j * NX + il]) / dx, gy = (z[jh * NX + i] - z[jl * NX + i]) / dy;
+        slope[c] = Math.atan(Math.hypot(gx, gy)) * 180 / Math.PI;
+      }
+      setStatus("Mountains measured.", 1);
+      avail.steep = avail.overlap = true; syncLegend(); redrawThresholds(); applyVis();
+    } catch (e) { console.warn("slope grid", e); setStatus("Could not measure the mountains: " + e.message, 0); }
+    slopeLoading = false;
+  }
+  let thRain = 15, thSlope = 8;
+  function redrawThresholds() {
+    if (!slope) return;
+    paint(steep, (c) => slope[c] >= thSlope ? [237, 161, 0, 140] : null);
+    paint(over, (c) => slope[c] >= thSlope && finalTotal[c] >= thRain ? [213, 81, 129, 190] : null);
+  }
+  // landslides per class of ground
+  function stats(slides) {
+    const cls = { hs: { a: 0, n: 0 }, hg: { a: 0, n: 0 }, ls: { a: 0, n: 0 }, lg: { a: 0, n: 0 } }; let outside = 0;
+    const key = (c) => (finalTotal[c] >= thRain ? "h" : "l") + (slope[c] >= thSlope ? "s" : "g");
+    for (let c = 0; c < N; c++) { if (isNaN(finalTotal[c])) continue; cls[key(c)].a += (STEP * KM_LAT) * (STEP * KM_LAT * Math.cos(cellLat(c) * Math.PI / 180)); }
+    for (const [lon, lat] of slides) { const i = Math.round((lon - LON0) / STEP), j = Math.round((lat - LAT0) / STEP);
+      if (i < 0 || j < 0 || i >= NX || j >= NY || isNaN(finalTotal[j * NX + i])) { outside++; continue; } cls[key(j * NX + i)].n++; }
+    return { cls, outside };
+  }
+  function atCell(lat, lon) { const i = Math.round((lon - LON0) / STEP), j = Math.round((lat - LAT0) / STEP); return i < 0 || j < 0 || i >= NX || j >= NY ? -1 : j * NX + i; }
+  return { rain, steep, over, setSources, drawRain, loadSlope, rainAtPoint, stats, atCell, finalTotal, get slope() { return slope; },
+    get ready() { return rainReady; }, setThresholds(r, s) { thRain = r; thSlope = s; redrawThresholds(); }, get th() { return [thRain, thSlope]; } };
+})();
 
 // ---------- layer: river gauges ----------
 const GAUGES = [
   ["03439000", "French Broad · Rosman"], ["03443000", "French Broad · Blantyre"], ["03446000", "Mills River"],
   ["03447687", "French Broad · Fletcher"], ["03451000", "Swannanoa · Biltmore"], ["03451500", "French Broad · Asheville"],
   ["03453000", "Ivy River · Marshall"], ["03455000", "French Broad · Newport TN"], ["03461500", "Pigeon River · Newport TN"],
-  ["03465500", "Nolichucky · Embreeville TN"], ["02137727", "Catawba near Pleasant Gardens"]
+  ["03465500", "Nolichucky · Embreeville TN"], ["02137727", "Catawba · Pleasant Gardens"]
 ];
 const FT_M = 120;
 const gauges = new Map();
-let selGauge = "03451500";
+let selGauge = "03451500", gaugeLabels = null, recordLayer = null;
 const gaugeLayer = new GraphicsLayer({ title: "River gauges", elevationInfo: { mode: "relative-to-ground" }, visible: false });
 map.add(gaugeLayer);
 async function loadGauges() {
   const ids = GAUGES.map(g => `'${g[0]}'`).join(",");
   const [obs, hist] = await Promise.all([
     queryPaged(NOAA + "Lhhs2_gauge_data/FeatureServer/0", { where: `id IN (${ids}) AND datetime >= TIMESTAMP '${sqlTime(T0 - 6 * HR)}' AND datetime <= TIMESTAMP '${sqlTime(tAt(HOURS) + 6 * HR)}'`, outFields: "id,datetime,stage,minor,moderate,major" }, 1000,
-      p => setStatus(`Loading river gauges… ${Math.round(p * 100)}%`, 0.65 + 0.25 * p)),
+      p => setStatus(`Loading river gauges… ${Math.round(p * 100)}%`, 0.6 + 0.3 * p)),
     queryPaged(NOAA + "Lhhs2_historic_data/FeatureServer/0", { where: `id IN (${ids})`, outFields: "id,datetime,stage" })
   ]);
+  const labelFeats = [], recFeats = [];
   for (const [id, short] of GAUGES) {
     const loc = locations.get(id); if (!loc) continue;
     const rows = obs.filter(r => r.id === id && r.stage != null).sort((a, b) => a.datetime - b.datetime);
@@ -514,19 +675,32 @@ async function loadGauges() {
     const peak = rows.reduce((m, r) => r.stage > m.stage ? r : m, rows[0]);
     const g = { id, short, name: loc.name, lon: loc.longitude, lat: loc.latitude, t: rows.map(r => r.datetime), s: rows.map(r => r.stage),
       minor: thr("minor"), moderate: thr("moderate"), major: thr("major"),
-      rec: before ? before.stage : null, recYear: before ? new Date(before.datetime).getUTCFullYear() : null, peak, recordAt: null };
+      rec: before ? before.stage : null, recYear: before ? new Date(before.datetime).getUTCFullYear() : null, peak, recordAt: null, oid: labelFeats.length + 1, shownRec: 0 };
     if (g.rec != null) { const k = rows.findIndex(r => r.stage > g.rec); if (k >= 0) g.recordAt = rows[k].datetime; }
     g.water = new Graphic({ geometry: { type: "point", longitude: g.lon, latitude: g.lat, z: 0 }, attributes: { gauge: id } });
-    g.label = new Graphic({ geometry: null, attributes: { gauge: id } });
     const ringSym = (color, w) => ({ type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "cylinder" }, width: w, depth: w, height: 70, anchor: "center", material: { color } }] });
     const extras = [];
     if (g.major != null) extras.push(new Graphic({ geometry: { type: "point", longitude: g.lon, latitude: g.lat, z: g.major * FT_M }, symbol: ringSym([208, 59, 59, 0.9], 2300), attributes: { gauge: id } }));
     if (g.rec != null) extras.push(new Graphic({ geometry: { type: "point", longitude: g.lon, latitude: g.lat, z: g.rec * FT_M }, symbol: ringSym([255, 255, 255, 0.95], 2800), attributes: { gauge: id } }));
-    gaugeLayer.addMany([g.water, ...extras, g.label]);
+    gaugeLayer.addMany([g.water, ...extras]);
+    labelFeats.push(new Graphic({ geometry: { type: "point", longitude: g.lon, latitude: g.lat }, attributes: { oid: g.oid, gid: id, short, rec: 0 } }));
+    if (g.recordAt) recFeats.push(new Graphic({ geometry: { type: "point", longitude: g.lon, latitude: g.lat }, attributes: { oid: recFeats.length + 1, short, peak: g.peak.stage, rec: g.rec, year: g.recYear } }));
     gauges.set(id, g);
   }
+  const common = { objectIdField: "oid", geometryType: "point", spatialReference: { wkid: 4326 }, outFields: ["*"] };
+  gaugeLabels = new FeatureLayer({ ...common, title: "Gauge names", source: labelFeats, visible: false, popupEnabled: false,
+    fields: [{ name: "oid", type: "oid" }, { name: "gid", type: "string" }, { name: "short", type: "string" }, { name: "rec", type: "integer" }],
+    elevationInfo: { mode: "relative-to-ground", offset: 3900 },
+    renderer: { type: "simple", symbol: { type: "point-3d", symbolLayers: [{ type: "icon", size: 0.1, resource: { primitive: "circle" }, material: { color: [0, 0, 0, 0] } }] } },
+    labelingInfo: [{ labelExpressionInfo: { expression: "$feature.short + IIf($feature.rec == 1, ' ★', '')" }, labelPlacement: "above-center", symbol: labelSym(11, "white", "bold") }] });
+  recordLayer = new FeatureLayer({ ...common, title: "River broke its record", source: recFeats, visible: false,
+    fields: [{ name: "oid", type: "oid" }, { name: "short", type: "string" }, { name: "peak", type: "double" }, { name: "rec", type: "double" }, { name: "year", type: "integer" }],
+    elevationInfo: { mode: "relative-to-ground", offset: 150 },
+    renderer: { type: "simple", symbol: { type: "point-3d", symbolLayers: [{ type: "icon", size: 13, resource: { primitive: "kite" }, material: { color: "#00b4d8" }, outline: { color: "white", size: 1.2 } }] } },
+    popupTemplate: { title: "{short}", content: (e) => { const a = e.graphic.attributes; return `Helene peak <b>${ftM(a.peak)}</b>, beating the old record of ${ftM(a.rec)} (${a.year}).`; } } });
+  map.addMany([gaugeLabels, recordLayer]);
   $("gaugeSel") && fillGaugeSelect();
-  avail.gauges = gauges.size > 0; applyVis(); render(true);
+  avail.gauges = gauges.size > 0; avail.records = recFeats.length > 0; syncLegend(); applyVis();
 }
 function stageAt(g, ms) {
   let lo = 0, hi = g.t.length - 1; if (ms < g.t[0]) return null;
@@ -541,20 +715,18 @@ function floodClass(g, s) {
   if (g.minor != null && s >= g.minor) return { c: [250, 178, 25, 0.95], t: "minor flood" };
   return { c: [57, 135, 229, 0.95], t: "below flood level" };
 }
+let labelEdits = Promise.resolve();
 function drawGauges() {
   if (!gaugeLayer.visible) return;
-  const ms = tAt(hNow);
+  const ms = tAt(hNow), changed = [];
   for (const g of gauges.values()) {
     const s = stageAt(g, ms), fc = floodClass(g, s);
-    const lastKnown = s ?? lastStage(g, ms) ?? 0;          // grey column keeps the last reading's height
-    const h = Math.max(0.2, lastKnown) * FT_M;
+    const h = Math.max(0.2, s ?? lastStage(g, ms) ?? 0) * FT_M;          // grey column keeps the last reading's height
     g.water.symbol = { type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "cylinder" }, width: 1300, depth: 1300, height: h, anchor: "bottom", material: { color: fc.c } }] };
-    const broke = g.recordAt != null && ms >= g.recordAt;
-    const top = Math.max(s ?? lastKnown, g.rec ?? 0, g.major ?? 0) * FT_M + 350;
-    g.label.geometry = { type: "point", longitude: g.lon, latitude: g.lat, z: top };
-    g.label.symbol = { type: "point-3d", symbolLayers: [{ type: "text", text: `${g.short}\n${s == null ? "no reading" : s.toFixed(1) + " ft · " + fc.t}${broke ? "\nNEW RECORD" : ""}`,
-      size: g.id === selGauge ? 12 : 10.5, material: { color: broke ? [255, 236, 170] : "white" }, halo: { color: [0, 0, 0, 0.85], size: 1.4 }, font: { weight: g.id === selGauge ? "bold" : "normal" } }] };
+    const broke = g.recordAt != null && ms >= g.recordAt ? 1 : 0;
+    if (broke !== g.shownRec) { g.shownRec = broke; changed.push(new Graphic({ geometry: { type: "point", longitude: g.lon, latitude: g.lat }, attributes: { oid: g.oid, gid: g.id, short: g.short, rec: broke } })); }
   }
+  if (changed.length && gaugeLabels) labelEdits = labelEdits.then(() => gaugeLabels.applyEdits({ updateFeatures: changed })).catch(e => console.warn(e));
   drawHydro();
 }
 
@@ -564,12 +736,12 @@ const SLIDES_FROM = Date.UTC(2024, 8, 27, 6), SLIDES_FULL = Date.UTC(2024, 8, 27
 const IMPACT = { Building: "Buildings", Road: "Roads", River: "River", Various: "More than one kind", Other: "Other", NONE: "No damage seen", UNCLEAR: "Unclear" };
 const slideLayer = new FeatureLayer({ url: SLIDE_URL, title: "Landslides (USGS)", visible: false, outFields: ["Impact", "Source"],
   elevationInfo: { mode: "relative-to-ground", offset: 40 },
-  renderer: { type: "simple", symbol: { type: "point-3d", symbolLayers: [{ type: "icon", size: 7, resource: { primitive: "circle" }, material: { color: "#eb6834" }, outline: { color: [255, 255, 255, 0.9], size: 0.8 } }] } },
+  renderer: { type: "simple", symbol: { type: "point-3d", symbolLayers: [{ type: "icon", size: 6, resource: { primitive: "circle" }, material: { color: "white" }, outline: { color: [122, 20, 20], size: 1.2 } }] } },
   popupTemplate: { title: "Landslide", content: (e) => { const a = e.graphic.attributes; return `What it damaged: <b>${IMPACT[a.Impact] || a.Impact}</b><br>Mapped from: ${a.Source}<br><span style="opacity:.75">USGS preliminary inventory. The exact time is not recorded.</span>`; } } });
 map.add(slideLayer);
-let slideCount = null, slideImpacts = null;
+let slideCount = null, slideImpacts = null, slidePts = null;
 slideLayer.load().then(async () => {
-  avail.slides = true; applyVis();
+  avail.slides = true; syncLegend(); applyVis();
   try {
     slideCount = await slideLayer.queryFeatureCount();
     const st = await slideLayer.queryFeatures({ where: "1=1", groupByFieldsForStatistics: ["Impact"], outStatistics: [{ statisticType: "count", onStatisticField: "Impact", outStatisticFieldName: "n" }] });
@@ -577,6 +749,13 @@ slideLayer.load().then(async () => {
     if (CH[chapter].key === "slides") renderChapterExtra();
   } catch (e) { console.warn("landslide stats", e); }
 }).catch(e => { console.warn("landslide layer unavailable", e); toast("The USGS landslide layer could not be loaded."); });
+async function loadSlidePoints() {
+  if (slidePts) return slidePts;
+  const pts = []; let start = 0;
+  for (;;) { const fs = await slideLayer.queryFeatures({ where: "1=1", returnGeometry: true, outSpatialReference: { wkid: 4326 }, outFields: [], start, num: 2000 });
+    fs.features.forEach(f => pts.push([f.geometry.longitude ?? f.geometry.x, f.geometry.latitude ?? f.geometry.y])); if (!fs.exceededTransferLimit || !fs.features.length) break; start += fs.features.length; }
+  return (slidePts = pts);
+}
 function drawSlides() {
   if (!slideLayer.visible) return;
   const ms = tAt(hNow);
@@ -589,10 +768,7 @@ async function runSlopeTest() {
   if (slopeRunning) return; slopeRunning = true; renderChapterExtra();
   try {
     await trueElev.load();
-    const pts = []; let start = 0;
-    for (;;) { const fs = await slideLayer.queryFeatures({ where: "1=1", returnGeometry: true, outSpatialReference: { wkid: 4326 }, outFields: [], start, num: 2000 });
-      fs.features.forEach(f => pts.push([f.geometry.longitude ?? f.geometry.x, f.geometry.latitude ?? f.geometry.y])); if (!fs.exceededTransferLimit || !fs.features.length) break; start += fs.features.length; }
-    // comparison points: random spots 0.5–3 km from a random landslide
+    const pts = await loadSlidePoints();
     const ctrl = pts.map(() => { const p = pts[Math.floor(Math.random() * pts.length)], a = Math.random() * 2 * Math.PI, d = 0.5 + Math.random() * 2.5; return offset(p[1], p[0], d * Math.cos(a), d * Math.sin(a)); });
     const D = 0.06; // km
     async function aspects(list, label, p0, p1) {
@@ -604,8 +780,8 @@ async function runSlopeTest() {
         const z = r.geometry.points.map(p => p[2]);
         for (let i = 0; i < chunk.length; i++) {
           const dzdx = (z[4 * i] - z[4 * i + 1]) / (2 * D * 1000), dzdy = (z[4 * i + 2] - z[4 * i + 3]) / (2 * D * 1000);
-          const slope = Math.atan(Math.hypot(dzdx, dzdy)) * 180 / Math.PI; if (!(slope >= 8)) continue;
-          const asp = (Math.atan2(-dzdx, -dzdy) * 180 / Math.PI + 360) % 360;   // compass direction the slope faces
+          const sl = Math.atan(Math.hypot(dzdx, dzdy)) * 180 / Math.PI; if (!(sl >= 8)) continue;
+          const asp = (Math.atan2(-dzdx, -dzdy) * 180 / Math.PI + 360) % 360;
           out[Math.round(asp / 45) % 8]++; used++;
         }
         setStatus(`Slope test: measuring ${label}… ${Math.round(100 * Math.min(1, (k + CHUNK) / list.length))}%`, p0 + (p1 - p0) * Math.min(1, (k + CHUNK) / list.length));
@@ -619,160 +795,37 @@ async function runSlopeTest() {
   slopeRunning = false; renderChapterExtra();
 }
 
-// ---------- storm winds sketch ----------
-const windLayer = new GraphicsLayer({ title: "Storm winds (sketch)", elevationInfo: { mode: "on-the-ground" }, visible: false });
-map.add(windLayer);
-const RM_KM = 60, INFLOW = 20 * Math.PI / 180;
-// Wind the storm's spin alone would give at a place: anticlockwise, angled 20° in towards the centre.
-function vortexWind(s, lat, lon) {
-  const dx = (lon - s.lon) * KM_LAT * Math.cos(lat * Math.PI / 180), dy = (lat - s.lat) * KM_LAT, r = Math.hypot(dx, dy) || 1;
-  const u = Math.cos(INFLOW) * (-dy / r) + Math.sin(INFLOW) * (-dx / r), v = Math.cos(INFLOW) * (dx / r) + Math.sin(INFLOW) * (-dy / r);
-  const kt = r < RM_KM ? s.kt * r / RM_KM : s.kt * Math.pow(RM_KM / r, 0.6);
-  return { u, v, kt, r };
-}
-const fromBearing = (u, v) => (Math.atan2(-u, -v) * 180 / Math.PI + 360) % 360;   // compass direction the wind blows FROM
-const COMPASS = ["north", "north-east", "east", "south-east", "south", "south-west", "west", "north-west"];
-const compass = (b) => COMPASS[Math.round(b / 45) % 8];
-const windPts = []; for (let lat = 24.5; lat <= 40; lat += 0.9) for (let lon = -92; lon <= -74; lon += 1.1) windPts.push([lat, lon]);
-const windGraphics = windPts.map(() => { const g = new Graphic({ geometry: null }); windLayer.add(g); return g; });
-const WIND_SYMS = [0.35, 0.6, 0.9].map(a => ({ type: "simple-fill", color: [255, 255, 255, a], outline: { color: [0, 0, 0, 0.35], width: 0.5 } }));
-let windHour = -1;
-// An arrow outline (shaft plus head), pointing along (u, v), centred on lat/lon; sizes in km
-function arrowRing(lat, lon, u, v, L) {
-  const w = L * 0.09, hw = L * 0.24, hl = L * 0.36, px = -v, py = u;   // (px, py) is sideways
-  const pt = (along, side) => offset(lat, lon, u * along + px * side, v * along + py * side);
-  const t = -L / 2, h = L / 2 - hl;
-  return [pt(t, w), pt(h, w), pt(h, hw), pt(L / 2, 0), pt(h, -hw), pt(h, -w), pt(t, -w), pt(t, w)];
-}
-function drawWinds() {
-  if (!windLayer.visible) return;
-  const key = Math.round(hNow * 2) / 2; if (key === windHour) return; windHour = key;
-  const s = stormAt(tAt(hNow));
-  windPts.forEach(([lat, lon], k) => {
-    const g = windGraphics[k]; if (!s) { g.geometry = null; return; }
-    const w = vortexWind(s, lat, lon);
-    if (w.r > 900 || w.r < 30 || w.kt < 12) { g.geometry = null; return; }
-    g.geometry = { type: "polygon", rings: [arrowRing(lat, lon, w.u, w.v, Math.min(80, 30 + w.kt * 0.45))], spatialReference: { wkid: 4326 } };
-    g.symbol = WIND_SYMS[w.kt >= 64 ? 2 : w.kt >= 34 ? 1 : 0];
-  });
-}
-
-// ---------- rain clouds driven by radar rain (steps 1-3) ----------
-const cloudPuffLayer = new GraphicsLayer({ title: "Rain clouds", elevationInfo: { mode: "absolute-height" }, visible: false });
-const shaftLayer = new GraphicsLayer({ title: "Rain shafts", elevationInfo: { mode: "relative-to-ground" }, visible: false });
-map.addMany([shaftLayer, cloudPuffLayer]);
-const PRE_FROM = Date.UTC(2024, 8, 25, 0);   // NHC: south-easterly flow onto the mountains ahead of Helene
-const clouds = (() => {
-  const LAT0 = 34.3, LAT1 = 37.0, LON0 = -84.4, LON1 = -80.4, STEP = 0.04;
-  const NY = Math.round((LAT1 - LAT0) / STEP) + 1, NX = Math.round((LON1 - LON0) / STEP) + 1;
-  const NPUFF = 180, SPEED = 14;   // km per second on screen
-  let ground = null, base = null, ready = false, loading = false, src = [], puffs = [], wind = { u: -0.7, v: 0.7 }, active = true, rateClock = 0;
-  // cloud looks by rain rate (in/hr): none, light, moderate, heavy, very heavy
-  const LOOK = [
-    { w: 13000, h: 3500, c: [255, 255, 255, 0.35], shaft: null },
-    { w: 17000, h: 4500, c: [236, 239, 243, 0.75], shaft: [150, 190, 245, 0.18] },
-    { w: 21000, h: 5500, c: [196, 202, 211, 0.85], shaft: [110, 165, 240, 0.32] },
-    { w: 25000, h: 6500, c: [148, 156, 168, 0.9], shaft: [70, 135, 235, 0.48] },
-    { w: 29000, h: 7500, c: [104, 112, 126, 0.92], shaft: [40, 105, 225, 0.62] }];
-  const bucket = (r) => r < 0.03 ? 0 : r < 0.15 ? 1 : r < 0.4 ? 2 : r < 0.8 ? 3 : 4;
-  const puffSym = LOOK.map(L => ({ type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "sphere" }, width: L.w, depth: L.w, height: L.h, material: { color: L.c } }] }));
-  const shaftSym = LOOK.map(L => L.shaft && ((hgt) => ({ type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "cylinder" }, width: L.w * 0.55, depth: L.w * 0.55, height: hgt, anchor: "bottom", material: { color: L.shaft } }] })));
-  function gridAt(arr, lat, lon) {
-    const fy = Math.max(0, Math.min(NY - 1.001, (lat - LAT0) / STEP)), fx = Math.max(0, Math.min(NX - 1.001, (lon - LON0) / STEP));
-    const j = Math.floor(fy), i = Math.floor(fx), ty = fy - j, tx = fx - i, k = j * NX + i;
-    return (arr[k] * (1 - tx) + arr[k + 1] * tx) * (1 - ty) + (arr[k + NX] * (1 - tx) + arr[k + NX + 1] * tx) * ty;
-  }
-  async function build() {
-    if (ready || loading) return; loading = true;
-    try {
-      await trueElev.load();
-      const pts = []; for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++) pts.push([LON0 + i * STEP, LAT0 + j * STEP]);
-      const r = await trueElev.queryElevation(mpoint(pts), { demResolution: 1000 });
-      ground = Float32Array.from(r.geometry.points.map(p => p[2]));
-      // cloud base: 1.2 km above the ground's high points, smoothed over about 8 km
-      const mx = new Float32Array(ground.length), R2 = 2;
-      for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++) { let m = -1e9;
-        for (let dj = -R2; dj <= R2; dj++) for (let di = -R2; di <= R2; di++) { const jj = j + dj, ii = i + di; if (jj >= 0 && jj < NY && ii >= 0 && ii < NX) m = Math.max(m, ground[jj * NX + ii]); }
-        mx[j * NX + i] = m; }
-      base = new Float32Array(ground.length);
-      for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++) { let t = 0, n = 0;
-        for (let dj = -R2; dj <= R2; dj++) for (let di = -R2; di <= R2; di++) { const jj = j + dj, ii = i + di; if (jj >= 0 && jj < NY && ii >= 0 && ii < NX) { t += mx[jj * NX + ii]; n++; } }
-        base[j * NX + i] = t / n + 1200; }
-      for (let k = 0; k < NPUFF; k++) {
-        const p = { lat: LAT0 + Math.random() * (LAT1 - LAT0), lon: LON0 + Math.random() * (LON1 - LON0), b: -1, rate: 0, puff: new Graphic({ geometry: null }), shaft: new Graphic({ geometry: null }) };
-        puffs.push(p); cloudPuffLayer.add(p.puff); shaftLayer.add(p.shaft);
-      }
-      ready = true; rates();
-    } catch (e) { console.warn("clouds", e); toast("The rain clouds could not load the terrain."); }
-    loading = false;
-  }
-  // inverse-distance average of this hour's radar rain within 35 km
-  function rateAt(lat, lon, hr) {
-    let wsum = 0, vsum = 0; const c = Math.cos(lat * Math.PI / 180);
-    for (const g of src) { const dx = (g.geometry.longitude - lon) * c * KM_LAT, dy = (g.geometry.latitude - lat) * KM_LAT, d2 = dx * dx + dy * dy;
-      if (d2 > 1225) continue; const w = 1 / (d2 + 25); wsum += w; vsum += w * g.attributes["h" + hr]; }
-    return wsum ? vsum / wsum : 0;
-  }
-  function rates() { if (!ready) return; const hr = Math.min(HOURS, Math.floor(hNow)); for (const p of puffs) p.rate = src.length ? rateAt(p.lat, p.lon, hr) : 0; }
-  function setWind() {
-    const ms = tAt(hNow), s = stormAt(ms), mid = [35.6, -82.4];
-    const w = s ? vortexWind(s, mid[0], mid[1]) : null;
-    if (w && w.r < 900) { wind = { u: w.u, v: w.v }; active = true; }
-    else if (s && ms >= PRE_FROM && s.lat < 30) { wind = { u: -Math.SQRT1_2, v: Math.SQRT1_2 }; active = true; }   // from the south-east
-    else { wind = { u: -Math.SQRT1_2, v: Math.SQRT1_2 }; active = !!s; }
-  }
-  function respawn(p) {   // re-enter on the upwind side
-    p.lat = LAT0 + Math.random() * (LAT1 - LAT0); p.lon = LON0 + Math.random() * (LON1 - LON0);
-    for (let k = 0; k < 400; k++) { const c = Math.cos(p.lat * Math.PI / 180), nlat = p.lat - wind.v * 4 / KM_LAT, nlon = p.lon - wind.u * 4 / (KM_LAT * c);
-      if (nlat < LAT0 || nlat > LAT1 || nlon < LON0 || nlon > LON1) break; p.lat = nlat; p.lon = nlon; }
-    p.rate = src.length ? rateAt(p.lat, p.lon, Math.min(HOURS, Math.floor(hNow))) : 0;
-  }
-  function frame(dt) {
-    if (!ready || !cloudPuffLayer.visible) return;
-    rateClock += dt; if (rateClock > 0.5) { rateClock = 0; setWind(); rates(); }
-    const E = EXAG, spd = playing ? SPEED : 0;
-    for (const p of puffs) {
-      const c = Math.cos(p.lat * Math.PI / 180);
-      p.lat += wind.v * spd * dt / KM_LAT; p.lon += wind.u * spd * dt / (KM_LAT * c);
-      if (p.lat < LAT0 || p.lat > LAT1 || p.lon < LON0 || p.lon > LON1) respawn(p);
-      const b = active ? bucket(p.rate) : 0, zb = gridAt(base, p.lat, p.lon), zg = gridAt(ground, p.lat, p.lon), L = LOOK[b];
-      p.puff.geometry = b === 0 ? null : { type: "point", longitude: p.lon, latitude: p.lat, z: zb * E + L.h / 2 };   // no cloud drawn where the radar shows no rain
-      if (b !== p.b) { p.b = b; p.puff.symbol = puffSym[b]; }
-      if (shaftSym[b]) {
-        const hgt = Math.round(Math.max(200, (zb - zg) * E) / 250) * 250;   // re-make the symbol only when the height changes noticeably
-        p.shaft.geometry = { type: "point", longitude: p.lon, latitude: p.lat, z: 0 };
-        if (hgt !== p.sh || b !== p.sb) { p.sh = hgt; p.sb = b; p.shaft.symbol = shaftSym[b](hgt); }
-      } else if (p.shaft.geometry) { p.shaft.geometry = null; p.sb = -1; }
-    }
-  }
-  function info() {   // panel read-out: where the radar says it is raining hardest this hour
-    const el = $("cloudInfo"); if (!el) return;
-    const hr = Math.min(HOURS, Math.floor(hNow)), ms = tAt(hr);
-    if (!src.length) { el.textContent = "Loading radar rain…"; return; }
-    const top = src.filter(g => g.attributes.kind === "City").map(g => ({ n: g.attributes.name, st: g.attributes.state, r: g.attributes["h" + hr] })).sort((a, b) => b.r - a.r).slice(0, 3);
-    const s = stormAt(ms), w = s ? vortexWind(s, 35.6, -82.4) : null;
-    const windTxt = w && w.r < 900 ? `from the ${compass(fromBearing(w.u, w.v))} (storm winds sketch)` : s && ms >= PRE_FROM && s.lat < 30 ? "from the south-east, flowing north ahead of the storm (NHC report)" : s ? "light" : "Helene has gone";
-    el.innerHTML = `<b>${fmtEDT(ms)} EDT.</b> Wind over the mountains: ${windTxt}.<br>Hardest radar rain this hour: ${top[0].r < 0.01 ? "none" : top.map(t => `${t.n} ${t.st} ${t.r.toFixed(2)} in (${Math.round(t.r * 25.4)} mm)`).join(" · ")}`;
-  }
-  return { build, frame, info, setSources(g) { src = g.filter(x => x.geometry.latitude > LAT0 - 0.5 && x.geometry.latitude < LAT1 + 0.5 && x.geometry.longitude > LON0 - 0.5 && x.geometry.longitude < LON1 + 0.5); rates(); info(); } };
-})();
-
 // ---------- visibility & legend ----------
 function applyVis() {
   cloudLayer.visible = vis.storm; trackLayer.visible = vis.storm;
-  if (rainLayer) rainLayer.visible = vis.rain && avail.rain;
-  nwsLayer.visible = vis.nws && avail.nws; $("nwsKey").style.display = nwsLayer.visible ? "block" : "none";
   windLayer.visible = vis.winds; windHour = -1;
-  cloudPuffLayer.visible = shaftLayer.visible = vis.clouds; if (vis.clouds) clouds.build();
-  gaugeLayer.visible = vis.gauges && avail.gauges;
+  G.rain.L.visible = vis.rainSurf && avail.rainSurf;
+  G.steep.L.visible = vis.steep && avail.steep; G.over.L.visible = vis.overlap && avail.overlap;
+  if ((vis.steep || vis.overlap) && !avail.steep) G.loadSlope();
+  nwsLayer.visible = vis.nws && avail.nws; $("nwsKey").style.display = nwsLayer.visible ? "block" : "none";
+  gaugeLayer.visible = vis.gauges && avail.gauges; if (gaugeLabels) gaugeLabels.visible = gaugeLayer.visible;
+  if (recordLayer) recordLayer.visible = vis.records && avail.records;
   slideLayer.visible = vis.slides && avail.slides;
   syncLegend(); render(true);
 }
 function syncLegend() {
-  document.querySelectorAll("#legend button.k").forEach(b => { const k = b.dataset.l; b.disabled = !avail[k]; b.setAttribute("aria-pressed", String(!!vis[k] && !!avail[k])); });
+  document.querySelectorAll("#legend button.k").forEach(b => { const k = b.dataset.l; b.disabled = !avail[k] && !(k === "steep" || k === "overlap"); b.setAttribute("aria-pressed", String(!!vis[k] && !!avail[k])); });
+  document.querySelectorAll(".chips button[data-l]").forEach(b => b.setAttribute("aria-pressed", String(!!vis[b.dataset.l])));
 }
 document.querySelectorAll("#legend button.k").forEach(b => b.addEventListener("click", () => { const k = b.dataset.l; vis[k] = !vis[k]; applyVis(); }));
 document.querySelectorAll("#exag button").forEach(b => b.addEventListener("click", () => setExag(+b.dataset.x)));
+
+// click anywhere in the study area: rain there so far
+view.on("click", async (e) => {
+  const h = await view.hitTest(e, { include: [gaugeLayer] });
+  const r = h.results.find(r => r.graphic && r.graphic.attributes && r.graphic.attributes.gauge);
+  if (r) { selGauge = r.graphic.attributes.gauge; if (CH[chapter].key !== "rivers") goChapter(3); else { fillGaugeSelect(); render(true); } return; }
+  if (!G.ready || !e.mapPoint || !G.rain.L.visible) return;
+  const p = e.mapPoint, lat = p.latitude, lon = p.longitude, c = G.atCell(lat, lon); if (c < 0) return;
+  const hr = Math.min(HOURS, Math.floor(hNow)), v = G.rainAtPoint(lat, lon, hr); if (!v) return;
+  const sl = G.slope ? G.slope[c] : null;
+  view.openPopup({ location: p, title: "Rain here", content: `<b>${inMm(v.v)}</b> since 8 am EDT Tue 24 Sep, as of ${fmtEDT(tAt(hr))} EDT.<br>By the end of 28 Sep: ${inMm(G.rainAtPoint(lat, lon, HOURS).v)}.${sl != null ? `<br>Steepness of the ground here: about ${sl.toFixed(0)}°.` : ""}<br><span style="opacity:.75">Estimated from radar at the nearest places (nearest: ${v.near.name}).</span>` });
+});
 
 // ---------- charts ----------
 const tip = $("tip");
@@ -791,15 +844,15 @@ function drawHydro() {
   let d = "", pen = false;
   for (let i = 0; i < g.t.length; i++) { if (g.t[i] < x0 || g.t[i] > x1) { pen = false; continue; }
     const gap = i > 0 && g.t[i] - g.t[i - 1] > 45 * 60e3; d += (pen && !gap ? "L" : "M") + X(g.t[i]).toFixed(1) + "," + Y(g.s[i]).toFixed(1); pen = true; }
-  const hline = (v, color, label, dash) => v == null ? "" : `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="${color}" stroke-width="1.5" ${dash ? 'stroke-dasharray="4 3"' : ""}/><text x="${W - R}" y="${Y(v) - 3}" text-anchor="end" font-size="10.5" fill="var(--muted)">${label}</text>`;
+  const hline = (v, color, label) => v == null ? "" : `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="${color}" stroke-width="1.5" stroke-dasharray="4 3"/><text x="${W - R}" y="${Y(v) - 3}" text-anchor="end" font-size="10.5" fill="var(--muted)">${label}</text>`;
   const ticks = []; for (let day = 25; day <= 28; day++) { const t = Date.UTC(2024, 8, day, 4); ticks.push(`<line x1="${X(t)}" x2="${X(t)}" y1="${T}" y2="${H - B}" stroke="var(--rule)"/><text x="${X(t)}" y="${H - 8}" font-size="10.5" text-anchor="middle" fill="var(--muted)">${DAYS[new Date(t).getUTCDay()]} ${day}</text>`); }
   const yt = []; for (let s = 0; s <= ymax; s += 5) yt.push(`<text x="${L - 5}" y="${Y(s) + 3.5}" font-size="10.5" text-anchor="end" fill="var(--muted)">${s}</text>`);
   const now = tAt(hNow), sNow = stageAt(g, now);
   box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="River height at ${g.short}">
     ${ticks.join("")}${yt.join("")}
     <text x="4" y="${T + 4}" font-size="10.5" fill="var(--muted)">ft</text>
-    ${hline(g.major, "var(--critical)", "major flood " + g.major + " ft", true)}
-    ${hline(g.rec, "var(--ink)", `record before Helene ${g.rec?.toFixed(1)} ft (${g.recYear})`, true)}
+    ${hline(g.major, "var(--critical)", "major flood " + g.major + " ft")}
+    ${hline(g.rec, "var(--ink)", `record before Helene ${g.rec?.toFixed(1)} ft (${g.recYear})`)}
     <path d="${d}" fill="none" stroke="var(--s1)" stroke-width="2" stroke-linejoin="round"/>
     <line x1="${X(now)}" x2="${X(now)}" y1="${T}" y2="${H - B}" stroke="var(--ink)" stroke-width="1"/>
     ${sNow != null ? `<circle cx="${X(now)}" cy="${Y(sNow)}" r="4.5" fill="var(--s1)" stroke="var(--panel)" stroke-width="2"/>` : ""}
@@ -814,25 +867,58 @@ function drawHydro() {
 }
 function roseSVG(res) {
   const W = 300, C = 150, Rm = 118, lab = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
-  const mx = Math.max(...res.slides.pct, ...res.ctrl.pct), sc = (p) => Rm * Math.sqrt(p / mx);   // area-true wedges
+  const mx = Math.max(...res.slides.pct, ...res.ctrl.pct), sc = (p) => Rm * Math.sqrt(p / mx);
   const pt = (deg, r) => [C + r * Math.sin(deg * Math.PI / 180), C - r * Math.cos(deg * Math.PI / 180)];
   let wedges = "", poly = [];
   res.slides.pct.forEach((p, i) => { const r = sc(p), a0 = i * 45 - 22.5, a1 = i * 45 + 22.5, [xa, ya] = pt(a0, r), [xb, yb] = pt(a1, r);
-    wedges += `<path d="M${C},${C}L${xa},${ya}A${r},${r} 0 0 1 ${xb},${yb}Z" fill="var(--s2)" stroke="var(--panel)" stroke-width="2" data-i="${i}"/>`; });
+    wedges += `<path d="M${C},${C}L${xa},${ya}A${r},${r} 0 0 1 ${xb},${yb}Z" fill="var(--s2)" stroke="var(--panel)" stroke-width="2"/>`; });
   res.ctrl.pct.forEach((p, i) => { const r = sc(p); poly.push(pt(i * 45 - 22.5, r), pt(i * 45 + 22.5, r)); });
   const rings = [0.25, 0.5, 1].map(f => `<circle cx="${C}" cy="${C}" r="${Rm * Math.sqrt(f)}" fill="none" stroke="var(--rule)"/>`).join("");
   const labels = lab.map((l, i) => { const [x, y] = pt(i * 45, Rm + 16); return `<text x="${x}" y="${y + 4}" text-anchor="middle" font-size="12" font-weight="${l === "SE" ? 700 : 500}" fill="var(--ink)">${l}</text>`; }).join("");
   return `<svg viewBox="-10 -10 ${W + 20} ${W + 20}" role="img" aria-label="Which way landslide slopes face">${rings}${wedges}
-    <path d="M${poly.map(p => p.join(",")).join("L")}Z" fill="none" stroke="var(--ink)" stroke-width="2" stroke-dasharray="5 3"/>${labels}
-    <circle cx="${C}" cy="${C}" r="0" /></svg>`;
+    <path d="M${poly.map(p => p.join(",")).join("L")}Z" fill="none" stroke="var(--ink)" stroke-width="2" stroke-dasharray="5 3"/>${labels}</svg>`;
 }
 function stackedBars(rows, keys) {
   const mx = Math.max(...rows.map(r => keys.reduce((s, k) => s + r[k.f], 0)));
   return `<div class="barlist">${rows.map(r => { const tot = keys.reduce((s, k) => s + r[k.f], 0);
     return `<span>${r.label}</span><span class="track">${keys.filter(k => r[k.f] > 0).map((k, i, arr) => `<span class="seg ${i < arr.length - 1 ? "mid" : ""}" style="width:${100 * r[k.f] / mx}%;background:${k.c}" title="${k.name}: ${r[k.f]}"></span>`).join("")}</span><span class="num">${tot}</span>`; }).join("")}</div>`;
 }
-// NHC report: total deaths by state, and direct freshwater-flooding deaths (includes landslides and debris flows)
 const DEATHS = [["North Carolina", 107, 77], ["South Carolina", 50, 2], ["Georgia", 37, 0], ["Florida", 34, 0], ["Tennessee", 18, 15], ["Virginia", 3, 0], ["Indiana", 1, 0]];
+
+// ---------- step 6: build the picture, then test it ----------
+const REVEAL = [
+  ["steep", "#eda100", "Steep ground", "Steep ground (amber): the mountain sides and the Blue Ridge escarpment, where the land rises sharply from the foothills."],
+  ["rainSurf", "#1c5cab", "Total rain", "Total rain from 24 to 28 September (blue). Where is it deepest: in front of the mountains, on them, or behind them?"],
+  ["slides", "#ffffff", "Landslides", "Landslides (white dots). Where do they crowd together? Compare with the amber and the deep blue."],
+  ["records", "#00b4d8", "Record floods", "River gauges that broke their records (blue diamonds). Rivers carry the rain that fell upstream, in the mountains."],
+  ["overlap", "#d55181", "Heavy rain on steep ground", "Pink: places where heavy rain fell on steep ground. How well do the landslides line up with it?"]
+];
+let revealTimer = null;
+function runReveal() {
+  clearTimeout(revealTimer);
+  for (const [k] of REVEAL) vis[k] = false; applyVis();
+  let i = 0;
+  const step = () => { const [k, , , cap] = REVEAL[i]; vis[k] = true; if (k === "overlap") vis.steep = false; applyVis(); $("revealCap") && ($("revealCap").textContent = cap); i++; if (i < REVEAL.length) revealTimer = setTimeout(step, 3500); };
+  step();
+}
+async function renderStats() {
+  const box = $("mxBox"); if (!box) return;
+  if (!G.ready || !G.slope) { box.innerHTML = `<div class="hint">${G.ready ? "Measuring the mountains…" : "Loading radar rain…"}</div>`; return; }
+  if (!slidePts) { box.innerHTML = `<div class="hint">Loading landslide locations…</div>`; await loadSlidePoints().catch(() => null); if (!slidePts) { box.innerHTML = `<div class="hint">Landslide locations could not be loaded.</div>`; return; } }
+  const [thR, thS] = G.th, { cls, outside } = G.stats(slidePts);
+  const dens = (k) => cls[k].a ? 100 * cls[k].n / cls[k].a : 0;
+  const all = cls.hs.n + cls.hg.n + cls.ls.n + cls.lg.n, area = cls.hs.a + cls.hg.a + cls.ls.a + cls.lg.a;
+  const mxD = Math.max(...["hs", "hg", "ls", "lg"].map(dens)) || 1;
+  const cell = (k) => { const d = dens(k), a = 0.08 + 0.55 * d / mxD; return `<td style="background:rgba(235,104,52,${a.toFixed(2)})"><b>${d.toFixed(1)}</b><span>${cls[k].n.toLocaleString()} landslides · ${Math.round(cls[k].a).toLocaleString()} km²</span></td>`; };
+  const pctA = area ? 100 * cls.hs.a / area : 0, pctN = all ? 100 * cls.hs.n / all : 0, ratio = dens("lg") > 0 ? dens("hs") / dens("lg") : null;
+  const recs = [...gauges.values()].filter(g => g.recordAt).map(g => { const c = G.atCell(g.lat, g.lon); return { n: g.short, r: c >= 0 ? G.finalTotal[c] : NaN }; });
+  box.innerHTML = `<table class="mx" aria-label="Landslides per 100 square kilometres">
+      <tr><th></th><th>Heavy rain<br>(${thR}+ in)</th><th>Less rain</th></tr>
+      <tr><th class="r">Steep<br>(${thS}°+)</th>${cell("hs")}${cell("ls")}</tr>
+      <tr><th class="r">Not steep</th>${cell("hg")}${cell("lg")}</tr></table>
+    <div class="cap">Big numbers: landslides per 100 km² of ground. Heavy rain on steep ground covered <b>${pctA.toFixed(0)}%</b> of the study area but had <b>${pctN.toFixed(0)}%</b> of its landslides${ratio ? `, about <b>${ratio >= 10 ? Math.round(ratio) : ratio.toFixed(1)} times</b> as many per km² as gentle ground with less rain` : ""}. ${outside ? `${outside.toLocaleString()} landslides lie outside the study area and are not counted.` : ""}</div>
+    ${recs.length ? `<div class="cap" style="margin-top:6px">Gauges that broke their records, with the radar rain total at the gauge: ${recs.map(r => `${r.n} ${isNaN(r.r) ? "(outside area)" : r.r.toFixed(0) + " in"}`).join(" · ")}.</div>` : ""}`;
+}
 
 function renderChapterExtra() {
   const c = CH[chapter], el = $("chExtra");
@@ -855,16 +941,41 @@ function renderChapterExtra() {
     }
     el.innerHTML = imp + test;
     $("slopeBtn").onclick = runSlopeTest;
+  } else if (c.key === "lined") {
+    const [thR, thS] = G.th;
+    el.innerHTML = `<h2>Build the picture ${mv("Where it lined up")}</h2>
+      <div class="chips">${REVEAL.map(([k, col, name], i) => `<button data-l="${k}" aria-pressed="${!!vis[k]}"><i style="background:${col};${k === "slides" ? "border:2px solid #7a1414;border-radius:50%" : ""}"></i>${i + 1} ${name}</button>`).join("")}</div>
+      <div id="revealCap"></div>
+      <button id="revealBtn">▶ Show one layer at a time</button>
+      <h2>Test it</h2>
+      <div class="ctl">Heavy rain means at least <span id="thRv">${thR} in</span></div><input class="th" type="range" id="thR" min="4" max="26" step="1" value="${thR}" aria-label="Heavy rain threshold, inches">
+      <div class="ctl">Steep means at least <span id="thSv">${thS}°</span></div><input class="th" type="range" id="thS" min="2" max="20" step="1" value="${thS}" aria-label="Steepness threshold, degrees">
+      <div id="mxBox"></div>`;
+    el.querySelectorAll(".chips button").forEach(b => b.onclick = () => { clearTimeout(revealTimer); const k = b.dataset.l; vis[k] = !vis[k]; applyVis(); const r = REVEAL.find(x => x[0] === k); if (vis[k] && r) $("revealCap").textContent = r[3]; });
+    $("revealBtn").onclick = runReveal;
+    const upd = () => { const r = +$("thR").value, s = +$("thS").value; $("thRv").textContent = r + " in"; $("thSv").textContent = s + "°"; G.setThresholds(r, s); renderStats(); };
+    $("thR").oninput = upd; $("thS").oninput = upd;
+    G.loadSlope().then(renderStats); renderStats();
+  } else if (c.key === "oro") {
+    el.innerHTML = `<h2>Right now ${mv("Rain so far")}</h2><div class="hint" id="rainInfo" style="font-size:13.5px;color:var(--ink)"></div>`;
+    rainInfo();
   } else if (c.key === "cost") {
     el.innerHTML = `<h2>Deaths by state (NHC report)</h2>
       <div class="key"><span><i style="background:var(--s1)"></i>Flooding and landslides</span><span><i style="background:var(--ref)"></i>Wind, storm surge and other causes</span></div>
       ${stackedBars(DEATHS.map(([s, t, f]) => ({ label: s, f, o: t - f })), [{ f: "f", c: "var(--s1)", name: "Flooding and landslides" }, { f: "o", c: "var(--ref)", name: "Other causes" }])}
       <div class="cap" style="font-size:12.5px;color:var(--muted);margin-top:6px">Totals include direct and indirect deaths. "Flooding and landslides" counts direct deaths from freshwater flooding, which the NHC says includes landslides and debris flows. Source: NHC Tropical Cyclone Report, February 2026 update.</div>`;
-  } else if (c.key === "oro") {
-    el.innerHTML = `<h2>Right now ${mv("Rain clouds")}</h2><div class="hint" id="cloudInfo" style="font-size:13.5px;color:var(--ink)"></div>
-      <p class="hint">Cloud shapes and movement are a sketch. Where they rain, and how hard, comes from the real radar measurements for each hour.</p>`;
-    clouds.info();
   } else el.innerHTML = "";
+  syncLegend();
+}
+function rainInfo() {
+  const el = $("rainInfo"); if (!el) return;
+  if (!rainPts.length) { el.textContent = "Loading radar rain…"; return; }
+  const hr = Math.min(HOURS, Math.floor(hNow)), ms = tAt(hr);
+  const towns = rainPts.filter(p => p.kind === "City");
+  const top = [...towns].sort((a, b) => b.r[hr] - a.r[hr]).slice(0, 3);
+  const s = stormAt(ms), w = s ? vortexWind(s, 35.6, -82.4) : null;
+  const windTxt = w && w.r < 900 ? `from the ${compass(fromBearing(w.u, w.v))} (storm winds sketch)` : s && ms >= Date.UTC(2024, 8, 25) && s.lat < 30 ? "from the south-east, flowing north ahead of the storm (NHC report)" : s ? "light" : "Helene has gone";
+  el.innerHTML = `<b>${fmtEDT(ms)} EDT.</b> Wind over the mountains: ${windTxt}.<br>Most rain so far: ${top[0].r[hr] < 0.1 ? "hardly any yet" : top.map(t => `${t.name} ${t.r[hr].toFixed(1)} in`).join(" · ")}.`;
 }
 
 // ---------- chapters UI ----------
@@ -873,16 +984,17 @@ document.querySelectorAll("#steps button").forEach(b => b.addEventListener("clic
 $("prevBtn").onclick = () => goChapter(Math.max(0, chapter - 1));
 $("nextBtn").onclick = () => goChapter(Math.min(CH.length - 1, chapter + 1));
 function goChapter(i, animate = true) {
+  clearTimeout(revealTimer);
   chapter = i; const c = CH[i]; pause();
   document.querySelectorAll("#steps button").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.i === i)));
   $("chTitle").textContent = c.name; $("story").innerHTML = c.story;
   $("chQs").innerHTML = c.qs.map(q => `<li>${q}</li>`).join("");
   $("prevBtn").disabled = i === 0; $("nextBtn").disabled = i === CH.length - 1;
   for (const k of Object.keys(vis)) vis[k] = !!c.show[k];
-  applyVis(); renderChapterExtra();
-  setTime(c.t0);
-  const target = c.cam.frame ? { target: { type: "multipoint", points: c.cam.frame, spatialReference: { wkid: 4326 } }, tilt: c.cam.tilt, heading: c.cam.heading } : c.cam;
-  view.goTo(target, { duration: animate ? 2500 : 0, easing: "in-out-cubic" }).catch(() => {});
+  view.closePopup && view.closePopup();
+  applyVis(); setTime(c.t0); renderChapterExtra();
+  view.goTo(c.cam, { duration: animate ? 2500 : 0, easing: "in-out-cubic" }).catch(() => {});
+  if (c.key === "lined") setTimeout(runReveal, animate ? 2600 : 200);
 }
 
 // ---------- timeline ----------
@@ -893,11 +1005,12 @@ function render(force) {
   const ms = tAt(hNow);
   $("tLabel").textContent = fmtEDT(ms) + " EDT";
   $("tUtc").textContent = fmtUTC(ms);
-  drawRain(); drawGauges(); drawSlides(); drawWinds(); clouds.info();
+  G.drawRain(); drawGauges(); drawSlides(); drawWinds(); rainInfo();
 }
 $("tSlider").addEventListener("input", (e) => { pause(); setTime(+e.target.value); });
 function play() {
   const c = CH[chapter]; if (hNow >= c.t1 - 0.01) setTime(c.t0);
+  if (c.t1 <= c.t0) return;
   playing = true; $("playBtn").textContent = "❚❚ Pause"; $("playBtn").setAttribute("aria-label", "Pause");
 }
 function pause() { playing = false; $("playBtn").textContent = "▶ Play"; $("playBtn").setAttribute("aria-label", "Play"); }
@@ -911,20 +1024,11 @@ function loop(ts) {
     $("tSlider").value = hNow; render(false);
     if (hNow >= end) pause();
   }
-  // storm clouds turn anticlockwise (about one turn every 20 s) and are redrawn ~15 times a second
-  rot += dt * 0.3;
-  loop._acc = (loop._acc || 0) + dt;
-  if (!loop._n || ts - loop._n > 66) { loop._n = ts; drawStorm(tAt(hNow), rot); clouds.frame(loop._acc); loop._acc = 0; }
+  rot += dt * 0.3;   // storm clouds turn anticlockwise, redrawn ~15 times a second
+  if (!loop._n || ts - loop._n > 66) { loop._n = ts; drawStorm(tAt(hNow), rot); }
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
-
-// click a gauge column to choose it
-view.on("click", async (e) => {
-  const h = await view.hitTest(e, { include: [gaugeLayer] });
-  const r = h.results.find(r => r.graphic && r.graphic.attributes && r.graphic.attributes.gauge);
-  if (r) { selGauge = r.graphic.attributes.gauge; if (CH[chapter].key !== "rivers") goChapter(3); else { fillGaugeSelect(); render(true); } }
-});
 
 // ---------- start ----------
 setExag(2);
@@ -933,10 +1037,12 @@ setStatus("Loading places…", 0.05);
 try {
   await loadLocations();
   const n = await loadRain();
-  setStatus(`Radar rainfall loaded for ${n} places.`, 0.65);
-} catch (e) { console.error(e); setStatus("Radar rainfall could not be loaded (" + e.message + "). The rest of the page still works.", 0.65); }
+  G.setSources(rainPts); render(true);
+  setStatus(`Radar rainfall loaded for ${n} places.`, 0.6);
+} catch (e) { console.error(e); setStatus("Radar rainfall could not be loaded (" + e.message + "). The rest of the page still works.", 0.6); }
 try { await loadGauges(); setStatus(`Ready. ${gauges.size} river gauges loaded.`, 1); }
 catch (e) { console.error(e); setStatus("River gauges could not be loaded (" + e.message + ").", 1); }
+G.loadSlope();   // measure the mountains in the background for step 6
 </script>
 </body>
 </html>
