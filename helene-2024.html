@@ -126,11 +126,11 @@
 <body>
 <div id="app">
   <aside id="panel">
-    <div class="kicker">Hurricanes <span class="ver" id="verTop"></span></div>
-    <h1>Hurricane Helene, September 2024</h1>
-    <p class="lede">Why did a hurricane that came ashore in Florida cause its worst floods and landslides in one part of the Appalachian mountains, 400 miles away?</p>
+    <div class="kicker">Case study <span class="ver" id="verTop"></span></div>
+    <h1>Why the Appalachians? Helene, September 2024</h1>
+    <p class="lede">The worst floods and landslides from Hurricane Helene happened in the mountains of western North Carolina, 400 miles from where it came ashore. Helene was only one part of the story: a stream of tropical moisture, a stalled front, soaked ground and a wall of steep mountains all lined up in the same place.</p>
 
-    <h2>The story in seven steps</h2>
+    <h2>The story in eight steps</h2>
     <div class="steps" id="steps"></div>
 
     <div id="chapter" style="margin-top:14px">
@@ -152,6 +152,8 @@
         <li><b>Heavy rain on steep ground.</b> Places where the total rain and the steepness are both above the thresholds chosen in step 6. Students can change the thresholds.</li>
         <li><b>River gauges.</b> Each gauge is a column of water whose height is the river's stage, measured every 15 minutes by the USGS. The red ring marks the NWS "major flood" level; the white ring marks the highest the river had been measured before Helene. 1 ft of river is drawn 120 m tall. A grey column means the gauge stopped reporting.</li>
         <li><b>Landslides.</b> Points from the USGS preliminary landslide inventory. It does not record when each slide happened, so the page shows them from the morning of 27 September, when most occurred.</li>
+        <li><b>Weather pattern.</b> The Bermuda High, the upper-level low (a dip in the jet stream) and the stalled front are drawn in approximate positions from the NHC report ("a stationary front … from the central Gulf Coast northward towards the Tennessee Valley and southern Appalachians from 25–27 September"; "a deep-layer cut-off low centered over the Tennessee Valley"; "a subtropical ridge centered over the western Atlantic"). They are not traced from weather maps.</li>
+        <li><b>Moisture stream.</b> The light-blue streaks sketch the narrow stream of tropical moisture that NOAA's CW3E centre describes as "AR-like poleward transport of enhanced water vapor on the east side of Helene", carried "into the Southern Appalachians on 26 and 27 September", and that Climate.gov describes as squeezed between Helene's anticlockwise spin and the Bermuda High's clockwise spin. The page draws it as a curved band from Helene's east side to the Blue Ridge from 25 September until Helene's own spin takes over; its exact width and path are a sketch. Scientists call this kind of stream an atmospheric river; "conveyor belt" here is a plain-language image, not the meteorological term "warm conveyor belt".</li>
         <li><b>Storm and winds.</b> The storm centre follows the NHC best track. The cloud spiral and the moving white streaks are drawings of the storm's anticlockwise spin, not measured winds. The streaks ride about 1.5 km above the ground, so they rise over the mountains, and they turn blue only where the radar measured at least 0.25 in of rain in that hour, so where the "conveyor belt" drops its rain comes from real data.</li>
         <li><b>Terrain.</b> Mountains are drawn 2× taller by default. Use the switch at the top to see true height.</li>
       </ul>
@@ -172,6 +174,8 @@
         <a href="https://www.usgs.gov/data/preliminary-landslide-inventory-landslides-triggered-hurricane-helene-september-2024" target="_blank" rel="noopener">USGS preliminary landslide inventory</a> ·
         <a href="https://www.usgs.gov/publications/insights-widespread-landsliding-southern-appalachia-hurricane-helene" target="_blank" rel="noopener">USGS: Insights into widespread landsliding (2,217 landslides, south-east-facing slopes)</a> ·
         <a href="https://waterdata.usgs.gov/" target="_blank" rel="noopener">USGS river gauges</a> ·
+        <a href="https://cw3e.ucsd.edu/wp-content/uploads/2024/09/30Sep2024_HelenePRE_EventSummary/HelenePRE_EventSummary.pdf" target="_blank" rel="noopener">CW3E: Helene predecessor rain event summary (moisture stream)</a> ·
+        <a href="https://www.climate.gov/news-features/event-tracker/hurricane-helenes-extreme-rainfall-and-catastrophic-inland-flooding" target="_blank" rel="noopener">Climate.gov: Helene's extreme rainfall and catastrophic inland flooding</a> ·
         NWS rainfall analysis (GIS Mutual Aid) · Esri World Elevation and World Imagery
       </div>
     </details>
@@ -199,6 +203,8 @@
       <button class="k" data-l="slides" aria-pressed="false" disabled><span class="tick"></span><span class="sw" style="background:#fff;border:2px solid #7a1414;border-radius:50%;width:10px;height:10px"></span>Landslides</button>
       <button class="k" data-l="records" aria-pressed="false" disabled><span class="tick"></span><span class="sw" style="background:#00b4d8;transform:rotate(45deg);width:10px;height:10px"></span>River broke its record</button>
       <button class="k" data-l="gauges" aria-pressed="false" disabled><span class="tick"></span>River gauge columns</button>
+      <button class="k" data-l="pattern" aria-pressed="false"><span class="tick"></span><span class="sw" style="background:#b98cff"></span>Weather pattern (approximate)</button>
+      <button class="k" data-l="stream" aria-pressed="false"><span class="tick"></span><span class="sw" style="background:#96e1ff"></span>Moisture stream (sketch)</button>
       <button class="k" data-l="storm" aria-pressed="true"><span class="tick"></span>Storm and track</button>
       <button class="k" data-l="winds" aria-pressed="false"><span class="tick"></span><span class="sw" style="background:none;color:inherit;font-size:14px;line-height:12px;text-align:center">➜</span>Storm winds (sketch)</button>
       <button class="k" data-l="nws" aria-pressed="false" disabled><span class="tick"></span>NWS rain map, 24–27 Sep</button>
@@ -218,10 +224,12 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.7";
+const APP_VERSION = "0.8";
 const APP_DATE = "30 September 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
+  ["Moisture stream sketch", "0.1", "350 streaks along a curved band from 320 km east of Helene's centre to the Blue Ridge (35.55°N, 82.3°W), bowed 260 km east, 140 km wide narrowing to 60 km; from 25 Sep 00 UTC (fading in over 3 h), fading out as Helene passes 32.5–34°N; lifted and turned blue by the same rules as the storm winds"],
+  ["Weather pattern", "0.1", "Approximate positions from the NHC report and Climate.gov: stalled front Gulf Coast to Tennessee Valley 25–27 Sep; upper-level low over the Tennessee Valley 25–27 Sep; Bermuda High over the western Atlantic"],
   ["Storm winds sketch", "0.3", "700 moving streaks in an anticlockwise vortex around the NHC track position, 20° inflow; speed = track wind × (60 km / distance)^0.6 beyond 60 km; out to 850 km; ride 1.5 km above the ground (lifted over the mountains in the study area); blue where radar rain below is at least 0.25 in/hr"],
   ["Rain so far", "0.1", "NOAA MRMS hourly radar totals since 24 Sep 12:00 UTC at ~390 places, spread to a 0.0125° grid by inverse-distance weighting (6 nearest within 40 km); southern Appalachians only"],
   ["Steep ground", "0.1", "Slope from Esri World Elevation sampled every 0.0125° (about 1.2 km) at ~150 m detail, central differences across ~2.5 km"],
@@ -286,37 +294,46 @@ const knMph = (k) => Math.round(k * 1.15078 / 5) * 5;
 // ---------- chapters ----------
 const CAM_MTN = { center: [-82.3, 35.5], zoom: 8.3, tilt: 60, heading: 318 };   // from the south-east, looking north-west over the Blue Ridge
 const CH = [
-  { key: "pre", n: "1 · 24–26 Sep", name: "Rain before the storm", t0: 0, t1: 54,
-    cam: { center: [-83.3, 27.6], zoom: 5.5, tilt: 18, heading: 0 }, show: { storm: 1, winds: 1, rainSurf: 1 },
-    story: `<p>On Wednesday 25 September, Helene was still a hurricane over the Gulf, more than 600 miles from the Appalachian mountains. But rain was already falling hard there.</p>
-      <p>A weather front had stalled over the region, and warm, wet air flowing north ahead of the storm was pushed up against the mountains. Forecasters call this a <b>predecessor rain event</b>. By the time Helene arrived, the ground was soaked and rivers were already rising.</p>`,
-    qs: ["Press Play. Where does the blue (rain so far) first appear? Where is the storm at that time?", "Pause on Thursday morning and click near Asheville. How much rain has fallen already?", "Why might rain falling <i>before</i> a storm make the storm's own rain more dangerous?"] },
-  { key: "storm", n: "2 · 26–27 Sep", name: "A huge, fast storm", t0: 48, t1: 72,
-    cam: { center: [-83.6, 30.0], zoom: 6.0, tilt: 30, heading: 0 }, show: { storm: 1, winds: 1, rainSurf: 1 },
-    story: `<p>Over very warm water, Helene grew stronger fast. At about 11 pm EDT on Thursday 26 September it came ashore near Perry, in Florida's Big Bend, as a <b>Category 4 hurricane</b> with winds of about 140 mph (225 km/h).</p>
-      <p>It was enormous, and it spun anticlockwise. On its east side the winds blew from the south-east, straight at the mountains. It was also moving fast, so its centre reached the mountains only about nine hours after landfall.</p>`,
-    qs: ["Watch the white streaks on the storm's east side as it comes inland. Which way are they moving when they reach the mountains?", "The storm moved fast. Would a fast storm or a slow storm bring more rain to one place? Why?", "Compare the storm's size with the distance from Florida to North Carolina."] },
-  { key: "oro", n: "3 · 26–27 Sep", name: "A conveyor belt of rain", t0: 56, t1: 80, speed: "1",
-    cam: { center: [-82.9, 33.6], zoom: 6.6, tilt: 50, heading: 340 }, show: { storm: 1, winds: 1, rainSurf: 1 },
-    story: `<p>Watch the white streaks. Helene spun anticlockwise, so on its east side it swept warm, wet air off the ocean, north across the Carolinas and Georgia, and straight onto the <b>Blue Ridge</b> mountains, like a <b>conveyor belt</b> that kept delivering water for hours.</p>
-      <p>When the air is pushed up the mountains it cools, and cool air can hold less water vapour, so the vapour turns into cloud and rain (<b>orographic</b> rain). Where the radar measured heavy rain, the streaks turn <b>blue</b> and drop their rain; the blue map on the ground shows where it piled up. Busick, in Yancey County, measured 30.78 inches (782 mm) in three days.</p>`,
-    qs: ["Follow a streak that starts over the ocean. Where does it end up? Where does it turn blue?", "As Helene moves north, does the conveyor belt keep pointing at the same mountains? For how long?", "Pause and switch the mountains to 3×. Do the blue streaks rise over the high ground?"] },
-  { key: "rivers", n: "4 · 26–28 Sep", name: "Rivers rise", t0: 42, t1: 90,
+  { key: "setup", n: "1 · 24–25 Sep", name: "The set-up", t0: 15, t1: 40,
+    cam: { center: [-76.5, 28.8], zoom: 5.3, tilt: 20, heading: 0 }, show: { pattern: 1, storm: 1, stream: 1 },
+    story: `<p>Four things came together over the south-eastern United States in late September 2024:</p>
+      <ol style="padding-left:20px;margin:0 0 8px"><li><b>Hurricane Helene</b>, growing over the very warm Caribbean and Gulf, full of water vapour.</li>
+      <li>The <b>Bermuda High</b>, a huge area of high pressure over the Atlantic, turning clockwise.</li>
+      <li>An <b>upper-level low</b> (a dip in the jet stream) to the west, which helped pull air north and lift it.</li>
+      <li>A <b>stalled front</b> west of the Appalachians, where warm, wet air was forced to rise.</li></ol>
+      <p>Between Helene's anticlockwise spin and the High's clockwise spin, tropical moisture was squeezed into a narrow stream flowing north, towards the mountains. Scientists compared it to an <b>atmospheric river</b>.</p>`,
+    qs: ["Find the four features on the map. Which way does air turn around the High? Around Helene?", "Press Play. Where does the moisture stream (light blue) end up?", "Why might it matter that a line of steep mountains stood in the stream's path?"] },
+  { key: "pre", n: "2 · 25–26 Sep", name: "Rain before the storm", t0: 12, t1: 60,
+    cam: { center: [-82.5, 31.2], zoom: 5.8, tilt: 32, heading: 0 }, show: { pattern: 1, storm: 1, stream: 1, rainSurf: 1 },
+    story: `<p>On 25 and 26 September, Helene was still far out over the Gulf. But the moisture stream was already pouring onto the mountains, where the stalled front and the slopes pushed the air upward.</p>
+      <p>Before Helene came ashore, 10 to 15 inches of rain had already fallen in parts of the region. Forecasters call this a <b>predecessor rain event</b>. By the time Helene arrived, the ground was soaked and rivers were already rising.</p>`,
+    qs: ["Press Play. Where does the blue (rain so far) grow while Helene is still over the Gulf?", "Pause on Thursday evening and click near Asheville. How much rain had fallen before the storm arrived?", "Why would rain before the storm make the storm's own rain more dangerous?"] },
+  { key: "storm", n: "3 · 26–27 Sep", name: "Helene arrives", t0: 56, t1: 80, speed: "1",
+    cam: { center: [-82.9, 33.6], zoom: 6.6, tilt: 50, heading: 340 }, show: { storm: 1, winds: 1, stream: 1, rainSurf: 1 },
+    story: `<p>At about 11 pm EDT on Thursday 26 September, Helene came ashore in Florida's Big Bend as a <b>Category 4 hurricane</b> with winds of about 140 mph (225 km/h). It was huge and moving fast: its centre reached the mountains about nine hours later.</p>
+      <p>Its anticlockwise spin (white streaks) now joined the moisture stream, driving even wetter air straight at the Blue Ridge, like a <b>conveyor belt</b>. On the morning of 27 September rain fell at 2 to 3 inches an hour on ground that was already soaked.</p>`,
+    qs: ["Follow a white streak on the storm's east side. Where does it end up? Where does it turn blue?", "Watch the label on the storm. How quickly does it weaken after it crosses the coast?", "The storm moved fast. Why did so much rain still fall in one place?"] },
+  { key: "oro", n: "4 · 25–27 Sep", name: "Mountains squeeze out the rain", t0: 24, t1: 80, speed: "2",
+    cam: CAM_MTN, show: { winds: 1, stream: 1, rainSurf: 1 },
+    story: `<p>You are looking north-west over the <b>Blue Ridge</b>, a steep wall of mountains facing south-east, straight into the stream of wet air. When air is forced up a mountainside it cools. Cool air can hold less water vapour, so the vapour turns into cloud and rain. This is called <b>orographic</b> rain.</p>
+      <p>The streaks rise over the mountains and turn blue where the radar measured heavy rain. Busick, in Yancey County, measured 30.78 inches (782 mm) in three days. Across a wide area, the three-day totals had less than a 1-in-1,000 chance of happening in any year.</p>`,
+    qs: ["Where does the rain pile up fastest: on the flat land in front of the mountains, on the mountain wall, or behind it?", "Switch the mountains to 3×. Do the blue streaks rise over the high ground?", "Click a few places on the map. Which has the most rain? What is the ground like there?"] },
+  { key: "rivers", n: "5 · 26–28 Sep", name: "Rivers rise", t0: 42, t1: 90,
     cam: { center: [-82.62, 35.62], zoom: 8.7, tilt: 62, heading: 335 }, show: { gauges: 1, rainSurf: 1 },
     story: `<p>All that rain ran off the soaked slopes into streams and rivers at once. At least 63 river gauges broke their records.</p>
       <p>The French Broad River at Asheville rose to about 24.7 ft, higher than in the great flood of 1916. Each column is a river gauge: the <b>red ring</b> marks major flooding, the <b>white ring</b> the highest the river had ever been measured before Helene. A ★ by the name means it has broken that record.</p>`,
     qs: ["Which gauge passes its old record first? Which is last?", "Pick a gauge in the chart. How many hours after the heaviest rain did the river peak?", "Are the gauges that broke records downstream of the deepest blue?"] },
-  { key: "slides", n: "5 · 27 Sep", name: "Slopes give way", t0: 60, t1: 84,
+  { key: "slides", n: "6 · 27 Sep", name: "Slopes give way", t0: 60, t1: 84,
     cam: { center: [-82.28, 35.72], zoom: 9.3, tilt: 62, heading: 20 }, show: { slides: 1, rainSurf: 1 },
     story: `<p>Soil full of water is heavy and loses its grip on the rock beneath. On steep slopes it can slide, and many slides turned into fast <b>debris flows</b> that raced down valleys, carrying trees, rocks and buildings.</p>
       <p>USGS scientists mapped more than 2,000 landslides, most in western North Carolina, and more than half damaged roads, buildings or other property. They found that most began on slopes facing south-east, into the wind. You can test that below.</p>`,
     qs: ["Where are the landslides most crowded? Compare with where the blue is deepest.", "Run the slope test. Which way do most landslide slopes face?", "Why compare the landslides with nearby slopes, not just count them?"] },
-  { key: "lined", n: "6 · The pattern", name: "Where it all lined up", t0: 108, t1: 108,
+  { key: "lined", n: "7 · The pattern", name: "Where it all lined up", t0: 108, t1: 108,
     cam: { center: [-82.4, 35.6], zoom: 8.1, tilt: 52, heading: 330 }, show: { rainSurf: 1 },
     story: `<p>Steep mountains, very heavy rain, landslides and record floods did not happen evenly across the region. They happened together, in the same places. Geographers call this a <b>spatial correlation</b>.</p>
       <p>Build the picture one layer at a time, then test it: how much more common were landslides where heavy rain fell on steep ground?</p>`,
     qs: ["Which layer lines up best with the landslides: steep ground alone, heavy rain alone, or both together?", "Move the rain threshold up and down. At what amount of rain do landslides become common on steep ground?", "Are there steep places with few landslides? What was different there?"] },
-  { key: "cost", n: "7 · Afterwards", name: "Counting the cost", t0: 72, t1: 108,
+  { key: "cost", n: "8 · Afterwards", name: "Counting the cost", t0: 72, t1: 108,
     cam: { center: [-82.9, 33.2], zoom: 6.4, tilt: 30, heading: 0 }, show: { slides: 1, storm: 1, rainSurf: 1 },
     story: `<p>Helene caused at least 250 deaths in the United States, the most for a hurricane on the mainland since Katrina in 2005. In the mountains, most deaths were caused by flooding and landslides, not by wind.</p>
       <p>More than 125,000 homes in western North Carolina were damaged or destroyed. Asheville had no clean tap water for 53 days. Parts of Interstate 40 were washed away. Communities there are still rebuilding.</p>`,
@@ -325,8 +342,8 @@ const CH = [
 
 // ---------- state ----------
 let hNow = 0, playing = false, chapter = 0, lastFrame = 0, EXAG = 2;
-const vis = { storm: true, winds: false, rainSurf: false, steep: false, overlap: false, slides: false, records: false, gauges: false, nws: false };
-const avail = { storm: true, winds: true, rainSurf: false, steep: false, overlap: false, slides: false, records: false, gauges: false, nws: false };
+const vis = { pattern: false, stream: false, storm: true, winds: false, rainSurf: false, steep: false, overlap: false, slides: false, records: false, gauges: false, nws: false };
+const avail = { pattern: true, stream: true, storm: true, winds: true, rainSurf: false, steep: false, overlap: false, slides: false, records: false, gauges: false, nws: false };
 const setStatus = (t, p) => { $("status").textContent = t || ""; if (p != null) $("bar").style.width = Math.round(p * 100) + "%"; };
 function toast(t) { const el = $("toast"); el.textContent = t; el.style.display = "block"; clearTimeout(toast._t); toast._t = setTimeout(() => el.style.display = "none", 3500); }
 
@@ -492,6 +509,24 @@ const flow = (() => {
   const gDrop = new Graphic({ geometry: null, symbol: line([110, 175, 255, 0.45], 1.5) });
   windLayer.addMany([gDrop, gAir, gWet]);
   const P = Array.from({ length: NP }, () => ({ lat: 0, lon: 0, age: 1e9, life: 0, tr: [] }));
+  // the moisture stream: a curved band from Helene's east side to the Blue Ridge
+  const NS = 350, TARGET = [35.55, -82.3], STREAM_FROM = Date.UTC(2024, 8, 25, 0);
+  const gStream = new Graphic({ geometry: null, symbol: line([150, 225, 255, 0.85], 2.2) });
+  windLayer.add(gStream);
+  const S = Array.from({ length: NS }, (_, k) => ({ u: Math.random() * 1.1, d: Math.random() * 2 - 1, tr: [] }));
+  function streamCurve(s) {
+    const [lon0, lat0] = offset(s.lat, s.lon, 320, -60), lat2 = TARGET[0], lon2 = TARGET[1];
+    const [lon1, lat1] = offset((lat0 + lat2) / 2, (lon0 + lon2) / 2, 260, 0);   // bowed east, between Helene and the Bermuda High
+    const at = (u) => { const a = (1 - u) * (1 - u), b = 2 * u * (1 - u), c = u * u; return [a * lon0 + b * lon1 + c * lon2, a * lat0 + b * lat1 + c * lat2]; };
+    const km = Math.hypot((lon2 - lon0) * KM_LAT * Math.cos(lat2 * Math.PI / 180), (lat2 - lat0) * KM_LAT) * 1.15;
+    return { at, km };
+  }
+  function streamStrength(ms, s) {
+    if (!s || ms < STREAM_FROM) return 0;
+    const fin = Math.min(1, (ms - STREAM_FROM) / (3 * HR));
+    const fout = s.lat <= 32.5 ? 1 : s.lat >= 34 ? 0 : (34 - s.lat) / 1.5;   // Helene's own spin takes over as it reaches the mountains
+    return fin * fout;
+  }
   function spawn(p, s) {
     const a = Math.random() * 2 * Math.PI, r = 70 + Math.sqrt(Math.random()) * (RMAX - 70);
     [p.lon, p.lat] = offset(s.lat, s.lon, r * Math.cos(a), r * Math.sin(a));
@@ -502,9 +537,29 @@ const flow = (() => {
   function frame(dt) {
     if (!windLayer.visible) return;
     const s = stormAt(tAt(hNow));
-    if (!s) { gAir.geometry = gWet.geometry = gDrop.geometry = null; return; }
-    const air = [], wet = [], drops = [];
-    for (const p of P) {
+    if (!s) { gAir.geometry = gWet.geometry = gDrop.geometry = gStream.geometry = null; return; }
+    const air = [], wet = [], drops = [], stream = [];
+    const place = (tr, lat, lon, freeList) => {   // turn a trail blue and drop rain where the radar shows heavy rain
+      const r = G.rateAt(lat, lon);
+      if (r >= WET) { wet.push(tr.slice()); const e = G.elevAt(lat, lon);
+        if (e != null && Math.random() < Math.min(1, r)) drops.push([[lon, lat, tr[tr.length - 1][2] - 200], [lon, lat, Math.max(0, e) * EXAG + 30]]); }
+      else freeList.push(tr.slice());
+    };
+    const str = vis.stream ? streamStrength(tAt(hNow), s) : 0;
+    if (str > 0) {
+      const C = streamCurve(s), nOn = Math.round(NS * str);
+      for (let k = 0; k < nOn; k++) { const q = S[k];
+        q.u += dt * 45 / C.km; if (q.u > 1.08) { q.u = 0; q.d = Math.random() * 2 - 1; q.tr = []; }
+        const [lon, lat] = C.at(q.u), [lonA, latA] = C.at(Math.min(1.1, q.u + 0.01));
+        const tx = (lonA - lon) * Math.cos(lat * Math.PI / 180), ty = latA - lat, tn = Math.hypot(tx, ty) || 1;
+        const w = 140 * (1 - 0.57 * Math.min(1, q.u)) * q.d;   // km to the side of the centre line
+        const [plon, plat] = offset(lat, lon, (-ty / tn) * w, (tx / tn) * w);
+        q.tr.push([plon, plat, airZ(plat, plon)]); if (q.tr.length > TRAIL) q.tr.shift();
+        if (q.tr.length >= 2) place(q.tr, plat, plon, stream);
+      }
+    }
+    if (!vis.winds) { gAir.geometry = null; }
+    for (const p of (vis.winds ? P : [])) {
       if (p.age > p.life) spawn(p, s);
       const w = vortexWind(s, p.lat, p.lon);
       if (w.r > RMAX + 50 || w.r < 40) { spawn(p, s); continue; }
@@ -513,16 +568,43 @@ const flow = (() => {
       p.age += dt;
       p.tr.push([p.lon, p.lat, airZ(p.lat, p.lon)]); if (p.tr.length > TRAIL) p.tr.shift();
       if (p.tr.length < 2) continue;
-      const r = G.rateAt(p.lat, p.lon);
-      if (r >= WET) { wet.push(p.tr.slice()); const e = G.elevAt(p.lat, p.lon);
-        if (e != null && Math.random() < Math.min(1, r)) drops.push([[p.lon, p.lat, p.tr[p.tr.length - 1][2] - 200], [p.lon, p.lat, Math.max(0, e) * EXAG + 30]]); }
-      else air.push(p.tr.slice());
+      place(p.tr, p.lat, p.lon, air);
     }
     const pl = (paths) => paths.length ? { type: "polyline", paths, hasZ: true, spatialReference: { wkid: 4326 } } : null;
-    gAir.geometry = pl(air); gWet.geometry = pl(wet); gDrop.geometry = pl(drops);
+    if (vis.winds) gAir.geometry = pl(air); gWet.geometry = pl(wet); gDrop.geometry = pl(drops); gStream.geometry = pl(stream);
   }
   return { frame };
 })();
+
+// ---------- weather pattern (approximate positions from the NHC report and Climate.gov) ----------
+const patternLayer = new GraphicsLayer({ title: "Weather pattern", elevationInfo: { mode: "on-the-ground" }, visible: false });
+map.add(patternLayer);
+const PURPLE = [185, 140, 255];
+const ptext = (text, lat, lon, size = 13) => new Graphic({ geometry: { type: "point", longitude: lon, latitude: lat },
+  symbol: { type: "point-3d", symbolLayers: [{ type: "text", text, size, material: { color: "white" }, halo: { color: [0, 0, 0, 0.85], size: 1.5 }, font: { weight: "bold" } }] } });
+function arrowPoly(lat, lon, u, v, L) {   // an arrow shape pointing along (u, v); sizes in km
+  const w = L * 0.09, hw = L * 0.24, hl = L * 0.36, px = -v, py = u;
+  const pt = (along, side) => offset(lat, lon, u * along + px * side, v * along + py * side);
+  const t = -L / 2, h = L / 2 - hl;
+  return [pt(t, w), pt(h, w), pt(h, hw), pt(L / 2, 0), pt(h, -hw), pt(h, -w), pt(t, -w), pt(t, w)];
+}
+const HIGH = [32.5, -66.5], ULOW = [36.4, -87.2], FRONT = [[-88.0, 30.4], [-87.2, 32.5], [-86.3, 34.3], [-85.2, 35.6], [-84.2, 36.6]];
+const PAT_FROM = Date.UTC(2024, 8, 25, 0), PAT_TO = Date.UTC(2024, 8, 27, 18);
+const highG = [ptext("H", HIGH[0], HIGH[1], 34), ptext("Bermuda High", HIGH[0] - 1.6, HIGH[1], 12)];
+for (let k = 0; k < 8; k++) {   // clockwise circulation around the High
+  const a = k * Math.PI / 4, [lon, lat] = offset(HIGH[0], HIGH[1], 650 * Math.cos(a), 650 * Math.sin(a));
+  highG.push(new Graphic({ geometry: { type: "polygon", rings: [arrowPoly(lat, lon, Math.sin(a), -Math.cos(a), 260)], spatialReference: { wkid: 4326 } },
+    symbol: { type: "simple-fill", color: [...PURPLE, 0.55], outline: { color: [0, 0, 0, 0.3], width: 0.5 } } }));
+}
+const ring = []; for (let k = 0; k <= 48; k++) { const a = k * Math.PI / 24; ring.push(offset(ULOW[0], ULOW[1], 230 * Math.cos(a), 230 * Math.sin(a))); }
+const timedG = [
+  new Graphic({ geometry: { type: "polyline", paths: [FRONT], spatialReference: { wkid: 4326 } }, symbol: { type: "simple-line", color: [...PURPLE, 0.95], width: 4, style: "long-dash" } }),
+  ptext("Stalled front", 33.3, -87.6, 12),
+  new Graphic({ geometry: { type: "polyline", paths: [ring], spatialReference: { wkid: 4326 } }, symbol: { type: "simple-line", color: [...PURPLE, 0.85], width: 2.5, style: "dash" } }),
+  ptext("Upper-level low\n(dip in the jet stream)", ULOW[0], ULOW[1], 12)
+];
+patternLayer.addMany([...highG, ...timedG]);
+function drawPattern() { const ms = tAt(hNow), on = ms >= PAT_FROM && ms <= PAT_TO; timedG.forEach(g => g.visible = on); }
 
 // ---------- data helpers ----------
 const NOAA = "https://services2.arcgis.com/C8EMgrsFcRFL6LrL/arcgis/rest/services/";
@@ -824,7 +906,7 @@ async function runSlopeTest() {
 // ---------- visibility & legend ----------
 function applyVis() {
   cloudLayer.visible = vis.storm; trackLayer.visible = vis.storm;
-  windLayer.visible = vis.winds;
+  windLayer.visible = vis.winds || vis.stream; patternLayer.visible = vis.pattern; drawPattern();
   G.rain.L.visible = vis.rainSurf && avail.rainSurf;
   G.steep.L.visible = vis.steep && avail.steep; G.over.L.visible = vis.overlap && avail.overlap;
   if ((vis.steep || vis.overlap) && !avail.steep) G.loadSlope();
@@ -845,7 +927,7 @@ document.querySelectorAll("#exag button").forEach(b => b.addEventListener("click
 view.on("click", async (e) => {
   const h = await view.hitTest(e, { include: [gaugeLayer] });
   const r = h.results.find(r => r.graphic && r.graphic.attributes && r.graphic.attributes.gauge);
-  if (r) { selGauge = r.graphic.attributes.gauge; if (CH[chapter].key !== "rivers") goChapter(3); else { fillGaugeSelect(); render(true); } return; }
+  if (r) { selGauge = r.graphic.attributes.gauge; if (CH[chapter].key !== "rivers") goChapter(CH.findIndex(c => c.key === "rivers")); else { fillGaugeSelect(); render(true); } return; }
   if (!G.ready || !e.mapPoint || !G.rain.L.visible) return;
   const p = e.mapPoint, lat = p.latitude, lon = p.longitude, c = G.atCell(lat, lon); if (c < 0) return;
   const hr = Math.min(HOURS, Math.floor(hNow)), v = G.rainAtPoint(lat, lon, hr); if (!v) return;
@@ -1032,7 +1114,7 @@ function render(force) {
   const ms = tAt(hNow);
   $("tLabel").textContent = fmtEDT(ms) + " EDT";
   $("tUtc").textContent = fmtUTC(ms);
-  G.drawRain(); drawGauges(); drawSlides(); rainInfo();
+  G.drawRain(); drawGauges(); drawSlides(); drawPattern(); rainInfo();
 }
 $("tSlider").addEventListener("input", (e) => { pause(); setTime(+e.target.value); });
 function play() {
