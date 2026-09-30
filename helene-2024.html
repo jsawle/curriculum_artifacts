@@ -152,7 +152,7 @@
         <li><b>Heavy rain on steep ground.</b> Places where the total rain and the steepness are both above the thresholds chosen in step 6. Students can change the thresholds.</li>
         <li><b>River gauges.</b> Each gauge is a column of water whose height is the river's stage, measured every 15 minutes by the USGS. The red ring marks the NWS "major flood" level; the white ring marks the highest the river had been measured before Helene. 1 ft of river is drawn 120 m tall. A grey column means the gauge stopped reporting.</li>
         <li><b>Landslides.</b> Points from the USGS preliminary landslide inventory. It does not record when each slide happened, so the page shows them from the morning of 27 September, when most occurred.</li>
-        <li><b>Storm and winds.</b> The storm centre follows the NHC best track; the cloud spiral and the wind arrows are drawings of the storm's anticlockwise spin, not measurements.</li>
+        <li><b>Storm and winds.</b> The storm centre follows the NHC best track. The cloud spiral and the moving white streaks are drawings of the storm's anticlockwise spin, not measured winds. The streaks ride about 1.5 km above the ground, so they rise over the mountains, and they turn blue only where the radar measured at least 0.25 in of rain in that hour, so where the "conveyor belt" drops its rain comes from real data.</li>
         <li><b>Terrain.</b> Mountains are drawn 2× taller by default. Use the switch at the top to see true height.</li>
       </ul>
     </details>
@@ -207,7 +207,7 @@
     <div id="timebar">
       <button id="playBtn" class="primary" aria-label="Play">▶ Play</button>
       <input id="tSlider" type="range" min="0" max="108" step="0.25" value="0" aria-label="Time" />
-      <select id="speed" aria-label="Playback speed"><option value="2">slow</option><option value="4" selected>normal</option><option value="10">fast</option></select>
+      <select id="speed" aria-label="Playback speed"><option value="1">very slow</option><option value="2">slow</option><option value="4" selected>normal</option><option value="10">fast</option></select>
       <div id="tLabel">—</div>
       <div id="tSub"><span id="tUtc"></span><span class="far" id="tStorm"></span></div>
     </div>
@@ -218,11 +218,11 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.6";
+const APP_VERSION = "0.7";
 const APP_DATE = "30 September 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
-  ["Storm winds sketch", "0.2", "Anticlockwise vortex around the NHC track position, 20° inflow; speed = track wind × (60 km / distance)^0.6 beyond 60 km; hidden past 900 km; drawn as arrow shapes on the ground"],
+  ["Storm winds sketch", "0.3", "700 moving streaks in an anticlockwise vortex around the NHC track position, 20° inflow; speed = track wind × (60 km / distance)^0.6 beyond 60 km; out to 850 km; ride 1.5 km above the ground (lifted over the mountains in the study area); blue where radar rain below is at least 0.25 in/hr"],
   ["Rain so far", "0.1", "NOAA MRMS hourly radar totals since 24 Sep 12:00 UTC at ~390 places, spread to a 0.0125° grid by inverse-distance weighting (6 nearest within 40 km); southern Appalachians only"],
   ["Steep ground", "0.1", "Slope from Esri World Elevation sampled every 0.0125° (about 1.2 km) at ~150 m detail, central differences across ~2.5 km"],
   ["Where it lined up", "0.1", "Grid cells split by total rain (24–28 Sep) and steepness thresholds; landslides counted per cell; density per 100 km²"],
@@ -295,12 +295,12 @@ const CH = [
     cam: { center: [-83.6, 30.0], zoom: 6.0, tilt: 30, heading: 0 }, show: { storm: 1, winds: 1, rainSurf: 1 },
     story: `<p>Over very warm water, Helene grew stronger fast. At about 11 pm EDT on Thursday 26 September it came ashore near Perry, in Florida's Big Bend, as a <b>Category 4 hurricane</b> with winds of about 140 mph (225 km/h).</p>
       <p>It was enormous, and it spun anticlockwise. On its east side the winds blew from the south-east, straight at the mountains. It was also moving fast, so its centre reached the mountains only about nine hours after landfall.</p>`,
-    qs: ["Watch the arrows on the storm's east side as it comes inland. Which way are they pointing when they reach the mountains?", "The storm moved fast. Would a fast storm or a slow storm bring more rain to one place? Why?", "Compare the storm's size with the distance from Florida to North Carolina."] },
-  { key: "oro", n: "3 · 25–27 Sep", name: "Where the rain fell", t0: 24, t1: 84,
-    cam: CAM_MTN, show: { winds: 1, rainSurf: 1 },
-    story: `<p>You are looking north-west over the <b>Blue Ridge</b>, a steep wall of mountains. The winds blew from behind you, straight at it. When air is forced up a mountainside it cools. Cool air can hold less water vapour, so the vapour turns into cloud and rain. This is called <b>orographic</b> rain.</p>
-      <p>Press Play and watch where the blue deepens. Busick, in Yancey County, measured 30.78 inches (782 mm) in three days. Across a wide area, the three-day totals had less than a 1-in-1,000 chance of happening in any year.</p>`,
-    qs: ["Where does the rain pile up fastest: on the flat land in front of the mountains, on the mountain wall, or behind it?", "Switch the mountains to 3×. Does the deepest blue follow the shape of the mountains?", "Click a few places on the map. Which has the most rain? What is the ground like there?"] },
+    qs: ["Watch the white streaks on the storm's east side as it comes inland. Which way are they moving when they reach the mountains?", "The storm moved fast. Would a fast storm or a slow storm bring more rain to one place? Why?", "Compare the storm's size with the distance from Florida to North Carolina."] },
+  { key: "oro", n: "3 · 26–27 Sep", name: "A conveyor belt of rain", t0: 56, t1: 80, speed: "1",
+    cam: { center: [-82.9, 33.6], zoom: 6.6, tilt: 50, heading: 340 }, show: { storm: 1, winds: 1, rainSurf: 1 },
+    story: `<p>Watch the white streaks. Helene spun anticlockwise, so on its east side it swept warm, wet air off the ocean, north across the Carolinas and Georgia, and straight onto the <b>Blue Ridge</b> mountains, like a <b>conveyor belt</b> that kept delivering water for hours.</p>
+      <p>When the air is pushed up the mountains it cools, and cool air can hold less water vapour, so the vapour turns into cloud and rain (<b>orographic</b> rain). Where the radar measured heavy rain, the streaks turn <b>blue</b> and drop their rain; the blue map on the ground shows where it piled up. Busick, in Yancey County, measured 30.78 inches (782 mm) in three days.</p>`,
+    qs: ["Follow a streak that starts over the ocean. Where does it end up? Where does it turn blue?", "As Helene moves north, does the conveyor belt keep pointing at the same mountains? For how long?", "Pause and switch the mountains to 3×. Do the blue streaks rise over the high ground?"] },
   { key: "rivers", n: "4 · 26–28 Sep", name: "Rivers rise", t0: 42, t1: 90,
     cam: { center: [-82.62, 35.62], zoom: 8.7, tilt: 62, heading: 335 }, show: { gauges: 1, rainSurf: 1 },
     story: `<p>All that rain ran off the soaked slopes into streams and rivers at once. At least 63 river gauges broke their records.</p>
@@ -470,9 +470,7 @@ function drawStorm(ms, rot) {
   stormLabel.symbol = { type: "point-3d", symbolLayers: [{ type: "text", text: `Helene · ${category(s.kt, s.stage)}`, size: 12, material: { color: "white" }, halo: { color: [0, 0, 0, 0.85], size: 1.5 }, font: { weight: "bold" } }] };
 }
 
-// ---------- storm winds sketch ----------
-const windLayer = new GraphicsLayer({ title: "Storm winds (sketch)", elevationInfo: { mode: "on-the-ground" }, visible: false });
-map.add(windLayer);
+// ---------- storm winds sketch: moving streaks, the "conveyor belt" ----------
 const RM_KM = 60, INFLOW = 20 * Math.PI / 180;
 // Wind the storm's spin alone would give at a place: anticlockwise, angled 20° in towards the centre.
 function vortexWind(s, lat, lon) {
@@ -484,28 +482,47 @@ function vortexWind(s, lat, lon) {
 const fromBearing = (u, v) => (Math.atan2(-u, -v) * 180 / Math.PI + 360) % 360;
 const COMPASS = ["north", "north-east", "east", "south-east", "south", "south-west", "west", "north-west"];
 const compass = (b) => COMPASS[Math.round(b / 45) % 8];
-const windPts = []; for (let lat = 24.5; lat <= 40; lat += 0.9) for (let lon = -92; lon <= -74; lon += 1.1) windPts.push([lat, lon]);
-const windGraphics = windPts.map(() => { const g = new Graphic({ geometry: null }); windLayer.add(g); return g; });
-const WIND_SYMS = [0.3, 0.5, 0.75].map(a => ({ type: "simple-fill", color: [255, 255, 255, a], outline: { color: [0, 0, 0, 0.35], width: 0.5 } }));
-let windHour = -1;
-function arrowRing(lat, lon, u, v, L) {
-  const w = L * 0.09, hw = L * 0.24, hl = L * 0.36, px = -v, py = u;
-  const pt = (along, side) => offset(lat, lon, u * along + px * side, v * along + py * side);
-  const t = -L / 2, h = L / 2 - hl;
-  return [pt(t, w), pt(h, w), pt(h, hw), pt(L / 2, 0), pt(h, -hw), pt(h, -w), pt(t, -w), pt(t, w)];
-}
-function drawWinds() {
-  if (!windLayer.visible) return;
-  const key = Math.round(hNow * 2) / 2; if (key === windHour) return; windHour = key;
-  const s = stormAt(tAt(hNow));
-  windPts.forEach(([lat, lon], k) => {
-    const g = windGraphics[k]; if (!s) { g.geometry = null; return; }
-    const w = vortexWind(s, lat, lon);
-    if (w.r > 900 || w.r < 30 || w.kt < 12) { g.geometry = null; return; }
-    g.geometry = { type: "polygon", rings: [arrowRing(lat, lon, w.u, w.v, Math.min(80, 30 + w.kt * 0.45))], spatialReference: { wkid: 4326 } };
-    g.symbol = WIND_SYMS[w.kt >= 64 ? 2 : w.kt >= 34 ? 1 : 0];
-  });
-}
+const windLayer = new GraphicsLayer({ title: "Storm winds (sketch)", elevationInfo: { mode: "absolute-height" }, visible: false });
+map.add(windLayer);
+const flow = (() => {
+  const NP = 700, TRAIL = 6, RMAX = 850, WET = 0.25;   // WET: in/hr of radar rain below a streak that turns it blue
+  const line = (c, w) => ({ type: "line-3d", symbolLayers: [{ type: "line", size: w, material: { color: c }, cap: "round", join: "round" }] });
+  const gAir = new Graphic({ geometry: null, symbol: line([255, 255, 255, 0.8], 2) });
+  const gWet = new Graphic({ geometry: null, symbol: line([70, 150, 255, 0.95], 3) });
+  const gDrop = new Graphic({ geometry: null, symbol: line([110, 175, 255, 0.45], 1.5) });
+  windLayer.addMany([gDrop, gAir, gWet]);
+  const P = Array.from({ length: NP }, () => ({ lat: 0, lon: 0, age: 1e9, life: 0, tr: [] }));
+  function spawn(p, s) {
+    const a = Math.random() * 2 * Math.PI, r = 70 + Math.sqrt(Math.random()) * (RMAX - 70);
+    [p.lon, p.lat] = offset(s.lat, s.lon, r * Math.cos(a), r * Math.sin(a));
+    p.age = 0; p.life = 2 + Math.random() * 3; p.tr = [];
+  }
+  // air rides about 1.5 km above the ground, so it is lifted where the ground rises (study area only)
+  const airZ = (lat, lon) => { const e = G.elevAt(lat, lon); return (e != null ? Math.max(0, e) * EXAG : 0) + 1500; };
+  function frame(dt) {
+    if (!windLayer.visible) return;
+    const s = stormAt(tAt(hNow));
+    if (!s) { gAir.geometry = gWet.geometry = gDrop.geometry = null; return; }
+    const air = [], wet = [], drops = [];
+    for (const p of P) {
+      if (p.age > p.life) spawn(p, s);
+      const w = vortexWind(s, p.lat, p.lon);
+      if (w.r > RMAX + 50 || w.r < 40) { spawn(p, s); continue; }
+      const km = (18 + 0.55 * w.kt) * dt;   // km moved this frame: faster near the centre
+      [p.lon, p.lat] = offset(p.lat, p.lon, w.u * km, w.v * km);
+      p.age += dt;
+      p.tr.push([p.lon, p.lat, airZ(p.lat, p.lon)]); if (p.tr.length > TRAIL) p.tr.shift();
+      if (p.tr.length < 2) continue;
+      const r = G.rateAt(p.lat, p.lon);
+      if (r >= WET) { wet.push(p.tr.slice()); const e = G.elevAt(p.lat, p.lon);
+        if (e != null && Math.random() < Math.min(1, r)) drops.push([[p.lon, p.lat, p.tr[p.tr.length - 1][2] - 200], [p.lon, p.lat, Math.max(0, e) * EXAG + 30]]); }
+      else air.push(p.tr.slice());
+    }
+    const pl = (paths) => paths.length ? { type: "polyline", paths, hasZ: true, spatialReference: { wkid: 4326 } } : null;
+    gAir.geometry = pl(air); gWet.geometry = pl(wet); gDrop.geometry = pl(drops);
+  }
+  return { frame };
+})();
 
 // ---------- data helpers ----------
 const NOAA = "https://services2.arcgis.com/C8EMgrsFcRFL6LrL/arcgis/rest/services/";
@@ -555,7 +572,8 @@ const G = (() => {
   const LAT0 = 34.6, LAT1 = 36.7, LON0 = -84.1, LON1 = -80.9, STEP = 0.0125;
   const NY = Math.round((LAT1 - LAT0) / STEP) + 1, NX = Math.round((LON1 - LON0) / STEP) + 1, N = NX * NY;
   const K = 6, RMAX = 40;
-  let nb = null, nw = null, srcR = null, rainReady = false, slope = null, slopeLoading = false;
+  let nb = null, nw = null, srcR = null, srcH = null, rainReady = false, slope = null, elev = null, slopeLoading = false;
+  const rate = new Float32Array(N); let rateHour = -1;
   const total = new Float32Array(N); let totalHour = -1;
   const finalTotal = new Float32Array(N);
   const merc = (lat) => Math.log(Math.tan((90 + lat) * Math.PI / 360)) * 6378137;
@@ -579,7 +597,7 @@ const G = (() => {
   const cellLat = (c) => LAT0 + Math.floor(c / NX) * STEP, cellLon = (c) => LON0 + (c % NX) * STEP;
   function setSources(pts) {
     const src = pts.filter(p => p.lat > LAT0 - 0.5 && p.lat < LAT1 + 0.5 && p.lon > LON0 - 0.5 && p.lon < LON1 + 0.5);
-    srcR = src.map(p => p.r); nb = new Int32Array(N * K).fill(-1); nw = new Float32Array(N * K);
+    srcR = src.map(p => p.r); srcH = src.map(p => p.h); nb = new Int32Array(N * K).fill(-1); nw = new Float32Array(N * K);
     for (let c = 0; c < N; c++) {
       const lat = cellLat(c), lon = cellLon(c), cs = Math.cos(lat * Math.PI / 180), best = [];
       for (let s = 0; s < src.length; s++) { const dx = (src[s].lon - lon) * cs * KM_LAT, dy = (src[s].lat - lat) * KM_LAT, d2 = dx * dx + dy * dy;
@@ -614,7 +632,7 @@ const G = (() => {
         r.geometry.points.forEach((p, k) => z[a + k] = p[2]);
         setStatus(`Measuring the mountains… ${Math.round(100 * Math.min(1, (a + CH) / N))}%`, Math.min(1, (a + CH) / N));
       }
-      slope = new Float32Array(N);
+      elev = z; slope = new Float32Array(N);
       for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++) {
         const c = j * NX + i, jl = Math.max(0, j - 1), jh = Math.min(NY - 1, j + 1), il = Math.max(0, i - 1), ih = Math.min(NX - 1, i + 1);
         const dx = (ih - il) * STEP * KM_LAT * 1000 * Math.cos(cellLat(c) * Math.PI / 180), dy = (jh - jl) * STEP * KM_LAT * 1000;
@@ -641,8 +659,16 @@ const G = (() => {
       if (i < 0 || j < 0 || i >= NX || j >= NY || isNaN(finalTotal[j * NX + i])) { outside++; continue; } cls[key(j * NX + i)].n++; }
     return { cls, outside };
   }
+  // rain falling this hour and ground height at a place (null outside the study area)
+  function rateAt(lat, lon) {
+    if (!rainReady) return 0; const c = atCell(lat, lon); if (c < 0) return 0;
+    const h = Math.min(HOURS, Math.floor(hNow));
+    if (h !== rateHour) { rateHour = h; for (let k = 0; k < N; k++) { let ws = 0, vs = 0; for (let q = 0; q < K; q++) { const s = nb[k * K + q]; if (s < 0) break; ws += nw[k * K + q]; vs += nw[k * K + q] * srcH[s][h]; } rate[k] = ws ? vs / ws : 0; } }
+    return rate[c];
+  }
+  function elevAt(lat, lon) { if (!elev) return null; const c = atCell(lat, lon); return c < 0 ? null : elev[c]; }
   function atCell(lat, lon) { const i = Math.round((lon - LON0) / STEP), j = Math.round((lat - LAT0) / STEP); return i < 0 || j < 0 || i >= NX || j >= NY ? -1 : j * NX + i; }
-  return { rain, steep, over, setSources, drawRain, loadSlope, rainAtPoint, stats, atCell, finalTotal, get slope() { return slope; },
+  return { rain, steep, over, setSources, drawRain, loadSlope, rainAtPoint, stats, atCell, finalTotal, rateAt, elevAt, get slope() { return slope; },
     get ready() { return rainReady; }, setThresholds(r, s) { thRain = r; thSlope = s; redrawThresholds(); }, get th() { return [thRain, thSlope]; } };
 })();
 
@@ -798,7 +824,7 @@ async function runSlopeTest() {
 // ---------- visibility & legend ----------
 function applyVis() {
   cloudLayer.visible = vis.storm; trackLayer.visible = vis.storm;
-  windLayer.visible = vis.winds; windHour = -1;
+  windLayer.visible = vis.winds;
   G.rain.L.visible = vis.rainSurf && avail.rainSurf;
   G.steep.L.visible = vis.steep && avail.steep; G.over.L.visible = vis.overlap && avail.overlap;
   if ((vis.steep || vis.overlap) && !avail.steep) G.loadSlope();
@@ -992,6 +1018,7 @@ function goChapter(i, animate = true) {
   $("prevBtn").disabled = i === 0; $("nextBtn").disabled = i === CH.length - 1;
   for (const k of Object.keys(vis)) vis[k] = !!c.show[k];
   view.closePopup && view.closePopup();
+  $("speed").value = c.speed || "4";
   applyVis(); setTime(c.t0); renderChapterExtra();
   view.goTo(c.cam, { duration: animate ? 2500 : 0, easing: "in-out-cubic" }).catch(() => {});
   if (c.key === "lined") setTimeout(runReveal, animate ? 2600 : 200);
@@ -1005,7 +1032,7 @@ function render(force) {
   const ms = tAt(hNow);
   $("tLabel").textContent = fmtEDT(ms) + " EDT";
   $("tUtc").textContent = fmtUTC(ms);
-  G.drawRain(); drawGauges(); drawSlides(); drawWinds(); rainInfo();
+  G.drawRain(); drawGauges(); drawSlides(); rainInfo();
 }
 $("tSlider").addEventListener("input", (e) => { pause(); setTime(+e.target.value); });
 function play() {
@@ -1025,7 +1052,8 @@ function loop(ts) {
     if (hNow >= end) pause();
   }
   rot += dt * 0.3;   // storm clouds turn anticlockwise, redrawn ~15 times a second
-  if (!loop._n || ts - loop._n > 66) { loop._n = ts; drawStorm(tAt(hNow), rot); }
+  loop._acc = (loop._acc || 0) + dt;
+  if (!loop._n || ts - loop._n > 50) { loop._n = ts; drawStorm(tAt(hNow), rot); flow.frame(Math.min(0.1, loop._acc)); loop._acc = 0; }
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
