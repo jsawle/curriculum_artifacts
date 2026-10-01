@@ -6,79 +6,146 @@
 <title>Hurricane Helene 2024: Rain, Rivers and Landslides</title>
 <meta name="description" content="Grades 6-8 case study: follow Hurricane Helene (September 2024) from the Gulf to the southern Appalachians in 3D, with real NOAA radar rainfall, USGS river gauges and the USGS landslide inventory." />
 <script type="module" src="https://js.arcgis.com/5.1/"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <style>
+  /* One dark "glass" theme over the satellite map. Text colours meet WCAG AA on the panel colour. */
   :root {
-    --bg: #f4f5f3; --panel: #fdfdfb; --ink: #1d2124; --muted: #5d656b; --rule: #d8dcd9;
-    --accent: #1c5cab; --accent-ink: #fff; --chip: #e9ecea;
-    --s1: #2a78d6; --s2: #eb6834; --ref: #8a9096;
-    --good: #0ca30c; --warn: #fab219; --serious: #ec835a; --critical: #d03b3b;
+    --bg: #0b1220; --panel: #0f172a; --glass: rgba(11, 18, 33, 0.86); --glass-edge: rgba(255, 255, 255, 0.10);
+    --ink: #eef3fa; --muted: #a8b6c9; --rule: rgba(255, 255, 255, 0.13); --chip: rgba(255, 255, 255, 0.08); --chip-hover: rgba(255, 255, 255, 0.14);
+    --accent: #5cc8ff; --accent-ink: #04121f; --go1: #2563eb; --go2: #0e7490;
+    --s1: #4ea1ff; --s2: #f97316; --ref: #94a3b8;
+    --good: #22c55e; --warn: #fab219; --serious: #ec835a; --critical: #f05252;
+    --radius: 18px; --shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
   }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) { --bg: #141617; --panel: #1b1e20; --ink: #e9ecec; --muted: #a2aaae; --rule: #33393c; --accent: #5598e7; --accent-ink: #08121f; --chip: #262b2e; --s1: #3987e5; --s2: #d95926; --ref: #8d959a; }
-  }
-  :root[data-theme="dark"] { --bg: #141617; --panel: #1b1e20; --ink: #e9ecec; --muted: #a2aaae; --rule: #33393c; --accent: #5598e7; --accent-ink: #08121f; --chip: #262b2e; --s1: #3987e5; --s2: #d95926; --ref: #8d959a; }
   * { box-sizing: border-box; }
-  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-  #app { display: flex; height: 100%; }
-  #panel { width: 400px; flex: none; background: var(--panel); border-right: 1px solid var(--rule); padding: 12px 16px 10px; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
-  .phead { flex: none; }
-  .tools { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 8px; }
-  .tools { flex-wrap: nowrap; }
-  .tools button { padding: 4px 9px; font-size: 12.5px; white-space: nowrap; }
-  .tools button[aria-pressed="true"]#readBtn { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-  .stepnav { flex: none; }
-  .stepnav ol { list-style: none; display: flex; gap: 5px; padding: 0; margin: 0 0 8px; flex-wrap: wrap; }
-  .stepnav button { width: 38px; height: 38px; padding: 0; border-radius: 50%; font-size: 14px; }
-  .stepnav button[aria-current="step"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-  #chapter { flex: 1; min-height: 0; display: flex; flex-direction: column; position: relative; }
-  .stepof { margin: 2px 0 0; }
-  #chapter h3 { margin: 2px 0 6px; font-size: 18px; }
-  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--rule); flex: none; flex-wrap: wrap; }
-  .tabs button { border-radius: 8px 8px 0 0; padding: 6px 8px; font-size: 13px; border-bottom: 0; background: transparent; }
-  .tabs button[aria-selected="true"] { background: var(--chip); box-shadow: inset 0 -3px 0 var(--accent); }
-  .tabs button.try { color: var(--accent); }
-  .tabs button[hidden] { display: none; }
-  .panes { flex: 1; min-height: 0; overflow-y: auto; padding: 10px 2px 6px; }
-  .more { position: absolute; left: 0; right: 0; bottom: 0; text-align: center; font-size: 12px; font-weight: 600; color: var(--accent); background: linear-gradient(transparent, var(--panel) 60%); padding: 16px 0 2px; pointer-events: none; display: none; }
-  .pfoot { flex: none; border-top: 1px solid var(--rule); padding-top: 8px; }
-  .pfoot .btns { margin-top: 0; justify-content: space-between; }
-  .pfoot .btns button { flex: 1; }
-  #mapDesc { font-size: 14.5px; margin: 0; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font: 15px/1.5 Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  #app { position: relative; height: 100%; overflow: hidden; }
+  #mapwrap { position: absolute; inset: 0; }
+  arcgis-scene { display: block; width: 100%; height: 100%; }
+  .glass { background: var(--glass); border: 1px solid var(--glass-edge); border-radius: var(--radius); box-shadow: var(--shadow); backdrop-filter: blur(14px) saturate(1.2); -webkit-backdrop-filter: blur(14px) saturate(1.2); }
   .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
   button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-visible, .panes:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-  dialog#teachDlg { max-width: 640px; width: calc(100% - 32px); max-height: calc(100% - 48px); border: 1px solid var(--rule); border-radius: 12px; background: var(--panel); color: var(--ink); padding: 14px 18px; }
-  dialog#teachDlg::backdrop { background: rgba(0,0,0,.45); }
-  .dlghead { display: flex; justify-content: space-between; align-items: center; }
-  .dlghead h2 { margin: 0; }
-  #legend [hidden] { display: none !important; }
-  #legend .more-layers { margin-top: 6px; font-size: 12px; padding: 3px 8px; }
+
+  /* buttons */
+  button { font: inherit; font-weight: 600; border-radius: 12px; padding: 9px 14px; cursor: pointer; border: 1px solid var(--glass-edge); background: var(--chip); color: var(--ink); transition: background .15s, transform .1s; }
+  button:hover:not(:disabled) { background: var(--chip-hover); }
+  button:active:not(:disabled) { transform: translateY(1px); }
+  button.primary { background: linear-gradient(135deg, var(--go1), var(--go2)); border-color: transparent; color: #fff; box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45); }
+  button.primary:hover:not(:disabled) { background: linear-gradient(135deg, #1d4ed8, #0e6a85); }
+  button:disabled { opacity: 0.4; cursor: default; }
+  .iconbtn { width: 40px; height: 40px; padding: 0; display: inline-grid; place-items: center; font-size: 18px; border-radius: 12px; flex: none; }
+  .iconbtn[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+  .ghost { background: transparent; border-color: transparent; color: var(--accent); padding: 4px 8px; font-size: 12.5px; }
+  select { width: 100%; padding: 7px 10px; border-radius: 10px; border: 1px solid var(--glass-edge); background: var(--panel); color: var(--ink); font: inherit; }
+
+  /* the story card: the one place for the step, its story and its pauses */
+  #card { position: absolute; left: 16px; top: 16px; bottom: 30px; width: 384px; display: flex; flex-direction: column; padding: 16px 18px 12px; z-index: 6; max-height: calc(100% - 46px); }
+  #card.fit { bottom: auto; }
+  .chead { flex: none; }
+  .brand { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); white-space: nowrap; }
+  .brand .ghost { white-space: nowrap; }
+  #card.later .lede { display: none; }   /* the big question shows on step 1; later steps get the room */
+  .brand .kicker { text-transform: uppercase; letter-spacing: .12em; font-weight: 700; color: var(--accent); }
+  .brand .sp { flex: 1; }
+  h1 { font-size: 22px; line-height: 1.15; margin: 6px 0 2px; font-weight: 800; letter-spacing: -0.01em; }
+  .lede { color: var(--muted); margin: 4px 0 10px; font-size: 13.5px; line-height: 1.45; }
   @media (max-height: 760px) { .lede { display: none; } }
-  #mapwrap { position: relative; flex: 1; min-width: 0; }
-  arcgis-scene { display: block; width: 100%; height: 100%; }
-  h1 { font-size: 20px; line-height: 1.2; margin: 0 0 4px; }
+  #settings { position: relative; }
+  #settings summary { list-style: none; width: 34px; height: 34px; font-size: 16px; display: grid; place-items: center; border-radius: 10px; cursor: pointer; background: var(--chip); color: var(--ink); }
+  #settings summary::-webkit-details-marker { display: none; }
+  #settings .menu { position: absolute; right: -6px; top: 42px; width: 290px; padding: 14px; z-index: 20; display: grid; gap: 14px; font-size: 13.5px; color: var(--ink); white-space: normal; background: var(--panel); }
+  #settings .menu select { max-width: 100%; }
+  #settings .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  #motionSw { min-width: 64px; padding: 5px 10px; font-size: 13px; }
+  #motionSw[aria-checked="true"] { background: var(--accent); color: var(--accent-ink); }
+
+  .stepnav ol { list-style: none; display: flex; gap: 6px; padding: 0; margin: 2px 0 12px; }
+  .stepnav li { flex: 1; }
+  .stepnav button { width: 100%; height: 34px; padding: 0; border-radius: 10px; font-size: 13.5px; background: var(--chip); }
+  .stepnav button.done { background: rgba(92, 200, 255, 0.18); color: var(--accent); }
+  .stepnav button[aria-current="step"] { background: linear-gradient(135deg, var(--go1), var(--go2)); color: #fff; border-color: transparent; box-shadow: 0 4px 14px rgba(37, 99, 235, .5); }
+  #chapter { flex: 1; min-height: 0; display: flex; flex-direction: column; position: relative; }
+  .titlerow { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .stepof { font-size: 11.5px; text-transform: uppercase; letter-spacing: .1em; font-weight: 700; color: var(--muted); }
+  #chTitle { font-size: 20px; line-height: 1.2; margin: 2px 0 8px; font-weight: 800; text-transform: none; letter-spacing: -0.01em; color: var(--ink); }
+  .tabs { display: flex; gap: 4px; padding: 3px; background: var(--chip); border-radius: 12px; flex: none; }
+  .tabs button { flex: 1; border: 0; background: transparent; border-radius: 9px; padding: 6px 8px; font-size: 13px; color: var(--muted); }
+  .tabs button[aria-selected="true"] { background: rgba(255, 255, 255, 0.14); color: var(--ink); }
+  .tabs button.try { color: var(--accent); }
+  .tabs button[hidden] { display: none; }
+  .panes { flex: 1; min-height: 0; overflow-y: auto; padding: 12px 2px 8px; scrollbar-width: thin; }
+  .more { position: absolute; left: 0; right: 0; bottom: 0; text-align: center; font-size: 12px; font-weight: 700; color: var(--accent); background: linear-gradient(transparent, rgba(11, 18, 33, 0.95) 60%); padding: 18px 0 2px; pointer-events: none; display: none; }
+  #story { font-size: 15px; }
+  #story p, #beatText p { margin: 0 0 10px; }
+  #story b, #beatText b { color: #fff; }
+  #beat { border-radius: 14px; padding: 12px 14px 4px; margin-bottom: 4px; background: linear-gradient(135deg, rgba(37, 99, 235, 0.22), rgba(14, 116, 144, 0.18)); border: 1px solid rgba(92, 200, 255, 0.35); font-size: 15px; }
+  #beat[hidden] { display: none; }
+  #beat .bk { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--accent); }
+  #beat h3 { margin: 2px 0 8px; font-size: 18px; font-weight: 800; }
+  @media (prefers-reduced-motion: no-preference) { #beat:not([hidden]) { animation: pop .35s ease-out; } @keyframes pop { from { opacity: 0; transform: translateY(6px); } } }
+  #mapDescBox { margin-top: 8px; border: 0; padding: 0; }
+  #mapDescBox summary { font-size: 13px; color: var(--muted); }
+  #mapDesc { font-size: 14px; margin: 6px 0 0; color: var(--ink); }
+  .cfoot { flex: none; padding-top: 10px; border-top: 1px solid var(--rule); }
+  .actions { display: flex; gap: 8px; }
+  #goBtn { flex: 1; font-size: 16px; padding: 12px 16px; border-radius: 14px; }
+  #status { font-size: 12px; color: var(--muted); margin-top: 6px; min-height: 1.2em; }
+  .bar { height: 3px; background: var(--rule); border-radius: 2px; overflow: hidden; margin-top: 4px; }
+  .bar > div { height: 100%; width: 0; background: linear-gradient(90deg, var(--go1), var(--accent)); transition: width .15s; }
+
+  /* map overlays */
+  #timebar { position: absolute; left: 416px; right: 16px; bottom: 30px; padding: 10px 16px; display: grid; grid-template-columns: auto 1fr auto; gap: 2px 14px; align-items: center; z-index: 4; }
+  #tLabel { font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 15px; }
+  #timebar input[type=range] { width: 100%; accent-color: var(--accent); height: 22px; }
+  #speed { width: auto; padding: 5px 8px; font-size: 13px; }
+  #tSub { grid-column: 1 / 4; font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; }
+  #legend { position: absolute; right: 16px; bottom: 108px; padding: 10px 12px; font-size: 12.5px; max-width: 260px; z-index: 4; border-radius: 14px; }
+  #legend [hidden] { display: none !important; }
+  #legend .t { width: 100%; display: flex; justify-content: space-between; align-items: center; border: 0; background: none; padding: 0 0 4px; font-weight: 700; font-size: 13px; color: var(--ink); }
+  #legend .t::after { content: "▾"; color: var(--muted); }
+  #legend.collapsed .t::after { content: "▸"; }
+  #legend.collapsed .t { padding: 0; }
+  #legend.collapsed > :not(.t) { display: none !important; }
+  #legend button.k { display: flex; align-items: center; gap: 8px; width: 100%; border: 0; background: none; font: inherit; font-weight: 500; color: inherit; text-align: left; padding: 3px 4px; margin: 1px -4px; border-radius: 8px; }
+  #legend button.k:hover:not(:disabled) { background: var(--chip); }
+  #legend button.k:disabled { cursor: default; color: var(--muted); }
+  #legend .tick { width: 14px; height: 14px; border: 1.5px solid var(--muted); border-radius: 4px; flex: none; display: grid; place-items: center; font-size: 11px; line-height: 1; }
+  #legend button.k[aria-pressed="true"] .tick { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  #legend button.k[aria-pressed="true"] .tick::after { content: "✓"; }
+  #legend .sw { width: 16px; height: 12px; border-radius: 3px; flex: none; }
+  #legend .more-layers { margin-top: 6px; font-size: 12px; padding: 4px 10px; border-radius: 9px; }
+  #nwsKey { display: none; margin: 2px 0 4px 22px; }
+  #nwsKey img { width: 14px; height: 10px; vertical-align: middle; margin-right: 4px; }
+  #nwsKey div { font-size: 11px; line-height: 1.35; }
+  .band { display: flex; margin: 2px 0 0 22px; font-size: 11px; color: var(--muted); }
+  .band span { flex: 1; text-align: center; }
+  .band i { flex: 1; height: 8px; }
+  #exag { position: absolute; left: calc(50% + 200px); top: 16px; transform: translateX(-50%); padding: 5px 6px 5px 14px; font-size: 13px; font-weight: 700; display: flex; gap: 4px; align-items: center; border-radius: 999px; z-index: 4; }
+  #exag[hidden] { display: none; }
+  #exag button { padding: 4px 11px; border-radius: 999px; font-size: 12.5px; }
+  #exag button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  #toast { position: absolute; left: calc(50% + 200px); top: 64px; transform: translateX(-50%); background: var(--glass); border: 1px solid var(--glass-edge); color: var(--ink); padding: 8px 16px; border-radius: 999px; font-size: 13.5px; font-weight: 600; display: none; z-index: 7; max-width: calc(100% - 440px); text-align: center; }
+  .tip { position: fixed; pointer-events: none; background: #fff; color: #0b1220; font-size: 12.5px; padding: 5px 8px; border-radius: 8px; display: none; z-index: 30; white-space: nowrap; }
+
+  /* teacher notes */
+  dialog#teachDlg { max-width: 660px; width: calc(100% - 32px); max-height: calc(100% - 48px); border: 1px solid var(--glass-edge); border-radius: var(--radius); background: var(--panel); color: var(--ink); padding: 16px 20px; box-shadow: var(--shadow); }
+  dialog#teachDlg::backdrop { background: rgba(2, 6, 16, .6); backdrop-filter: blur(3px); }
+  dialog a { color: var(--accent); }
+  .dlghead { display: flex; justify-content: space-between; align-items: center; }
+  .dlghead h2 { margin: 0; font-size: 18px; text-transform: none; letter-spacing: 0; color: var(--ink); }
+
+  /* content inside the card and dialog */
+  h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 14px 0 8px; font-weight: 700; }
   h3 { font-size: 16px; margin: 4px 0 6px; }
-  .kicker { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); font-weight: 600; margin-bottom: 6px; }
-  .kicker .ver { color: var(--muted); font-weight: 500; letter-spacing: 0; text-transform: none; }
-  .lede { color: var(--muted); margin: 6px 0 14px; }
-  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin: 18px 0 8px; font-weight: 600; }
-  .steps { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-  .steps button { text-align: left; padding: 8px 10px; font-size: 13.5px; line-height: 1.25; }
-  .steps button .n { display: block; font-size: 11px; color: var(--muted); font-weight: 600; }
-  .steps button[aria-pressed="true"] { outline: 2px solid var(--accent); outline-offset: 0; background: var(--panel); }
-  button { font: inherit; font-weight: 600; border-radius: 8px; padding: 9px 14px; cursor: pointer; border: 1px solid var(--rule); background: var(--chip); color: var(--ink); }
-  button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
-  button:disabled { opacity: 0.5; cursor: default; }
-  .btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-  select { width: 100%; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--rule); background: var(--panel); color: var(--ink); font: inherit; }
-  #story { border-left: 3px solid var(--accent); padding: 2px 0 2px 10px; font-size: 14.5px; }
-  #story p { margin: 0 0 8px; }
   .hint { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
-  #status { font-size: 12.5px; color: var(--muted); margin-top: 6px; min-height: 1.2em; }
-  .bar { height: 4px; background: var(--rule); border-radius: 2px; overflow: hidden; margin-top: 6px; }
-  .bar > div { height: 100%; width: 0; background: var(--accent); transition: width .15s; }
-  ol.qs { padding-left: 20px; margin: 4px 0 14px; font-size: 14px; } ol.qs li { margin: 4px 0; }
+  .hint b { color: var(--accent); }
+  .btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  ol.qs { padding-left: 20px; margin: 4px 0 14px; font-size: 14.5px; } ol.qs li { margin: 6px 0; }
   details { border-top: 1px solid var(--rule); padding: 10px 0; }
-  details:last-of-type { border-bottom: 1px solid var(--rule); }
+  dialog details:last-of-type { border-bottom: 1px solid var(--rule); }
   summary { cursor: pointer; font-weight: 600; }
   details p, details li { font-size: 14px; }
   details ol, details ul { padding-left: 20px; margin: 6px 0; }
@@ -86,8 +153,8 @@
   table.ver { width: 100%; border-collapse: collapse; font-size: 13px; }
   table.ver td, table.ver th { text-align: left; padding: 4px 6px 4px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
   table.ver th { font-size: 12px; color: var(--muted); font-weight: 600; }
-  table.ver td.v { font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 600; }
-  .mv { font-size: 11px; color: var(--muted); font-weight: 500; }
+  table.ver td.v { font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 700; }
+  .mv { font-size: 11px; color: var(--muted); font-weight: 500; text-transform: none; letter-spacing: 0; }
   .viz { margin: 10px 0; }
   .viz svg { display: block; width: 100%; height: auto; overflow: visible; }
   .viz .cap { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
@@ -99,59 +166,10 @@
   .key { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); margin: 6px 0; }
   .key span { display: inline-flex; align-items: center; gap: 6px; }
   .key i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
-  .tip { position: fixed; pointer-events: none; background: var(--ink); color: var(--bg); font-size: 12.5px; padding: 5px 8px; border-radius: 6px; display: none; z-index: 20; white-space: nowrap; }
-  /* map overlays */
-  #timebar { position: absolute; left: 12px; right: 12px; bottom: 30px; background: var(--panel); border: 1px solid var(--rule); border-radius: 12px; padding: 8px 12px; box-shadow: 0 2px 12px rgba(0,0,0,.18); display: grid; grid-template-columns: auto 1fr auto auto; gap: 4px 12px; align-items: center; }
-  #motionBtn { padding: 5px 10px; font-size: 13px; }
-  .linkbtn { background: none; border: 0; padding: 0 0 0 8px; color: var(--accent); text-decoration: underline; font-size: 12px; font-weight: 600; text-transform: none; letter-spacing: 0; }
-  .titlerow { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-  .titlerow button { padding: 4px 10px; font-size: 13px; flex: none; }
-  .titlerow button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-  #timebar button { padding: 6px 12px; }
-  #timebar input[type=range] { width: 100%; accent-color: var(--accent); }
-  #tLabel { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
-  #tSub { grid-column: 2 / 5; font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; }
-  #speed { width: auto; padding: 4px 6px; font-size: 13px; }
-  #legend { position: absolute; right: 12px; bottom: 114px; background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 10px 12px; font-size: 12.5px; box-shadow: 0 2px 10px rgba(0,0,0,.15); max-width: 250px; }
-  #legend .t { font-weight: 700; margin-bottom: 4px; }
-  #legend button.k { display: flex; align-items: center; gap: 8px; width: 100%; border: 0; background: none; font: inherit; font-weight: 500; color: inherit; text-align: left; padding: 3px 4px; margin: 1px -4px; border-radius: 6px; }
-  #legend button.k:hover:not(:disabled) { background: rgba(127,127,127,.12); }
-  #legend button.k:disabled { cursor: default; color: var(--muted); }
-  #legend .tick { width: 14px; height: 14px; border: 1.5px solid var(--muted); border-radius: 3px; flex: none; display: grid; place-items: center; font-size: 11px; line-height: 1; }
-  #legend button.k[aria-pressed="true"] .tick { background: var(--ink); border-color: var(--ink); color: var(--panel); }
-  #legend button.k[aria-pressed="true"] .tick::after { content: "✓"; }
-  #legend .sw { width: 16px; height: 12px; border-radius: 2px; flex: none; }
-  #legend .sub { color: var(--muted); font-size: 11.5px; margin: 0 0 4px 22px; }
-  #legend .ramp { display: flex; height: 8px; border-radius: 2px; overflow: hidden; margin: 2px 0 0 22px; }
-  #legend .ramp i { flex: 1; }
-  #nwsKey { display: none; margin: 2px 0 4px 22px; }
-  #nwsKey img { width: 14px; height: 10px; vertical-align: middle; margin-right: 4px; }
-  #nwsKey div { font-size: 11px; line-height: 1.35; }
-  #exag { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); background: var(--panel); border: 1px solid var(--rule); border-radius: 20px; padding: 4px 6px 4px 12px; font-size: 13px; font-weight: 600; box-shadow: 0 2px 10px rgba(0,0,0,.12); display: flex; gap: 4px; align-items: center; }
-  #exag[hidden] { display: none; }
-  #exag button { padding: 3px 10px; border-radius: 14px; font-size: 12.5px; }
-  #exag button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-  #beat { position: absolute; right: 12px; top: 60px; width: min(380px, calc(100% - 90px)); max-height: calc(100% - 330px); overflow-y: auto; background: var(--panel); color: var(--ink); border: 1px solid var(--rule); border-left: 5px solid var(--accent); border-radius: 10px; padding: 10px 12px; box-shadow: 0 6px 24px rgba(0,0,0,.3); z-index: 6; font-size: 14px; }
-  #beat[hidden] { display: none; }
-  .beatbtns { display: flex; gap: 8px; }
-  #beatListen[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-  #beat h3 { margin: 2px 0 6px; font-size: 17px; }
-  #beat p { margin: 0 0 8px; }
-  #beat .bk { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--accent); }
-  #toast { position: absolute; left: 50%; top: 56px; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 8px 14px; border-radius: 20px; font-size: 13.5px; font-weight: 600; display: none; z-index: 5; max-width: calc(100% - 32px); text-align: center; }
-  @media (max-width: 760px) {
-    #app { flex-direction: column-reverse; }
-    #panel { width: 100%; height: 48%; border-right: 0; border-top: 1px solid var(--rule); padding: 14px 16px 24px; }
-    #mapwrap { height: 52%; flex: none; }
-    #legend { display: none; }
-    #timebar { left: 8px; right: 8px; bottom: 26px; padding: 6px 8px; gap: 2px 8px; }
-    #tSub span.far { display: none; }
-    #exag { font-size: 11.5px; top: 8px; }
-  }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
-  .chips button { padding: 6px 10px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+  .chips button { padding: 6px 10px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 10px; }
   .chips button i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
-  .chips button[aria-pressed="false"] { opacity: .55; }
+  .chips button[aria-pressed="false"] { opacity: .6; }
   .chips button[aria-pressed="true"] { outline: 2px solid var(--accent); }
   #revealCap { font-size: 14px; min-height: 2.8em; margin: 6px 0 4px; }
   .ctl { margin: 10px 0 2px; font-size: 13.5px; font-weight: 600; display: flex; justify-content: space-between; }
@@ -160,59 +178,38 @@
   table.mx { width: 100%; border-collapse: separate; border-spacing: 3px; font-size: 13px; margin-top: 8px; }
   table.mx th { font-size: 12px; color: var(--muted); font-weight: 600; text-align: center; padding: 2px; }
   table.mx th.r { text-align: left; }
-  table.mx td { text-align: center; padding: 8px 4px; border-radius: 6px; border: 1px solid var(--rule); }
+  table.mx td { text-align: center; padding: 8px 4px; border-radius: 8px; border: 1px solid var(--rule); }
   table.mx td b { display: block; font-size: 18px; font-variant-numeric: tabular-nums; }
   table.mx td span { font-size: 11.5px; color: var(--muted); }
-  .band { display: flex; margin: 2px 0 0 22px; font-size: 11px; color: var(--muted); }
-  .band span { flex: 1; text-align: center; }
-  .band i { flex: 1; height: 8px; }
+
+  /* phones and narrow windows: the card becomes a sheet at the bottom, the time bar moves to the top */
+  @media (max-width: 760px) {
+    #card { left: 8px; right: 8px; top: auto; bottom: 26px; width: auto; max-height: 50%; padding: 12px 14px 10px; }
+    .chead h1, .lede, .brand .kicker { display: none; }
+    .stepnav ol { margin-bottom: 8px; }
+    .stepnav button { height: 30px; }
+    #chTitle { font-size: 17px; }
+    #timebar { left: 8px; right: 8px; top: 8px; bottom: auto; padding: 8px 12px; }
+    #tSub span.far { display: none; }
+    #legend { right: 8px; top: 92px; bottom: auto; max-width: 220px; }
+    #exag { left: 8px; top: 92px; transform: none; font-size: 11.5px; }
+    #toast { left: 50%; max-width: calc(100% - 32px); top: 96px; }
+    arcgis-zoom, arcgis-navigation-toggle, arcgis-compass { display: none; }
+  }
 </style>
 </head>
 <body>
 <div id="app">
-  <aside id="panel" aria-label="Story and controls">
-    <header class="phead">
-      <div class="kicker">Case study <span class="ver" id="verTop"></span> <button id="teachBtn" class="linkbtn" aria-haspopup="dialog">Teacher notes</button></div>
-      <h1>Why the Appalachians? Helene, September 2024</h1>
-      <p class="lede">Why did the worst floods and landslides happen in the mountains of North Carolina, 400 miles from where Hurricane Helene came ashore?</p>
-    </header>
-    <nav class="stepnav" aria-label="Steps"><ol id="steps"></ol></nav>
-    <section id="chapter" aria-labelledby="chTitle">
-      <h2 class="stepof" id="stepOf"></h2>
-      <div class="titlerow"><h3 id="chTitle"></h3><button id="readBtn" aria-pressed="false" title="Read this step out loud">🔊 Listen</button></div>
-      <div class="tabs" role="tablist" aria-label="Step contents">
-        <button role="tab" id="tab-story" aria-controls="pane-story" aria-selected="true">Story</button>
-        <button role="tab" id="tab-map" aria-controls="pane-map" aria-selected="false" tabindex="-1">Map now</button>
-        <button role="tab" id="tab-explore" aria-controls="pane-explore" aria-selected="false" tabindex="-1" class="try">Explore ▸</button>
-        <button role="tab" id="tab-qs" aria-controls="pane-qs" aria-selected="false" tabindex="-1">Questions</button>
-      </div>
-      <div class="panes" id="panes" tabindex="0">
-        <div role="tabpanel" id="pane-story" aria-labelledby="tab-story"><div id="story"></div><p class="hint" id="exploreHint" hidden>This step has more to explore: open the <b>Explore</b> tab.</p></div>
-        <div role="tabpanel" id="pane-map" aria-labelledby="tab-map" hidden><p id="mapDesc"></p></div>
-        <div role="tabpanel" id="pane-explore" aria-labelledby="tab-explore" hidden><div id="chExtra"></div></div>
-        <div role="tabpanel" id="pane-qs" aria-labelledby="tab-qs" hidden><ol class="qs" id="chQs"></ol></div>
-      </div>
-      <div class="more" id="moreHint" aria-hidden="true">More below ↓</div>
-    </section>
-    <footer class="pfoot">
-      <div class="btns"><button id="prevBtn">‹ Back</button><button class="primary" id="nextBtn">Next step ›</button></div>
-      <div id="status" role="status" aria-live="polite"></div>
-      <div class="bar" aria-hidden="true"><div id="bar"></div></div>
-    </footer>
-    <div class="sr-only" aria-live="polite" id="liveDesc"></div>
-  </aside>
-
-  <main id="mapwrap" aria-label="3D map of the storm and the mountains. A written description is in the Map now tab.">
+  <main id="mapwrap" aria-label="3D map of the storm and the mountains. A written description is under Describe the map, in the story card.">
     <arcgis-scene basemap="satellite" camera-position="-83.3, 18.0, 2300000" camera-heading="0" camera-tilt="18">
-      <arcgis-zoom slot="top-left"></arcgis-zoom>
-      <arcgis-navigation-toggle slot="top-left"></arcgis-navigation-toggle>
-      <arcgis-compass slot="top-left"></arcgis-compass>
+      <arcgis-zoom slot="top-right"></arcgis-zoom>
+      <arcgis-navigation-toggle slot="top-right"></arcgis-navigation-toggle>
+      <arcgis-compass slot="top-right"></arcgis-compass>
     </arcgis-scene>
-    <div id="exag">Mountains <button data-x="1" aria-pressed="false">true height</button><button data-x="2" aria-pressed="true">2×</button><button data-x="3" aria-pressed="false">3×</button></div>
-    <div id="toast"></div>
-    <div id="beat" role="region" aria-labelledby="beatTitle" hidden><div class="bk" id="beatWhen"></div><h3 id="beatTitle"></h3><div id="beatText"></div><div class="beatbtns"><button id="beatGo" class="primary">▶ Continue</button><button id="beatListen" aria-pressed="false" title="Read this out loud">🔊 Listen</button></div></div>
-    <div id="legend" role="group" aria-labelledby="legendTitle">
-      <div class="t" id="legendTitle">Show on the map</div>
+    <div id="exag" class="glass">Mountains <button data-x="1" aria-pressed="false">true height</button><button data-x="2" aria-pressed="true">2×</button><button data-x="3" aria-pressed="false">3×</button></div>
+    <div id="toast" role="status"></div>
+    <div id="legend" class="glass" role="group" aria-labelledby="legendTitle">
+      <button class="t" id="legendTitle" aria-expanded="true">Map key</button>
       <button class="k" data-l="rainSurf" aria-pressed="false" disabled><span class="tick"></span>Rain so far (radar)</button>
       <div class="band" aria-hidden="true"><i style="background:#cde2fb"></i><i style="background:#86b6ef"></i><i style="background:#3987e5"></i><i style="background:#1c5cab"></i><i style="background:#0d366b"></i></div>
       <div class="band"><span>2</span><span>5</span><span>10</span><span>15</span><span>20+ in</span></div>
@@ -229,17 +226,62 @@
       <button class="k" data-l="winds" aria-pressed="false"><span class="tick"></span><span class="sw" style="background:none;color:inherit;font-size:14px;line-height:12px;text-align:center">➜</span>Storm winds (sketch)</button>
       <button class="k" data-l="nws" aria-pressed="false" disabled><span class="tick"></span>NWS rain map, 24–27 Sep</button>
       <div id="nwsKey"></div>
-      <button class="more-layers" id="allLayers" aria-pressed="false">Show all layers</button>
+      <button class="more-layers" id="allLayers" aria-pressed="false">More layers…</button>
     </div>
-    <div id="timebar">
-      <button id="playBtn" class="primary" aria-label="Play">▶ Play</button>
-      <input id="tSlider" type="range" min="0" max="108" step="0.25" value="0" aria-label="Time" />
-      <button id="motionBtn" aria-pressed="true" title="Stop or start the moving streaks and spinning clouds">Motion on</button>
-      <select id="speed" aria-label="Playback speed"><option value="1">very slow</option><option value="2">slow</option><option value="4" selected>normal</option><option value="10">fast</option></select>
+    <div id="timebar" class="glass">
       <div id="tLabel">—</div>
+      <input id="tSlider" type="range" min="0" max="108" step="0.25" value="0" aria-label="Time" />
+      <select id="speed" aria-label="Playback speed"><option value="1">very slow</option><option value="2">slow</option><option value="4" selected>normal</option><option value="10">fast</option></select>
       <div id="tSub"><span id="tUtc"></span><span class="far" id="tStorm"></span></div>
     </div>
   </main>
+
+  <aside id="card" class="glass" aria-label="Story and controls">
+    <header class="chead">
+      <div class="brand"><span class="kicker">Case study</span><span id="verTop"></span><span class="sp"></span>
+        <button id="teachBtn" class="ghost" aria-haspopup="dialog">Teacher notes</button>
+        <details id="settings"><summary aria-label="Settings" title="Settings">⚙</summary>
+          <div class="menu glass">
+            <div class="row"><span id="motionLbl">Moving streaks and spinning clouds</span><button id="motionSw" role="switch" aria-checked="true" aria-labelledby="motionLbl">On</button></div>
+            <label style="display:grid;gap:4px">Read-aloud voice <select id="voiceSel"></select></label>
+          </div>
+        </details>
+      </div>
+      <h1>Why the Appalachians?</h1>
+      <p class="lede">Hurricane Helene, September 2024. Why did the worst floods and landslides happen in the mountains of North Carolina, 400 miles from where Helene came ashore?</p>
+    </header>
+    <nav class="stepnav" aria-label="Steps"><ol id="steps"></ol></nav>
+    <section id="chapter" aria-labelledby="chTitle">
+      <div class="titlerow"><div><div class="stepof" id="stepOf"></div><h2 id="chTitle"></h2></div>
+        <button id="readBtn" class="iconbtn" aria-pressed="false" aria-label="Listen: read this out loud" title="Listen">🔊</button></div>
+      <div class="tabs" role="tablist" aria-label="Step contents">
+        <button role="tab" id="tab-story" aria-controls="pane-story" aria-selected="true">Story</button>
+        <button role="tab" id="tab-explore" aria-controls="pane-explore" aria-selected="false" tabindex="-1" class="try">Explore</button>
+        <button role="tab" id="tab-qs" aria-controls="pane-qs" aria-selected="false" tabindex="-1">Questions</button>
+      </div>
+      <div class="panes" id="panes" tabindex="0">
+        <div role="tabpanel" id="pane-story" aria-labelledby="tab-story">
+          <div id="beat" role="region" aria-labelledby="beatTitle" hidden><div class="bk" id="beatWhen"></div><h3 id="beatTitle"></h3><div id="beatText"></div></div>
+          <div id="story"></div>
+          <p class="hint" id="exploreHint" hidden></p>
+          <details id="mapDescBox"><summary>Describe the map</summary><p id="mapDesc"></p></details>
+        </div>
+        <div role="tabpanel" id="pane-explore" aria-labelledby="tab-explore" hidden><div id="chExtra"></div></div>
+        <div role="tabpanel" id="pane-qs" aria-labelledby="tab-qs" hidden><ol class="qs" id="chQs"></ol></div>
+      </div>
+      <div class="more" id="moreHint" aria-hidden="true">More below ↓</div>
+    </section>
+    <footer class="cfoot">
+      <div class="actions">
+        <button id="backBtn" class="iconbtn" aria-label="Previous step" title="Previous step">‹</button>
+        <button id="goBtn" class="primary">▶ Play</button>
+        <button id="replayBtn" class="iconbtn" aria-label="Replay this step" title="Replay this step" hidden>↺</button>
+      </div>
+      <div id="status" role="status" aria-live="polite"></div>
+      <div class="bar" aria-hidden="true"><div id="bar"></div></div>
+    </footer>
+    <div class="sr-only" aria-live="polite" id="liveDesc"></div>
+  </aside>
 </div>
 <dialog id="teachDlg" aria-labelledby="teachTitle">
   <div class="dlghead"><h2 id="teachTitle">For teachers</h2><button id="teachClose" aria-label="Close">✕</button></div>
@@ -254,7 +296,7 @@
         <li><b>Weather pattern.</b> High pressure (the Bermuda High) and low pressure in the upper air are drawn in approximate positions from the NHC report ("a subtropical ridge centered over the western Atlantic"; "a deep-layer cut-off low centered over the Tennessee Valley"). The low was still forming on 24–25 September (NHC discussion 8: "a mid-latitude trough/developing cut-off low over the Mississippi valley") but is drawn from the start to keep the picture simple. The stalled front (NHC: "from the central Gulf Coast northward towards the Tennessee Valley and southern Appalachians from 25–27 September") is mentioned in step 1 but not drawn, to keep the map simple. None of these are traced from weather maps.</li>
         <li><b>Moisture stream.</b> The light-blue streaks sketch the narrow stream of tropical moisture that NOAA's CW3E centre describes as "AR-like poleward transport of enhanced water vapor on the east side of Helene", carried "into the Southern Appalachians on 26 and 27 September", and that Climate.gov describes as squeezed between Helene's anticlockwise spin and the Bermuda High's clockwise spin. The page draws it as a curved band from Helene's east side to the Blue Ridge from 25 September until Helene's own spin takes over; its exact width and path are a sketch. Scientists call this kind of stream an atmospheric river; "conveyor belt" here is a plain-language image, not the meteorological term "warm conveyor belt".</li>
         <li><b>Storm and winds.</b> The storm centre follows the NHC best track. The cloud spiral and the moving white streaks are drawings of the storm's anticlockwise spin, not measured winds. The streaks ride about 1.5 km above the ground, so they rise over the mountains, and they turn blue only where the radar measured at least 0.25 in of rain in that hour, so where the "conveyor belt" drops its rain comes from real data.</li>
-        <li><b>Terrain.</b> Mountains are drawn 2× taller by default. Use the switch at the top to see true height.</li>
+        <li><b>Terrain.</b> Mountains are drawn 2× taller by default. Use the switch at the top of the map (it appears when zoomed in) to see true height.</li>
       </ul>
     </details>
     <details><summary>Limitations</summary>
@@ -287,10 +329,9 @@
   <details><summary>Accessibility</summary>
       <ul>
         <li>The page is being built towards <b>WCAG 2.1 level AA</b>, the standard US public schools must meet under the ADA Title II web rule. It has not been independently audited.</li>
-        <li>Everything can be used with a keyboard. The <b>Map now</b> tab gives a written description of what the 3D map is showing, updated as the timeline moves; screen readers announce it when the timeline is paused or the step changes.</li>
-        <li><b>Motion on/off</b> (in the time bar) freezes the moving streaks, spinning clouds and the step 7 build-up. If the device is set to reduce motion, the page starts with motion stopped.</li>
-        <li><b>Listen</b> (beside each step's title) uses the device's own voice to read the step and the map description. It is optional and off by default, so it does not clash with screen readers. The page picks a natural-sounding female US English voice if the device has one (for example Microsoft Aria or Jenny in Edge, Google US English in Chrome, Samantha on Apple devices). Voices differ by device and browser; Microsoft Edge has the most natural ones.
-          <label style="display:block;margin-top:6px;font-weight:600">Voice <select id="voiceSel" aria-label="Read-aloud voice"></select></label></li>
+        <li>Everything can be used with a keyboard. <b>Describe the map</b>, in the story card, gives a written description of what the 3D map is showing, updated as the timeline moves; screen readers announce it when the timeline is paused or the step changes.</li>
+        <li>The moving streaks and spinning clouds can be stopped in <b>Settings</b> (⚙, top of the story card); this also stops the step 7 build-up. If the device is set to reduce motion, the page starts with them stopped. Pressing <b>Pause</b> stops the timeline.</li>
+        <li><b>Listen</b> (🔊, beside each step's title) uses the device's own voice to read whatever the story card is showing (the step or the current pause) and the map description. It is optional and off by default, so it does not clash with screen readers. The page picks a natural-sounding female US English voice if the device has one (for example Microsoft Aria or Jenny in Edge, Google US English in Chrome, Samantha on Apple devices); a different voice can be chosen in Settings. Voices differ by device and browser; Microsoft Edge has the most natural ones.</li>
         <li>Known gaps: the 3D map itself cannot be explored by a screen reader beyond the written description; the river and slope charts have written summaries but no data tables yet.</li>
       </ul>
     </details>
@@ -300,7 +341,7 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.29";
+const APP_VERSION = "0.30";
 const APP_DATE = "1 October 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
@@ -465,7 +506,8 @@ await sceneEl.viewOnReady();
 const view = sceneEl.view, map = sceneEl.map;
 view.environment.atmosphereEnabled = true;
 view.popupEnabled = true;
-function setPadding() { const wide = innerWidth > 760; view.padding = { bottom: wide ? 128 : 108, right: wide ? 330 : 0, top: 50 }; }
+// keep the camera's focus in the part of the map that the floating card and time bar do not cover
+function setPadding() { const wide = innerWidth > 760; view.padding = wide ? { left: 410, bottom: 100, top: 20, right: 60 } : { top: 80, bottom: Math.round(innerHeight * 0.5), left: 0, right: 0 }; }
 setPadding(); addEventListener("resize", setPadding);
 
 // Terrain with adjustable exaggeration
@@ -1423,12 +1465,27 @@ function rainInfo() {
 // ---------- chapters UI ----------
 $("steps").innerHTML = CH.map((c, i) => `<li><button data-i="${i}" aria-label="Step ${i + 1}: ${c.name}" title="${c.name}">${i + 1}</button></li>`).join("");
 document.querySelectorAll("#steps button").forEach(b => b.addEventListener("click", () => goChapter(+b.dataset.i, true, true)));
-$("prevBtn").onclick = () => goChapter(Math.max(0, chapter - 1), true, true);
-$("nextBtn").onclick = () => goChapter(Math.min(CH.length - 1, chapter + 1), true, true);
+$("backBtn").onclick = () => goChapter(Math.max(0, chapter - 1), true, true);
+// One main button that always says what to do next: Play, Pause, Continue (after a pause), Next step (at the end of a step)
+function stepDone() { const c = CH[chapter]; return c.t1 <= c.t0 || hNow >= c.t1 - 0.01; }
+function updateGo() {
+  const c = CH[chapter], end = stepDone(), last = chapter === CH.length - 1, b = $("goBtn");
+  b.textContent = playing ? "❚❚ Pause" : end ? (last ? "↺ Back to step 1" : "Next step ›") : (!$("beat").hidden || hNow > c.t0 + 0.01) ? "▶ Continue" : "▶ Play";
+  $("replayBtn").hidden = !(end && !playing && c.t1 > c.t0);
+  $("backBtn").disabled = chapter === 0;
+}
+$("goBtn").onclick = () => {
+  if (playing) return pause();
+  if (stepDone()) return chapter < CH.length - 1 ? goChapter(chapter + 1, true, true) : goChapter(0, true, false);
+  play();
+};
+$("replayBtn").onclick = () => { setTime(CH[chapter].t0); play(); };
+$("legendTitle").onclick = () => { const c = $("legend").classList.toggle("collapsed"); $("legendTitle").setAttribute("aria-expanded", String(!c)); };
+if (innerWidth <= 760) { $("legend").classList.add("collapsed"); $("legendTitle").setAttribute("aria-expanded", "false"); }
 const EXPLORE = { rivers: "River chart", slides: "Slope test", lined: "Build and test", cost: "Chart" };
 
 // tabs (keyboard: arrow keys move between tabs)
-const TABS = ["story", "map", "explore", "qs"];
+const TABS = ["story", "explore", "qs"];
 function selectTab(name, focus) {
   for (const t of TABS) { const b = $("tab-" + t), on = t === name; b.setAttribute("aria-selected", String(on)); b.tabIndex = on ? 0 : -1; $("pane-" + t).hidden = !on; }
   if (focus) $("tab-" + name).focus();
@@ -1447,10 +1504,10 @@ $("panes").addEventListener("scroll", checkMore); addEventListener("resize", che
 let motionOn = !matchMedia("(prefers-reduced-motion: reduce)").matches;
 function setMotion(on) {
   motionOn = on;
-  $("motionBtn").textContent = on ? "Motion on" : "Motion off"; $("motionBtn").setAttribute("aria-pressed", String(on));
+  $("motionSw").textContent = on ? "On" : "Off"; $("motionSw").setAttribute("aria-checked", String(on));
   if (!on && revealTimer) { clearTimeout(revealTimer); for (const [k] of REVEAL) vis[k] = k !== "steep"; applyVis(); }
 }
-$("motionBtn").onclick = () => setMotion(!motionOn);
+$("motionSw").onclick = () => setMotion(!motionOn);
 
 // ---------- written description of the map (text alternative for the 3D view) ----------
 function where(s) {
@@ -1513,8 +1570,8 @@ function pickVoice() {
   const sel = $("voiceSel"); if (sel) { sel.innerHTML = vs.map(v => `<option ${v === voice ? "selected" : ""}>${v.name}</option>`).join(""); sel.onchange = () => { voice = vs.find(v => v.name === sel.value); try { localStorage.setItem("heleneVoice", voice.name); } catch (e) {} }; }
 }
 if (canSpeak) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
-const LISTEN_BTNS = ["readBtn", "beatListen"];
-function stopReading() { if (canSpeak) speechSynthesis.cancel(); LISTEN_BTNS.forEach(id => { const b = $(id); if (b) { b.setAttribute("aria-pressed", "false"); b.textContent = "🔊 Listen"; } }); }
+const LISTEN_BTNS = ["readBtn"];
+function stopReading() { if (canSpeak) speechSynthesis.cancel(); LISTEN_BTNS.forEach(id => { const b = $(id); if (b) { b.setAttribute("aria-pressed", "false"); b.textContent = "🔊"; b.setAttribute("aria-label", "Listen: read this out loud"); } }); }
 // speak some text one sentence at a time (sounds more natural and avoids some browsers cutting off long speech)
 function speak(raw, btnId) {
   if (!canSpeak) return;
@@ -1525,12 +1582,14 @@ function speak(raw, btnId) {
   const parts = text.split(/(?<=[.!?])\s+/).filter(t => t.trim());
   parts.forEach((t, k) => { const u = new SpeechSynthesisUtterance(t.trim()); if (voice) u.voice = voice; u.lang = voice ? voice.lang : "en-US"; u.rate = 0.92; u.pitch = 1.05;
     if (k === parts.length - 1) u.onend = stopReading; u.onerror = (e) => { if (e.error !== "interrupted" && e.error !== "canceled") stopReading(); }; speechSynthesis.speak(u); });
-  $(btnId).setAttribute("aria-pressed", "true"); $(btnId).textContent = "■ Stop";
+  $(btnId).setAttribute("aria-pressed", "true"); $(btnId).textContent = "■"; $(btnId).setAttribute("aria-label", "Stop reading");
 }
 const htmlText = (h) => { const d = document.createElement("div"); d.innerHTML = h.replace(/<\/(p|li)>/g, ". "); return d.textContent; };
-$("readBtn").onclick = () => { const c = CH[chapter]; speak(`Step ${chapter + 1}: ${c.name}. ${htmlText(c.story)} On the map now. ${describeMap()}`, "readBtn"); };
-$("beatListen").onclick = () => speak(`${$("beatTitle").textContent}. ${htmlText($("beatText").innerHTML)}`, "beatListen");
-if (!canSpeak) $("beatListen").hidden = true;
+$("readBtn").onclick = () => {   // reads whatever the card shows: the current pause, or the step
+  const c = CH[chapter];
+  if (!$("beat").hidden) speak(`${$("beatTitle").textContent}. ${htmlText($("beatText").innerHTML)}`, "readBtn");
+  else speak(`Step ${chapter + 1}: ${c.name}. ${htmlText(c.story)} On the map now. ${describeMap()}`, "readBtn");
+};
 
 // ---------- teacher notes dialog ----------
 $("teachBtn").onclick = () => $("teachDlg").showModal();
@@ -1539,19 +1598,19 @@ $("teachClose").onclick = () => $("teachDlg").close();
 function goChapter(i, animate = true, autoplay = false) {
   clearTimeout(revealTimer); revealTimer = null; stopReading(); hideBeat();
   chapter = i; const c = CH[i]; pause();
-  document.querySelectorAll("#steps button").forEach(b => { if (+b.dataset.i === i) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current"); });
+  $("card").classList.toggle("later", i > 0);
+  document.querySelectorAll("#steps button").forEach(b => { const k = +b.dataset.i; b.classList.toggle("done", k < i); if (k === i) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current"); });
   $("stepOf").textContent = `Step ${i + 1} of ${CH.length} · ${c.n.split("·")[1].trim()}`;
   $("chTitle").textContent = c.name; $("story").innerHTML = c.story;
   $("chQs").innerHTML = c.qs.map(q => `<li>${q}</li>`).join("");
-  $("prevBtn").disabled = i === 0; $("nextBtn").disabled = i === CH.length - 1;
   const ex = EXPLORE[c.key]; $("tab-explore").hidden = !ex; $("exploreHint").hidden = !ex;
-  if (ex) { $("tab-explore").textContent = ex + " ▸"; $("exploreHint").innerHTML = `This step has something to try: open the <b>${ex}</b> tab.`; }
+  if (ex) { $("tab-explore").textContent = ex; $("exploreHint").innerHTML = `Something to try in this step: <b>${ex}</b>, at the top of this card.`; }
   for (const k of Object.keys(vis)) vis[k] = !!c.show[k];
   if (c.key === "rivers" || c.key === "lined") ensureGauges();
   if (c.show.rivers) R.ensure();
   if (c.key === "storm" || c.key === "oro" || c.key === "lined") G.loadSlope();   // streaks lift over the mountains; step 7 needs steepness
   view.closePopup && view.closePopup();
-  applyVis(); setTime(c.t0); renderChapterExtra(); selectTab("story");
+  applyVis(); setTime(c.t0); renderChapterExtra(); selectTab("story"); updateGo();
   const token = goChapter.token = (goChapter.token || 0) + 1;
   const arrived = () => { if (token === goChapter.token && autoplay && c.t1 > c.t0) play(); };
   view.goTo(c.cam, { duration: animate && motionOn ? 2500 : 0, easing: "in-out-cubic" }).then(arrived, arrived);
@@ -1560,7 +1619,7 @@ function goChapter(i, animate = true, autoplay = false) {
 }
 
 // ---------- timeline ----------
-function setTime(h) { hNow = Math.max(0, Math.min(HOURS, h)); $("tSlider").value = hNow; render(true); }
+function setTime(h) { hNow = Math.max(0, Math.min(HOURS, h)); $("tSlider").value = hNow; render(true); updateGo(); }
 let lastRender = -1;
 function render(force) {
   if (!force && Math.abs(hNow - lastRender) < 0.2) return; lastRender = hNow;
@@ -1572,28 +1631,26 @@ function render(force) {
   updateDesc(!playing);
 }
 $("tSlider").addEventListener("input", (e) => { pause(); hideBeat(); setTime(+e.target.value); });
-function hideBeat() { if (!$("beat").hidden && $("beatListen").getAttribute("aria-pressed") === "true") stopReading(); $("beat").hidden = true; }
+function hideBeat() {   // the pause leaves the card and the step's story comes back
+  if ($("beat").hidden) return;
+  if ($("readBtn").getAttribute("aria-pressed") === "true") stopReading();
+  $("beat").hidden = true; $("story").hidden = false; checkMore();
+}
 function showBeat(b) {
-  $("beatWhen").textContent = "Paused · " + fmtEDT(tAt(b.t)) + " EDT"; $("beatTitle").textContent = b.title; $("beatText").innerHTML = b.text; $("beat").hidden = false;
-  const atEnd = b.t >= CH[chapter].t1 - 0.01, last = chapter === CH.length - 1;
-  $("beatGo").textContent = atEnd ? (last ? "Close" : "▶ Next step") : "▶ Continue";
-  $("playBtn").textContent = atEnd ? "↺ Replay step" : "▶ Continue";
+  stopReading(); selectTab("story");
+  $("beatWhen").textContent = "Paused · " + fmtEDT(tAt(b.t)) + " EDT"; $("beatTitle").textContent = b.title; $("beatText").innerHTML = b.text;
+  $("beat").hidden = false; $("story").hidden = true; $("panes").scrollTop = 0; checkMore(); updateGo();
   const tmp = document.createElement("div"); tmp.innerHTML = b.text; $("liveDesc").textContent = `${b.title}. ${tmp.textContent}`;
   if (b.cam) view.goTo(b.cam, { duration: motionOn ? 2500 : 0, easing: "in-out-cubic" }).catch(() => {});
-  $("beatGo").focus();
+  $("goBtn").focus();
 }
-$("beatGo").onclick = () => {
-  const atEnd = hNow >= CH[chapter].t1 - 0.01; hideBeat();
-  if (!atEnd) play(); else if (chapter < CH.length - 1) goChapter(chapter + 1, true, true);
-};
 function play() {
   hideBeat();
   const c = CH[chapter]; if (hNow >= c.t1 - 0.01) setTime(c.t0);
   if (c.t1 <= c.t0) return;
-  playing = true; $("playBtn").textContent = "❚❚ Pause"; $("playBtn").setAttribute("aria-label", "Pause");
+  playing = true; updateGo();
 }
-function pause() { if (playing) setTimeout(() => updateDesc(true), 0); playing = false; $("playBtn").textContent = "▶ Play"; $("playBtn").setAttribute("aria-label", "Play"); }
-$("playBtn").onclick = () => playing ? pause() : play();
+function pause() { if (playing) setTimeout(() => updateDesc(true), 0); playing = false; updateGo(); }
 let rot = 0;
 function loop(ts) {
   const dt = lastFrame ? Math.min(0.1, (ts - lastFrame) / 1000) : 0; lastFrame = ts;
