@@ -294,7 +294,7 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.16";
+const APP_VERSION = "0.17";
 const APP_DATE = "30 September 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
@@ -367,14 +367,19 @@ function landfallPhase(ms) { const d = (ms - LANDFALL.t) / HR; return d < -4 ? n
 // ---------- chapters ----------
 const CAM_MTN = { center: [-82.3, 35.5], zoom: 8.3, tilt: 60, heading: 318 };   // from the south-east, looking north-west over the Blue Ridge
 const CH = [
-  { key: "setup", n: "1 · 25 Sep", name: "The set-up", t0: 15, t1: 24,
+  { key: "setup", n: "1 · 24–25 Sep", name: "The set-up", t0: 0, t1: 24,
     cam: { center: [-76.5, 27.6], zoom: 5.3, tilt: 20, heading: 0 }, show: { pattern: 1, storm: 1, stream: 1 },
+    beats: [
+      { t: 14, title: "The pattern is in place", text: `<p>By the night of 24 September, the stalled front and the upper-level low (purple, to the west) have joined the Bermuda High.</p><p>Watch the light-blue moisture stream begin to flow north, between Helene and the High, towards the mountains. Helene is still only a tropical storm, far away in the Caribbean.</p>` },
+      { t: 24, title: "Helene becomes a hurricane", text: `<p>Helene is now a hurricane, still south of the Gulf. The moisture stream is already flowing towards the Appalachians, and over the next two days it brings heavy rain there. Step 2 follows that rain.</p>` }
+    ],
     story: `<p>Four things came together over the south-eastern United States in late September 2024:</p>
       <ol style="padding-left:20px;margin:0 0 8px"><li><b>Hurricane Helene</b>, growing over the very warm Caribbean and Gulf, full of water vapour.</li>
       <li>The <b>Bermuda High</b>, a huge area of high pressure over the Atlantic, turning clockwise.</li>
       <li>An <b>upper-level low</b> to the west: a swirl of low pressure high in the atmosphere, cut off from the jet stream, turning anticlockwise like Helene. The air on its east side flowed north, helping to pull the moist air north and lift it.</li>
       <li>A <b>stalled front</b> west of the Appalachians, where warm, wet air was forced to rise.</li></ol>
-      <p>Between Helene's anticlockwise spin and the High's clockwise spin, tropical moisture was squeezed into a narrow stream flowing north, towards the mountains. Scientists compared it to an <b>atmospheric river</b>.</p>`,
+      <p>Between Helene's anticlockwise spin and the High's clockwise spin, tropical moisture was squeezed into a narrow stream flowing north, towards the mountains. Scientists compared it to an <b>atmospheric river</b>.</p>
+      <p>Press Play: this step runs from the morning Helene became a tropical storm to the morning it became a hurricane, while the rest of the pattern sets up.</p>`,
     qs: ["Find the four features on the map. Which way does air turn around the High? Around Helene?", "Press Play. Where does the moisture stream (light blue) end up?", "Why might it matter that a line of steep mountains stood in the stream's path?"] },
   { key: "pre", n: "2 · 25–26 Sep", name: "Rain before the storm", t0: 24, t1: 56,
     cam: { center: [-82.5, 31.2], zoom: 5.8, tilt: 32, heading: 0 }, show: { pattern: 1, storm: 1, stream: 1, rainSurf: 1 },
