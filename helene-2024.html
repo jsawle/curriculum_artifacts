@@ -46,7 +46,10 @@
   #card.fit { bottom: auto; }
   .chead { flex: none; }
   .brand { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); white-space: nowrap; }
-  .brand .ghost { white-space: nowrap; }
+  .brand .ghost { white-space: nowrap; padding-left: 4px; }
+  .listen { padding: 7px 14px; font-size: 13.5px; border-radius: 999px; background: rgba(92, 200, 255, 0.16); border-color: rgba(92, 200, 255, 0.55); color: var(--accent); white-space: nowrap; }
+  .listen:hover:not(:disabled) { background: rgba(92, 200, 255, 0.26); }
+  .listen[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
   #card.later .lede { display: none; }   /* the big question shows on step 1; later steps get the room */
   .brand .kicker { text-transform: uppercase; letter-spacing: .12em; font-weight: 700; color: var(--accent); }
   .brand .sp { flex: 1; }
@@ -238,8 +241,8 @@
 
   <aside id="card" class="glass" aria-label="Story and controls">
     <header class="chead">
-      <div class="brand"><span class="kicker">Case study</span><span id="verTop"></span><span class="sp"></span>
-        <button id="teachBtn" class="ghost" aria-haspopup="dialog">Teacher notes</button>
+      <div class="brand"><span id="verTop"></span><button id="teachBtn" class="ghost" aria-haspopup="dialog">Teacher notes</button><span class="sp"></span>
+        <button id="readBtn" class="listen" aria-pressed="false" title="Read this card out loud">🔊 Listen</button>
         <details id="settings"><summary aria-label="Settings" title="Settings">⚙</summary>
           <div class="menu glass">
             <div class="row"><span id="motionLbl">Moving streaks and spinning clouds</span><button id="motionSw" role="switch" aria-checked="true" aria-labelledby="motionLbl">On</button></div>
@@ -252,8 +255,7 @@
     </header>
     <nav class="stepnav" aria-label="Steps"><ol id="steps"></ol></nav>
     <section id="chapter" aria-labelledby="chTitle">
-      <div class="titlerow"><div><div class="stepof" id="stepOf"></div><h2 id="chTitle"></h2></div>
-        <button id="readBtn" class="iconbtn" aria-pressed="false" aria-label="Listen: read this out loud" title="Listen">🔊</button></div>
+      <div class="titlerow"><div><div class="stepof" id="stepOf"></div><h2 id="chTitle"></h2></div></div>
       <div class="tabs" role="tablist" aria-label="Step contents">
         <button role="tab" id="tab-story" aria-controls="pane-story" aria-selected="true">Story</button>
         <button role="tab" id="tab-explore" aria-controls="pane-explore" aria-selected="false" tabindex="-1" class="try">Explore</button>
@@ -331,7 +333,7 @@
         <li>The page is being built towards <b>WCAG 2.1 level AA</b>, the standard US public schools must meet under the ADA Title II web rule. It has not been independently audited.</li>
         <li>Everything can be used with a keyboard. <b>Describe the map</b>, in the story card, gives a written description of what the 3D map is showing, updated as the timeline moves; screen readers announce it when the timeline is paused or the step changes.</li>
         <li>The moving streaks and spinning clouds can be stopped in <b>Settings</b> (⚙, top of the story card); this also stops the step 7 build-up. If the device is set to reduce motion, the page starts with them stopped. Pressing <b>Pause</b> stops the timeline.</li>
-        <li><b>Listen</b> (🔊, beside each step's title) uses the device's own voice to read whatever the story card is showing (the step or the current pause) and the map description. It is optional and off by default, so it does not clash with screen readers. The page picks a natural-sounding female US English voice if the device has one (for example Microsoft Aria or Jenny in Edge, Google US English in Chrome, Samantha on Apple devices); a different voice can be chosen in Settings. Voices differ by device and browser; Microsoft Edge has the most natural ones.</li>
+        <li><b>Listen</b> (🔊, top right of the story card) uses the device's own voice to read whatever the story card is showing (the step or the current pause) and the map description. It is optional and off by default, so it does not clash with screen readers. The page picks a natural-sounding female US English voice if the device has one (for example Microsoft Aria or Jenny in Edge, Google US English in Chrome, Samantha on Apple devices); a different voice can be chosen in Settings. Voices differ by device and browser; Microsoft Edge has the most natural ones.</li>
         <li>Known gaps: the 3D map itself cannot be explored by a screen reader beyond the written description; the river and slope charts have written summaries but no data tables yet.</li>
       </ul>
     </details>
@@ -341,7 +343,7 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.30";
+const APP_VERSION = "0.31";
 const APP_DATE = "1 October 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
@@ -358,7 +360,7 @@ const MODELS = [
   ["Terrain exaggeration", "0.1", "Esri World Elevation (Terrain3D) multiplied by 1, 2 or 3"]
 ];
 const $ = (id) => document.getElementById(id);
-$("verTop").textContent = "· version " + APP_VERSION;
+$("verTop").textContent = "v" + APP_VERSION;
 document.title = "Hurricane Helene 2024 (v" + APP_VERSION + ")";
 $("verTable").innerHTML = `<tr><th>Part</th><th>Version</th><th>How it works</th></tr><tr><td>App</td><td class="v">${APP_VERSION}</td><td>${APP_DATE}</td></tr>` +
   MODELS.map(([n, v, d]) => `<tr><td>${n}</td><td class="v">${v}</td><td>${d}</td></tr>`).join("");
@@ -1571,7 +1573,7 @@ function pickVoice() {
 }
 if (canSpeak) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
 const LISTEN_BTNS = ["readBtn"];
-function stopReading() { if (canSpeak) speechSynthesis.cancel(); LISTEN_BTNS.forEach(id => { const b = $(id); if (b) { b.setAttribute("aria-pressed", "false"); b.textContent = "🔊"; b.setAttribute("aria-label", "Listen: read this out loud"); } }); }
+function stopReading() { if (canSpeak) speechSynthesis.cancel(); LISTEN_BTNS.forEach(id => { const b = $(id); if (b) { b.setAttribute("aria-pressed", "false"); b.textContent = "🔊 Listen"; } }); }
 // speak some text one sentence at a time (sounds more natural and avoids some browsers cutting off long speech)
 function speak(raw, btnId) {
   if (!canSpeak) return;
@@ -1582,7 +1584,7 @@ function speak(raw, btnId) {
   const parts = text.split(/(?<=[.!?])\s+/).filter(t => t.trim());
   parts.forEach((t, k) => { const u = new SpeechSynthesisUtterance(t.trim()); if (voice) u.voice = voice; u.lang = voice ? voice.lang : "en-US"; u.rate = 0.92; u.pitch = 1.05;
     if (k === parts.length - 1) u.onend = stopReading; u.onerror = (e) => { if (e.error !== "interrupted" && e.error !== "canceled") stopReading(); }; speechSynthesis.speak(u); });
-  $(btnId).setAttribute("aria-pressed", "true"); $(btnId).textContent = "■"; $(btnId).setAttribute("aria-label", "Stop reading");
+  $(btnId).setAttribute("aria-pressed", "true"); $(btnId).textContent = "■ Stop";
 }
 const htmlText = (h) => { const d = document.createElement("div"); d.innerHTML = h.replace(/<\/(p|li)>/g, ". "); return d.textContent; };
 $("readBtn").onclick = () => {   // reads whatever the card shows: the current pause, or the step
