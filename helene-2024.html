@@ -50,6 +50,7 @@
   dialog#teachDlg::backdrop { background: rgba(0,0,0,.45); }
   .dlghead { display: flex; justify-content: space-between; align-items: center; }
   .dlghead h2 { margin: 0; }
+  #legend [hidden] { display: none !important; }
   #legend .more-layers { margin-top: 6px; font-size: 12px; padding: 3px 8px; }
   @media (max-height: 760px) { .lede { display: none; } }
   #mapwrap { position: relative; flex: 1; min-width: 0; }
@@ -293,12 +294,12 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.15";
+const APP_VERSION = "0.16";
 const APP_DATE = "30 September 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
   ["Moisture stream sketch", "0.1", "350 streaks along a curved band from 320 km east of Helene's centre to the Blue Ridge (35.55°N, 82.3°W), bowed 260 km east, 140 km wide narrowing to 60 km; from 25 Sep 00 UTC (fading in over 3 h), fading out as Helene passes 32.5–34°N; lifted and turned blue by the same rules as the storm winds"],
-  ["Weather pattern", "0.2", "Arrows around the High turn clockwise; approximate positions from the NHC report and Climate.gov: stalled front Gulf Coast to Tennessee Valley 25–27 Sep; upper-level low over the Tennessee Valley 25–27 Sep; Bermuda High over the western Atlantic"],
+  ["Weather pattern", "0.3", "Arrows around the High turn clockwise and around the upper-level low anticlockwise; approximate positions from the NHC report and Climate.gov: stalled front Gulf Coast to Tennessee Valley 25–27 Sep; upper-level low over the Tennessee Valley 25–27 Sep; Bermuda High over the western Atlantic"],
   ["Storm winds sketch", "0.3", "700 moving streaks in an anticlockwise vortex around the NHC track position, 20° inflow; speed = track wind × (60 km / distance)^0.6 beyond 60 km; out to 850 km; ride 1.5 km above the ground (lifted over the mountains in the study area); blue where radar rain below is at least 0.25 in/hr"],
   ["Rain so far", "0.3", "Fades out over the outer ~30 km of the study area; redraws every hour (a new image each time). NOAA MRMS hourly radar totals since 24 Sep 12:00 UTC at ~390 places, spread to a 0.0125° grid by inverse-distance weighting (6 nearest within 40 km); southern Appalachians only"],
   ["Steep ground", "0.2", "Fixed: redraws when thresholds change. Slope from Esri World Elevation sampled every 0.0125° (about 1.2 km) at ~150 m detail, central differences across ~2.5 km"],
@@ -371,7 +372,7 @@ const CH = [
     story: `<p>Four things came together over the south-eastern United States in late September 2024:</p>
       <ol style="padding-left:20px;margin:0 0 8px"><li><b>Hurricane Helene</b>, growing over the very warm Caribbean and Gulf, full of water vapour.</li>
       <li>The <b>Bermuda High</b>, a huge area of high pressure over the Atlantic, turning clockwise.</li>
-      <li>An <b>upper-level low</b> (a dip in the jet stream) to the west, which helped pull air north and lift it.</li>
+      <li>An <b>upper-level low</b> to the west: a swirl of low pressure high in the atmosphere, cut off from the jet stream, turning anticlockwise like Helene. The air on its east side flowed north, helping to pull the moist air north and lift it.</li>
       <li>A <b>stalled front</b> west of the Appalachians, where warm, wet air was forced to rise.</li></ol>
       <p>Between Helene's anticlockwise spin and the High's clockwise spin, tropical moisture was squeezed into a narrow stream flowing north, towards the mountains. Scientists compared it to an <b>atmospheric river</b>.</p>`,
     qs: ["Find the four features on the map. Which way does air turn around the High? Around Helene?", "Press Play. Where does the moisture stream (light blue) end up?", "Why might it matter that a line of steep mountains stood in the stream's path?"] },
@@ -683,8 +684,16 @@ for (let k = 0; k < 8; k++) {   // clockwise circulation around the High (turned
   const g = new Graphic({ geometry: null, symbol: { type: "simple-fill", color: [...PURPLE, 0.55], outline: { color: [0, 0, 0, 0.3], width: 0.5 } } });
   highArrows.push(g); highG.push(g);
 }
+// the upper-level low turns anticlockwise (it is a low, like Helene, but high in the atmosphere)
+const lowArrows = Array.from({ length: 5 }, () => new Graphic({ geometry: null, symbol: { type: "simple-fill", color: [...PURPLE, 0.55], outline: { color: [0, 0, 0, 0.3], width: 0.5 } } }));
 function drawHigh(rot) {
   if (!patternLayer.visible) return;
+  const lowOn = timedG[0].visible;
+  lowArrows.forEach((g, k) => {
+    if (!lowOn) { g.geometry = null; return; }
+    const a = k * 2 * Math.PI / 5 + rot * 0.6, [lon, lat] = offset(ULOW[0], ULOW[1], 230 * Math.cos(a), 230 * Math.sin(a));   // increasing angle = anticlockwise
+    g.geometry = { type: "polygon", rings: [arrowPoly(lat, lon, -Math.sin(a), Math.cos(a), 120)], spatialReference: { wkid: 4326 } };
+  });
   highArrows.forEach((g, k) => {
     const a = k * Math.PI / 4 - rot * 0.6, [lon, lat] = offset(HIGH[0], HIGH[1], 650 * Math.cos(a), 650 * Math.sin(a));   // decreasing angle = clockwise
     g.geometry = { type: "polygon", rings: [arrowPoly(lat, lon, Math.sin(a), -Math.cos(a), 260)], spatialReference: { wkid: 4326 } };
@@ -695,9 +704,9 @@ const timedG = [
   new Graphic({ geometry: { type: "polyline", paths: [FRONT], spatialReference: { wkid: 4326 } }, symbol: { type: "simple-line", color: [...PURPLE, 0.95], width: 4, style: "long-dash" } }),
   ptext("Stalled front", 33.3, -87.6, 12),
   new Graphic({ geometry: { type: "polyline", paths: [ring], spatialReference: { wkid: 4326 } }, symbol: { type: "simple-line", color: [...PURPLE, 0.85], width: 2.5, style: "dash" } }),
-  ptext("Upper-level low", ULOW[0] + 2.4, ULOW[1], 12)
+  ptext("Upper-level low (high up)", ULOW[0] + 2.4, ULOW[1], 12)
 ];
-patternLayer.addMany([...highG, ...timedG]);
+patternLayer.addMany([...highG, ...timedG, ...lowArrows]);
 function drawPattern() { const ms = tAt(hNow), on = ms >= PAT_FROM && ms <= PAT_TO; timedG.forEach(g => g.visible = on); }
 
 // ---------- the Blue Ridge escarpment (approximate trace) ----------
@@ -1253,7 +1262,7 @@ function describeMap() {
     else if (ph === "just came ashore") out.push(`Helene came ashore near Perry, Florida, at 11 pm on 26 September as a Category 4 hurricane. It is now a ${category(s.kt, s.stage)} ${where(s)}, with winds of about ${knMph(s.kt)} mph, weakening as it moves quickly north over land.`);
     else out.push(`Helene is a ${category(s.kt, s.stage)} ${where(s)}, with winds of about ${knMph(s.kt)} mph.`);
   }
-  if (vis.pattern && ms >= PAT_FROM && ms <= PAT_TO) out.push("Purple shapes mark the weather pattern: the Bermuda High far out over the Atlantic, with arrows turning clockwise; the upper-level low over Tennessee; and the stalled front, a dashed line running from the Gulf coast north to the west side of the Appalachians.");
+  if (vis.pattern && ms >= PAT_FROM && ms <= PAT_TO) out.push("Purple shapes mark the weather pattern: the Bermuda High far out over the Atlantic, with arrows turning clockwise; the upper-level low high above Tennessee, with arrows turning anticlockwise; and the stalled front, a dashed line running from the Gulf coast north to the west side of the Appalachians.");
   else if (vis.pattern) out.push("Purple shapes mark the Bermuda High over the Atlantic, with arrows turning clockwise.");
   if (vis.stream && s && ms >= Date.UTC(2024, 8, 25) && s.lat < 34) out.push("Light blue streaks show the moisture stream: tropical air flowing north from Helene's east side, between Helene and the Bermuda High, over Florida, Georgia and South Carolina to the Blue Ridge mountains in North Carolina.");
   if (vis.winds && s) { const w = vortexWind(s, 35.6, -82.4); out.push(`White streaks show Helene's spin, turning anticlockwise.${w.r < 900 ? ` Over the mountains the wind is blowing from the ${compass(fromBearing(w.u, w.v))}.` : ""}`); }
