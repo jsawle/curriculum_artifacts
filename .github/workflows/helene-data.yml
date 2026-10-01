@@ -1,0 +1,26 @@
+name: Helene data snapshot
+# Fetches the Hurricane Helene data used by helene-2024.html once and saves it in data/,
+# so the page loads two small cached files instead of ~55 live queries per student.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - scripts/fetch_helene_data.py
+      - .github/workflows/helene-data.yml
+permissions:
+  contents: write
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python scripts/fetch_helene_data.py
+      - name: Commit the data if it changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
+          git add data/helene-rain.json data/helene-gauges.json
+          git diff --cached --quiet && echo "No change" || (git commit -m "Update Helene data snapshot" && git push)
