@@ -296,7 +296,7 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.21";
+const APP_VERSION = "0.22";
 const APP_DATE = "30 September 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
@@ -676,6 +676,8 @@ map.add(patternLayer);
 const PURPLE = [185, 140, 255];
 const ptext = (text, lat, lon, size = 13) => new Graphic({ geometry: { type: "point", longitude: lon, latitude: lat },
   symbol: { type: "point-3d", symbolLayers: [{ type: "text", text, size, material: { color: "white" }, halo: { color: [0, 0, 0, 0.85], size: 1.5 }, font: { weight: "bold" } }] } });
+const ptextAbove = (text, lat, lon, size, px) => new Graphic({ geometry: { type: "point", longitude: lon, latitude: lat },
+  symbol: { type: "point-3d", symbolLayers: [{ type: "text", text, size, material: { color: "white" }, halo: { color: [0, 0, 0, 0.85], size: 1.5 }, font: { weight: "bold" } }], verticalOffset: { screenLength: px } } });
 function arrowPoly(lat, lon, u, v, L) {   // an arrow shape pointing along (u, v); sizes in km
   const w = L * 0.09, hw = L * 0.24, hl = L * 0.36, px = -v, py = u;
   const pt = (along, side) => offset(lat, lon, u * along + px * side, v * along + py * side);
@@ -708,7 +710,7 @@ function drawHigh(rot) {
 }
 const timedG = [
   ptext("L", ULOW[0], ULOW[1], 30),
-  ptext("Low pressure", ULOW[0] + 1.5, ULOW[1], 12)
+  ptextAbove("Low pressure", ULOW[0], ULOW[1], 12, 34)
 ];
 patternLayer.addMany([...highG, ...timedG, ...lowArrows]);
 function drawPattern() { const ms = tAt(hNow), on = ms >= PAT_FROM && ms <= PAT_TO; timedG.forEach(g => g.visible = on); }
@@ -1366,12 +1368,17 @@ $("tSlider").addEventListener("input", (e) => { pause(); hideBeat(); setTime(+e.
 function hideBeat() { if (!$("beat").hidden && $("beatListen").getAttribute("aria-pressed") === "true") stopReading(); $("beat").hidden = true; }
 function showBeat(b) {
   $("beatWhen").textContent = "Paused · " + fmtEDT(tAt(b.t)) + " EDT"; $("beatTitle").textContent = b.title; $("beatText").innerHTML = b.text; $("beat").hidden = false;
-  $("playBtn").textContent = "▶ Continue";
+  const atEnd = b.t >= CH[chapter].t1 - 0.01, last = chapter === CH.length - 1;
+  $("beatGo").textContent = atEnd ? (last ? "Close" : "▶ Next step") : "▶ Continue";
+  $("playBtn").textContent = atEnd ? "↺ Replay step" : "▶ Continue";
   const tmp = document.createElement("div"); tmp.innerHTML = b.text; $("liveDesc").textContent = `${b.title}. ${tmp.textContent}`;
   if (b.cam) view.goTo(b.cam, { duration: motionOn ? 2500 : 0, easing: "in-out-cubic" }).catch(() => {});
   $("beatGo").focus();
 }
-$("beatGo").onclick = () => { hideBeat(); play(); };
+$("beatGo").onclick = () => {
+  const atEnd = hNow >= CH[chapter].t1 - 0.01; hideBeat();
+  if (!atEnd) play(); else if (chapter < CH.length - 1) goChapter(chapter + 1, true, true);
+};
 function play() {
   hideBeat();
   const c = CH[chapter]; if (hNow >= c.t1 - 0.01) setTime(c.t0);
