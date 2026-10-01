@@ -124,6 +124,10 @@
   #exag { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); background: var(--panel); border: 1px solid var(--rule); border-radius: 20px; padding: 4px 6px 4px 12px; font-size: 13px; font-weight: 600; box-shadow: 0 2px 10px rgba(0,0,0,.12); display: flex; gap: 4px; align-items: center; }
   #exag button { padding: 3px 10px; border-radius: 14px; font-size: 12.5px; }
   #exag button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  #beat { position: absolute; left: 50%; top: 58px; transform: translateX(-50%); width: min(460px, calc(100% - 32px)); background: var(--panel); color: var(--ink); border: 1px solid var(--rule); border-left: 5px solid var(--accent); border-radius: 10px; padding: 12px 14px; box-shadow: 0 6px 24px rgba(0,0,0,.3); z-index: 6; font-size: 14.5px; }
+  #beat h3 { margin: 2px 0 6px; font-size: 17px; }
+  #beat p { margin: 0 0 8px; }
+  #beat .bk { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--accent); }
   #toast { position: absolute; left: 50%; top: 56px; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 8px 14px; border-radius: 20px; font-size: 13.5px; font-weight: 600; display: none; z-index: 5; max-width: calc(100% - 32px); text-align: center; }
   @media (max-width: 760px) {
     #app { flex-direction: column-reverse; }
@@ -201,6 +205,7 @@
     </arcgis-scene>
     <div id="exag">Mountains <button data-x="1" aria-pressed="false">true height</button><button data-x="2" aria-pressed="true">2×</button><button data-x="3" aria-pressed="false">3×</button></div>
     <div id="toast"></div>
+    <div id="beat" role="region" aria-labelledby="beatTitle" hidden><div class="bk" id="beatWhen"></div><h3 id="beatTitle"></h3><div id="beatText"></div><button id="beatGo" class="primary">▶ Continue</button></div>
     <div id="legend" role="group" aria-labelledby="legendTitle">
       <div class="t" id="legendTitle">Show on the map</div>
       <button class="k" data-l="rainSurf" aria-pressed="false" disabled><span class="tick"></span>Rain so far (radar)</button>
@@ -284,7 +289,7 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.12";
+const APP_VERSION = "0.13";
 const APP_DATE = "30 September 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
@@ -376,6 +381,14 @@ const CH = [
     story: `<p>At about 11 pm EDT on Thursday 26 September, Helene came ashore in Florida's Big Bend as a <b>Category 4 hurricane</b> with winds of about 140 mph (225 km/h). It was huge and moving fast: its centre reached the mountains about nine hours later.</p>
       <p>On the Florida coast, the wind pushed the sea ashore as a <b>storm surge</b> 12 to 16 feet deep near Keaton Beach and Steinhatchee, destroying most buildings there. Cedar Key and Tampa Bay had their highest water levels on record. All 14 storm-surge deaths were in Florida.</p>
       <p>Its anticlockwise spin (white streaks) now joined the moisture stream, driving even wetter air straight at the Blue Ridge, like a <b>conveyor belt</b>. On the morning of 27 September rain fell at 2 to 3 inches an hour on ground that was already soaked.</p>`,
+    beats: [
+      { t: (Date.UTC(2024, 8, 27, 3, 10) - T0) / HR, title: "Landfall in Florida",
+        text: `<p>Helene comes ashore near Perry, in Florida's Big Bend, as a Category 4 hurricane. Storm surge floods the coast.</p><p>Now watch what happens as it races north towards the mountains.</p>` },
+      { t: 68, title: "Over the Appalachians", cam: { center: [-82.7, 35.0], zoom: 7.4, tilt: 55, heading: 330 },
+        text: `<p>Helene's centre is crossing Georgia, but its worst rain is falling on the mountains of western North Carolina.</p>
+          <p>The moisture stream and Helene's own spin are both driving warm, wet air into the Blue Ridge. Forced up the slopes, it rains out at 2 to 3 inches an hour, onto ground already soaked by two days of rain before the storm.</p>
+          <p>The first flash-flood emergency for the mountains was issued at 3:39 am. Over the next few hours, rivers rise past their 1916 records and thousands of slopes give way. Steps 5 to 7 look at each of these.</p>` }
+    ],
     qs: ["Follow a white streak on the storm's east side. Where does it end up? Where does it turn blue?", "Watch the label on the storm. How quickly does it weaken after it crosses the Florida coast? Why does a hurricane weaken over land?", "The storm moved fast. Why did so much rain still fall in one place?"] },
   { key: "oro", n: "4 · 25–27 Sep", name: "Mountains squeeze out the rain", t0: 24, t1: 80, speed: "2",
     cam: CAM_MTN, show: { winds: 1, stream: 1, rainSurf: 1 },
@@ -1277,7 +1290,7 @@ $("teachBtn").onclick = () => $("teachDlg").showModal();
 $("teachClose").onclick = () => $("teachDlg").close();
 
 function goChapter(i, animate = true) {
-  clearTimeout(revealTimer); revealTimer = null; stopReading();
+  clearTimeout(revealTimer); revealTimer = null; stopReading(); hideBeat();
   chapter = i; const c = CH[i]; pause();
   document.querySelectorAll("#steps button").forEach(b => { if (+b.dataset.i === i) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current"); });
   $("stepOf").textContent = `Step ${i + 1} of ${CH.length} · ${c.n.split("·")[1].trim()}`;
@@ -1307,8 +1320,17 @@ function render(force) {
   $("tSlider").setAttribute("aria-valuetext", fmtEDT(ms) + " EDT");
   updateDesc(!playing);
 }
-$("tSlider").addEventListener("input", (e) => { pause(); setTime(+e.target.value); });
+$("tSlider").addEventListener("input", (e) => { pause(); hideBeat(); setTime(+e.target.value); });
+function hideBeat() { $("beat").hidden = true; }
+function showBeat(b) {
+  $("beatWhen").textContent = fmtEDT(tAt(b.t)) + " EDT"; $("beatTitle").textContent = b.title; $("beatText").innerHTML = b.text; $("beat").hidden = false;
+  const tmp = document.createElement("div"); tmp.innerHTML = b.text; $("liveDesc").textContent = `${b.title}. ${tmp.textContent}`;
+  if (b.cam) view.goTo(b.cam, { duration: motionOn ? 2500 : 0, easing: "in-out-cubic" }).catch(() => {});
+  $("beatGo").focus();
+}
+$("beatGo").onclick = () => { hideBeat(); play(); };
 function play() {
+  hideBeat();
   const c = CH[chapter]; if (hNow >= c.t1 - 0.01) setTime(c.t0);
   if (c.t1 <= c.t0) return;
   playing = true; $("playBtn").textContent = "❚❚ Pause"; $("playBtn").setAttribute("aria-label", "Pause");
@@ -1319,10 +1341,13 @@ let rot = 0;
 function loop(ts) {
   const dt = lastFrame ? Math.min(0.1, (ts - lastFrame) / 1000) : 0; lastFrame = ts;
   if (playing) {
-    const end = CH[chapter].t1;
+    const end = CH[chapter].t1, prev = hNow;
     hNow = Math.min(end, hNow + dt * +$("speed").value);
-    $("tSlider").value = hNow; render(false);
-    if (hNow >= end) pause();
+    const beat = (CH[chapter].beats || []).find(b => prev < b.t && hNow >= b.t);   // story pause
+    if (beat) hNow = beat.t;
+    $("tSlider").value = hNow; render(beat ? true : false);
+    if (beat) { pause(); showBeat(beat); }
+    else if (hNow >= end) pause();
   }
   if (motionOn) rot += dt * 0.3;   // storm clouds turn anticlockwise, redrawn ~15 times a second
   loop._acc = (loop._acc || 0) + (motionOn ? dt : 0);
