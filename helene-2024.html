@@ -294,7 +294,7 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.19";
+const APP_VERSION = "0.20";
 const APP_DATE = "30 September 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
@@ -683,7 +683,7 @@ function arrowPoly(lat, lon, u, v, L) {   // an arrow shape pointing along (u, v
 const HIGH = [32.5, -66.5], ULOW = [36.4, -87.2];
 // The low was "a mid-latitude trough/developing cut-off low over the Mississippi valley" by 25 Sep (NHC discussion 8); shown from the start, gone once Helene merges with it
 const PAT_FROM = Date.UTC(2024, 8, 24, 0), PAT_TO = Date.UTC(2024, 8, 27, 18);
-const highG = [ptext("H", HIGH[0], HIGH[1], 34), ptext("High pressure (Bermuda High)", HIGH[0] - 1.6, HIGH[1], 12)];
+const highG = [ptext("H", HIGH[0], HIGH[1], 34), ptext("High pressure", HIGH[0] - 1.6, HIGH[1], 12)];
 const highArrows = [];
 for (let k = 0; k < 8; k++) {   // clockwise circulation around the High (turned in drawHigh)
   const g = new Graphic({ geometry: null, symbol: { type: "simple-fill", color: [...PURPLE, 0.55], outline: { color: [0, 0, 0, 0.3], width: 0.5 } } });
@@ -706,7 +706,7 @@ function drawHigh(rot) {
 }
 const timedG = [
   ptext("L", ULOW[0], ULOW[1], 30),
-  ptext("Low pressure (in the upper air)", ULOW[0] + 1.5, ULOW[1], 12)
+  ptext("Low pressure", ULOW[0] + 1.5, ULOW[1], 12)
 ];
 patternLayer.addMany([...highG, ...timedG, ...lowArrows]);
 function drawPattern() { const ms = tAt(hNow), on = ms >= PAT_FROM && ms <= PAT_TO; timedG.forEach(g => g.visible = on); }
