@@ -124,7 +124,10 @@
   #exag { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); background: var(--panel); border: 1px solid var(--rule); border-radius: 20px; padding: 4px 6px 4px 12px; font-size: 13px; font-weight: 600; box-shadow: 0 2px 10px rgba(0,0,0,.12); display: flex; gap: 4px; align-items: center; }
   #exag button { padding: 3px 10px; border-radius: 14px; font-size: 12.5px; }
   #exag button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-  #beat { position: absolute; left: 50%; top: 58px; transform: translateX(-50%); width: min(460px, calc(100% - 32px)); background: var(--panel); color: var(--ink); border: 1px solid var(--rule); border-left: 5px solid var(--accent); border-radius: 10px; padding: 12px 14px; box-shadow: 0 6px 24px rgba(0,0,0,.3); z-index: 6; font-size: 14.5px; }
+  #beat { background: var(--chip); border-left: 5px solid var(--accent); border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; font-size: 14.5px; }
+  #beatPill { position: absolute; left: 50%; top: 58px; transform: translateX(-50%); background: var(--panel); color: var(--ink); border: 1px solid var(--rule); border-radius: 22px; padding: 4px 4px 4px 14px; box-shadow: 0 2px 10px rgba(0,0,0,.25); display: flex; gap: 10px; align-items: center; font-size: 13.5px; z-index: 6; max-width: calc(100% - 32px); }
+  #beatPill[hidden] { display: none; }
+  #beatPill button { padding: 5px 12px; border-radius: 18px; }
   #beat h3 { margin: 2px 0 6px; font-size: 17px; }
   #beat p { margin: 0 0 8px; }
   #beat .bk { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--accent); }
@@ -182,7 +185,7 @@
         <button role="tab" id="tab-qs" aria-controls="pane-qs" aria-selected="false" tabindex="-1">Questions</button>
       </div>
       <div class="panes" id="panes" tabindex="0">
-        <div role="tabpanel" id="pane-story" aria-labelledby="tab-story"><div id="story"></div><p class="hint" id="exploreHint" hidden>This step has more to explore: open the <b>Explore</b> tab.</p></div>
+        <div role="tabpanel" id="pane-story" aria-labelledby="tab-story"><div id="beat" role="region" aria-labelledby="beatTitle" hidden><div class="bk" id="beatWhen"></div><h3 id="beatTitle"></h3><div id="beatText"></div><button id="beatGo" class="primary">▶ Continue</button></div><div id="story"></div><p class="hint" id="exploreHint" hidden>This step has more to explore: open the <b>Explore</b> tab.</p></div>
         <div role="tabpanel" id="pane-map" aria-labelledby="tab-map" hidden><p id="mapDesc"></p></div>
         <div role="tabpanel" id="pane-explore" aria-labelledby="tab-explore" hidden><div id="chExtra"></div></div>
         <div role="tabpanel" id="pane-qs" aria-labelledby="tab-qs" hidden><ol class="qs" id="chQs"></ol></div>
@@ -205,7 +208,7 @@
     </arcgis-scene>
     <div id="exag">Mountains <button data-x="1" aria-pressed="false">true height</button><button data-x="2" aria-pressed="true">2×</button><button data-x="3" aria-pressed="false">3×</button></div>
     <div id="toast"></div>
-    <div id="beat" role="region" aria-labelledby="beatTitle" hidden><div class="bk" id="beatWhen"></div><h3 id="beatTitle"></h3><div id="beatText"></div><button id="beatGo" class="primary">▶ Continue</button></div>
+    <div id="beatPill" hidden><span>⏸ <b id="beatPillTitle"></b> · read about it in the panel</span><button id="beatGo2" class="primary">▶ Continue</button></div>
     <div id="legend" role="group" aria-labelledby="legendTitle">
       <div class="t" id="legendTitle">Show on the map</div>
       <button class="k" data-l="rainSurf" aria-pressed="false" disabled><span class="tick"></span>Rain so far (radar)</button>
@@ -216,6 +219,7 @@
       <button class="k" data-l="slides" aria-pressed="false" disabled><span class="tick"></span><span class="sw" style="background:#fff;border:2px solid #7a1414;border-radius:50%;width:10px;height:10px"></span>Landslides</button>
       <button class="k" data-l="records" aria-pressed="false" disabled><span class="tick"></span><span class="sw" style="background:#00b4d8;transform:rotate(45deg);width:10px;height:10px"></span>River broke its record</button>
       <button class="k" data-l="gauges" aria-pressed="false" disabled><span class="tick"></span>River gauge columns</button>
+      <button class="k" data-l="ridge" aria-pressed="false"><span class="tick"></span><span class="sw" style="background:none;border-top:3px dashed currentColor;height:0;margin-top:6px"></span>Blue Ridge escarpment</button>
       <button class="k" data-l="pattern" aria-pressed="false"><span class="tick"></span><span class="sw" style="background:#b98cff"></span>Weather pattern (approximate)</button>
       <button class="k" data-l="stream" aria-pressed="false"><span class="tick"></span><span class="sw" style="background:#96e1ff"></span>Moisture stream (sketch)</button>
       <button class="k" data-l="storm" aria-pressed="true"><span class="tick"></span>Storm and track</button>
@@ -289,15 +293,15 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.13";
+const APP_VERSION = "0.14";
 const APP_DATE = "30 September 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
   ["Moisture stream sketch", "0.1", "350 streaks along a curved band from 320 km east of Helene's centre to the Blue Ridge (35.55°N, 82.3°W), bowed 260 km east, 140 km wide narrowing to 60 km; from 25 Sep 00 UTC (fading in over 3 h), fading out as Helene passes 32.5–34°N; lifted and turned blue by the same rules as the storm winds"],
   ["Weather pattern", "0.2", "Arrows around the High turn clockwise; approximate positions from the NHC report and Climate.gov: stalled front Gulf Coast to Tennessee Valley 25–27 Sep; upper-level low over the Tennessee Valley 25–27 Sep; Bermuda High over the western Atlantic"],
   ["Storm winds sketch", "0.3", "700 moving streaks in an anticlockwise vortex around the NHC track position, 20° inflow; speed = track wind × (60 km / distance)^0.6 beyond 60 km; out to 850 km; ride 1.5 km above the ground (lifted over the mountains in the study area); blue where radar rain below is at least 0.25 in/hr"],
-  ["Rain so far", "0.1", "NOAA MRMS hourly radar totals since 24 Sep 12:00 UTC at ~390 places, spread to a 0.0125° grid by inverse-distance weighting (6 nearest within 40 km); southern Appalachians only"],
-  ["Steep ground", "0.1", "Slope from Esri World Elevation sampled every 0.0125° (about 1.2 km) at ~150 m detail, central differences across ~2.5 km"],
+  ["Rain so far", "0.2", "Fixed: the map now redraws every hour (a new image each time). NOAA MRMS hourly radar totals since 24 Sep 12:00 UTC at ~390 places, spread to a 0.0125° grid by inverse-distance weighting (6 nearest within 40 km); southern Appalachians only"],
+  ["Steep ground", "0.2", "Fixed: redraws when thresholds change. Slope from Esri World Elevation sampled every 0.0125° (about 1.2 km) at ~150 m detail, central differences across ~2.5 km"],
   ["Where it lined up", "0.1", "Grid cells split by total rain (24–28 Sep) and steepness thresholds; landslides counted per cell; density per 100 km²"],
   ["River gauges", "0.2", "USGS 15-minute stage; NWS flood levels; highest stage before 2024 from NOAA crest table; 1 ft drawn as 120 m; names as deconflicted labels"],
   ["Landslides and slope test", "0.1", "USGS preliminary inventory; aspect from Esri World Elevation at ~40 m, ±60 m differences, slopes under 8° left out"],
@@ -362,7 +366,7 @@ function landfallPhase(ms) { const d = (ms - LANDFALL.t) / HR; return d < -4 ? n
 // ---------- chapters ----------
 const CAM_MTN = { center: [-82.3, 35.5], zoom: 8.3, tilt: 60, heading: 318 };   // from the south-east, looking north-west over the Blue Ridge
 const CH = [
-  { key: "setup", n: "1 · 25 Sep", name: "The set-up", t0: 15, t1: 24, speed: "2",
+  { key: "setup", n: "1 · 25 Sep", name: "The set-up", t0: 15, t1: 24,
     cam: { center: [-76.5, 27.6], zoom: 5.3, tilt: 20, heading: 0 }, show: { pattern: 1, storm: 1, stream: 1 },
     story: `<p>Four things came together over the south-eastern United States in late September 2024:</p>
       <ol style="padding-left:20px;margin:0 0 8px"><li><b>Hurricane Helene</b>, growing over the very warm Caribbean and Gulf, full of water vapour.</li>
@@ -376,7 +380,7 @@ const CH = [
     story: `<p>On 25 and 26 September, Helene was still far out over the Gulf. But the moisture stream was already pouring onto the mountains, where the stalled front and the slopes pushed the air upward.</p>
       <p>Before Helene came ashore, 10 to 15 inches of rain had already fallen in parts of the region. Forecasters call this a <b>predecessor rain event</b>. By the time Helene arrived, the ground was soaked and rivers were already rising.</p>`,
     qs: ["Press Play. Where does the blue (rain so far) grow while Helene is still over the Gulf?", "Pause on Thursday evening and click near Asheville. How much rain had fallen before the storm arrived?", "Why would rain before the storm make the storm's own rain more dangerous?"] },
-  { key: "storm", n: "3 · 26–27 Sep", name: "Helene arrives", t0: 56, t1: 80, speed: "1",
+  { key: "storm", n: "3 · 26–27 Sep", name: "Helene arrives", t0: 56, t1: 80,
     cam: { center: [-82.9, 33.6], zoom: 6.6, tilt: 50, heading: 340 }, show: { storm: 1, winds: 1, stream: 1, rainSurf: 1 },
     story: `<p>At about 11 pm EDT on Thursday 26 September, Helene came ashore in Florida's Big Bend as a <b>Category 4 hurricane</b> with winds of about 140 mph (225 km/h). It was huge and moving fast: its centre reached the mountains about nine hours later.</p>
       <p>On the Florida coast, the wind pushed the sea ashore as a <b>storm surge</b> 12 to 16 feet deep near Keaton Beach and Steinhatchee, destroying most buildings there. Cedar Key and Tampa Bay had their highest water levels on record. All 14 storm-surge deaths were in Florida.</p>
@@ -390,11 +394,15 @@ const CH = [
           <p>The first flash-flood emergency for the mountains was issued at 3:39 am. Over the next few hours, rivers rise past their 1916 records and thousands of slopes give way. Steps 5 to 7 look at each of these.</p>` }
     ],
     qs: ["Follow a white streak on the storm's east side. Where does it end up? Where does it turn blue?", "Watch the label on the storm. How quickly does it weaken after it crosses the Florida coast? Why does a hurricane weaken over land?", "The storm moved fast. Why did so much rain still fall in one place?"] },
-  { key: "oro", n: "4 · 25–27 Sep", name: "Mountains squeeze out the rain", t0: 24, t1: 80, speed: "2",
-    cam: CAM_MTN, show: { winds: 1, stream: 1, rainSurf: 1 },
-    story: `<p>You are looking north-west over the <b>Blue Ridge</b>, a steep wall of mountains facing south-east, straight into the stream of wet air. When air is forced up a mountainside it cools. Cool air can hold less water vapour, so the vapour turns into cloud and rain. This is called <b>orographic</b> rain.</p>
-      <p>The streaks rise over the mountains and turn blue where the radar measured heavy rain. Busick, in Yancey County, measured 30.78 inches (782 mm) in three days. Across a wide area, the three-day totals had less than a 1-in-1,000 chance of happening in any year.</p>`,
-    qs: ["Where does the rain pile up fastest: on the flat land in front of the mountains, on the mountain wall, or behind it?", "Switch the mountains to 3×. Do the blue streaks rise over the high ground?", "Click a few places on the map. Which has the most rain? What is the ground like there?"] },
+  { key: "oro", n: "4 · 25–27 Sep", name: "Mountains squeeze out the rain", t0: 24, t1: 80,
+    cam: CAM_MTN, show: { winds: 1, stream: 1, rainSurf: 1, ridge: 1 },
+    story: `<p>This step replays the three days of rain, close up. You are looking north-west at the <b>Blue Ridge escarpment</b> (dashed white line): a steep wall where the mountains rise suddenly from the foothills, facing south-east, straight into the stream of wet air.</p>
+      <p>Press Play and watch the <b>blue shading on the ground</b>: it is the rain that has fallen so far, measured by radar. When the streaks of air are pushed up the escarpment they cool, the water vapour turns into cloud, and it rains (<b>orographic</b> rain). Streaks turn dark blue where the radar measured heavy rain.</p>`,
+    beats: [
+      { t: 56, title: "Before Helene arrived", text: `<p>It is Thursday evening, and Helene is still over the Gulf. Look at the blue on the ground: this is the rain that fell <i>before</i> the storm, from the moisture stream and the stalled front. The soil on the slopes is already soaked.</p>` },
+      { t: 79.9, title: "Three days of rain", text: `<p>The rain is ending. More than 18 inches fell in counties along the Blue Ridge, from Transylvania and Polk in the south to Avery and Watauga in the north. Busick, in Yancey County, measured 30.78 inches (782 mm).</p><p>Across a wide area, three-day totals this big had less than a 1-in-1,000 chance of happening in any year. Click the map to read the rain at any spot.</p>` }
+    ],
+    qs: ["Where does the blue deepen first: on the flat land in front of the escarpment, on it, or behind it?", "Switch the mountains to 3×. Does the deepest blue follow the shape of the mountains?", "Click a few places on the map. Which has the most rain? What is the ground like there?"] },
   { key: "rivers", n: "5 · 26–28 Sep", name: "Rivers rise", t0: 42, t1: 90,
     cam: { center: [-82.62, 35.62], zoom: 8.7, tilt: 62, heading: 335 }, show: { gauges: 1, rainSurf: 1 },
     story: `<p>All that rain ran off the soaked slopes into streams and rivers at once. At least 63 river gauges broke their records.</p>
@@ -419,8 +427,8 @@ const CH = [
 
 // ---------- state ----------
 let hNow = 0, playing = false, chapter = 0, lastFrame = 0, EXAG = 2;
-const vis = { pattern: false, stream: false, storm: true, winds: false, rainSurf: false, steep: false, overlap: false, slides: false, records: false, gauges: false, nws: false };
-const avail = { pattern: true, stream: true, storm: true, winds: true, rainSurf: false, steep: false, overlap: false, slides: false, records: false, gauges: false, nws: false };
+const vis = { ridge: false, pattern: false, stream: false, storm: true, winds: false, rainSurf: false, steep: false, overlap: false, slides: false, records: false, gauges: false, nws: false };
+const avail = { ridge: true, pattern: true, stream: true, storm: true, winds: true, rainSurf: false, steep: false, overlap: false, slides: false, records: false, gauges: false, nws: false };
 const setStatus = (t, p) => { $("status").textContent = t || ""; if (p != null) $("bar").style.width = Math.round(p * 100) + "%"; };
 function toast(t) { const el = $("toast"); el.textContent = t; el.style.display = "block"; clearTimeout(toast._t); toast._t = setTimeout(() => el.style.display = "none", 3500); }
 
@@ -690,6 +698,15 @@ const timedG = [
 patternLayer.addMany([...highG, ...timedG]);
 function drawPattern() { const ms = tAt(hNow), on = ms >= PAT_FROM && ms <= PAT_TO; timedG.forEach(g => g.visible = on); }
 
+// ---------- the Blue Ridge escarpment (approximate trace) ----------
+const ridgeLayer = new GraphicsLayer({ title: "Blue Ridge escarpment", elevationInfo: { mode: "on-the-ground" }, visible: false });
+map.add(ridgeLayer);
+const RIDGE = [[-83.08, 34.98], [-82.72, 35.12], [-82.36, 35.23], [-82.22, 35.44], [-82.10, 35.62], [-81.93, 35.86], [-81.70, 36.10], [-81.45, 36.30], [-81.15, 36.48]];
+ridgeLayer.addMany([
+  new Graphic({ geometry: { type: "polyline", paths: [RIDGE], spatialReference: { wkid: 4326 } }, symbol: { type: "simple-line", color: [255, 255, 255, 0.95], width: 3, style: "dash" } }),
+  new Graphic({ geometry: { type: "point", longitude: -82.05, latitude: 35.55 }, symbol: { type: "point-3d", symbolLayers: [{ type: "text", text: "Blue Ridge escarpment", size: 13, material: { color: "white" }, halo: { color: [0, 0, 0, 0.85], size: 1.5 }, font: { weight: "bold" } }], verticalOffset: { screenLength: 30 }, callout: { type: "line", size: 1, color: [255, 255, 255, 0.9] } } })
+]);
+
 // ---------- data helpers ----------
 const NOAA = "https://services2.arcgis.com/C8EMgrsFcRFL6LrL/arcgis/rest/services/";
 async function q(url, params) {
@@ -755,7 +772,10 @@ const G = (() => {
   function paint(target, fn) {
     const c = blank(), ctx = c.getContext("2d"), img = ctx.createImageData(NX, NY), px = img.data;
     for (let r = 0; r < NY; r++) { const j = rowJ[r]; for (let i = 0; i < NX; i++) { const col = fn(j * NX + i); if (!col) continue; const o = (r * NX + i) * 4; px[o] = col[0]; px[o + 1] = col[1]; px[o + 2] = col[2]; px[o + 3] = col[3]; } }
-    ctx.putImageData(img, 0, 0); target.el.image = c;
+    ctx.putImageData(img, 0, 0);
+    // a new image element each time: changing .image on an existing element does not redraw in 3D (tested with SDK 5.1.26)
+    target.el = new ImageElement({ image: c, georeference: new ExtentAndRotationGeoreference({ extent }) });
+    target.L.source.elements.removeAll(); target.L.source.elements.add(target.el);
   }
   const rain = layerOf("Rain so far (radar)", 0.9), steep = layerOf("Steep ground", 0.85), over = layerOf("Heavy rain on steep ground", 0.9);
   const BANDS = [[20, [13, 54, 107, 215]], [15, [28, 92, 171, 200]], [10, [57, 135, 229, 180]], [5, [134, 182, 239, 150]], [2, [205, 226, 251, 115]]];
@@ -990,7 +1010,7 @@ async function runSlopeTest() {
 // ---------- visibility & legend ----------
 function applyVis() {
   cloudLayer.visible = vis.storm; trackLayer.visible = vis.storm;
-  windLayer.visible = vis.winds || vis.stream; patternLayer.visible = vis.pattern; drawPattern();
+  ridgeLayer.visible = vis.ridge; windLayer.visible = vis.winds || vis.stream; patternLayer.visible = vis.pattern; drawPattern();
   G.rain.L.visible = vis.rainSurf && avail.rainSurf;
   G.steep.L.visible = vis.steep && avail.steep; G.over.L.visible = vis.overlap && avail.overlap;
   if ((vis.steep || vis.overlap) && !avail.steep) G.loadSlope();
@@ -1301,7 +1321,6 @@ function goChapter(i, animate = true) {
   if (ex) { $("tab-explore").textContent = ex + " ▸"; $("exploreHint").innerHTML = `This step has something to try: open the <b>${ex}</b> tab.`; }
   for (const k of Object.keys(vis)) vis[k] = !!c.show[k];
   view.closePopup && view.closePopup();
-  $("speed").value = c.speed || "4";
   applyVis(); setTime(c.t0); renderChapterExtra(); selectTab("story");
   view.goTo(c.cam, { duration: animate && motionOn ? 2500 : 0, easing: "in-out-cubic" }).catch(() => {});
   if (c.key === "lined") setTimeout(runReveal, animate ? 2600 : 200);
@@ -1321,14 +1340,15 @@ function render(force) {
   updateDesc(!playing);
 }
 $("tSlider").addEventListener("input", (e) => { pause(); hideBeat(); setTime(+e.target.value); });
-function hideBeat() { $("beat").hidden = true; }
+function hideBeat() { $("beat").hidden = true; $("beatPill").hidden = true; checkMore(); }
 function showBeat(b) {
-  $("beatWhen").textContent = fmtEDT(tAt(b.t)) + " EDT"; $("beatTitle").textContent = b.title; $("beatText").innerHTML = b.text; $("beat").hidden = false;
+  $("beatWhen").textContent = "Paused · " + fmtEDT(tAt(b.t)) + " EDT"; $("beatTitle").textContent = b.title; $("beatText").innerHTML = b.text; $("beat").hidden = false;
+  $("beatPillTitle").textContent = b.title; $("beatPill").hidden = false; selectTab("story");
   const tmp = document.createElement("div"); tmp.innerHTML = b.text; $("liveDesc").textContent = `${b.title}. ${tmp.textContent}`;
   if (b.cam) view.goTo(b.cam, { duration: motionOn ? 2500 : 0, easing: "in-out-cubic" }).catch(() => {});
   $("beatGo").focus();
 }
-$("beatGo").onclick = () => { hideBeat(); play(); };
+$("beatGo").onclick = $("beatGo2").onclick = () => { hideBeat(); play(); };
 function play() {
   hideBeat();
   const c = CH[chapter]; if (hNow >= c.t1 - 0.01) setTime(c.t0);
