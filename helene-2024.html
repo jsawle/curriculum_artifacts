@@ -297,7 +297,7 @@
         <li><b>Landslides.</b> Points from the USGS preliminary landslide inventory. It does not record when each slide happened, so the page shows them from the morning of 27 September, when most occurred.</li>
         <li><b>Weather pattern.</b> High pressure (the Bermuda High) and low pressure in the upper air are drawn in approximate positions from the NHC report ("a subtropical ridge centered over the western Atlantic"; "a deep-layer cut-off low centered over the Tennessee Valley"). The low was still forming on 24–25 September (NHC discussion 8: "a mid-latitude trough/developing cut-off low over the Mississippi valley") but is drawn from the start to keep the picture simple. The stalled front (NHC: "from the central Gulf Coast northward towards the Tennessee Valley and southern Appalachians from 25–27 September") is mentioned in step 1 but not drawn, to keep the map simple. None of these are traced from weather maps.</li>
         <li><b>Moisture stream.</b> The light-blue streaks sketch the narrow stream of tropical moisture that NOAA's CW3E centre describes as "AR-like poleward transport of enhanced water vapor on the east side of Helene", carried "into the Southern Appalachians on 26 and 27 September", and that Climate.gov describes as squeezed between Helene's anticlockwise spin and the Bermuda High's clockwise spin. The page draws it as a curved band from Helene's east side to the Blue Ridge from 25 September until Helene's own spin takes over; its exact width and path are a sketch. Scientists call this kind of stream an atmospheric river; "conveyor belt" here is a plain-language image, not the meteorological term "warm conveyor belt".</li>
-        <li><b>Storm and winds.</b> The storm centre follows the NHC best track. The cloud spiral and the moving white streaks are drawings of the storm's anticlockwise spin, not measured winds. The streaks ride about 1.5 km above the ground, so they rise over the mountains, and they turn blue only where the radar measured at least 0.25 in of rain in that hour, so where the "conveyor belt" drops its rain comes from real data.</li>
+        <li><b>Storm and winds.</b> The storm centre follows the NHC best track. The cloud spiral and the moving white streaks are drawings of the storm's anticlockwise spin, not measured winds. The streaks ride about 1.5 km above the ground, so they rise over the mountains, and they turn blue only where the radar measured at least 0.25 in of rain in that hour, so where the "conveyor belt" drops its rain comes from real data. In step 4 the page adds extra streaks over the Blue Ridge so the lift and the rain are easier to see close up; this does not mean the wind was stronger there.</li>
         <li><b>Terrain.</b> Mountains are drawn 2× taller by default. Use the switch at the top of the map (it appears when zoomed in) to see true height.</li>
       </ul>
     </details>
@@ -343,13 +343,13 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.31";
+const APP_VERSION = "0.32";
 const APP_DATE = "1 October 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
   ["Moisture stream sketch", "0.1", "350 streaks along a curved band from 320 km east of Helene's centre to the Blue Ridge (35.55°N, 82.3°W), bowed 260 km east, 140 km wide narrowing to 60 km; from 25 Sep 00 UTC (fading in over 3 h), fading out as Helene passes 32.5–34°N; lifted and turned blue by the same rules as the storm winds"],
   ["Weather pattern", "0.4", "No front line; low pressure aloft shown with L and larger arrows from 24 Sep; arrows around the High turn clockwise and around the low anticlockwise; approximate positions from the NHC report and Climate.gov: stalled front Gulf Coast to Tennessee Valley 25–27 Sep; upper-level low over the Tennessee Valley 25–27 Sep; Bermuda High over the western Atlantic"],
-  ["Storm winds sketch", "0.3", "700 moving streaks in an anticlockwise vortex around the NHC track position, 20° inflow; speed = track wind × (60 km / distance)^0.6 beyond 60 km; out to 850 km; ride 1.5 km above the ground (lifted over the mountains in the study area); blue where radar rain below is at least 0.25 in/hr"],
+  ["Storm winds sketch", "0.4", "Step 4 adds 900 more streaks in a box around the Blue Ridge (34.7–36.4°N, 83.5–80.9°W) that follow the same winds and rules, so the lift and rain show close up. 700 moving streaks in an anticlockwise vortex around the NHC track position, 20° inflow; speed = track wind × (60 km / distance)^0.6 beyond 60 km; out to 850 km; ride 1.5 km above the ground (lifted over the mountains in the study area); blue where radar rain below is at least 0.25 in/hr"],
   ["Rain so far", "0.4", "Read from a saved copy of the NOAA data in the repo (data/helene-rain.json, made by a GitHub Action), with the live service as a fallback. Fades out over the outer ~30 km of the study area; redraws every hour (a new image each time). NOAA MRMS hourly radar totals since 24 Sep 12:00 UTC at ~390 places, spread to a 0.0125° grid by inverse-distance weighting (6 nearest within 40 km); southern Appalachians only"],
   ["Steep ground", "0.3", "Elevation at ~300 m detail (was ~150 m, a quarter of the downloads); measured from step 3 onwards, not at start-up. Slope sampled every 0.0125° (about 1.2 km), central differences across ~2.5 km"],
   ["Where it lined up", "0.1", "Grid cells split by total rain (24–28 Sep) and steepness thresholds; landslides counted per cell; density per 100 km²"],
@@ -455,7 +455,7 @@ const CH = [
     story: `<p>It is 4 am on Friday 27 September and the rain is at its heaviest. You are looking north-west at the <b>Blue Ridge escarpment</b> (dashed white line): a steep wall where the mountains rise suddenly from the foothills, facing south-east, straight into the wet air.</p>
       <p>The blue already on the ground is the rain from the two days before Helene arrived (step 2), so the slopes are soaked. Press Play to watch the next 12 hours.</p>`,
     beats: [
-      { t: 72, title: "Lifted up the escarpment", text: `<p>Helene's centre is now in north-east Georgia, just south-west of these mountains. Its spin and the moisture stream drive wet air at the Blue Ridge.</p>
+      { t: 72, title: "Lifted up the escarpment", cam: { center: [-82.1, 35.62], zoom: 9.1, tilt: 72, heading: 325 }, text: `<p>Helene's centre is now in north-east Georgia, just south-west of these mountains. Its spin and the moisture stream drive wet air at the Blue Ridge.</p>
           <p>Watch the streaks as they reach the dashed line. Pushed up the escarpment, the air cools, its water vapour turns into cloud, and it rains: <b>orographic</b> rain. Streaks turn dark blue where the radar measured heavy rain.</p>` },
       { t: 79.9, title: "Three days of rain", text: `<p>The rain is ending. More than 18 inches fell in counties along the Blue Ridge, from Transylvania and Polk in the south to Avery and Watauga in the north. Busick, in Yancey County, measured 30.78 inches (782 mm).</p><p>Across a wide area, three-day totals this big had less than a 1-in-1,000 chance of happening in any year. Click the map to read the rain at any spot.</p>` }
     ],
@@ -661,6 +661,10 @@ const flow = (() => {
   const gDrop = new Graphic({ geometry: null, symbol: line([110, 175, 255, 0.45], 1.5) });
   windLayer.addMany([gDrop, gAir, gWet]);
   const P = Array.from({ length: NP }, () => ({ lat: 0, lon: 0, age: 1e9, life: 0, tr: [] }));
+  // step 4 only: 900 extra streaks in a box around the Blue Ridge, so the lift and the rain are easy to see close up
+  const NL = 900, BOX = { s: 34.7, n: 36.4, w: -83.5, e: -80.9 };
+  const PL = Array.from({ length: NL }, () => ({ lat: 0, lon: 0, age: 1e9, life: 0, tr: [] }));
+  function spawnLocal(p) { p.lat = BOX.s + Math.random() * (BOX.n - BOX.s); p.lon = BOX.w + Math.random() * (BOX.e - BOX.w); p.age = 0; p.life = 1.5 + Math.random() * 3; p.tr = []; }
   // the moisture stream: a curved band from Helene's east side to the Blue Ridge
   const NS = 350, TARGET = [35.55, -82.3], STREAM_FROM = Date.UTC(2024, 8, 25, 0);
   const gStream = new Graphic({ geometry: null, symbol: line([150, 225, 255, 0.85], 2.2) });
@@ -716,6 +720,17 @@ const flow = (() => {
       const w = vortexWind(s, p.lat, p.lon);
       if (w.r > RMAX + 50 || w.r < 40) { spawn(p, s); continue; }
       const km = (18 + 0.55 * w.kt) * dt;   // km moved this frame: faster near the centre
+      [p.lon, p.lat] = offset(p.lat, p.lon, w.u * km, w.v * km);
+      p.age += dt;
+      p.tr.push([p.lon, p.lat, airZ(p.lat, p.lon)]); if (p.tr.length > TRAIL) p.tr.shift();
+      if (p.tr.length < 2) continue;
+      place(p.tr, p.lat, p.lon, air);
+    }
+    for (const p of (vis.winds && CH[chapter].key === "oro" ? PL : [])) {
+      if (p.age > p.life || p.lat < BOX.s || p.lat > BOX.n || p.lon < BOX.w || p.lon > BOX.e) spawnLocal(p);
+      const w = vortexWind(s, p.lat, p.lon);
+      if (w.r < 40) { spawnLocal(p); continue; }
+      const km = (18 + 0.55 * w.kt) * dt;
       [p.lon, p.lat] = offset(p.lat, p.lon, w.u * km, w.v * km);
       p.age += dt;
       p.tr.push([p.lon, p.lat, airZ(p.lat, p.lon)]); if (p.tr.length > TRAIL) p.tr.shift();
