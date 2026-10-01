@@ -3,7 +3,7 @@ name: Helene imagery probe
 on:
   push:
     branches: [imagery-probe]
-    paths: [scripts/probe_helene_imagery.py, .github/workflows/helene-imagery-probe.yml]
+    paths: [scripts/probe_helene_imagery2.py, scripts/probe_helene_imagery.py, .github/workflows/helene-imagery-probe.yml]
 permissions:
   contents: write
 jobs:
@@ -15,7 +15,7 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
       - run: pip install pillow
-      - run: python scripts/probe_helene_imagery.py
+      - run: python scripts/probe_helene_imagery2.py
       - name: Commit the findings
         if: always()
         run: |
