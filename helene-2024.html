@@ -300,7 +300,7 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.27";
+const APP_VERSION = "0.28";
 const APP_DATE = "1 October 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
@@ -392,7 +392,7 @@ const CH = [
     story: `<p>On 25 and 26 September, Helene was still far out over the Gulf. But the moisture stream was already pouring onto the mountains, where the stalled front and the slopes pushed the air upward.</p>
       <p>Before Helene came ashore, 10 to 15 inches of rain had already fallen in parts of the region. Forecasters call this a <b>predecessor rain event</b>. By the time Helene arrived, the ground was soaked and rivers were already rising.</p>`,
     qs: ["Press Play. Where does the blue (rain so far) grow while Helene is still over the Gulf?", "Pause on Thursday evening and click near Asheville. How much rain had fallen before the storm arrived?", "Why would rain before the storm make the storm's own rain more dangerous?"] },
-  { key: "storm", n: "3 · 26–27 Sep", name: "Helene arrives", t0: 56, t1: 80,
+  { key: "storm", n: "3 · 26–27 Sep", name: "Helene arrives", t0: 56, t1: 68,
     cam: { center: [-82.9, 33.6], zoom: 6.6, tilt: 50, heading: 340 }, show: { storm: 1, winds: 1, stream: 1, rainSurf: 1 },
     story: `<p>Press Play to watch Helene come ashore in Florida late on Thursday 26 September, then race north over Georgia. It weakens over land, but it is still huge.</p>
       <p>Its anticlockwise spin (white streaks) joins the moisture stream, driving even wetter air straight at the Blue Ridge, like a <b>conveyor belt</b>. On the morning of 27 September rain falls at 2 to 3 inches an hour on ground that is already soaked.</p>`,
@@ -404,18 +404,19 @@ const CH = [
       { t: 68, title: "Over the Appalachians", cam: { center: [-82.7, 35.0], zoom: 7.4, tilt: 55, heading: 330 },
         text: `<p>Helene's centre is crossing Georgia, but its worst rain is falling on the mountains of western North Carolina.</p>
           <p>The moisture stream and Helene's own spin are both driving warm, wet air into the Blue Ridge. Forced up the slopes, it rains out at 2 to 3 inches an hour, onto ground already soaked by two days of rain before the storm.</p>
-          <p>The first flash-flood emergency for the mountains was issued at 3:39 am. Over the next few hours, rivers rise past their 1916 records and thousands of slopes give way. Steps 5 to 7 look at each of these.</p>` }
+          <p>The first flash-flood emergency for the mountains was issued at 3:39 am. Over the next few hours, rivers rise past their 1916 records and thousands of slopes give way. Next: a close-up of the mountains as the rain peaks.</p>` }
     ],
     qs: ["Follow a white streak on the storm's east side. Where does it end up? Where does it turn blue?", "Watch the label on the storm. How quickly does it weaken after it crosses the Florida coast? Why does a hurricane weaken over land?", "The storm moved fast. Why did so much rain still fall in one place?"] },
-  { key: "oro", n: "4 · 25–27 Sep", name: "Mountains squeeze out the rain", t0: 24, t1: 80,
-    cam: CAM_MTN, show: { winds: 1, stream: 1, rainSurf: 1, ridge: 1 },
-    story: `<p>This step replays the three days of rain, close up. You are looking north-west at the <b>Blue Ridge escarpment</b> (dashed white line): a steep wall where the mountains rise suddenly from the foothills, facing south-east, straight into the stream of wet air.</p>
-      <p>Press Play and watch the <b>blue shading on the ground</b>: it is the rain that has fallen so far, measured by radar. When the streaks of air are pushed up the escarpment they cool, the water vapour turns into cloud, and it rains (<b>orographic</b> rain). Streaks turn dark blue where the radar measured heavy rain.</p>`,
+  { key: "oro", n: "4 · 27 Sep", name: "Mountains squeeze out the rain", t0: 68, t1: 80,
+    cam: CAM_MTN, show: { storm: 1, winds: 1, stream: 1, rainSurf: 1, ridge: 1 },
+    story: `<p>It is 4 am on Friday 27 September and the rain is at its heaviest. You are looking north-west at the <b>Blue Ridge escarpment</b> (dashed white line): a steep wall where the mountains rise suddenly from the foothills, facing south-east, straight into the wet air.</p>
+      <p>The blue already on the ground is the rain from the two days before Helene arrived (step 2), so the slopes are soaked. Press Play to watch the next 12 hours.</p>`,
     beats: [
-      { t: 56, title: "Before Helene arrived", text: `<p>It is Thursday evening, and Helene is still over the Gulf. Look at the blue on the ground: this is the rain that fell <i>before</i> the storm, from the moisture stream and the stalled front. The soil on the slopes is already soaked.</p>` },
+      { t: 72, title: "Lifted up the escarpment", text: `<p>Helene's centre is now in north-east Georgia, just south-west of these mountains. Its spin and the moisture stream drive wet air at the Blue Ridge.</p>
+          <p>Watch the streaks as they reach the dashed line. Pushed up the escarpment, the air cools, its water vapour turns into cloud, and it rains: <b>orographic</b> rain. Streaks turn dark blue where the radar measured heavy rain.</p>` },
       { t: 79.9, title: "Three days of rain", text: `<p>The rain is ending. More than 18 inches fell in counties along the Blue Ridge, from Transylvania and Polk in the south to Avery and Watauga in the north. Busick, in Yancey County, measured 30.78 inches (782 mm).</p><p>Across a wide area, three-day totals this big had less than a 1-in-1,000 chance of happening in any year. Click the map to read the rain at any spot.</p>` }
     ],
-    qs: ["Where does the blue deepen first: on the flat land in front of the escarpment, on it, or behind it?", "Switch the mountains to 3×. Does the deepest blue follow the shape of the mountains?", "Click a few places on the map. Which has the most rain? What is the ground like there?"] },
+    qs: ["Watch the streaks as they cross the dashed line. Where do they turn dark blue: in front of the escarpment, on it, or behind it?", "Switch the mountains to 3×. Does the deepest blue follow the shape of the mountains?", "Click a few places on the map. Which has the most rain? What is the ground like there?"] },
   { key: "rivers", n: "5 · 26–28 Sep", name: "Rivers rise", t0: 42, t1: 90,
     cam: { center: [-82.62, 35.62], zoom: 8.7, tilt: 62, heading: 335 }, show: { gauges: 1, rainSurf: 1, rivers: 1 },
     story: `<p>All that rain ran off the soaked slopes into streams and rivers at once. At least 63 river gauges broke their records.</p>
