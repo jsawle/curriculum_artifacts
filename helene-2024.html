@@ -261,7 +261,7 @@
         <li>The landslide inventory is preliminary and misses slides hidden by forest or too small to see from satellites. Some points are at the damage site, not where the slide began.</li>
         <li>Step 6 compares areas, so it shows that landslides and heavy rain on steep ground happened in the same places. It cannot, by itself, prove that one caused the other; the science of why is in step 3 and step 5.</li>
         <li>River heights from different sources differ slightly: the USGS provisional peak at Asheville is 24.67 ft, the NHC report gives 24.8 ft.</li>
-        <li>Everything comes from live services. If one is down, that layer says so and the rest of the page still works.</li>
+        <li>The NOAA rainfall and river-gauge data are read from a saved copy in the site (two files, about 65 KB to download), made from the live NOAA services by an automatic script; if the copy is missing, the page reads the live services instead. The landslides, elevation and maps are live services. River gauges load only at steps 5 and 7, and the mountains are measured from step 3, to keep the start quick on school networks. Some gauges stopped reporting during the flood, so a few records (for example the French Broad at Blantyre) are not shown as broken even though the river did pass them.</li>
       </ul>
     </details>
     <details><summary>Sources</summary>
@@ -296,17 +296,17 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.23";
+const APP_VERSION = "0.24";
 const APP_DATE = "30 September 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
   ["Moisture stream sketch", "0.1", "350 streaks along a curved band from 320 km east of Helene's centre to the Blue Ridge (35.55°N, 82.3°W), bowed 260 km east, 140 km wide narrowing to 60 km; from 25 Sep 00 UTC (fading in over 3 h), fading out as Helene passes 32.5–34°N; lifted and turned blue by the same rules as the storm winds"],
   ["Weather pattern", "0.4", "No front line; low pressure aloft shown with L and larger arrows from 24 Sep; arrows around the High turn clockwise and around the low anticlockwise; approximate positions from the NHC report and Climate.gov: stalled front Gulf Coast to Tennessee Valley 25–27 Sep; upper-level low over the Tennessee Valley 25–27 Sep; Bermuda High over the western Atlantic"],
   ["Storm winds sketch", "0.3", "700 moving streaks in an anticlockwise vortex around the NHC track position, 20° inflow; speed = track wind × (60 km / distance)^0.6 beyond 60 km; out to 850 km; ride 1.5 km above the ground (lifted over the mountains in the study area); blue where radar rain below is at least 0.25 in/hr"],
-  ["Rain so far", "0.3", "Fades out over the outer ~30 km of the study area; redraws every hour (a new image each time). NOAA MRMS hourly radar totals since 24 Sep 12:00 UTC at ~390 places, spread to a 0.0125° grid by inverse-distance weighting (6 nearest within 40 km); southern Appalachians only"],
-  ["Steep ground", "0.2", "Fixed: redraws when thresholds change. Slope from Esri World Elevation sampled every 0.0125° (about 1.2 km) at ~150 m detail, central differences across ~2.5 km"],
+  ["Rain so far", "0.4", "Read from a saved copy of the NOAA data in the repo (data/helene-rain.json, made by a GitHub Action), with the live service as a fallback. Fades out over the outer ~30 km of the study area; redraws every hour (a new image each time). NOAA MRMS hourly radar totals since 24 Sep 12:00 UTC at ~390 places, spread to a 0.0125° grid by inverse-distance weighting (6 nearest within 40 km); southern Appalachians only"],
+  ["Steep ground", "0.3", "Elevation at ~300 m detail (was ~150 m, a quarter of the downloads); measured from step 3 onwards, not at start-up. Slope sampled every 0.0125° (about 1.2 km), central differences across ~2.5 km"],
   ["Where it lined up", "0.1", "Grid cells split by total rain (24–28 Sep) and steepness thresholds; landslides counted per cell; density per 100 km²"],
-  ["River gauges", "0.2", "USGS 15-minute stage; NWS flood levels; highest stage before 2024 from NOAA crest table; 1 ft drawn as 120 m; names as deconflicted labels"],
+  ["River gauges", "0.3", "Saved copy (data/helene-gauges.json) with live fallback; loaded at step 5 or 7. USGS 15-minute stage; NWS flood levels; highest stage before 2024 from NOAA crest table; 1 ft drawn as 120 m; names as deconflicted labels"],
   ["Landslides and slope test", "0.1", "USGS preliminary inventory; aspect from Esri World Elevation at ~40 m, ±60 m differences, slopes under 8° left out"],
   ["Map description", "0.2", "Landfall wording shared with the map label (about to come ashore / coming ashore within 1 h / just came ashore up to 6 h); written description of the 3D map built from the same data and settings as the map: storm position and strength, which layers are on, wettest town so far and now, gauges in major flood or over their record"],
   ["Terrain exaggeration", "0.1", "Esri World Elevation (Terrain3D) multiplied by 1, 2 or 3"]
@@ -747,7 +747,16 @@ async function loadLocations() {
   const j = await q(NOAA + "Lhhs2_location/FeatureServer/0", { where: "1=1", outFields: "id,name,state,ishape,latitude,longitude", resultRecordCount: 2000 });
   locations = new Map(j.features.map(f => [f.attributes.id, f.attributes]));
 }
+let dataSource = "live";
+const cleanName = (n) => (n || "").replace(/^(A\s+)?(City|USGS Gauge)\s*:\s*/i, "");   // NOAA names start "City: " or "USGS Gauge: "
 async function loadRain() {
+  try {   // saved copy in the repo (made by .github/workflows/helene-data.yml): one small cached file
+    const r = await fetch("data/helene-rain.json"); if (!r.ok) throw new Error(r.status);
+    const j = await r.json(); if (j.t0 !== T0 || j.hours !== HOURS) throw new Error("snapshot does not match this page");
+    rainPts = j.places.map(p => ({ id: p.id, name: cleanName(p.name), state: p.state, kind: p.kind, lat: p.lat, lon: p.lon, r: Float32Array.from(p.r, v => v / 100), h: Float32Array.from(p.h, v => v / 100) }));
+    dataSource = "saved"; return rainPts.length;
+  } catch (e) { console.warn("Rain snapshot unavailable, loading live from NOAA", e); }
+  if (!locations) await loadLocations();
   const rows = await queryPaged(NOAA + "Lhhs2_mrms_data/FeatureServer/0",
     { where: `datetime >= TIMESTAMP '${sqlTime(T0 - HR)}' AND datetime <= TIMESTAMP '${sqlTime(tAt(HOURS))}'`, outFields: "id,datetime,F1hour_inch,cum_inch" },
     1000, p => setStatus(`Loading radar rainfall… ${Math.round(p * 100)}%`, 0.1 + 0.5 * p));
@@ -763,7 +772,7 @@ async function loadRain() {
     let last = null; for (let k = 0; k < s.cum.length; k++) { if (s.cum[k] == null) s.cum[k] = last; else last = s.cum[k]; }
     const base = s.cum[1] ?? s.cum.find(v => v != null) ?? 0, r = new Float32Array(HOURS + 1), h = new Float32Array(HOURS + 1);
     for (let i = 0; i <= HOURS; i++) { r[i] = Math.max(0, (s.cum[i + 1] ?? base) - base); h[i] = s.rate[i + 1] || 0; }
-    rainPts.push({ id, name: loc.name, state: loc.state, kind: loc.ishape, lat: loc.latitude, lon: loc.longitude, r, h });
+    rainPts.push({ id, name: cleanName(loc.name), state: loc.state, kind: loc.ishape, lat: loc.latitude, lon: loc.longitude, r, h });
   }
   return rainPts.length;
 }
@@ -833,7 +842,7 @@ const G = (() => {
       const z = new Float32Array(N), CH = 8000;
       for (let a = 0; a < N; a += CH) {
         const pts = []; for (let c = a; c < Math.min(N, a + CH); c++) pts.push([cellLon(c), cellLat(c)]);
-        const r = await trueElev.queryElevation(mpoint(pts), { demResolution: 150 });
+        const r = await trueElev.queryElevation(mpoint(pts), { demResolution: 300 });
         r.geometry.points.forEach((p, k) => z[a + k] = p[2]);
         setStatus(`Measuring the mountains… ${Math.round(100 * Math.min(1, (a + CH) / N))}%`, Math.min(1, (a + CH) / N));
       }
@@ -889,25 +898,47 @@ const gauges = new Map();
 let selGauge = "03451500", gaugeLabels = null, recordLayer = null;
 const gaugeLayer = new GraphicsLayer({ title: "River gauges", elevationInfo: { mode: "relative-to-ground" }, visible: false });
 map.add(gaugeLayer);
-async function loadGauges() {
+// one series per gauge: {id, name, lat, lon, t: [ms], s: [ft], minor, moderate, major, rec, recYear}
+async function gaugeSeries() {
+  try {
+    const r = await fetch("data/helene-gauges.json"); if (!r.ok) throw new Error(r.status);
+    const j = await r.json(); if (j.t0 !== T0) throw new Error("snapshot does not match this page");
+    return j.gauges.map(g => ({ ...g, name: cleanName(g.name), t: g.t.map(m => j.t0 + m * 60000) }));
+  } catch (e) { console.warn("Gauge snapshot unavailable, loading live from NOAA", e); }
+  if (!locations) await loadLocations();
   const ids = GAUGES.map(g => `'${g[0]}'`).join(",");
   const [obs, hist] = await Promise.all([
     queryPaged(NOAA + "Lhhs2_gauge_data/FeatureServer/0", { where: `id IN (${ids}) AND datetime >= TIMESTAMP '${sqlTime(T0 - 6 * HR)}' AND datetime <= TIMESTAMP '${sqlTime(tAt(HOURS) + 6 * HR)}'`, outFields: "id,datetime,stage,minor,moderate,major" }, 1000,
       p => setStatus(`Loading river gauges… ${Math.round(p * 100)}%`, 0.6 + 0.3 * p)),
     queryPaged(NOAA + "Lhhs2_historic_data/FeatureServer/0", { where: `id IN (${ids})`, outFields: "id,datetime,stage" })
   ]);
-  const labelFeats = [], recFeats = [];
-  for (const [id, short] of GAUGES) {
+  const out = [];
+  for (const [id] of GAUGES) {
     const loc = locations.get(id); if (!loc) continue;
     const rows = obs.filter(r => r.id === id && r.stage != null).sort((a, b) => a.datetime - b.datetime);
     if (!rows.length) continue;
     const thr = (k) => { const r = obs.find(o => o.id === id && o[k] != null); return r ? r[k] : null; };
     const before = hist.filter(h => h.id === id && h.datetime < Date.UTC(2024, 8, 1) && h.stage != null).sort((a, b) => b.stage - a.stage)[0];
-    const peak = rows.reduce((m, r) => r.stage > m.stage ? r : m, rows[0]);
-    const g = { id, short, name: loc.name, lon: loc.longitude, lat: loc.latitude, t: rows.map(r => r.datetime), s: rows.map(r => r.stage),
-      minor: thr("minor"), moderate: thr("moderate"), major: thr("major"),
-      rec: before ? before.stage : null, recYear: before ? new Date(before.datetime).getUTCFullYear() : null, peak, recordAt: null, oid: labelFeats.length + 1, shownRec: 0 };
-    if (g.rec != null) { const k = rows.findIndex(r => r.stage > g.rec); if (k >= 0) g.recordAt = rows[k].datetime; }
+    out.push({ id, name: cleanName(loc.name), lat: loc.latitude, lon: loc.longitude, t: rows.map(r => r.datetime), s: rows.map(r => r.stage),
+      minor: thr("minor"), moderate: thr("moderate"), major: thr("major"), rec: before ? before.stage : null, recYear: before ? new Date(before.datetime).getUTCFullYear() : null });
+  }
+  return out;
+}
+let gaugesPromise = null;
+function ensureGauges() {   // river gauges are only fetched when a step needs them
+  if (!gaugesPromise) { setStatus("Loading river gauges…", 0.5);
+    gaugesPromise = loadGauges().then(() => { setStatus(`River gauges loaded (${gauges.size}).`, 1); if (CH[chapter].key === "lined") renderStats(); }).catch(e => { console.error(e); setStatus("River gauges could not be loaded (" + e.message + ").", 1); gaugesPromise = null; }); }
+  return gaugesPromise;
+}
+async function loadGauges() {
+  const series = await gaugeSeries();
+  const labelFeats = [], recFeats = [];
+  for (const [id, short] of GAUGES) {
+    const sr = series.find(x => x.id === id); if (!sr || !sr.t.length) continue;
+    let pk = 0; sr.s.forEach((v, k) => { if (v > sr.s[pk]) pk = k; });
+    const g = { id, short, name: sr.name, lon: sr.lon, lat: sr.lat, t: sr.t, s: sr.s, minor: sr.minor, moderate: sr.moderate, major: sr.major,
+      rec: sr.rec, recYear: sr.recYear, peak: { stage: sr.s[pk], datetime: sr.t[pk] }, recordAt: null, oid: labelFeats.length + 1, shownRec: 0 };
+    if (g.rec != null) { const k = g.s.findIndex(v => v > g.rec); if (k >= 0) g.recordAt = g.t[k]; }
     g.water = new Graphic({ geometry: { type: "point", longitude: g.lon, latitude: g.lat, z: 0 }, attributes: { gauge: id } });
     const ringSym = (color, w) => ({ type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "cylinder" }, width: w, depth: w, height: 70, anchor: "center", material: { color } }] });
     const extras = [];
@@ -1052,10 +1083,10 @@ function filterLegend() {
 $("allLayers").onclick = () => { allLayers = !allLayers; filterLegend(); };
 function syncLegend() {
   filterLegend();
-  document.querySelectorAll("#legend button.k").forEach(b => { const k = b.dataset.l; b.disabled = !avail[k] && !(k === "steep" || k === "overlap"); b.setAttribute("aria-pressed", String(!!vis[k] && !!avail[k])); });
+  document.querySelectorAll("#legend button.k").forEach(b => { const k = b.dataset.l; b.disabled = !avail[k] && !(k === "steep" || k === "overlap" || k === "gauges" || k === "records"); b.setAttribute("aria-pressed", String(!!vis[k] && !!avail[k])); });
   document.querySelectorAll(".chips button[data-l]").forEach(b => b.setAttribute("aria-pressed", String(!!vis[b.dataset.l])));
 }
-document.querySelectorAll("#legend button.k").forEach(b => b.addEventListener("click", () => { const k = b.dataset.l; vis[k] = !vis[k]; applyVis(); }));
+document.querySelectorAll("#legend button.k").forEach(b => b.addEventListener("click", () => { const k = b.dataset.l; vis[k] = !vis[k]; if ((k === "gauges" || k === "records") && vis[k]) ensureGauges(); applyVis(); }));
 document.querySelectorAll("#exag button").forEach(b => b.addEventListener("click", () => setExag(+b.dataset.x)));
 
 // click anywhere in the study area: rain there so far
@@ -1344,6 +1375,8 @@ function goChapter(i, animate = true, autoplay = false) {
   const ex = EXPLORE[c.key]; $("tab-explore").hidden = !ex; $("exploreHint").hidden = !ex;
   if (ex) { $("tab-explore").textContent = ex + " ▸"; $("exploreHint").innerHTML = `This step has something to try: open the <b>${ex}</b> tab.`; }
   for (const k of Object.keys(vis)) vis[k] = !!c.show[k];
+  if (c.key === "rivers" || c.key === "lined") ensureGauges();
+  if (c.key === "storm" || c.key === "oro" || c.key === "lined") G.loadSlope();   // streaks lift over the mountains; step 7 needs steepness
   view.closePopup && view.closePopup();
   applyVis(); setTime(c.t0); renderChapterExtra(); selectTab("story");
   const token = goChapter.token = (goChapter.token || 0) + 1;
@@ -1411,16 +1444,13 @@ requestAnimationFrame(loop);
 setExag(2);
 setMotion(motionOn);
 goChapter(0, false);
-setStatus("Loading places…", 0.05);
+setStatus("Loading radar rainfall…", 0.1);
 try {
-  await loadLocations();
   const n = await loadRain();
   G.setSources(rainPts); render(true);
-  setStatus(`Radar rainfall loaded for ${n} places.`, 0.6);
-} catch (e) { console.error(e); setStatus("Radar rainfall could not be loaded (" + e.message + "). The rest of the page still works.", 0.6); }
-try { await loadGauges(); setStatus(`Ready. ${gauges.size} river gauges loaded.`, 1); }
-catch (e) { console.error(e); setStatus("River gauges could not be loaded (" + e.message + ").", 1); }
-G.loadSlope();   // measure the mountains in the background for step 6
+  setStatus(`Ready. Radar rainfall for ${n} places (${dataSource === "saved" ? "saved copy" : "live from NOAA"}).`, 1);
+} catch (e) { console.error(e); setStatus("Radar rainfall could not be loaded (" + e.message + "). The rest of the page still works.", 1); }
+// River gauges load at step 5 or 7, and the mountains are measured from step 3 (see goChapter), not at start-up.
 </script>
 </body>
 </html>
