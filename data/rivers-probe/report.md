@@ -487,3 +487,8 @@ Hourly files read: 109 of 109
 | 03491544 | CROCKETT CREEK BELOW ROGERSVILLE, TN | 229 | 229.0 () | 146 | 0.64 |
 | 03535200 | BEAVER C NR POWELL TENN | 160 |  | 160 | 1.00 |
 | 03535618 | Conner Ck at E Gallaher Ferry Rd nr Farragut TN | 28 |  | 53 | 1.88 |
+
+## Note added after review
+- The Hydroseq direction check above is invalid: NHDPlus V2 Hydroseq values are only unique within each processing unit, and this box spans three (South Atlantic, Ohio, Tennessee). A geometric check replaces it: 4,845 of 4,894 reach ends meet the start of another reach, and the French Broad at Asheville is digitised south to north with elevation falling. Flow direction = digitised direction.
+- NWM v3 analysis matches gauges where they reported in real time (data assimilation) but is 25-55% of measured flow at the hardest-hit mountain gauges (Asheville 0.55, Swannanoa 0.44, Nolichucky near Lowland 0.47, Catawba at Millersville 0.25) and is 12x too high at a few small creeks. Not suitable for the app.
+- USGS 15-minute data is now approved (A); 41 series carry estimated (e) values, mostly at the peaks, from indirect measurements. Peak-file codes: 2 = estimate, 5/6 = affected by regulation, 9 = hurricane, R = revised.
