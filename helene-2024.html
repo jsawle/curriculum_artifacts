@@ -101,7 +101,7 @@
   .key i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
   .tip { position: fixed; pointer-events: none; background: var(--ink); color: var(--bg); font-size: 12.5px; padding: 5px 8px; border-radius: 6px; display: none; z-index: 20; white-space: nowrap; }
   /* map overlays */
-  #timebar { position: absolute; left: 12px; right: 12px; bottom: 12px; background: var(--panel); border: 1px solid var(--rule); border-radius: 12px; padding: 8px 12px; box-shadow: 0 2px 12px rgba(0,0,0,.18); display: grid; grid-template-columns: auto 1fr auto auto; gap: 4px 12px; align-items: center; }
+  #timebar { position: absolute; left: 12px; right: 12px; bottom: 30px; background: var(--panel); border: 1px solid var(--rule); border-radius: 12px; padding: 8px 12px; box-shadow: 0 2px 12px rgba(0,0,0,.18); display: grid; grid-template-columns: auto 1fr auto auto; gap: 4px 12px; align-items: center; }
   #motionBtn { padding: 5px 10px; font-size: 13px; }
   .linkbtn { background: none; border: 0; padding: 0 0 0 8px; color: var(--accent); text-decoration: underline; font-size: 12px; font-weight: 600; text-transform: none; letter-spacing: 0; }
   .titlerow { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
@@ -112,7 +112,7 @@
   #tLabel { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
   #tSub { grid-column: 2 / 5; font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; }
   #speed { width: auto; padding: 4px 6px; font-size: 13px; }
-  #legend { position: absolute; right: 12px; bottom: 96px; background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 10px 12px; font-size: 12.5px; box-shadow: 0 2px 10px rgba(0,0,0,.15); max-width: 250px; }
+  #legend { position: absolute; right: 12px; bottom: 114px; background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 10px 12px; font-size: 12.5px; box-shadow: 0 2px 10px rgba(0,0,0,.15); max-width: 250px; }
   #legend .t { font-weight: 700; margin-bottom: 4px; }
   #legend button.k { display: flex; align-items: center; gap: 8px; width: 100%; border: 0; background: none; font: inherit; font-weight: 500; color: inherit; text-align: left; padding: 3px 4px; margin: 1px -4px; border-radius: 6px; }
   #legend button.k:hover:not(:disabled) { background: rgba(127,127,127,.12); }
@@ -144,7 +144,7 @@
     #panel { width: 100%; height: 48%; border-right: 0; border-top: 1px solid var(--rule); padding: 14px 16px 24px; }
     #mapwrap { height: 52%; flex: none; }
     #legend { display: none; }
-    #timebar { left: 8px; right: 8px; bottom: 8px; padding: 6px 8px; gap: 2px 8px; }
+    #timebar { left: 8px; right: 8px; bottom: 26px; padding: 6px 8px; gap: 2px 8px; }
     #tSub span.far { display: none; }
     #exag { font-size: 11.5px; top: 8px; }
   }
@@ -296,7 +296,7 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.22";
+const APP_VERSION = "0.23";
 const APP_DATE = "30 September 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
@@ -453,7 +453,7 @@ await sceneEl.viewOnReady();
 const view = sceneEl.view, map = sceneEl.map;
 view.environment.atmosphereEnabled = true;
 view.popupEnabled = true;
-function setPadding() { const wide = innerWidth > 760; view.padding = { bottom: wide ? 110 : 90, right: wide ? 330 : 0, top: 50 }; }
+function setPadding() { const wide = innerWidth > 760; view.padding = { bottom: wide ? 128 : 108, right: wide ? 330 : 0, top: 50 }; }
 setPadding(); addEventListener("resize", setPadding);
 
 // Terrain with adjustable exaggeration
@@ -676,8 +676,9 @@ map.add(patternLayer);
 const PURPLE = [185, 140, 255];
 const ptext = (text, lat, lon, size = 13) => new Graphic({ geometry: { type: "point", longitude: lon, latitude: lat },
   symbol: { type: "point-3d", symbolLayers: [{ type: "text", text, size, material: { color: "white" }, halo: { color: [0, 0, 0, 0.85], size: 1.5 }, font: { weight: "bold" } }] } });
-const ptextAbove = (text, lat, lon, size, px) => new Graphic({ geometry: { type: "point", longitude: lon, latitude: lat },
-  symbol: { type: "point-3d", symbolLayers: [{ type: "text", text, size, material: { color: "white" }, halo: { color: [0, 0, 0, 0.85], size: 1.5 }, font: { weight: "bold" } }], verticalOffset: { screenLength: px } } });
+// letter sits just above the point and its label hangs just below it, so they never overlap at any zoom (checked in SDK 5.1.26)
+const ptextA = (text, lat, lon, size, va) => new Graphic({ geometry: { type: "point", longitude: lon, latitude: lat },
+  symbol: { type: "point-3d", symbolLayers: [{ type: "text", text, size, verticalAlignment: va, material: { color: "white" }, halo: { color: [0, 0, 0, 0.85], size: 1.5 }, font: { weight: "bold" } }] } });
 function arrowPoly(lat, lon, u, v, L) {   // an arrow shape pointing along (u, v); sizes in km
   const w = L * 0.09, hw = L * 0.24, hl = L * 0.36, px = -v, py = u;
   const pt = (along, side) => offset(lat, lon, u * along + px * side, v * along + py * side);
@@ -687,7 +688,7 @@ function arrowPoly(lat, lon, u, v, L) {   // an arrow shape pointing along (u, v
 const HIGH = [32.5, -66.5], ULOW = [36.4, -87.2];
 // The low was "a mid-latitude trough/developing cut-off low over the Mississippi valley" by 25 Sep (NHC discussion 8); shown from the start, gone once Helene merges with it
 const PAT_FROM = Date.UTC(2024, 8, 24, 0), PAT_TO = Date.UTC(2024, 8, 27, 18);
-const highG = [ptext("H", HIGH[0], HIGH[1], 34), ptext("High pressure", HIGH[0] - 1.6, HIGH[1], 12)];
+const highG = [ptextA("H", HIGH[0], HIGH[1], 34, "bottom"), ptextA("High pressure", HIGH[0], HIGH[1], 12, "top")];
 const highArrows = [];
 for (let k = 0; k < 8; k++) {   // clockwise circulation around the High (turned in drawHigh)
   const g = new Graphic({ geometry: null, symbol: { type: "simple-fill", color: [...PURPLE, 0.55], outline: { color: [0, 0, 0, 0.3], width: 0.5 } } });
@@ -709,8 +710,8 @@ function drawHigh(rot) {
   });
 }
 const timedG = [
-  ptext("L", ULOW[0], ULOW[1], 30),
-  ptextAbove("Low pressure", ULOW[0], ULOW[1], 12, 34)
+  ptextA("L", ULOW[0], ULOW[1], 30, "bottom"),
+  ptextA("Low pressure", ULOW[0], ULOW[1], 12, "top")
 ];
 patternLayer.addMany([...highG, ...timedG, ...lowArrows]);
 function drawPattern() { const ms = tAt(hNow), on = ms >= PAT_FROM && ms <= PAT_TO; timedG.forEach(g => g.visible = on); }
