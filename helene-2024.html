@@ -224,12 +224,12 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.8";
+const APP_VERSION = "0.9";
 const APP_DATE = "30 September 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
   ["Moisture stream sketch", "0.1", "350 streaks along a curved band from 320 km east of Helene's centre to the Blue Ridge (35.55°N, 82.3°W), bowed 260 km east, 140 km wide narrowing to 60 km; from 25 Sep 00 UTC (fading in over 3 h), fading out as Helene passes 32.5–34°N; lifted and turned blue by the same rules as the storm winds"],
-  ["Weather pattern", "0.1", "Approximate positions from the NHC report and Climate.gov: stalled front Gulf Coast to Tennessee Valley 25–27 Sep; upper-level low over the Tennessee Valley 25–27 Sep; Bermuda High over the western Atlantic"],
+  ["Weather pattern", "0.2", "Arrows around the High turn clockwise; approximate positions from the NHC report and Climate.gov: stalled front Gulf Coast to Tennessee Valley 25–27 Sep; upper-level low over the Tennessee Valley 25–27 Sep; Bermuda High over the western Atlantic"],
   ["Storm winds sketch", "0.3", "700 moving streaks in an anticlockwise vortex around the NHC track position, 20° inflow; speed = track wind × (60 km / distance)^0.6 beyond 60 km; out to 850 km; ride 1.5 km above the ground (lifted over the mountains in the study area); blue where radar rain below is at least 0.25 in/hr"],
   ["Rain so far", "0.1", "NOAA MRMS hourly radar totals since 24 Sep 12:00 UTC at ~390 places, spread to a 0.0125° grid by inverse-distance weighting (6 nearest within 40 km); southern Appalachians only"],
   ["Steep ground", "0.1", "Slope from Esri World Elevation sampled every 0.0125° (about 1.2 km) at ~150 m detail, central differences across ~2.5 km"],
@@ -295,7 +295,7 @@ const knMph = (k) => Math.round(k * 1.15078 / 5) * 5;
 const CAM_MTN = { center: [-82.3, 35.5], zoom: 8.3, tilt: 60, heading: 318 };   // from the south-east, looking north-west over the Blue Ridge
 const CH = [
   { key: "setup", n: "1 · 24–25 Sep", name: "The set-up", t0: 15, t1: 40,
-    cam: { center: [-76.5, 28.8], zoom: 5.3, tilt: 20, heading: 0 }, show: { pattern: 1, storm: 1, stream: 1 },
+    cam: { center: [-76.5, 27.6], zoom: 5.3, tilt: 20, heading: 0 }, show: { pattern: 1, storm: 1, stream: 1 },
     story: `<p>Four things came together over the south-eastern United States in late September 2024:</p>
       <ol style="padding-left:20px;margin:0 0 8px"><li><b>Hurricane Helene</b>, growing over the very warm Caribbean and Gulf, full of water vapour.</li>
       <li>The <b>Bermuda High</b>, a huge area of high pressure over the Atlantic, turning clockwise.</li>
@@ -408,8 +408,7 @@ const PLACES = [
   ["Knoxville", 35.960, -83.921, "city"], ["Charlotte", 35.227, -80.843, "city"], ["Atlanta", 33.749, -84.388, "city"],
   ["Tampa", 27.951, -82.457, "city"], ["Tallahassee", 30.438, -84.281, "city"],
   ["FLORIDA", 29.2, -82.3, "region"], ["GEORGIA", 32.6, -83.5, "region"], ["SOUTH CAROLINA", 33.9, -80.9, "region"],
-  ["NORTH CAROLINA", 35.5, -79.3, "region"], ["TENNESSEE", 35.85, -86.4, "region"], ["ALABAMA", 32.8, -86.8, "region"],
-  ["VIRGINIA", 37.4, -78.8, "region"], ["Gulf", 26.0, -86.0, "region"], ["Atlantic Ocean", 30.5, -77.8, "region"], ["CUBA", 22.0, -79.6, "region"]
+  ["NORTH CAROLINA", 35.5, -79.3, "region"], ["Gulf", 26.0, -86.0, "region"], ["Atlantic Ocean", 30.5, -77.8, "region"], ["CUBA", 22.0, -79.6, "region"]
 ];
 const labelSym = (size, color, weight = "normal") => ({ type: "label-3d", symbolLayers: [{ type: "text", material: { color }, halo: { color: [0, 0, 0, 0.8], size: 1.3 }, size, font: { weight } }] });
 const placeLayer = new FeatureLayer({
@@ -420,7 +419,7 @@ const placeLayer = new FeatureLayer({
     uniqueValueInfos: [{ value: "town", symbol: { type: "point-3d", symbolLayers: [{ type: "icon", size: 4, resource: { primitive: "circle" }, material: { color: "white" }, outline: { color: [0, 0, 0, 0.6], size: 0.6 } }] } }] },
   labelingInfo: [
     { where: "kind = 'town'", labelExpressionInfo: { expression: "$feature.name" }, labelPlacement: "above-center", symbol: labelSym(11, "white"), minScale: 3000000 },
-    { where: "kind = 'city'", labelExpressionInfo: { expression: "$feature.name" }, labelPlacement: "above-center", symbol: labelSym(11, "white") },
+    { where: "kind = 'city'", labelExpressionInfo: { expression: "$feature.name" }, labelPlacement: "above-center", symbol: labelSym(11, "white"), minScale: 8000000 },
     { where: "kind = 'region'", labelExpressionInfo: { expression: "$feature.name" }, labelPlacement: "center-center", symbol: labelSym(12, [255, 255, 255, 0.8], "bold"), maxScale: 3000000 }
   ]
 });
@@ -447,10 +446,11 @@ map.addMany([trackLayer, cloudLayer]);
 trackLayer.add(new Graphic({ geometry: { type: "polyline", paths: [TRACK.map(p => [p.lon, p.lat])], spatialReference: { wkid: 4326 } }, symbol: { type: "simple-line", color: [255, 255, 255, 0.45], width: 1.5, style: "dash" } }));
 const pastTrack = new Graphic({ geometry: null, symbol: { type: "simple-line", color: [255, 214, 90, 0.95], width: 3 } });
 trackLayer.add(pastTrack);
-trackLayer.add(new Graphic({ geometry: { type: "point", longitude: LANDFALL.lon, latitude: LANDFALL.lat },
+const landfallG = new Graphic({ geometry: { type: "point", longitude: LANDFALL.lon, latitude: LANDFALL.lat },
   symbol: { type: "point-3d", symbolLayers: [{ type: "icon", size: 9, resource: { primitive: "circle" }, material: { color: [255, 214, 90] }, outline: { color: "white", size: 1.2 } },
     { type: "text", text: "Landfall · Category 4", size: 11, material: { color: "white" }, halo: { color: [0, 0, 0, 0.8], size: 1.4 }, verticalAlignment: "bottom" }],
-    verticalOffset: { screenLength: 22 }, callout: { type: "line", size: 1, color: [255, 255, 255, 0.9] } } }));
+    verticalOffset: { screenLength: 22 }, callout: { type: "line", size: 1, color: [255, 255, 255, 0.9] } } });
+trackLayer.add(landfallG);
 const cloudGraphics = [];
 for (let i = 0; i < 6; i++) { const g = new Graphic({ geometry: null }); cloudGraphics.push(g); cloudLayer.add(g); }
 const stormLabel = new Graphic({ geometry: null, symbol: null }); cloudLayer.add(stormLabel);
@@ -460,7 +460,7 @@ function drawStorm(ms, rot) {
   const on = vis.storm && !!s;
   cloudLayer.visible = on;
   if (drawStorm._ms !== ms) { drawStorm._ms = ms; pastTrack.geometry = { type: "polyline", paths: [TRACK.filter(p => p.t <= ms).map(p => [p.lon, p.lat]).concat(s ? [[s.lon, s.lat]] : [])], spatialReference: { wkid: 4326 } }; }
-  trackLayer.visible = vis.storm;
+  trackLayer.visible = vis.storm; landfallG.visible = ms >= LANDFALL.t;
   $("tStorm").textContent = s ? `Helene: ${category(s.kt, s.stage)}, ${knMph(s.kt)} mph winds` : (ms < TRACK[0].t ? "" : "Helene has faded away");
   if (!on) return;
   const strength = s.stage === "low" ? 0.35 : s.stage === "disturbance" ? 0.4 : s.kt >= 64 ? 1 : 0.7;
@@ -591,17 +591,24 @@ function arrowPoly(lat, lon, u, v, L) {   // an arrow shape pointing along (u, v
 const HIGH = [32.5, -66.5], ULOW = [36.4, -87.2], FRONT = [[-88.0, 30.4], [-87.2, 32.5], [-86.3, 34.3], [-85.2, 35.6], [-84.2, 36.6]];
 const PAT_FROM = Date.UTC(2024, 8, 25, 0), PAT_TO = Date.UTC(2024, 8, 27, 18);
 const highG = [ptext("H", HIGH[0], HIGH[1], 34), ptext("Bermuda High", HIGH[0] - 1.6, HIGH[1], 12)];
-for (let k = 0; k < 8; k++) {   // clockwise circulation around the High
-  const a = k * Math.PI / 4, [lon, lat] = offset(HIGH[0], HIGH[1], 650 * Math.cos(a), 650 * Math.sin(a));
-  highG.push(new Graphic({ geometry: { type: "polygon", rings: [arrowPoly(lat, lon, Math.sin(a), -Math.cos(a), 260)], spatialReference: { wkid: 4326 } },
-    symbol: { type: "simple-fill", color: [...PURPLE, 0.55], outline: { color: [0, 0, 0, 0.3], width: 0.5 } } }));
+const highArrows = [];
+for (let k = 0; k < 8; k++) {   // clockwise circulation around the High (turned in drawHigh)
+  const g = new Graphic({ geometry: null, symbol: { type: "simple-fill", color: [...PURPLE, 0.55], outline: { color: [0, 0, 0, 0.3], width: 0.5 } } });
+  highArrows.push(g); highG.push(g);
+}
+function drawHigh(rot) {
+  if (!patternLayer.visible) return;
+  highArrows.forEach((g, k) => {
+    const a = k * Math.PI / 4 - rot * 0.6, [lon, lat] = offset(HIGH[0], HIGH[1], 650 * Math.cos(a), 650 * Math.sin(a));   // decreasing angle = clockwise
+    g.geometry = { type: "polygon", rings: [arrowPoly(lat, lon, Math.sin(a), -Math.cos(a), 260)], spatialReference: { wkid: 4326 } };
+  });
 }
 const ring = []; for (let k = 0; k <= 48; k++) { const a = k * Math.PI / 24; ring.push(offset(ULOW[0], ULOW[1], 230 * Math.cos(a), 230 * Math.sin(a))); }
 const timedG = [
   new Graphic({ geometry: { type: "polyline", paths: [FRONT], spatialReference: { wkid: 4326 } }, symbol: { type: "simple-line", color: [...PURPLE, 0.95], width: 4, style: "long-dash" } }),
   ptext("Stalled front", 33.3, -87.6, 12),
   new Graphic({ geometry: { type: "polyline", paths: [ring], spatialReference: { wkid: 4326 } }, symbol: { type: "simple-line", color: [...PURPLE, 0.85], width: 2.5, style: "dash" } }),
-  ptext("Upper-level low\n(dip in the jet stream)", ULOW[0], ULOW[1], 12)
+  ptext("Upper-level low", ULOW[0] + 2.4, ULOW[1], 12)
 ];
 patternLayer.addMany([...highG, ...timedG]);
 function drawPattern() { const ms = tAt(hNow), on = ms >= PAT_FROM && ms <= PAT_TO; timedG.forEach(g => g.visible = on); }
@@ -1135,7 +1142,7 @@ function loop(ts) {
   }
   rot += dt * 0.3;   // storm clouds turn anticlockwise, redrawn ~15 times a second
   loop._acc = (loop._acc || 0) + dt;
-  if (!loop._n || ts - loop._n > 50) { loop._n = ts; drawStorm(tAt(hNow), rot); flow.frame(Math.min(0.1, loop._acc)); loop._acc = 0; }
+  if (!loop._n || ts - loop._n > 50) { loop._n = ts; drawStorm(tAt(hNow), rot); drawHigh(rot); flow.frame(Math.min(0.1, loop._acc)); loop._acc = 0; }
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
