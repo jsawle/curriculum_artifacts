@@ -1,0 +1,3990 @@
+{
+ "noaa": {
+  "Chimney Rock": {
+   "20241005a-rgb": 0.0,
+   "20241005b-rgb": 0.0,
+   "20241006a-rgb": 0.0,
+   "20241006b-rgb": 0.0,
+   "20241007a-rgb": 0,
+   "20241008a-rgb": 0.0
+  },
+  "Swannanoa": {
+   "20241005a-rgb": 0,
+   "20241005b-rgb": 0.0,
+   "20241006a-rgb": 0.0,
+   "20241006b-rgb": 0.0,
+   "20241007a-rgb": 0.0,
+   "20241008a-rgb": 0.0
+  },
+  "Biltmore Village": {
+   "20241005a-rgb": 0.0,
+   "20241005b-rgb": 0,
+   "20241006a-rgb": 0,
+   "20241006b-rgb": 0.0,
+   "20241007a-rgb": 0.0,
+   "20241008a-rgb": 0.0
+  },
+  "Marshall": {
+   "20241005a-rgb": 0.0,
+   "20241005b-rgb": 0.0,
+   "20241006a-rgb": 0.0,
+   "20241006b-rgb": 0.0,
+   "20241007a-rgb": 0,
+   "20241008a-rgb": 0.0
+  },
+  "Spruce Pine": {
+   "20241005a-rgb": 0,
+   "20241005b-rgb": 0.0,
+   "20241006a-rgb": 0.0,
+   "20241006b-rgb": 0.0,
+   "20241007a-rgb": 0.0,
+   "20241008a-rgb": 0.0
+  },
+  "Erwin TN": {
+   "20241005a-rgb": 0.0,
+   "20241005b-rgb": 0.0,
+   "20241006a-rgb": 0.0,
+   "20241006b-rgb": 0.0,
+   "20241007a-rgb": 0.0,
+   "20241008a-rgb": 0.0
+  },
+  "Hot Springs": {
+   "20241005a-rgb": 0.0,
+   "20241005b-rgb": 0.0,
+   "20241006a-rgb": 0.0,
+   "20241006b-rgb": 0,
+   "20241007a-rgb": 0.0,
+   "20241008a-rgb": 0.0
+  },
+  "Old Fort": {
+   "20241005a-rgb": 0,
+   "20241005b-rgb": 0.0,
+   "20241006a-rgb": 0.0,
+   "20241006b-rgb": 0.0,
+   "20241007a-rgb": 0.0,
+   "20241008a-rgb": 0.0
+  },
+  "Black Mountain": {
+   "20241005a-rgb": 0,
+   "20241005b-rgb": 0.0,
+   "20241006a-rgb": 0.0,
+   "20241006b-rgb": 0.0,
+   "20241007a-rgb": 0.0,
+   "20241008a-rgb": 0.0
+  },
+  "Lake Lure": {
+   "20241005a-rgb": 0.0,
+   "20241005b-rgb": 0.0,
+   "20241006a-rgb": 0.0,
+   "20241006b-rgb": 0.0,
+   "20241007a-rgb": 0,
+   "20241008a-rgb": 0.0
+  },
+  "Bat Cave": {
+   "20241005a-rgb": 0.0,
+   "20241005b-rgb": 0.0,
+   "20241006a-rgb": 0.0,
+   "20241006b-rgb": 0.0,
+   "20241007a-rgb": 0,
+   "20241008a-rgb": 0.0
+  },
+  "Newport TN": {
+   "20241005a-rgb": 0.0,
+   "20241005b-rgb": 0.0,
+   "20241006a-rgb": 0.0,
+   "20241006b-rgb": 0.0,
+   "20241007a-rgb": 0.0,
+   "20241008a-rgb": 0.0
+  }
+ },
+ "noaa_cors": "*",
+ "items": {
+  "nconemap_2025": {
+   "title": "NC Orthoimagery for Hurricane Helene 2025",
+   "type": "Image Service",
+   "url": "https://services.nconemap.gov/secure/rest/services/Imagery/Orthoimagery_Helene_2025/ImageServer",
+   "access": "public",
+   "owner": "nconemap",
+   "extent": [
+    [
+     -83.4438,
+     34.9764
+    ],
+    [
+     -80.9712,
+     36.6184
+    ]
+   ],
+   "license": "<p><a target='_blank' href='https://www.nconemap.gov/pages/terms' rel='nofollow ugc noopener noreferrer'>https://www.nconemap.gov/pages/terms</a></p>",
+   "credit": "NC Collaboratory at UNC Chapel Hill",
+   "typeKeywords": [
+    "ArcGIS Server",
+    "Data",
+    "Image Service",
+    "Service"
+   ],
+   "service_error": null,
+   "service": {
+    "name": "Imagery/Orthoimagery_Helene_2025",
+    "serviceDescription": "<div style='text-align:Left;'><div><div><p><span>Product: These data were acquired by the NC Collaboratory at UNC Chapel Hill utilizing funds appropriated by the NC General Assembly. This orthoimagery data set includes 6 in digital orthoimages in GeoTIFF tiles and 32-bit 4-band (RGBIR).Geographic Extent: 13 counties in NorthCarolina, covering approximately 5,323 total square miles. Counties covered in their entirety for this project included: Alexander, Ashe, Watauga, Avery, Mitchell, Burke, Yancey, McDowell, Rutherford, Buncombe, Henderson, Haywood, and Jackson. Dataset Description: The Helene-North Carolina Priority 1 Lidar and Imagery project called for the planning, acquisition, and processing of imagery data to be collected at a ground sample distance (GSD) of 6 in. Project specifications are based on the American Society of Photogrammetry and Remote Sensing (ASPRS) standards. The data were developed based on a horizontal projection/datum of NAD 1983 2011 StatePlane North Carolina FIPS 3200 US Survey Foot. Imagery data were delivered as 6 in GeoTIFF tiles and 32-bit 4-band (RGBIR). Tiled deliverables contained 6,768 individual 5,000 ft x 5,000 ft tiles.Ground Conditions: Imagery was collected in spring 2025, and meets project acquisition parameters of being snow and ice free (though some light, undrifted snow may be present), no unusual flooding or water inundation, and leaf off conditions. The AECOM team established a total of 49 check points to assess the horizontal accuracy of the data, of which 39 were useable. The imagery data was post processed to meet task order specifications and was tested to meet ASPRS horizontal accuracy guidelines. Seamline editing and photoshop adjustments were focused on major transportation features due to the rapid response nature of the project and the need for damage analysis. Areas outside of major transportation features may exhibit seamline displacement and other anomalies such as smears.</span></p></div></div></div>",
+    "maxImageWidth": 15000,
+    "spatialReference": {
+     "wkid": 103122,
+     "latestWkid": 6543
+    },
+    "fullExtent": {
+     "xmin": 694999.9998567998,
+     "ymin": 474999.9999282211,
+     "xmax": 1409999.9998567998,
+     "ymax": 1049999.999928221,
+     "spatialReference": {
+      "wkid": 103122,
+      "latestWkid": 6543
+     }
+    },
+    "extent": {
+     "xmin": 694999.9998567998,
+     "ymin": 474999.9999282211,
+     "xmax": 1409999.9998567998,
+     "ymax": 1049999.999928221,
+     "spatialReference": {
+      "wkid": 103122,
+      "latestWkid": 6543
+     }
+    },
+    "capabilities": "Catalog,Mensuration,Image,Metadata",
+    "pixelType": "U8",
+    "bandCount": 3
+   }
+  },
+  "ncdot_asheville_0929": {
+   "title": "NCDOT post Hurricane Helene: Asheville Area wgs84",
+   "type": "Map Service",
+   "url": "https://tiles.arcgis.com/tiles/NuWFvHYDMVmmxMeM/arcgis/rest/services/Helene_Asheville_m8906_0p25_WGS84_TPK/MapServer",
+   "access": "public",
+   "owner": "Photogrammetry.NCDOT.GOV",
+   "extent": [
+    [
+     -82.692366830954,
+     35.5412105110981
+    ],
+    [
+     -82.4975355267615,
+     35.5805419158651
+    ]
+   ],
+   "license": "<p style='margin-top:0pt; margin-bottom:0pt; margin-left:0in; text-align:left; word-break:normal;'><span style='font-size:18.0pt; font-family:Calibri; color:black;'>The North Carolina Department of\nTransportation shall not be held liable for any errors in this\u00a0</span><span style='color:black; font-f",
+   "credit": "NCDOT Photogrammetry Unit",
+   "typeKeywords": [
+    "ArcGIS Server",
+    "Data",
+    "Map Service",
+    "Service",
+    "WMTS",
+    "Hosted Service"
+   ],
+   "service_error": null,
+   "service": {
+    "name": "Helene_Asheville_m8906_0p25_WGS84_TPK",
+    "serviceDescription": "",
+    "singleFusedMapCache": true,
+    "spatialReference": {
+     "wkid": 102100,
+     "latestWkid": 3857
+    },
+    "fullExtent": {
+     "xmin": -9205272.16811239,
+     "ymin": 4237674.899250358,
+     "xmax": -9183583.646539086,
+     "ymax": 4243057.028967395,
+     "spatialReference": {
+      "wkid": 102100,
+      "latestWkid": 3857
+     }
+    },
+    "layers": [
+     {
+      "id": 0,
+      "name": "Helene_Asheville_m8906_0p25_WGS84_TPK"
+     }
+    ],
+    "capabilities": "Map,TilesOnly",
+    "tiled": true,
+    "lods": 24
+   }
+  },
+  "ncdot_i40_i26_0929": {
+   "title": "NCDOT post Hurricane Helene:  Asheville I40 and I26 coridoors 2024 Sept 29th wgs84",
+   "type": "Map Service",
+   "url": "https://tiles.arcgis.com/tiles/NuWFvHYDMVmmxMeM/arcgis/rest/services/Helene_ER_m8906_flown_pt25_GSD_240929_WGS84_TPK/MapServer",
+   "access": "public",
+   "owner": "Photogrammetry.NCDOT.GOV",
+   "extent": [
+    [
+     -82.6218284219213,
+     35.2665972319155
+    ],
+    [
+     -82.3809759431034,
+     35.5627211438373
+    ]
+   ],
+   "license": "<p style='margin-top:0pt; margin-bottom:0pt; margin-left:0in; text-align:left; word-break:normal;'><span style='font-family:Calibri; color:black;'><font size='3'>The North Carolina Department of\nTransportation shall not be held liable for any errors in this</font></span></p>\n\n<p style='margin-top:0p",
+   "credit": "NCDOT Photogrammetry Unit,NCDOT Aviation",
+   "typeKeywords": [
+    "ArcGIS Server",
+    "Data",
+    "Map Service",
+    "Service",
+    "WMTS",
+    "Hosted Service"
+   ],
+   "service_error": null,
+   "service": {
+    "name": "Helene_ER_m8906_flown_pt25_GSD_240929_WGS84_TPK",
+    "serviceDescription": "",
+    "singleFusedMapCache": true,
+    "spatialReference": {
+     "wkid": 102100,
+     "latestWkid": 3857
+    },
+    "fullExtent": {
+     "xmin": -9197419.8683375,
+     "ymin": 4200169.921792465,
+     "xmax": -9170608.293039192,
+     "ymax": 4240618.098066114,
+     "spatialReference": {
+      "wkid": 102100,
+      "latestWkid": 3857
+     }
+    },
+    "layers": [
+     {
+      "id": 0,
+      "name": "Helene_ER_m8906_flown_pt25_GSD_240929_WGS84_TPK"
+     }
+    ],
+    "capabilities": "Map,TilesOnly",
+    "tiled": true,
+    "lods": 24
+   }
+  },
+  "ncdot_lakelure_0929": {
+   "title": "NCDOT post Hurricane Helene: Lake Lure area 2024 Sept 29th wgs84",
+   "type": "Map Service",
+   "url": "https://tiles.arcgis.com/tiles/NuWFvHYDMVmmxMeM/arcgis/rest/services/Helene_LakeLure_0p25_WGS84_TPK/MapServer",
+   "access": "public",
+   "owner": "Photogrammetry.NCDOT.GOV",
+   "extent": [
+    [
+     -82.1953281872989,
+     35.4114894596075
+    ],
+    [
+     -82.1706470028656,
+     35.430378929402
+    ]
+   ],
+   "license": "<p style='margin-top:0pt; margin-bottom:0pt; font-family:&quot;Avenir Next W01&quot;, &quot;Avenir Next W00&quot;, &quot;Avenir Next&quot;, Avenir, &quot;Helvetica Neue&quot;, sans-serif; font-size:16px; margin-left:0in; word-break:normal;'><span style='font-size:18pt; font-family:Calibri; color:bla",
+   "credit": "NCDOT Photogrammetry Unit , NCDOT Aviation",
+   "typeKeywords": [
+    "ArcGIS Server",
+    "Data",
+    "Map Service",
+    "Service",
+    "WMTS",
+    "Hosted Service"
+   ],
+   "service_error": null,
+   "service": {
+    "name": "Helene_LakeLure_0p25_WGS84_TPK",
+    "serviceDescription": "",
+    "singleFusedMapCache": true,
+    "spatialReference": {
+     "wkid": 102100,
+     "latestWkid": 3857
+    },
+    "fullExtent": {
+     "xmin": -9149942.079396125,
+     "ymin": 4219942.479085583,
+     "xmax": -9147194.582512835,
+     "ymax": 4222522.8259537015,
+     "spatialReference": {
+      "wkid": 102100,
+      "latestWkid": 3857
+     }
+    },
+    "layers": [
+     {
+      "id": 0,
+      "name": "Helene_LakeLure_0p25_WGS84_TPK"
+     }
+    ],
+    "capabilities": "Map,TilesOnly",
+    "tiled": true,
+    "lods": 24
+   }
+  },
+  "ncdot_us74_gerton_lakelure_1017": {
+   "title": "NCDOT US74 Gerton to mid Lake Lure 2024-10-17 OrthoMosaic (Direct)",
+   "type": "Image Service",
+   "url": "https://tiledimageservices.arcgis.com/NuWFvHYDMVmmxMeM/arcgis/rest/services/NCDOT_US74_Gerton_to_mid_Lake_Lure_2024_10_17_OrthoMosaic__Direct_/ImageServer",
+   "access": "public",
+   "owner": "Photogrammetry.NCDOT.GOV",
+   "extent": [
+    [
+     -82.38062676490547,
+     35.39411096935145
+    ],
+    [
+     -82.17599227729434,
+     35.52845580912069
+    ]
+   ],
+   "license": "<div>For INTERNAL NCDOT USE ONLY</div><div>Public, a zero liability product</div><div><br /></div><div>The North Carolina Department of Transportation shall not be held liable for any errors in this</div><div>metadata. This includes errors of omission, commission, errors concerning the content of th",
+   "credit": "NCDOT Photogrammetry Unit",
+   "typeKeywords": [
+    "ArcGIS Server",
+    "Data",
+    "Image Service",
+    "Service",
+    "Tiled Imagery",
+    "Hosted Service"
+   ],
+   "service_error": null,
+   "service": {
+    "name": "NCDOT_US74_Gerton_to_mid_Lake_Lure_2024_10_17_OrthoMosaic__Direct_",
+    "serviceDescription": "",
+    "singleFusedMapCache": true,
+    "spatialReference": {
+     "wkid": 102100,
+     "latestWkid": 3857
+    },
+    "fullExtent": {
+     "xmin": -9170569.4227,
+     "ymin": 4217569.069777927,
+     "xmax": -9147789.615740387,
+     "ymax": 4235930.1061,
+     "spatialReference": {
+      "wkid": 102100,
+      "latestWkid": 3857
+     }
+    },
+    "extent": {
+     "xmin": -9170569.4227,
+     "ymin": 4217569.069777927,
+     "xmax": -9147789.615740387,
+     "ymax": 4235930.1061,
+     "spatialReference": {
+      "wkid": 102100,
+      "latestWkid": 3857
+     }
+    },
+    "capabilities": "Image,TilesOnly",
+    "pixelType": "U8",
+    "bandCount": 3,
+    "tiled": true,
+    "lods": 11
+   }
+  },
+  "ncdot_yancey_mitchell_n": {
+   "title": "NCDOT Yancey and Mitchell Co Post Helene North portion 2024-10-17 OrthoMosaic (Direct)",
+   "type": "Image Service",
+   "url": "https://tiledimageservices.arcgis.com/NuWFvHYDMVmmxMeM/arcgis/rest/services/NCDOT_Yancey_and_Mitchell_North_Portion/ImageServer",
+   "access": "public",
+   "owner": "Photogrammetry.NCDOT.GOV",
+   "extent": [
+    [
+     -82.50423667720206,
+     35.904892868841486
+    ],
+    [
+     -82.0146381907616,
+     36.11679751996017
+    ]
+   ],
+   "license": "<div>For INTERNAL NCDOT USE ONLY</div><div>Public, a zero liability product</div><div><br /></div><div>The North Carolina Department of Transportation shall not be held liable for any errors in this</div><div>metadata. This includes errors of omission, commission, errors concerning the content of th",
+   "credit": "NCDOT Photogrammetry Unit, CGIA, nconemap\n",
+   "typeKeywords": [
+    "ArcGIS Server",
+    "Data",
+    "Image Service",
+    "Service",
+    "Tiled Imagery",
+    "Hosted Service"
+   ],
+   "service_error": null,
+   "service": {
+    "name": "NCDOT_Yancey_and_Mitchell_North_Portion",
+    "serviceDescription": "",
+    "singleFusedMapCache": true,
+    "spatialReference": {
+     "wkid": 102100,
+     "latestWkid": 3857
+    },
+    "fullExtent": {
+     "xmin": -9184329.615193859,
+     "ymin": 4287542.656420054,
+     "xmax": -9129827.76099015,
+     "ymax": 4316704.454743651,
+     "spatialReference": {
+      "wkid": 102100,
+      "latestWkid": 3857
+     }
+    },
+    "extent": {
+     "xmin": -9184329.615193859,
+     "ymin": 4287542.656420054,
+     "xmax": -9129827.76099015,
+     "ymax": 4316704.454743651,
+     "spatialReference": {
+      "wkid": 102100,
+      "latestWkid": 3857
+     }
+    },
+    "capabilities": "Image,TilesOnly",
+    "pixelType": "U8",
+    "bandCount": 3,
+    "tiled": true,
+    "lods": 12
+   }
+  },
+  "ncdot_yancey_mitchell_s": {
+   "title": "NCDOT Yancey and Mitchell Co Post Helene South portion 2024-10-17 OrthoMosaic (Direct)",
+   "type": "Image Service",
+   "url": "https://tiledimageservices.arcgis.com/NuWFvHYDMVmmxMeM/arcgis/rest/services/helene_yancey_mitchell_south_test/ImageServer",
+   "access": "public",
+   "owner": "Photogrammetry.NCDOT.GOV",
+   "extent": [
+    [
+     -82.4537072647655,
+     35.74135843927664
+    ],
+    [
+     -82.00849837665723,
+     35.924592293981604
+    ]
+   ],
+   "license": "<div>For INTERNAL NCDOT USE ONLY</div><div>Public, a zero liability product</div><div><br /></div><div>The North Carolina Department of Transportation shall not be held liable for any errors in this</div><div>metadata. This includes errors of omission, commission, errors concerning the content of th",
+   "credit": "NCDOT, NCDOT Photogrammetry Unit\n",
+   "typeKeywords": [
+    "ArcGIS Server",
+    "Data",
+    "Image Service",
+    "Service",
+    "Tiled Imagery",
+    "Hosted Service"
+   ],
+   "service_error": null,
+   "service": {
+    "name": "helene_yancey_mitchell_south_test",
+    "serviceDescription": "",
+    "singleFusedMapCache": true,
+    "spatialReference": {
+     "wkid": 102100,
+     "latestWkid": 3857
+    },
+    "fullExtent": {
+     "xmin": -9178704.706731338,
+     "ymin": 4265090.804935345,
+     "xmax": -9129144.280010484,
+     "ymax": 4290250.342654421,
+     "spatialReference": {
+      "wkid": 102100,
+      "latestWkid": 3857
+     }
+    },
+    "extent": {
+     "xmin": -9178704.706731338,
+     "ymin": 4265090.804935345,
+     "xmax": -9129144.280010484,
+     "ymax": 4290250.342654421,
+     "spatialReference": {
+      "wkid": 102100,
+      "latestWkid": 3857
+     }
+    },
+    "capabilities": "Image,TilesOnly",
+    "pixelType": "U8",
+    "bandCount": 3,
+    "tiled": true,
+    "lods": 12
+   }
+  },
+  "ncdot_avery_1007": {
+   "title": "NCDOT Avery County 20241007 OrthoMosaic (Direct)",
+   "type": "Image Service",
+   "url": "https://tiledimageservices.arcgis.com/NuWFvHYDMVmmxMeM/arcgis/rest/services/NCDOT_Avery_County_20241007_OrthoMosaic_V2/ImageServer",
+   "access": "public",
+   "owner": "Photogrammetry.NCDOT.GOV",
+   "extent": [
+    [
+     -82.09981521360174,
+     35.88277497769462
+    ],
+    [
+     -81.706273715114,
+     36.31286131132864
+    ]
+   ],
+   "license": "<div>For INTERNAL NCDOT USE ONLY</div><div><br /></div><div>The North Carolina Department of Transportation shall not be held liable for any errors in this</div><div>metadata. This includes errors of omission, commission, errors concerning the content of the</div><div>data, and relative and position",
+   "credit": "NCDOT Photogrammetry Unit",
+   "typeKeywords": [
+    "ArcGIS Server",
+    "Data",
+    "Image Service",
+    "Service",
+    "Tiled Imagery",
+    "Hosted Service"
+   ],
+   "service_error": null,
+   "service": {
+    "name": "NCDOT_Avery_County_20241007_OrthoMosaic_V2",
+    "serviceDescription": "",
+    "singleFusedMapCache": true,
+    "spatialReference": {
+     "wkid": 102100,
+     "latestWkid": 3857
+    },
+    "fullExtent": {
+     "xmin": -9139309.6238,
+     "ymin": 4284503.355093832,
+     "xmax": -9095500.784582322,
+     "ymax": 4343756.441200003,
+     "spatialReference": {
+      "wkid": 102100,
+      "latestWkid": 3857
+     }
+    },
+    "extent": {
+     "xmin": -9139309.6238,
+     "ymin": 4284503.355093832,
+     "xmax": -9095500.784582322,
+     "ymax": 4343756.441200003,
+     "spatialReference": {
+      "wkid": 102100,
+      "latestWkid": 3857
+     }
+    },
+    "capabilities": "Image,TilesOnly",
+    "pixelType": "U8",
+    "bandCount": 3,
+    "tiled": true,
+    "lods": 12
+   }
+  },
+  "ncdot_watauga_1009": {
+   "title": "NCDOT Helene Watauga County Direct Georeferenced Orthomosaic  2024-10-09",
+   "type": "Image Service",
+   "url": "https://tiledimageservices.arcgis.com/NuWFvHYDMVmmxMeM/arcgis/rest/services/Helena_Watauga_M8912_20241009/ImageServer",
+   "access": "public",
+   "owner": "Photogrammetry.NCDOT.GOV",
+   "extent": [
+    [
+     -81.94829714175167,
+     36.077672039592045
+    ],
+    [
+     -81.42854810128343,
+     36.42518266995216
+    ]
+   ],
+   "license": "<div>For INTERNAL NCDOT USE ONLY</div><div>Public, a zero liability product</div><div><br /></div><div>The North Carolina Department of Transportation shall not be held liable for any errors in this</div><div>metadata. This includes errors of omission, commission, errors concerning the content of th",
+   "credit": "NCDOT Photogrammetry Unit",
+   "typeKeywords": [
+    "ArcGIS Server",
+    "Data",
+    "Image Service",
+    "Service",
+    "Tiled Imagery",
+    "Hosted Service"
+   ],
+   "service_error": null,
+   "service": {
+    "name": "Helena_Watauga_M8912_20241009",
+    "serviceDescription": "",
+    "singleFusedMapCache": true,
+    "spatialReference": {
+     "wkid": 102719,
+     "latestWkid": 2264
+    },
+    "fullExtent": {
+     "xmin": 1132499.9999999998,
+     "ymin": 860000,
+     "xmax": 1282499.9999999998,
+     "ymax": 982500,
+     "spatialReference": {
+      "wkid": 102719,
+      "latestWkid": 2264
+     }
+    },
+    "extent": {
+     "xmin": 1132499.9999999998,
+     "ymin": 860000,
+     "xmax": 1282499.9999999998,
+     "ymax": 982500,
+     "spatialReference": {
+      "wkid": 102719,
+      "latestWkid": 2264
+     }
+    },
+    "capabilities": "Image,TilesOnly",
+    "pixelType": "U8",
+    "bandCount": 3,
+    "tiled": true,
+    "lods": 11
+   }
+  },
+  "ncdot_haywood": {
+   "title": "NCDOT_Helene_Haywood_ER_m8905_Image_Mosaic_pt25_GSD_241003_TPK",
+   "type": "Map Service",
+   "url": "https://tiles.arcgis.com/tiles/NuWFvHYDMVmmxMeM/arcgis/rest/services/NCDOT_Helene_Haywood_ER_m8905_Image_Mosaic_pt25_GSD_241003_TPK/MapServer",
+   "access": "public",
+   "owner": "Photogrammetry.NCDOT.GOV",
+   "extent": [
+    [
+     -83.1538212781717,
+     35.6646095535085
+    ],
+    [
+     -83.0072284972689,
+     35.8217059955634
+    ]
+   ],
+   "license": "<p style='margin-top:0pt; margin-bottom:0pt; margin-left:0in; text-align:left; word-break:normal;'><span style='font-family:Calibri; color:black;'><font size='2'>The North Carolina Department of\nTransportation shall not be held liable for any errors in this</font></span></p>\n\n<p style='margin-top:0p",
+   "credit": "NC DOT Photogrammetry Unit",
+   "typeKeywords": [
+    "ArcGIS Server",
+    "Data",
+    "Map Service",
+    "Service",
+    "WMTS",
+    "Hosted Service"
+   ],
+   "service_error": null,
+   "service": {
+    "name": "NCDOT_Helene_Haywood_ER_m8905_Image_Mosaic_pt25_GSD_241003_TPK",
+    "serviceDescription": "",
+    "singleFusedMapCache": true,
+    "spatialReference": {
+     "wkid": 102100,
+     "latestWkid": 3857
+    },
+    "fullExtent": {
+     "xmin": -9256641.04220095,
+     "ymin": 4254569.759185043,
+     "xmax": -9240322.408476878,
+     "ymax": 4276116.043690618,
+     "spatialReference": {
+      "wkid": 102100,
+      "latestWkid": 3857
+     }
+    },
+    "layers": [
+     {
+      "id": 0,
+      "name": "NCDOT_Helene_Haywood_ER_m8905_Image_Mosaic_pt25_GSD_241003_TPK"
+     }
+    ],
+    "capabilities": "Map,TilesOnly",
+    "tiled": true,
+    "lods": 24
+   }
+  },
+  "unca_post_helene": {
+   "title": "Post-Helene Imagery",
+   "type": "Image Service",
+   "url": "https://services.gis.nc.gov/secure/rest/services/Imagery/Orthoimagery_Helene_2025/ImageServer",
+   "access": "public",
+   "owner": "aherber1@unca.edu_unca",
+   "extent": [
+    [
+     -83.443802125742,
+     34.9764367108569
+    ],
+    [
+     -80.9712488414746,
+     36.618364451346686
+    ]
+   ],
+   "license": "",
+   "credit": "NC Collaboratory at UNC Chapel Hill",
+   "typeKeywords": [
+    "ArcGIS API for JavaScript",
+    "ArcGIS Server",
+    "Data",
+    "Image Service",
+    "Service"
+   ],
+   "service_error": null,
+   "service": {
+    "name": "Imagery/Orthoimagery_Helene_2025",
+    "serviceDescription": "<div style='text-align:Left;'><div><div><p><span>Product: These data were acquired by the NC Collaboratory at UNC Chapel Hill utilizing funds appropriated by the NC General Assembly. This orthoimagery data set includes 6 in digital orthoimages in GeoTIFF tiles and 32-bit 4-band (RGBIR).Geographic Extent: 13 counties in NorthCarolina, covering approximately 5,323 total square miles. Counties covered in their entirety for this project included: Alexander, Ashe, Watauga, Avery, Mitchell, Burke, Yancey, McDowell, Rutherford, Buncombe, Henderson, Haywood, and Jackson. Dataset Description: The Helene-North Carolina Priority 1 Lidar and Imagery project called for the planning, acquisition, and processing of imagery data to be collected at a ground sample distance (GSD) of 6 in. Project specifications are based on the American Society of Photogrammetry and Remote Sensing (ASPRS) standards. The data were developed based on a horizontal projection/datum of NAD 1983 2011 StatePlane North Carolina FIPS 3200 US Survey Foot. Imagery data were delivered as 6 in GeoTIFF tiles and 32-bit 4-band (RGBIR). Tiled deliverables contained 6,768 individual 5,000 ft x 5,000 ft tiles.Ground Conditions: Imagery was collected in spring 2025, and meets project acquisition parameters of being snow and ice free (though some light, undrifted snow may be present), no unusual flooding or water inundation, and leaf off conditions. The AECOM team established a total of 49 check points to assess the horizontal accuracy of the data, of which 39 were useable. The imagery data was post processed to meet task order specifications and was tested to meet ASPRS horizontal accuracy guidelines. Seamline editing and photoshop adjustments were focused on major transportation features due to the rapid response nature of the project and the need for damage analysis. Areas outside of major transportation features may exhibit seamline displacement and other anomalies such as smears.</span></p></div></div></div>",
+    "maxImageWidth": 15000,
+    "spatialReference": {
+     "wkid": 103122,
+     "latestWkid": 6543
+    },
+    "fullExtent": {
+     "xmin": 694999.9998567998,
+     "ymin": 474999.9999282211,
+     "xmax": 1409999.9998567998,
+     "ymax": 1049999.999928221,
+     "spatialReference": {
+      "wkid": 103122,
+      "latestWkid": 6543
+     }
+    },
+    "extent": {
+     "xmin": 694999.9998567998,
+     "ymin": 474999.9999282211,
+     "xmax": 1409999.9998567998,
+     "ymax": 1049999.999928221,
+     "spatialReference": {
+      "wkid": 103122,
+      "latestWkid": 6543
+     }
+    },
+    "capabilities": "Catalog,Mensuration,Image,Metadata",
+    "pixelType": "U8",
+    "bandCount": 3
+   }
+  },
+  "usfs_forest_impacts": {
+   "title": "Hurricane Helene focal forest impacts for the so. Appalachians October 2024 (USFS R&D SRS)",
+   "type": "Map Service",
+   "url": "https://tiles.arcgis.com/tiles/gGHDlz6USftL5Pau/arcgis/rest/services/HF_HH_Focal_5acArea_mean_forest_recency_3class_tif_b/MapServer",
+   "access": "public",
+   "owner": "USFS_SouthernResearchStation",
+   "extent": [
+    [
+     -84.1716031328287,
+     34.3960430712944
+    ],
+    [
+     -80.7116519845139,
+     36.9296514986251
+    ]
+   ],
+   "license": "<div>Steve Norman, Research Ecologist, steve.norman@usda.gov</div><div>Bill Christie, Remote Sensing and GIS, william.m.christie@usda.gov</div><div><br /></div><div>Products based on the HiForm workflow, see https://hiform.org</div><div><br /></div><div>USDA is an equal opportunity provider, employe",
+   "credit": "Eastern Forest Environmental Threat Assessment Center, USDA Forest Service, Southern Research Station, Asheville, NC. https://forestthreats.org/",
+   "typeKeywords": [
+    "ArcGIS Server",
+    "Data",
+    "Map Service",
+    "Metadata",
+    "Service",
+    "WMTS",
+    "Hosted Service"
+   ],
+   "service_error": null,
+   "service": {
+    "name": "HF_HH_Focal_5acArea_mean_forest_recency_3class_tif_b",
+    "serviceDescription": "",
+    "singleFusedMapCache": true,
+    "spatialReference": {
+     "wkid": 102100,
+     "latestWkid": 3857
+    },
+    "fullExtent": {
+     "xmin": -9369940.000000002,
+     "ymin": 4082105.7170672547,
+     "xmax": -8984780.000000002,
+     "ymax": 4429305.644345047,
+     "spatialReference": {
+      "wkid": 102100,
+      "latestWkid": 3857
+     }
+    },
+    "layers": [
+     {
+      "id": 0,
+      "name": "HF_HH_Focal_5acArea_mean_forest_recency_3class.tif b"
+     }
+    ],
+    "capabilities": "Map,TilesOnly,Tilemap",
+    "tiled": true,
+    "lods": 24
+   }
+  },
+  "usfs_ndvi_all_lands": {
+   "title": "Hurricane Helene 'all-lands' 1yr NDVI change, 03/31/2025 (USFS R&D SRS)",
+   "type": "Map Service",
+   "url": "https://tiles.arcgis.com/tiles/gGHDlz6USftL5Pau/arcgis/rest/services/helene_ncvatngasc_alllands_1yr_dNDVI_sint8_post030125_033125_v050925_clip_tif/MapServer",
+   "access": "public",
+   "owner": "USFS_SouthernResearchStation",
+   "extent": [
+    [
+     -84.827822447878,
+     34.3960430712944
+    ],
+    [
+     -80.7116519845139,
+     36.9296514986251
+    ]
+   ],
+   "license": "<div style='font-family:&quot;Avenir Next W01&quot;, &quot;Avenir Next W00&quot;, &quot;Avenir Next&quot;, Avenir, &quot;Helvetica Neue&quot;, sans-serif; font-size:16px;'>Bill Christie, Remote Sensing and GIS, william.m.christie@usda.gov</div><div style='font-family:&quot;Avenir Next W01&quot;, &qu",
+   "credit": "Eastern Forest Environmental Threat Assessment Center, USDA Forest Service, Southern Research Station, Asheville, NC. https://forestthreats.org/",
+   "typeKeywords": [
+    "ArcGIS Server",
+    "Data",
+    "Map Service",
+    "Metadata",
+    "Service",
+    "WMTS",
+    "Hosted Service"
+   ],
+   "service_error": null,
+   "service": {
+    "name": "helene_ncvatngasc_alllands_1yr_dNDVI_sint8_post030125_033125_v050925_clip_tif",
+    "serviceDescription": "",
+    "singleFusedMapCache": true,
+    "spatialReference": {
+     "wkid": 102100,
+     "latestWkid": 3857
+    },
+    "fullExtent": {
+     "xmin": -9442990.0,
+     "ymin": 4082105.7170672533,
+     "xmax": -8984780.000000002,
+     "ymax": 4429305.644345047,
+     "spatialReference": {
+      "wkid": 102100,
+      "latestWkid": 3857
+     }
+    },
+    "layers": [
+     {
+      "id": 0,
+      "name": "helene_ncvatngasc_alllands_1yr_dNDVI_sint8_post030125_033125_v050925_clip.tif"
+     }
+    ],
+    "capabilities": "Map,TilesOnly,Tilemap",
+    "tiled": true,
+    "lods": 24
+   }
+  },
+  "nc_landslides": {
+   "title": "Landslide Inventory of North Carolina",
+   "type": "Feature Service",
+   "url": "https://services2.arcgis.com/kCu40SDxsCGcuUWO/arcgis/rest/services/NC_Landslide_Inventory/FeatureServer",
+   "access": "public",
+   "owner": "gnbozdog_ncdenr",
+   "extent": [
+    [
+     -83.0130933565119,
+     35.2041382773873
+    ],
+    [
+     -81.66388397847032,
+     36.26152194393099
+    ]
+   ],
+   "license": "<p><span style='background-color:rgb(255,255,255); color:rgb(74,74,74); font-family:&quot;Avenir Next W01&quot;, &quot;Avenir Next W00&quot;, &quot;Avenir Next&quot;, Avenir, &quot;Helvetica Neue&quot;, sans-serif; font-size:16px;'><span style='display:inline !important; float:none; font-style:norma",
+   "credit": "NC Geological Survey",
+   "typeKeywords": [
+    "ArcGIS API for JavaScript",
+    "ArcGIS Server",
+    "Data",
+    "Feature Access",
+    "Feature Service",
+    "Metadata",
+    "Multilayer",
+    "Service",
+    "Hosted Service",
+    "View Service"
+   ],
+   "service_error": null,
+   "service": {
+    "serviceDescription": "",
+    "spatialReference": {
+     "wkid": 103122,
+     "latestWkid": 6543
+    },
+    "fullExtent": {
+     "xmin": 816570.822987631,
+     "ymin": 552844.0588746369,
+     "xmax": 1204695.0103203803,
+     "ymax": 924908.0850863159,
+     "spatialReference": {
+      "wkid": 103122,
+      "latestWkid": 6543
+     }
+    },
+    "layers": [
+     {
+      "id": 0,
+      "name": "Observations"
+     },
+     {
+      "id": 1,
+      "name": "Ground Ruptures"
+     },
+     {
+      "id": 2,
+      "name": "Landslide Features"
+     }
+    ],
+    "capabilities": "Query"
+   }
+  },
+  "ncdot_structures": {
+   "title": "2024 NCDOT SMU Post Helene Structure Inspection Status",
+   "type": "Feature Service",
+   "url": "https://services.arcgis.com/NuWFvHYDMVmmxMeM/arcgis/rest/services/2024_NCDOT_SMU_Post_Helene_Structure_Inspection_Status/FeatureServer",
+   "access": "public",
+   "owner": "SMU.NCDOT.GOV",
+   "extent": [
+    [
+     -84.41203393545356,
+     34.829596035098085
+    ],
+    [
+     -80.15086533744616,
+     36.694927769905775
+    ]
+   ],
+   "license": "<span style='font-family:&quot;Avenir Next W01&quot;, &quot;Avenir Next W00&quot;, &quot;Avenir Next&quot;, Avenir, &quot;Helvetica Neue&quot;, sans-serif; font-size:16px;'>The North Carolina Department of Transportation shall not be held liable for any errors in this data. This includes errors of o",
+   "credit": "NCDOT Structures Management Unit",
+   "typeKeywords": [
+    "ArcGIS Server",
+    "Data",
+    "Feature Access",
+    "Feature Service",
+    "Metadata",
+    "Service",
+    "Singlelayer",
+    "Hosted Service"
+   ],
+   "service_error": null,
+   "service": {
+    "serviceDescription": "This map shows all Structures in the area affected by Helene - indicating their inspection status.",
+    "spatialReference": {
+     "wkid": 102719,
+     "latestWkid": 2264
+    },
+    "fullExtent": {
+     "xmin": 411454.94466632867,
+     "ymin": 435295.5261049288,
+     "xmax": 1655112.816970569,
+     "ymax": 1073949.2094486384,
+     "spatialReference": {
+      "wkid": 102719,
+      "latestWkid": 2264
+     }
+    },
+    "layers": [
+     {
+      "id": 0,
+      "name": "Prod"
+     }
+    ],
+    "capabilities": "Query"
+   }
+  },
+  "sentinel2_views": {
+   "title": "Sentinel-2 Views",
+   "type": "Image Service",
+   "url": "https://sentinel.arcgis.com/arcgis/rest/services/Sentinel2/ImageServer",
+   "access": "public",
+   "owner": "esri_imagery",
+   "extent": [
+    [
+     -180,
+     -65.3235
+    ],
+    [
+     180,
+     65.3126
+    ]
+   ],
+   "license": "<div><p><img src='https://downloads.esri.com/blogs/arcgisonline/esrilogo_new.png' /> This work is licensed under the Esri Master License Agreement.</p><div><a target='_blank' href='https://goto.arcgis.com/termsofuse/viewsummary' rel='nofollow ugc noopener noreferrer'><strong>View Summary</strong></a",
+   "credit": "Esri, European Commission, European Space Agency, Amazon Web Services",
+   "typeKeywords": [
+    "ArcGIS API for JavaScript",
+    "ArcGIS Server",
+    "Data",
+    "Image Service",
+    "Service",
+    "Singlelayer"
+   ],
+   "service_error": null,
+   "service": {
+    "name": "Sentinel2",
+    "serviceDescription": "Sentinel-2, 10, 20 and 60m Multispectral, Multitemporal, 13-band images with visual renderings and indices. This image service is sourced from the Sentinel-2 on AWS collections, is updated daily with new imagery, and consists of imagery collected within the past 14 months. This service can be applied across a number of industries, scientific disciplines, and management practices.  Some applications include, but are not limited to, land cover and environmental monitoring, climate change, deforestation, disaster and emergency management, national security, plant health and precision agriculture, forest monitoring, watershed analysis and runoff predictions, land-use planning, tracking urban expansion, highlighting burned areas and estimating fire severity. For more information visit us <a href='https://goto.arcgisonline.com/sentinel/Sentinel2' target='_blank'>Online</a>.",
+    "maxImageWidth": 4000,
+    "spatialReference": {
+     "wkid": 102100,
+     "latestWkid": 3857
+    },
+    "fullExtent": {
+     "xmin": -20037208.6216,
+     "ymin": -10100722.918799996,
+     "xmax": 20037211.3784,
+     "ymax": 12121837.081200004,
+     "spatialReference": {
+      "wkid": 102100,
+      "latestWkid": 3857
+     }
+    },
+    "extent": {
+     "xmin": -20037208.6216,
+     "ymin": -10100722.918799996,
+     "xmax": 20037211.3784,
+     "ymax": 12121837.081200004,
+     "spatialReference": {
+      "wkid": 102100,
+      "latestWkid": 3857
+     }
+    },
+    "capabilities": "Image,Metadata,Catalog,Mensuration",
+    "pixelType": "U16",
+    "bandCount": 13
+   }
+  },
+  "noaa_wmts_fdep_0928a": {
+   "title": "NOAA Post-Helene Sept 28 2024 A",
+   "type": "WMTS",
+   "url": "https://storms.ngs.noaa.gov/storms/helene/services/WMTSCapabilities.xml",
+   "access": "public",
+   "owner": "FDEPAGO",
+   "extent": [
+    [
+     -83.7126,
+     29.4499
+    ],
+    [
+     -83.3374,
+     29.9751
+    ]
+   ],
+   "license": "<div><span style='color:#000000; font-family:Avenir Next W01, Avenir Next W00, Avenir Next, Avenir, Helvetica Neue, sans-serif; font-size:medium;'>See NOAA metadata and information.</span></div><div><span style='color:#000000; font-family:Avenir Next W01, Avenir Next W00, Avenir Next, Avenir, Helvet",
+   "credit": "NOAA",
+   "typeKeywords": [
+    "Data",
+    "Metadata",
+    "OGC",
+    "Service",
+    "Web Map Tile Service"
+   ],
+   "service_error": "Expecting value: line 1 column 1 (char 0)"
+  }
+ },
+ "sentinel2": {
+  "url": "https://sentinel.arcgis.com/arcgis/rest/services/Sentinel2/ImageServer",
+  "date_field": "acquisitiondate",
+  "cloud_field": "cloudcover",
+  "scenes": []
+ },
+ "wayback": {
+  "releases": [
+   {
+    "num": 11475,
+    "date": "2023-01-11",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/11475/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2023_r00/MapServer",
+    "itemID": "543606af1b344a6fa6a1050e7e5d648d"
+   },
+   {
+    "num": 57965,
+    "date": "2023-02-23",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/57965/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2023_r01/MapServer",
+    "itemID": "fb0f4638a6894bddb3292499a0aeb7b3"
+   },
+   {
+    "num": 44873,
+    "date": "2023-03-15",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/44873/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2023_r02/MapServer",
+    "itemID": "ee531a31beda4529ad66edcbe9fde701"
+   },
+   {
+    "num": 37890,
+    "date": "2023-04-05",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/37890/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2023_r03/MapServer",
+    "itemID": "3c0618b4862d4028bcb3b48a8dce6949"
+   },
+   {
+    "num": 46399,
+    "date": "2023-05-03",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/46399/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2023_r04/MapServer",
+    "itemID": "f95ee415e16145e4b70bf10e7a4dd6f5"
+   },
+   {
+    "num": 25982,
+    "date": "2023-06-13",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/25982/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2023_r05/MapServer",
+    "itemID": "c9ad5e63635a454cbb724140f4c7697c"
+   },
+   {
+    "num": 47963,
+    "date": "2023-06-29",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/47963/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2023_r06/MapServer",
+    "itemID": "992178c4e2cb416384dfb6339de5ac7a"
+   },
+   {
+    "num": 17632,
+    "date": "2023-08-10",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/17632/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2023_r07/MapServer",
+    "itemID": "644d1ef5d7eb45fe97d4c4e12dc54cf8"
+   },
+   {
+    "num": 64776,
+    "date": "2023-08-31",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/64776/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2023_r08/MapServer",
+    "itemID": "c98ec6ff1b26457db28dfa9ca27f144a"
+   },
+   {
+    "num": 1034,
+    "date": "2023-10-11",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/1034/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2023_r09/MapServer",
+    "itemID": "3816afc616f44031817ddfe46d82554f"
+   },
+   {
+    "num": 12457,
+    "date": "2023-11-01",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/12457/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2023_r10/MapServer",
+    "itemID": "4aca91302d9d4b6fafdaa591322f887b"
+   },
+   {
+    "num": 56102,
+    "date": "2023-12-07",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/56102/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2023_r11/MapServer",
+    "itemID": "5e37478f84c8469bac8b96526b1a7612"
+   },
+   {
+    "num": 41468,
+    "date": "2024-01-18",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/41468/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2024_r00/MapServer",
+    "itemID": "562ebfd108aa47c787a795f2948e760f"
+   },
+   {
+    "num": 37965,
+    "date": "2024-02-08",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/37965/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2024_r01/MapServer",
+    "itemID": "756d1fec29c346d7bb338a3cc067f355"
+   },
+   {
+    "num": 60013,
+    "date": "2024-03-07",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/60013/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2024_r02/MapServer",
+    "itemID": "cb9b6e8a1d8a4d39813ff394e4e6bd0e"
+   },
+   {
+    "num": 13968,
+    "date": "2024-03-28",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/13968/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2024_r03/MapServer",
+    "itemID": "5683a2a7bb954412ab5598bc467b58b7"
+   },
+   {
+    "num": 52930,
+    "date": "2024-05-09",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/52930/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2024_r05/MapServer",
+    "itemID": "27fb7e1ab34946d4b04aed6f32f8e184"
+   },
+   {
+    "num": 12428,
+    "date": "2024-06-06",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/12428/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2024_r06/MapServer",
+    "itemID": "d418e7675ce14a5885ee6fe56bdc8c1d"
+   },
+   {
+    "num": 39767,
+    "date": "2024-06-27",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/39767/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2024_r07/MapServer",
+    "itemID": "1a9f5b090b2a43e49e70e4613b945e85"
+   },
+   {
+    "num": 32553,
+    "date": "2024-08-15",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/32553/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2024_r08/MapServer",
+    "itemID": "33ad336639c24e7b879de1e81cdfa667"
+   },
+   {
+    "num": 20337,
+    "date": "2024-09-19",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/20337/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2024_r10/MapServer",
+    "itemID": "523de0e821e34d01b9fc5a2d77555293"
+   },
+   {
+    "num": 56450,
+    "date": "2024-10-10",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/56450/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2024_r11/MapServer",
+    "itemID": "9ec1dccdf4054711ac37af355b3befbe"
+   },
+   {
+    "num": 49849,
+    "date": "2024-11-18",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/49849/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2024_r12/MapServer",
+    "itemID": "c76c760642f8407eaae1d68174fa2d2f"
+   },
+   {
+    "num": 16453,
+    "date": "2024-12-12",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/16453/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2024_r13/MapServer",
+    "itemID": "356472a9dc3942a28c6c0ad2294d0751"
+   },
+   {
+    "num": 36557,
+    "date": "2025-01-30",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/36557/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2025_r01/MapServer",
+    "itemID": "a13ae0015412426bb6d1c24e7654727d"
+   },
+   {
+    "num": 34007,
+    "date": "2025-02-27",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/34007/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2025_r02/MapServer",
+    "itemID": "e055a00965c8476ab7acd907f88aa1a8"
+   },
+   {
+    "num": 6543,
+    "date": "2025-03-27",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/6543/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2025_r03/MapServer",
+    "itemID": "24efa4fabd92463d805bfd82ef8f8b32"
+   },
+   {
+    "num": 27982,
+    "date": "2025-04-24",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/27982/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2025_r04/MapServer",
+    "itemID": "83c80934fdcc43ecb4bfd2aff6924fa8"
+   },
+   {
+    "num": 25285,
+    "date": "2025-05-29",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/25285/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2025_r05/MapServer",
+    "itemID": "43de8c81a70545798e34d8d4579010d0"
+   },
+   {
+    "num": 48925,
+    "date": "2025-06-26",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/48925/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2025_r06/MapServer",
+    "itemID": "a7d0b39d5c8e4c9ab5d8a63d2db9772a"
+   },
+   {
+    "num": 49999,
+    "date": "2025-07-31",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/49999/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2025_r07/MapServer",
+    "itemID": "07761e30d202426a9fb385b146e546dd"
+   },
+   {
+    "num": 52304,
+    "date": "2025-09-04",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/52304/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2025_r08/MapServer",
+    "itemID": "1fd9c88fbbfe41698e71a4581b19e554"
+   },
+   {
+    "num": 58924,
+    "date": "2025-09-25",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/58924/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2025_r09/MapServer",
+    "itemID": "925025d364fa4e49958f4f1dd2362beb"
+   },
+   {
+    "num": 20512,
+    "date": "2025-10-23",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/20512/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2025_r10/MapServer",
+    "itemID": "34ec36c37b23498582355e9ab33b3930"
+   },
+   {
+    "num": 51127,
+    "date": "2025-11-20",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/51127/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2025_r11/MapServer",
+    "itemID": "fd522c8bd511455c9623400174cc38d8"
+   },
+   {
+    "num": 13192,
+    "date": "2025-12-18",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/13192/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2025_r12/MapServer",
+    "itemID": "929ed51e5c11448c8ff82ef637bf42d6"
+   },
+   {
+    "num": 22252,
+    "date": "2026-01-29",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/22252/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2026_r01/MapServer",
+    "itemID": "470ba60866e74ae7accc91ffe341f8b8"
+   },
+   {
+    "num": 64001,
+    "date": "2026-02-26",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/64001/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2026_r02/MapServer",
+    "itemID": "146c020d3baa4e67ae0198bbb4f4dee8"
+   },
+   {
+    "num": 22869,
+    "date": "2026-03-26",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/22869/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2026_r03/MapServer",
+    "itemID": "b4c5c1b59c4141c5b503335b5baa2df4"
+   },
+   {
+    "num": 49059,
+    "date": "2026-04-30",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/49059/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2026_r04/MapServer",
+    "itemID": "a2f72b9711c1449bb4be3ae41ea9eed4"
+   },
+   {
+    "num": 10842,
+    "date": "2026-05-28",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/10842/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2026_r05/MapServer",
+    "itemID": "884a4c12802246fcbe4c0ca5c73e096f"
+   },
+   {
+    "num": 32246,
+    "date": "2026-06-30",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/32246/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2026_r06/MapServer",
+    "itemID": "ad62e5488ac441cbaf487ac9268c0590"
+   },
+   {
+    "num": 26334,
+    "date": "2026-08-05",
+    "itemURL": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/26334/{level}/{row}/{col}",
+    "meta": "https://metadata.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Metadata_2026_r07/MapServer",
+    "itemID": "106760699ba242daab4885c9b062a133"
+   }
+  ],
+  "capture": {
+   "Chimney Rock": {
+    "2023-01-11": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-02-23": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-03-15": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-04-05": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-05-03": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-06-13": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-06-29": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-08-10": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-08-31": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-10-11": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-11-01": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-12-07": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-01-18": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-02-08": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-03-07": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-03-28": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-05-09": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-06-06": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-06-27": [
+     "2/14/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2024-08-15": [
+     "2/14/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2024-09-19": [
+     "2/14/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2024-10-10": [
+     "2/14/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2024-11-18": [
+     "2/14/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2024-12-12": [
+     "2/14/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-01-30": [
+     "2/14/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-02-27": [
+     "2/14/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-03-27": [
+     "2/14/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-04-24": [
+     "2/14/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-05-29": [
+     "2/14/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-06-26": [
+     "2/14/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-07-31": [
+     "2/14/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-09-04": [
+     "2/14/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-09-25": [
+     "2/14/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-10-23": [
+     "2/14/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-11-20": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2025-12-18": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-01-29": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-02-26": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-03-26": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-04-30": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-05-28": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-06-30": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-08-05": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ]
+   },
+   "Swannanoa": {
+    "2023-01-11": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-02-23": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-03-15": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-04-05": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-05-03": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-06-13": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-06-29": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-08-10": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-08-31": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-10-11": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-11-01": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-12-07": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-01-18": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-02-08": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-03-07": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-03-28": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-05-09": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-06-06": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-06-27": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2024-08-15": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2024-09-19": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2024-10-10": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2024-11-18": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2024-12-12": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-01-30": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-02-27": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-03-27": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-04-24": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-05-29": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-06-26": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-07-31": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-09-04": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-09-25": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-10-23": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-11-20": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2025-12-18": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-01-29": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-02-26": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-03-26": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-04-30": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-05-28": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-06-30": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-08-05": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ]
+   },
+   "Biltmore Village": {
+    "2023-01-11": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-02-23": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-03-15": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-04-05": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-05-03": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-06-13": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-06-29": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-08-10": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-08-31": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-10-11": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-11-01": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-12-07": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-01-18": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-02-08": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-03-07": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-03-28": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-05-09": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-06-06": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-06-27": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2024-08-15": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2024-09-19": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2024-10-10": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2024-11-18": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2024-12-12": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-01-30": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-02-27": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-03-27": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-04-24": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-05-29": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-06-26": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-07-31": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-09-04": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-09-25": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-10-23": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-11-20": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2025-12-18": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-01-29": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-02-26": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-03-26": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-04-30": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-05-28": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-06-30": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-08-05": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ]
+   },
+   "Marshall": {
+    "2023-01-11": [
+     "3/31/2018",
+     "0.1524",
+     "North Carolina2018"
+    ],
+    "2023-02-23": [
+     "3/31/2018",
+     "0.1524",
+     "North Carolina2018"
+    ],
+    "2023-03-15": [
+     "3/31/2018",
+     "0.1524",
+     "North Carolina2018"
+    ],
+    "2023-04-05": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2023-05-03": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2023-06-13": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2023-06-29": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2023-08-10": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2023-08-31": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2023-10-11": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2023-11-01": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2023-12-07": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-01-18": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-02-08": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-03-07": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-03-28": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-05-09": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-06-06": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-06-27": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-08-15": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-09-19": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-10-10": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-11-18": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-12-12": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-01-30": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-02-27": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-03-27": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-04-24": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-05-29": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-06-26": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-07-31": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-09-04": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-09-25": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-10-23": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-11-20": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-12-18": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2026-01-29": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2026-02-26": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2026-03-26": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2026-04-30": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2026-05-28": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2026-06-30": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2026-08-05": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ]
+   },
+   "Spruce Pine": {
+    "2023-01-11": [
+     "3/4/2018",
+     "0.1524",
+     "North Carolina2018"
+    ],
+    "2023-02-23": [
+     "3/4/2018",
+     "0.1524",
+     "North Carolina2018"
+    ],
+    "2023-03-15": [
+     "3/4/2018",
+     "0.1524",
+     "North Carolina2018"
+    ],
+    "2023-04-05": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2023-05-03": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2023-06-13": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2023-06-29": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2023-08-10": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2023-08-31": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2023-10-11": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2023-11-01": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2023-12-07": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-01-18": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-02-08": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-03-07": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-03-28": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-05-09": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-06-06": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-06-27": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-08-15": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-09-19": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-10-10": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-11-18": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-12-12": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-01-30": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-02-27": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-03-27": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-04-24": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-05-29": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-06-26": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-07-31": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-09-04": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-09-25": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-10-23": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-11-20": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2025-12-18": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-01-29": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-02-26": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-03-26": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-04-30": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-05-28": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-06-30": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-08-05": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ]
+   },
+   "Erwin TN": {
+    "2023-01-11": [
+     "3/21/2022",
+     "0.31",
+     "Vivid"
+    ],
+    "2023-02-23": [
+     "3/21/2022",
+     "0.31",
+     "Vivid"
+    ],
+    "2023-03-15": [
+     "3/21/2022",
+     "0.31",
+     "Vivid"
+    ],
+    "2023-04-05": [
+     "3/21/2022",
+     "0.31",
+     "Vivid"
+    ],
+    "2023-05-03": [
+     "3/21/2022",
+     "0.31",
+     "Vivid"
+    ],
+    "2023-06-13": [
+     "3/21/2022",
+     "0.31",
+     "Vivid"
+    ],
+    "2023-06-29": [
+     "3/21/2022",
+     "0.31",
+     "Vivid"
+    ],
+    "2023-08-10": [
+     "3/21/2022",
+     "0.31",
+     "Vivid"
+    ],
+    "2023-08-31": [
+     "3/21/2022",
+     "0.31",
+     "Vivid"
+    ],
+    "2023-10-11": [
+     "3/21/2022",
+     "0.31",
+     "Vivid"
+    ],
+    "2023-11-01": [
+     "3/21/2022",
+     "0.31",
+     "Vivid"
+    ],
+    "2023-12-07": [
+     "3/21/2022",
+     "0.31",
+     "Vivid"
+    ],
+    "2024-01-18": [
+     "3/21/2022",
+     "0.31",
+     "Vivid"
+    ],
+    "2024-02-08": [
+     "3/21/2022",
+     "0.31",
+     "Vivid"
+    ],
+    "2024-03-07": [
+     "3/21/2022",
+     "0.31",
+     "Vivid"
+    ],
+    "2024-03-28": [
+     "3/21/2022",
+     "0.31",
+     "Vivid"
+    ],
+    "2024-05-09": [
+     "3/21/2022",
+     "0.31",
+     "Vivid"
+    ],
+    "2024-06-06": [
+     "3/21/2022",
+     "0.31",
+     "Vivid"
+    ],
+    "2024-06-27": [
+     "3/21/2022",
+     "0.31",
+     "Vivid"
+    ],
+    "2024-08-15": [
+     "3/21/2022",
+     "0.31",
+     "Vivid"
+    ],
+    "2024-09-19": [
+     "3/21/2022",
+     "0.31",
+     "Vivid"
+    ],
+    "2024-10-10": [
+     "3/21/2022",
+     "0.31",
+     "Vivid"
+    ],
+    "2024-11-18": [
+     "12/5/2021",
+     "0.5",
+     "Vivid"
+    ],
+    "2024-12-12": [
+     "12/5/2021",
+     "0.5",
+     "Vivid"
+    ],
+    "2025-01-30": [
+     "12/5/2021",
+     "0.5",
+     "Vivid"
+    ],
+    "2025-02-27": [
+     "12/5/2021",
+     "0.5",
+     "Vivid"
+    ],
+    "2025-03-27": [
+     "12/5/2021",
+     "0.5",
+     "Vivid"
+    ],
+    "2025-04-24": [
+     "12/5/2021",
+     "0.5",
+     "Vivid"
+    ],
+    "2025-05-29": [
+     "12/5/2021",
+     "0.5",
+     "Vivid"
+    ],
+    "2025-06-26": [
+     "12/5/2021",
+     "0.5",
+     "Vivid"
+    ],
+    "2025-07-31": [
+     "12/5/2021",
+     "0.5",
+     "Vivid"
+    ],
+    "2025-09-04": [
+     "12/5/2021",
+     "0.5",
+     "Vivid"
+    ],
+    "2025-09-25": [
+     "12/5/2021",
+     "0.5",
+     "Vivid"
+    ],
+    "2025-10-23": [
+     "12/5/2021",
+     "0.5",
+     "Vivid"
+    ],
+    "2025-11-20": [
+     "12/5/2021",
+     "0.5",
+     "Vivid"
+    ],
+    "2025-12-18": [
+     "12/5/2021",
+     "0.5",
+     "Vivid"
+    ],
+    "2026-01-29": [
+     "12/5/2021",
+     "0.5",
+     "Vivid"
+    ],
+    "2026-02-26": [
+     "11/5/2025",
+     "0.31",
+     "Vivid"
+    ],
+    "2026-03-26": [
+     "11/5/2025",
+     "0.31",
+     "Vivid"
+    ],
+    "2026-04-30": [
+     "11/5/2025",
+     "0.31",
+     "Vivid"
+    ],
+    "2026-05-28": [
+     "11/5/2025",
+     "0.31",
+     "Vivid"
+    ],
+    "2026-06-30": [
+     "11/5/2025",
+     "0.31",
+     "Vivid"
+    ],
+    "2026-08-05": [
+     "11/5/2025",
+     "0.31",
+     "Vivid"
+    ]
+   },
+   "Hot Springs": {
+    "2023-01-11": [
+     "3/31/2018",
+     "0.1524",
+     "North Carolina2018"
+    ],
+    "2023-02-23": [
+     "3/31/2018",
+     "0.1524",
+     "North Carolina2018"
+    ],
+    "2023-03-15": [
+     "3/31/2018",
+     "0.1524",
+     "North Carolina2018"
+    ],
+    "2023-04-05": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2023-05-03": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2023-06-13": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2023-06-29": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2023-08-10": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2023-08-31": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2023-10-11": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2023-11-01": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2023-12-07": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-01-18": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-02-08": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-03-07": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-03-28": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-05-09": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-06-06": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-06-27": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-08-15": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-09-19": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-10-10": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-11-18": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-12-12": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-01-30": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-02-27": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-03-27": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-04-24": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-05-29": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-06-26": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-07-31": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-09-04": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-09-25": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-10-23": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-11-20": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-12-18": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2026-01-29": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2026-02-26": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2026-03-26": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2026-04-30": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2026-05-28": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2026-06-30": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2026-08-05": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ]
+   },
+   "Old Fort": {
+    "2023-01-11": [
+     "3/3/2018",
+     "0.1524",
+     "North Carolina2018"
+    ],
+    "2023-02-23": [
+     "3/3/2018",
+     "0.1524",
+     "North Carolina2018"
+    ],
+    "2023-03-15": [
+     "3/3/2018",
+     "0.1524",
+     "North Carolina2018"
+    ],
+    "2023-04-05": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2023-05-03": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2023-06-13": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2023-06-29": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2023-08-10": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2023-08-31": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2023-10-11": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2023-11-01": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2023-12-07": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-01-18": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-02-08": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-03-07": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-03-28": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-05-09": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-06-06": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-06-27": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-08-15": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-09-19": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-10-10": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-11-18": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2024-12-12": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-01-30": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-02-27": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-03-27": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-04-24": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-05-29": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-06-26": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-07-31": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-09-04": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-09-25": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-10-23": [
+     "3/21/2022",
+     "0.1524",
+     "North Carolina2022"
+    ],
+    "2025-11-20": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2025-12-18": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-01-29": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-02-26": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-03-26": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-04-30": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-05-28": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-06-30": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-08-05": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ]
+   },
+   "Black Mountain": {
+    "2023-01-11": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-02-23": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-03-15": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-04-05": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-05-03": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-06-13": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-06-29": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-08-10": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-08-31": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-10-11": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-11-01": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-12-07": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-01-18": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-02-08": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-03-07": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-03-28": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-05-09": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-06-06": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-06-27": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2024-08-15": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2024-09-19": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2024-10-10": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2024-11-18": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2024-12-12": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-01-30": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-02-27": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-03-27": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-04-24": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-05-29": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-06-26": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-07-31": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-09-04": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-09-25": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-10-23": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-11-20": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2025-12-18": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-01-29": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-02-26": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-03-26": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-04-30": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-05-28": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-06-30": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-08-05": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ]
+   },
+   "Lake Lure": {
+    "2023-01-11": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-02-23": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-03-15": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-04-05": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-05-03": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-06-13": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-06-29": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-08-10": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-08-31": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-10-11": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-11-01": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-12-07": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-01-18": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-02-08": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-03-07": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-03-28": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-05-09": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-06-06": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-06-27": [
+     "2/14/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2024-08-15": [
+     "2/14/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2024-09-19": [
+     "2/14/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2024-10-10": [
+     "2/14/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2024-11-18": [
+     "2/14/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2024-12-12": [
+     "2/14/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-01-30": [
+     "2/14/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-02-27": [
+     "2/14/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-03-27": [
+     "2/14/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-04-24": [
+     "2/14/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-05-29": [
+     "2/14/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-06-26": [
+     "2/14/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-07-31": [
+     "2/14/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-09-04": [
+     "2/14/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-09-25": [
+     "2/14/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-10-23": [
+     "2/14/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-11-20": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2025-12-18": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-01-29": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-02-26": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-03-26": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-04-30": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-05-28": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-06-30": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-08-05": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ]
+   },
+   "Bat Cave": {
+    "2023-01-11": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-02-23": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-03-15": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-04-05": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-05-03": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-06-13": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-06-29": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-08-10": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-08-31": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-10-11": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-11-01": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2023-12-07": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-01-18": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-02-08": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-03-07": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-03-28": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-05-09": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-06-06": [
+     "2/1/2019",
+     "0.15",
+     "North Carolina2019"
+    ],
+    "2024-06-27": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2024-08-15": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2024-09-19": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2024-10-10": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2024-11-18": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2024-12-12": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-01-30": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-02-27": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-03-27": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-04-24": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-05-29": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-06-26": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-07-31": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-09-04": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-09-25": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-10-23": [
+     "2/18/2023",
+     "0.1524",
+     "North Carolina2023"
+    ],
+    "2025-11-20": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2025-12-18": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-01-29": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-02-26": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-03-26": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-04-30": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-05-28": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-06-30": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ],
+    "2026-08-05": [
+     "2/1/2025",
+     "0.1524",
+     "NC Post Helene2025"
+    ]
+   },
+   "Newport TN": {
+    "2023-01-11": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2023-02-23": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2023-03-15": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2023-04-05": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2023-05-03": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2023-06-13": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2023-06-29": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2023-08-10": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2023-08-31": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2023-10-11": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2023-11-01": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2023-12-07": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2024-01-18": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2024-02-08": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2024-03-07": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2024-03-28": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2024-05-09": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2024-06-06": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2024-06-27": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2024-08-15": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2024-09-19": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2024-10-10": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2024-11-18": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2024-12-12": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2025-01-30": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2025-02-27": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2025-03-27": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2025-04-24": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2025-05-29": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2025-06-26": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2025-07-31": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2025-09-04": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2025-09-25": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2025-10-23": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2025-11-20": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2025-12-18": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2026-01-29": [
+     "11/9/2019",
+     "0.5",
+     "Vivid"
+    ],
+    "2026-02-26": [
+     "10/11/2024",
+     "0.31",
+     "Vivid"
+    ],
+    "2026-03-26": [
+     "10/11/2024",
+     "0.31",
+     "Vivid"
+    ],
+    "2026-04-30": [
+     "10/11/2024",
+     "0.31",
+     "Vivid"
+    ],
+    "2026-05-28": [
+     "10/11/2024",
+     "0.31",
+     "Vivid"
+    ],
+    "2026-06-30": [
+     "10/11/2024",
+     "0.31",
+     "Vivid"
+    ],
+    "2026-08-05": [
+     "10/11/2024",
+     "0.31",
+     "Vivid"
+    ]
+   }
+  }
+ }
+}
