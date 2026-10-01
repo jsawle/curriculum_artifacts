@@ -220,6 +220,7 @@
       <button class="k" data-l="overlap" aria-pressed="false" disabled><span class="tick"></span><span class="sw" style="background:#d55181"></span>Heavy rain on steep ground</button>
       <button class="k" data-l="slides" aria-pressed="false" disabled><span class="tick"></span><span class="sw" style="background:#fff;border:2px solid #7a1414;border-radius:50%;width:10px;height:10px"></span>Landslides</button>
       <button class="k" data-l="records" aria-pressed="false" disabled><span class="tick"></span><span class="sw" style="background:#00b4d8;transform:rotate(45deg);width:10px;height:10px"></span>River broke its record</button>
+      <button class="k" data-l="rivers" aria-pressed="false" disabled><span class="tick"></span><span class="sw" style="background:#00d7ff;height:5px;margin-top:4px;box-shadow:0 0 0 1.5px #00234a"></span>Rivers: wider = more water</button>
       <button class="k" data-l="gauges" aria-pressed="false" disabled><span class="tick"></span>River gauge columns</button>
       <button class="k" data-l="ridge" aria-pressed="false"><span class="tick"></span><span class="sw" style="background:none;border-top:3px dashed currentColor;height:0;margin-top:6px"></span>Blue Ridge escarpment</button>
       <button class="k" data-l="pattern" aria-pressed="false"><span class="tick"></span><span class="sw" style="background:#b98cff"></span>Weather pattern (approximate)</button>
@@ -247,7 +248,8 @@
         <li><b>Rain so far.</b> The blue shading on the ground is the rain that had fallen since 8 am EDT on Tuesday 24 September, and it grows as the timeline plays. It is made from NOAA's hourly radar estimates (MRMS) at about 390 towns and river gauges, prepared for NOAA's <i>Helene in Southern Appalachia</i> dashboard, spread between those places by inverse-distance weighting. It covers the southern Appalachians only. Click the map to read the value at a spot.</li>
         <li><b>Steep ground.</b> Slope worked out from Esri World Elevation on a grid about 1.2 km apart, so it describes the steepness of the landscape (mountain sides, the Blue Ridge escarpment), not of single hillsides.</li>
         <li><b>Heavy rain on steep ground.</b> Places where the total rain and the steepness are both above the thresholds chosen in step 6. Students can change the thresholds.</li>
-        <li><b>River gauges.</b> Each gauge is a column of water whose height is the river's stage, measured every 15 minutes by the USGS. The red ring marks the NWS "major flood" level; the white ring marks the highest the river had been measured before Helene. 1 ft of river is drawn 120 m tall. A grey column means the gauge stopped reporting.</li>
+        <li><b>River gauges.</b> Each gauge is a column of water whose height is the river's stage, measured every 15 minutes by the USGS (the USGS's checked, approved values). The red ring marks the NWS "major flood" level; the white ring marks the highest the river had been measured before Helene. 1 ft of river is drawn 120 m tall. A grey column means the gauge stopped reporting.</li>
+        <li><b>Rivers.</b> The main rivers come from NHDPlus, the national map of streams, whose lines are drawn in the direction the water flows. Each river is drawn wider when the nearest USGS gauge on it measures more water; between gauges the flow is shared out in proportion to NHDPlus's estimate of each stretch's average flow, so widths between gauges are estimates. The white streaks move downstream and speed up as the river rises above its usual flow; they show direction, not the real speed of the water. The <b>Flow</b> chart in step 5 shows the measured flow at each gauge in cubic feet per second, with the highest flow recorded there before Helene from the USGS peak-flow file.</li>
         <li><b>Landslides.</b> Points from the USGS preliminary landslide inventory. It does not record when each slide happened, so the page shows them from the morning of 27 September, when most occurred.</li>
         <li><b>Weather pattern.</b> High pressure (the Bermuda High) and low pressure in the upper air are drawn in approximate positions from the NHC report ("a subtropical ridge centered over the western Atlantic"; "a deep-layer cut-off low centered over the Tennessee Valley"). The low was still forming on 24–25 September (NHC discussion 8: "a mid-latitude trough/developing cut-off low over the Mississippi valley") but is drawn from the start to keep the picture simple. The stalled front (NHC: "from the central Gulf Coast northward towards the Tennessee Valley and southern Appalachians from 25–27 September") is mentioned in step 1 but not drawn, to keep the map simple. None of these are traced from weather maps.</li>
         <li><b>Moisture stream.</b> The light-blue streaks sketch the narrow stream of tropical moisture that NOAA's CW3E centre describes as "AR-like poleward transport of enhanced water vapor on the east side of Helene", carried "into the Southern Appalachians on 26 and 27 September", and that Climate.gov describes as squeezed between Helene's anticlockwise spin and the Bermuda High's clockwise spin. The page draws it as a curved band from Helene's east side to the Blue Ridge from 25 September until Helene's own spin takes over; its exact width and path are a sketch. Scientists call this kind of stream an atmospheric river; "conveyor belt" here is a plain-language image, not the meteorological term "warm conveyor belt".</li>
@@ -260,8 +262,9 @@
         <li>The rain map is spread between about 390 radar points, so it smooths out small, very wet spots. Radar estimates can differ from rain gauges: the highest gauge total, 30.78 in at Busick, is higher than the radar values nearby.</li>
         <li>The landslide inventory is preliminary and misses slides hidden by forest or too small to see from satellites. Some points are at the damage site, not where the slide began.</li>
         <li>Step 6 compares areas, so it shows that landslides and heavy rain on steep ground happened in the same places. It cannot, by itself, prove that one caused the other; the science of why is in step 3 and step 5.</li>
-        <li>River heights from different sources differ slightly: the USGS provisional peak at Asheville is 24.67 ft, the NHC report gives 24.8 ft.</li>
-        <li>The NOAA rainfall and river-gauge data are read from a saved copy in the site (two files, about 65 KB to download), made from the live NOAA services by an automatic script; if the copy is missing, the page reads the live services instead. The landslides, elevation and maps are live services. River gauges load only at steps 5 and 7, and the mountains are measured from step 3, to keep the start quick on school networks. Some gauges stopped reporting during the flood, so a few records (for example the French Broad at Blantyre) are not shown as broken even though the river did pass them.</li>
+        <li>River heights from different sources differ slightly: the USGS provisional peak at Asheville was 24.67 ft; the approved value used here is 24.82 ft, matching the NHC report's 24.8 ft. At many gauges the flood was too high or dangerous to measure flow directly, so the USGS worked out the peak flows afterwards (for example from high-water marks); the chart dashes the values the USGS marks as estimated. The Nolichucky gauge at Embreeville stopped recording flow at 11:15 am on 27 September and is still provisional.</li>
+        <li>NOAA's National Water Model was checked as a source of river flow and not used: it matched gauges that kept reporting, but gave only a quarter to just over half of the measured peak at several of the worst-hit mountain gauges, including Asheville and the Swannanoa.</li>
+        <li>The rainfall, river and gauge data are read from saved copies in the site (three files, about 120 KB to download), made from the live NOAA, USGS and NHDPlus services by automatic scripts; if the NOAA copy is missing, the page reads the live NOAA services instead. The landslides, elevation and maps are live services. River data load only at steps 5 and 7, and the mountains are measured from step 3, to keep the start quick on school networks. Some gauges stopped reporting during the flood; the USGS approved records used here fill most of those gaps (for example, the French Broad at Blantyre now shows its peak of 28.4 ft, above its 1916 record).</li>
       </ul>
     </details>
     <details><summary>Sources</summary>
@@ -270,7 +273,8 @@
         <a href="https://storymaps.arcgis.com/stories/8887acbd2dbd4d28a68e79fe53cbfaa3" target="_blank" rel="noopener">NOAA: Helene in Southern Appalachia (MRMS rainfall and gauge tables)</a> ·
         <a href="https://www.usgs.gov/data/preliminary-landslide-inventory-landslides-triggered-hurricane-helene-september-2024" target="_blank" rel="noopener">USGS preliminary landslide inventory</a> ·
         <a href="https://www.usgs.gov/publications/insights-widespread-landsliding-southern-appalachia-hurricane-helene" target="_blank" rel="noopener">USGS: Insights into widespread landsliding (2,217 landslides, south-east-facing slopes)</a> ·
-        <a href="https://waterdata.usgs.gov/" target="_blank" rel="noopener">USGS river gauges</a> ·
+        <a href="https://waterdata.usgs.gov/" target="_blank" rel="noopener">USGS river gauges (stage, flow and annual peak flows)</a> ·
+        <a href="https://www.epa.gov/waterdata/nhdplus-national-hydrography-dataset-plus" target="_blank" rel="noopener">NHDPlus V2.1 river network (EPA/USGS; Esri-hosted layer)</a> ·
         <a href="https://cw3e.ucsd.edu/wp-content/uploads/2024/09/30Sep2024_HelenePRE_EventSummary/HelenePRE_EventSummary.pdf" target="_blank" rel="noopener">CW3E: Helene predecessor rain event summary (moisture stream)</a> ·
         <a href="https://www.climate.gov/news-features/event-tracker/hurricane-helenes-extreme-rainfall-and-catastrophic-inland-flooding" target="_blank" rel="noopener">Climate.gov: Helene's extreme rainfall and catastrophic inland flooding</a> ·
         NWS rainfall analysis (GIS Mutual Aid) · Esri World Elevation and World Imagery
@@ -296,8 +300,8 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.25";
-const APP_DATE = "30 September 2026";
+const APP_VERSION = "0.26";
+const APP_DATE = "1 October 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
   ["Moisture stream sketch", "0.1", "350 streaks along a curved band from 320 km east of Helene's centre to the Blue Ridge (35.55°N, 82.3°W), bowed 260 km east, 140 km wide narrowing to 60 km; from 25 Sep 00 UTC (fading in over 3 h), fading out as Helene passes 32.5–34°N; lifted and turned blue by the same rules as the storm winds"],
@@ -306,9 +310,10 @@ const MODELS = [
   ["Rain so far", "0.4", "Read from a saved copy of the NOAA data in the repo (data/helene-rain.json, made by a GitHub Action), with the live service as a fallback. Fades out over the outer ~30 km of the study area; redraws every hour (a new image each time). NOAA MRMS hourly radar totals since 24 Sep 12:00 UTC at ~390 places, spread to a 0.0125° grid by inverse-distance weighting (6 nearest within 40 km); southern Appalachians only"],
   ["Steep ground", "0.3", "Elevation at ~300 m detail (was ~150 m, a quarter of the downloads); measured from step 3 onwards, not at start-up. Slope sampled every 0.0125° (about 1.2 km), central differences across ~2.5 km"],
   ["Where it lined up", "0.1", "Grid cells split by total rain (24–28 Sep) and steepness thresholds; landslides counted per cell; density per 100 km²"],
-  ["River gauges", "0.3", "Saved copy (data/helene-gauges.json) with live fallback; loaded at step 5 or 7. USGS 15-minute stage; NWS flood levels; highest stage before 2024 from NOAA crest table; 1 ft drawn as 120 m; names as deconflicted labels"],
+  ["River gauges", "0.4", "USGS approved 15-minute stage and flow from a saved copy (data/helene-rivers.json) replace NOAA's provisional stage where available (fills the Blantyre gap; Asheville peak 24.82 ft); NWS flood levels and the highest stage before 2024 still from the NOAA snapshot (data/helene-gauges.json, live fallback). Flow chart: peak and the highest flow before Helene from the USGS annual peak-flow file; USGS estimated values dashed. Loaded at step 5 or 7; 1 ft drawn as 120 m"],
+  ["Rivers", "0.1", "11 named rivers from NHDPlus V2.1 (Esri-hosted), stream order 4 and above, chained upstream to downstream (4,845 of 4,894 reach ends meet the next reach's start). Width from measured USGS flow at the nearest gauge on the same river, shared along the river by the ratio of NHDPlus mean annual flows, only where that ratio is between 1/3 and 3 (stretches with no such gauge are not drawn); width = 1 + 0.9 × √(flow / 1,000 cfs) px, up to 12 px. White streaks 4 km long move downstream; their speed rises with flow ÷ mean annual flow (a drawing, not water speed). Points every 350 m, drawn 30 m above the terrain the map shows (relative to ground), so they follow the valleys at any mountain exaggeration. Loaded at step 5"]
   ["Landslides and slope test", "0.1", "USGS preliminary inventory; aspect from Esri World Elevation at ~40 m, ±60 m differences, slopes under 8° left out"],
-  ["Map description", "0.2", "Landfall wording shared with the map label (about to come ashore / coming ashore within 1 h / just came ashore up to 6 h); written description of the 3D map built from the same data and settings as the map: storm position and strength, which layers are on, wettest town so far and now, gauges in major flood or over their record"],
+  ["Map description", "0.3", "Adds the rivers: flow direction and the French Broad's flow at Asheville. Landfall wording shared with the map label (about to come ashore / coming ashore within 1 h / just came ashore up to 6 h); written description of the 3D map built from the same data and settings as the map: storm position and strength, which layers are on, wettest town so far and now, gauges in major flood or over their record"],
   ["Terrain exaggeration", "0.1", "Esri World Elevation (Terrain3D) multiplied by 1, 2 or 3"]
 ];
 const $ = (id) => document.getElementById(id);
@@ -412,10 +417,15 @@ const CH = [
     ],
     qs: ["Where does the blue deepen first: on the flat land in front of the escarpment, on it, or behind it?", "Switch the mountains to 3×. Does the deepest blue follow the shape of the mountains?", "Click a few places on the map. Which has the most rain? What is the ground like there?"] },
   { key: "rivers", n: "5 · 26–28 Sep", name: "Rivers rise", t0: 42, t1: 90,
-    cam: { center: [-82.62, 35.62], zoom: 8.7, tilt: 62, heading: 335 }, show: { gauges: 1, rainSurf: 1 },
+    cam: { center: [-82.62, 35.62], zoom: 8.7, tilt: 62, heading: 335 }, show: { gauges: 1, rainSurf: 1, rivers: 1 },
     story: `<p>All that rain ran off the soaked slopes into streams and rivers at once. At least 63 river gauges broke their records.</p>
-      <p>The French Broad River at Asheville rose to about 24.7 ft, higher than in the great flood of 1916. Each column is a river gauge: the <b>red ring</b> marks major flooding, the <b>white ring</b> the highest the river had ever been measured before Helene. A ★ by the name means it has broken that record.</p>`,
-    qs: ["Which gauge passes its old record first? Which is last?", "Pick a gauge in the chart. How many hours after the heaviest rain did the river peak?", "Are the gauges that broke records downstream of the deepest blue?"] },
+      <p>The <b>rivers</b> grow wider as they carry more water, and the white streaks show which way the water flows. Each column is a river gauge: the <b>red ring</b> marks major flooding, the <b>white ring</b> the highest the river had been before Helene. A ★ by the name means it has broken that record.</p>`,
+    beats: [
+      { t: (Date.UTC(2024, 8, 27, 21, 38) - T0) / HR, title: "The French Broad peaks at Asheville",
+        text: `<p>At 5:38 pm the French Broad River at Asheville reaches <b>24.8 ft</b>, higher than in the great flood of 1916. About <b>113,000 cubic feet of water</b> rush past every second: more than an Olympic swimming pool each second.</p>
+          <p>Follow the white streaks. The French Broad flows <b>north</b>, through the mountains into Tennessee, and so do the Pigeon and the Nolichucky, so towns such as Newport and Erwin in Tennessee flood too. The Catawba flows east, towards the Atlantic.</p>` }
+    ],
+    qs: ["Follow the streaks from Asheville. Which state does the French Broad River flow into?", "Which gauge passes its old record first? Which is last?", "Pick a gauge in the chart. How many hours after the heaviest rain did the river peak?", "Are the gauges that broke records downstream of the deepest blue?"] },
   { key: "slides", n: "6 · 27 Sep", name: "Slopes give way", t0: 60, t1: 84,
     cam: { center: [-82.28, 35.72], zoom: 9.3, tilt: 62, heading: 20 }, show: { slides: 1, rainSurf: 1 },
     story: `<p>Soil full of water is heavy and loses its grip on the rock beneath. On steep slopes it can slide, and many slides turned into fast <b>debris flows</b> that raced down valleys, carrying trees, rocks and buildings.</p>
@@ -435,8 +445,8 @@ const CH = [
 
 // ---------- state ----------
 let hNow = 0, playing = false, chapter = 0, lastFrame = 0, EXAG = 2;
-const vis = { ridge: false, pattern: false, stream: false, storm: true, winds: false, rainSurf: false, steep: false, overlap: false, slides: false, records: false, gauges: false, nws: false };
-const avail = { ridge: true, pattern: true, stream: true, storm: true, winds: true, rainSurf: false, steep: false, overlap: false, slides: false, records: false, gauges: false, nws: false };
+const vis = { ridge: false, pattern: false, stream: false, storm: true, winds: false, rainSurf: false, steep: false, overlap: false, slides: false, records: false, gauges: false, rivers: false, nws: false };
+const avail = { ridge: true, pattern: true, stream: true, storm: true, winds: true, rainSurf: false, steep: false, overlap: false, slides: false, records: false, gauges: false, rivers: false, nws: false };
 const setStatus = (t, p) => { $("status").textContent = t || ""; if (p != null) $("bar").style.width = Math.round(p * 100) + "%"; };
 function toast(t) { const el = $("toast"); el.textContent = t; el.style.display = "block"; clearTimeout(toast._t); toast._t = setTimeout(() => el.style.display = "none", 3500); }
 
@@ -932,13 +942,20 @@ function ensureGauges() {   // river gauges are only fetched when a step needs t
   return gaugesPromise;
 }
 async function loadGauges() {
-  const series = await gaugeSeries();
+  const [series, rd] = await Promise.all([gaugeSeries(), R.data().catch(e => { console.warn("USGS river data unavailable", e); return null; })]);
   const labelFeats = [], recFeats = [];
   for (const [id, short] of GAUGES) {
     const sr = series.find(x => x.id === id); if (!sr || !sr.t.length) continue;
+    const u = rd && rd.gauges[id];
+    if (u && u.h && u.h.length) { sr.t = (u.ht || u.qt).map(m => T0 + m * 60000); sr.s = u.h.map(v => v / 100); sr.usgs = true; }   // USGS approved stage replaces NOAA provisional
     let pk = 0; sr.s.forEach((v, k) => { if (v > sr.s[pk]) pk = k; });
     const g = { id, short, name: sr.name, lon: sr.lon, lat: sr.lat, t: sr.t, s: sr.s, minor: sr.minor, moderate: sr.moderate, major: sr.major,
-      rec: sr.rec, recYear: sr.recYear, peak: { stage: sr.s[pk], datetime: sr.t[pk] }, recordAt: null, oid: labelFeats.length + 1, shownRec: 0 };
+      rec: sr.rec, recYear: sr.recYear, peak: { stage: sr.s[pk], datetime: sr.t[pk] }, recordAt: null, oid: labelFeats.length + 1, shownRec: 0, usgs: !!sr.usgs };
+    if (u && u.q && u.q.length) {   // USGS flow, with index ranges of estimated values
+      g.qt = u.qt.map(m => T0 + m * 60000); g.q = u.q; g.qe = new Set(); (u.qe || []).forEach(([a, b]) => { for (let k = a; k <= b; k++) g.qe.add(k); });
+      let qk = 0; g.q.forEach((v, k) => { if (v > g.q[qk]) qk = k; }); g.peakQ = { q: g.q[qk], datetime: g.qt[qk] };
+      g.prevQ = u.prevQ ?? null; g.prevYear = u.prevYear ?? null; g.qmaG = u.qmaG ?? null; g.qApproved = u.approved;
+    }
     if (g.rec != null) { const k = g.s.findIndex(v => v > g.rec); if (k >= 0) g.recordAt = g.t[k]; }
     g.water = new Graphic({ geometry: { type: "point", longitude: g.lon, latitude: g.lat, z: 0 }, attributes: { gauge: id } });
     const ringSym = (color, w) => ({ type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "cylinder" }, width: w, depth: w, height: 70, anchor: "center", material: { color } }] });
@@ -992,6 +1009,116 @@ function drawGauges() {
   if (changed.length && gaugeLabels) labelEdits = labelEdits.then(() => gaugeLabels.applyEdits({ updateFeatures: changed })).catch(e => console.warn(e));
   drawHydro();
 }
+
+// ---------- layer: rivers (NHDPlus V2.1 lines drawn upstream to downstream; USGS measured flow) ----------
+const riverLayer = new GraphicsLayer({ title: "Rivers", elevationInfo: { mode: "relative-to-ground" }, visible: false });   // the SDK keeps lines on the terrain it draws, at any exaggeration
+map.add(riverLayer);
+const R = (() => {
+  const STEP_KM = 0.35, TRAIL_KM = 4, LIFT = 30;     // points every 350 m; streak length; metres above the ground
+  const LABELS = [["French Broad River", 35.80, -82.70], ["Swannanoa River", 35.60, -82.42], ["Pigeon River", 35.70, -82.98],
+    ["Nolichucky River", 36.10, -82.47], ["Catawba River", 35.66, -82.02], ["Broad River", 35.27, -81.75]];
+  let data = null, dataP = null, geomP = null, ready = false, chains = [], pieces = [], labels = null;
+  const gq = new Map();
+  const kmB = (a, b) => Math.hypot((a[0] - b[0]) * KM_LAT * Math.cos(a[1] * Math.PI / 180), (a[1] - b[1]) * KM_LAT);
+  const lineSym = (c, w) => ({ type: "line-3d", symbolLayers: [{ type: "line", size: w, material: { color: c }, cap: "round", join: "round" }] });
+  const streak = new Graphic({ geometry: null, symbol: lineSym([255, 255, 255, 0.95], 2.6) });
+  function qAt(id, ms) {   // measured flow at a gauge, cfs, straight line between 15-minute readings
+    const g = gq.get(id); if (!g || !g.t.length || ms < g.t[0] || ms > g.t[g.t.length - 1]) return null;
+    let lo = 0, hi = g.t.length - 1; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (g.t[m] <= ms) lo = m; else hi = m; }
+    const f = g.t[hi] > g.t[lo] ? (ms - g.t[lo]) / (g.t[hi] - g.t[lo]) : 0; return g.q[lo] + (g.q[hi] - g.q[lo]) * f;
+  }
+  // a stretch of river shares its gauge's flow in proportion to their NHDPlus mean annual flows
+  function runFlow(run, ms) { const q = run.g ? qAt(run.g, ms) : null, G = run.g && gq.get(run.g); return q == null || !G || !G.qmaG ? null : q * run.qma / G.qmaG; }
+  function data_() {
+    if (!dataP) dataP = (async () => {
+      const r = await fetch("data/helene-rivers.json"); if (!r.ok) throw new Error("rivers " + r.status);
+      const j = await r.json(); if (j.t0 !== T0) throw new Error("rivers snapshot does not match this page");
+      for (const [id, g] of Object.entries(j.gauges)) gq.set(id, { t: g.qt.map(m => T0 + m * 60000), q: g.q, qmaG: g.qmaG });
+      return (data = j);
+    })().catch(e => { dataP = null; throw e; });
+    return dataP;
+  }
+  function ensure() {
+    if (!geomP) geomP = (async () => {
+      setStatus("Loading rivers…", 0.3);
+      const j = await data_();
+      chains = j.chains.map(c => {
+        const runs = c.r.map(([i, qma, g]) => ({ i, qma, g })), pts = [], runOf = [], cum = [];
+        let ri = 0, acc = 0;
+        for (let i = 0; i < c.p.length; i++) {
+          while (ri + 1 < runs.length && runs[ri + 1].i <= i) ri++;
+          if (i === 0) { pts.push(c.p[0]); runOf.push(ri); cum.push(0); continue; }
+          const a = c.p[i - 1], b = c.p[i], d = kmB(a, b), n = Math.max(1, Math.ceil(d / STEP_KM));
+          for (let k = 1; k <= n; k++) { pts.push([a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n]); runOf.push(ri); acc += d / n; cum.push(acc); }
+        }
+        const n = Math.max(2, Math.round(acc / 4.5));
+        return { name: c.n, runs, pts, runOf, cum, len: acc, P: Array.from({ length: n }, (_, k) => ({ s: (k + Math.random() * 0.8) * acc / n })) };
+      });
+      pieces = [];
+      for (const c of chains) {
+        let s = 0;
+        for (let k = 1; k <= c.pts.length; k++) {
+          if (k === c.pts.length || c.runOf[k] !== c.runOf[s]) {
+            const run = c.runs[c.runOf[s]], from = Math.max(0, s - 1);
+            if (run.g) pieces.push({ c, run, from, to: k - 1, size: -1, line: new Graphic({ symbol: lineSym([0, 215, 255, 0.95], 1.5) }), edge: new Graphic({ symbol: lineSym([0, 35, 70, 0.75], 3.5) }) });
+            s = k;
+          }
+        }
+      }
+      riverLayer.removeAll(); riverLayer.addMany(pieces.map(p => p.edge)); riverLayer.addMany(pieces.map(p => p.line)); riverLayer.add(streak);
+      restack();
+      const feats = [];
+      for (const [name, lat, lon] of LABELS) {
+        let best = null; for (const c of chains) if (c.name === name) c.pts.forEach(p => { const d = kmB(p, [lon, lat]); if (!best || d < best.d) best = { d, p }; });
+        if (best && best.d < 15) feats.push(new Graphic({ geometry: { type: "point", longitude: best.p[0], latitude: best.p[1] }, attributes: { oid: feats.length + 1, name } }));
+      }
+      labels = new FeatureLayer({ title: "River names", source: feats, objectIdField: "oid", geometryType: "point", spatialReference: { wkid: 4326 },
+        fields: [{ name: "oid", type: "oid" }, { name: "name", type: "string" }], outFields: ["*"], visible: false, popupEnabled: false,
+        elevationInfo: { mode: "relative-to-ground", offset: 400 },
+        renderer: { type: "simple", symbol: { type: "point-3d", symbolLayers: [{ type: "icon", size: 0.1, resource: { primitive: "circle" }, material: { color: [0, 0, 0, 0] } }] } },
+        labelingInfo: [{ labelExpressionInfo: { expression: "$feature.name" }, labelPlacement: "above-center", maxScale: 0, minScale: 2.5e6,
+          symbol: { type: "label-3d", symbolLayers: [{ type: "text", material: { color: [170, 240, 255] }, halo: { color: [0, 30, 60, 0.9], size: 1.4 }, size: 11, font: { weight: "bold", style: "italic" } }] } }] });
+      map.add(labels);
+      ready = true; avail.rivers = true; setStatus(`Rivers loaded (${chains.length} rivers, ${gq.size} flow gauges).`, 1);
+      syncLegend(); applyVis();
+    })().catch(e => { console.error(e); geomP = null; setStatus("Rivers could not be loaded (" + e.message + ").", 1); });
+    return geomP;
+  }
+  function restack() {
+    for (const p of pieces) {
+      const path = []; for (let k = p.from; k <= p.to; k++) path.push([p.c.pts[k][0], p.c.pts[k][1], LIFT]);
+      p.line.geometry = p.edge.geometry = { type: "polyline", paths: [path], hasZ: true, spatialReference: { wkid: 4326 } };
+    }
+  }
+  function draw() {   // line width from the measured flow: about 2 px at 1,000 cfs, 4 px at 10,000 cfs, 10 px at 100,000 cfs
+    if (!ready || !riverLayer.visible) return;
+    const ms = tAt(hNow);
+    for (const p of pieces) {
+      const q = runFlow(p.run, ms), w = q == null ? 1 : Math.min(12, 1 + 0.9 * Math.sqrt(Math.max(0, q) / 1000));
+      if (Math.abs(w - p.size) < 0.15) continue;
+      p.size = w; p.line.symbol = lineSym(q == null ? [150, 150, 150, 0.6] : [0, 215, 255, 0.95], w); p.edge.symbol = lineSym([0, 35, 70, 0.75], w + 2.5);
+    }
+  }
+  function frame(dt) {   // streaks move downstream, faster when the river carries more water than usual
+    if (!ready || !riverLayer.visible) return;
+    const ms = tAt(hNow), paths = [];
+    for (const c of chains) {
+      for (const q of c.P) {
+        const k = idxAt(c, q.s), run = c.runs[c.runOf[k]], f = runFlow(run, ms);
+        if (f == null) continue;
+        q.s += dt * (0.5 + 2.4 * Math.log10(1 + f / Math.max(1, run.qma)));
+        if (q.s > c.len) q.s -= c.len;
+        const a = idxAt(c, Math.max(0, q.s - TRAIL_KM)), b = idxAt(c, q.s); if (b - a < 1) continue;
+        const path = []; for (let i = a; i <= b; i++) path.push([c.pts[i][0], c.pts[i][1], LIFT + 10]);
+        paths.push(path);
+      }
+    }
+    streak.geometry = paths.length ? { type: "polyline", paths, hasZ: true, spatialReference: { wkid: 4326 } } : null;
+  }
+  function idxAt(c, s) { let lo = 0, hi = c.cum.length - 1; while (lo < hi) { const m = (lo + hi + 1) >> 1; if (c.cum[m] <= s) lo = m; else hi = m - 1; } return lo; }
+  return { data: data_, ensure, draw, frame, restack, qAt, get ready() { return ready; }, get labels() { return labels; },
+    gauge: (id) => data && data.gauges[id], qmaG: (id) => gq.get(id) && gq.get(id).qmaG };
+})();
 
 // ---------- layer: landslides (USGS) ----------
 const SLIDE_URL = "https://services.arcgis.com/v01gqwM5QqNysAAi/arcgis/rest/services/USGS_Hurricane_Helene_Landslide_Inventory/FeatureServer/0";
@@ -1069,6 +1196,8 @@ function applyVis() {
   gaugeLayer.visible = vis.gauges && avail.gauges; if (gaugeLabels) gaugeLabels.visible = gaugeLayer.visible;
   if (recordLayer) recordLayer.visible = vis.records && avail.records;
   slideLayer.visible = vis.slides && avail.slides;
+  riverLayer.visible = vis.rivers && avail.rivers; if (R.labels) R.labels.visible = riverLayer.visible;
+  if (vis.rivers && !avail.rivers) R.ensure();
   syncLegend(); render(true);
 }
 let allLayers = false;
@@ -1084,7 +1213,7 @@ function filterLegend() {
 $("allLayers").onclick = () => { allLayers = !allLayers; filterLegend(); };
 function syncLegend() {
   filterLegend();
-  document.querySelectorAll("#legend button.k").forEach(b => { const k = b.dataset.l; b.disabled = !avail[k] && !(k === "steep" || k === "overlap" || k === "gauges" || k === "records"); b.setAttribute("aria-pressed", String(!!vis[k] && !!avail[k])); });
+  document.querySelectorAll("#legend button.k").forEach(b => { const k = b.dataset.l; b.disabled = !avail[k] && !(k === "steep" || k === "overlap" || k === "gauges" || k === "records" || k === "rivers"); b.setAttribute("aria-pressed", String(!!vis[k] && !!avail[k])); });
   document.querySelectorAll(".chips button[data-l]").forEach(b => b.setAttribute("aria-pressed", String(!!vis[b.dataset.l])));
 }
 document.querySelectorAll("#legend button.k").forEach(b => b.addEventListener("click", () => { const k = b.dataset.l; vis[k] = !vis[k]; if ((k === "gauges" || k === "records") && vis[k]) ensureGauges(); applyVis(); }));
@@ -1111,8 +1240,42 @@ function fillGaugeSelect() {
   sel.innerHTML = [...gauges.values()].map(g => `<option value="${g.id}" ${g.id === selGauge ? "selected" : ""}>${g.short}</option>`).join("");
   sel.onchange = () => { selGauge = sel.value; render(true); };
 }
+let hydroMode = "h";
+const fmtQ = (q) => `${Math.round(q).toLocaleString("en-US")} ft³/s (${Math.round(q * 0.0283168).toLocaleString("en-US")} m³/s)`;
+function flowAt(g, ms) { if (!g.qt) return null; let k = -1; for (let i = 0; i < g.qt.length && g.qt[i] <= ms; i++) k = i; return k < 0 || ms - g.qt[k] > 45 * 60e3 ? null : g.q[k]; }
+function drawFlow(box, g) {
+  if (!g.qt) { box.innerHTML = `<div class="cap">The USGS has no flow record for this gauge in the saved data.</div>`; return; }
+  const W = 360, H = 190, L = 40, R = 8, T = 10, B = 24, x0 = tAt(0), x1 = tAt(HOURS);
+  const top = Math.max(g.peakQ.q, g.prevQ ?? 0), step = top > 60000 ? 20000 : top > 20000 ? 10000 : top > 8000 ? 2000 : 1000, ymax = Math.ceil(top * 1.08 / step) * step;
+  const X = (t) => L + (W - L - R) * (t - x0) / (x1 - x0), Y = (q) => T + (H - T - B) * (1 - q / ymax);
+  let d = "", de = "", pen = false;
+  for (let i = 0; i < g.qt.length; i++) { if (g.qt[i] < x0 || g.qt[i] > x1) { pen = false; continue; }
+    const gap = i > 0 && g.qt[i] - g.qt[i - 1] > 45 * 60e3, pt = X(g.qt[i]).toFixed(1) + "," + Y(g.q[i]).toFixed(1);
+    d += (pen && !gap ? "L" : "M") + pt;
+    if (g.qe.has(i) && i > 0 && g.qe.has(i - 1) && !gap) de += "M" + X(g.qt[i - 1]).toFixed(1) + "," + Y(g.q[i - 1]).toFixed(1) + "L" + pt;
+    pen = true; }
+  const ticks = []; for (let day = 25; day <= 28; day++) { const t = Date.UTC(2024, 8, day, 4); ticks.push(`<line x1="${X(t)}" x2="${X(t)}" y1="${T}" y2="${H - B}" stroke="var(--rule)"/><text x="${X(t)}" y="${H - 8}" font-size="10.5" text-anchor="middle" fill="var(--muted)">${DAYS[new Date(t).getUTCDay()]} ${day}</text>`); }
+  const yt = []; for (let q = 0; q <= ymax; q += step * (ymax / step > 6 ? 2 : 1)) yt.push(`<text x="${L - 5}" y="${Y(q) + 3.5}" font-size="10.5" text-anchor="end" fill="var(--muted)">${q >= 1000 ? q / 1000 + "k" : q}</text>`);
+  const now = tAt(hNow), qNow = flowAt(g, now);
+  const rec = g.prevQ != null ? `<line x1="${L}" x2="${W - R}" y1="${Y(g.prevQ)}" y2="${Y(g.prevQ)}" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="4 3"/><text x="${W - R}" y="${Y(g.prevQ) - 3}" text-anchor="end" font-size="10.5" fill="var(--muted)">highest before Helene ${Math.round(g.prevQ).toLocaleString("en-US")} (${g.prevYear})</text>` : "";
+  box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="River flow at ${g.short}">
+    ${ticks.join("")}${yt.join("")}<text x="4" y="${T + 4}" font-size="10.5" fill="var(--muted)">ft³/s</text>${rec}
+    <path d="${d}" fill="none" stroke="var(--s1)" stroke-width="2" stroke-linejoin="round"/>
+    ${de ? `<path d="${de}" fill="none" stroke="var(--panel)" stroke-width="2.2" stroke-dasharray="3 3"/>` : ""}
+    <line x1="${X(now)}" x2="${X(now)}" y1="${T}" y2="${H - B}" stroke="var(--ink)" stroke-width="1"/>
+    ${qNow != null ? `<circle cx="${X(now)}" cy="${Y(qNow)}" r="4.5" fill="var(--s1)" stroke="var(--panel)" stroke-width="2"/>` : ""}
+    <rect x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}" fill="transparent" id="hydroHit"/>
+  </svg>
+  <div class="cap">${g.name}. Peak flow ${fmtQ(g.peakQ.q)} at ${fmtEDT(g.peakQ.datetime)} EDT${g.prevQ ? `, ${(g.peakQ.q / g.prevQ).toFixed(1)} times the highest flow measured before Helene (${g.prevYear})` : ""}.${g.qmaG ? ` That is about ${Math.round(g.peakQ.q / g.qmaG)} times the river's average flow here (NHDPlus estimate).` : ""}${de ? " Dashed: values the USGS marks as estimated." : ""}${g.qApproved ? "" : " Provisional data: the USGS has not finished checking it."} 1 ft³/s is about 28 litres of water every second.</div>`;
+  const hit = $("hydroHit");
+  hit.addEventListener("mousemove", (e) => { const r = hit.getBoundingClientRect(), t = x0 + (x1 - x0) * (e.clientX - r.left) / r.width, q = flowAt(g, t);
+    showTip(e, `${fmtEDT(t)} EDT · ${q == null ? "no reading" : fmtQ(q)}`); });
+  hit.addEventListener("mouseleave", hideTip);
+  hit.addEventListener("click", (e) => { const r = hit.getBoundingClientRect(); setTime(HOURS * (e.clientX - r.left) / r.width); });
+}
 function drawHydro() {
   const box = $("hydro"); if (!box) return; const g = gauges.get(selGauge); if (!g) { box.innerHTML = `<div class="cap">Loading gauge data…</div>`; return; }
+  if (hydroMode === "q") return drawFlow(box, g);
   const W = 360, H = 190, L = 34, R = 8, T = 10, B = 24, x0 = tAt(0), x1 = tAt(HOURS);
   const ymax = Math.ceil(Math.max(g.peak.stage, g.rec ?? 0, g.major ?? 0) / 5) * 5 + 2;
   const X = (t) => L + (W - L - R) * (t - x0) / (x1 - x0), Y = (s) => T + (H - T - B) * (1 - s / ymax);
@@ -1199,7 +1362,9 @@ async function renderStats() {
 function renderChapterExtra() {
   const c = CH[chapter], el = $("chExtra");
   if (c.key === "rivers") {
-    el.innerHTML = `<h2>River height ${mv("River gauges")}</h2><select id="gaugeSel" aria-label="Choose a river gauge"></select><div class="viz" id="hydro"></div>`;
+    el.innerHTML = `<h2>River gauges ${mv("River gauges")}</h2><select id="gaugeSel" aria-label="Choose a river gauge"></select>
+      <div class="chips" role="group" aria-label="Chart shows"><button data-m="h" aria-pressed="${hydroMode === "h"}">Height</button><button data-m="q" aria-pressed="${hydroMode === "q"}">Flow</button></div><div class="viz" id="hydro"></div>`;
+    el.querySelectorAll("button[data-m]").forEach(b => b.onclick = () => { hydroMode = b.dataset.m; el.querySelectorAll("button[data-m]").forEach(x => x.setAttribute("aria-pressed", String(x === b))); drawHydro(); });
     fillGaugeSelect(); drawHydro();
   } else if (c.key === "slides") {
     const imp = slideImpacts ? `<h2>What the landslides hit ${mv("Landslides and slope test")}</h2>
@@ -1313,6 +1478,8 @@ function describeMap() {
   }
   if (vis.gauges && gauges.size) { const g = [...gauges.values()], maj = g.filter(x => { const v = stageAt(x, ms); return v != null && x.major != null && v >= x.major; }).length, rec = g.filter(x => x.recordAt && ms >= x.recordAt).length;
     out.push(`River gauges: ${maj} of ${g.length} are in major flood and ${rec} have broken their record.`); }
+  if (vis.rivers && R.ready) { const a = R.qAt("03451500", ms), m = R.qmaG("03451500");
+    out.push(`Rivers are drawn wider when they carry more water, with white streaks moving downstream. The French Broad, Pigeon and Nolichucky flow north-west into Tennessee; the Catawba and Broad flow east and south.${a != null ? ` The French Broad at Asheville is carrying about ${(Math.round(a / 100) * 100).toLocaleString("en-US")} cubic feet of water a second${m ? `, about ${Math.max(1, Math.round(a / m))} times its average flow` : ""}.` : ""}`); }
   if (vis.slides && ms >= SLIDES_FROM) out.push(`White dots show ${slideCount ? slideCount.toLocaleString() + " " : ""}landslides mapped by the USGS, crowded in the mountains of western North Carolina.`);
   if (vis.steep) out.push("Amber shading shows steep ground: the mountain sides and the Blue Ridge escarpment.");
   if (vis.overlap) out.push("Pink shading shows where heavy rain fell on steep ground.");
@@ -1377,6 +1544,7 @@ function goChapter(i, animate = true, autoplay = false) {
   if (ex) { $("tab-explore").textContent = ex + " ▸"; $("exploreHint").innerHTML = `This step has something to try: open the <b>${ex}</b> tab.`; }
   for (const k of Object.keys(vis)) vis[k] = !!c.show[k];
   if (c.key === "rivers" || c.key === "lined") ensureGauges();
+  if (c.show.rivers) R.ensure();
   if (c.key === "storm" || c.key === "oro" || c.key === "lined") G.loadSlope();   // streaks lift over the mountains; step 7 needs steepness
   view.closePopup && view.closePopup();
   applyVis(); setTime(c.t0); renderChapterExtra(); selectTab("story");
@@ -1395,7 +1563,7 @@ function render(force) {
   const ms = tAt(hNow);
   $("tLabel").textContent = fmtEDT(ms) + " EDT";
   $("tUtc").textContent = fmtUTC(ms);
-  G.drawRain(); drawGauges(); drawSlides(); drawPattern(); rainInfo();
+  G.drawRain(); drawGauges(); R.draw(); drawSlides(); drawPattern(); rainInfo();
   $("tSlider").setAttribute("aria-valuetext", fmtEDT(ms) + " EDT");
   updateDesc(!playing);
 }
@@ -1436,7 +1604,7 @@ function loop(ts) {
   }
   if (motionOn) rot += dt * 0.3;   // storm clouds turn anticlockwise, redrawn ~15 times a second
   loop._acc = (loop._acc || 0) + (motionOn ? dt : 0);
-  if (!loop._n || ts - loop._n > 50) { loop._n = ts; drawStorm(tAt(hNow), rot); drawHigh(rot); flow.frame(Math.min(0.1, loop._acc)); loop._acc = 0; }
+  if (!loop._n || ts - loop._n > 50) { loop._n = ts; drawStorm(tAt(hNow), rot); drawHigh(rot); flow.frame(Math.min(0.1, loop._acc)); R.frame(Math.min(0.1, loop._acc)); loop._acc = 0; }
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);

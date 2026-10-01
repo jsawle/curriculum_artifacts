@@ -1,0 +1,27 @@
+name: Helene rivers snapshot
+# Builds data/helene-rivers.json (main rivers from NHDPlus, USGS approved flow and stage, USGS peak flows)
+# for helene-2024.html, so the page reads one small saved file instead of the live services.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - scripts/fetch_helene_rivers.py
+      - .github/workflows/helene-rivers.yml
+permissions:
+  contents: write
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python scripts/fetch_helene_rivers.py
+      - name: Commit the data if it changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
+          git add data/helene-rivers.json
+          git diff --cached --quiet && echo "No change" || (git commit -m "Update Helene rivers snapshot" && git push)
