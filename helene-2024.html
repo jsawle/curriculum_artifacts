@@ -20,7 +20,38 @@
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
   #app { display: flex; height: 100%; }
-  #panel { width: 400px; flex: none; overflow-y: auto; background: var(--panel); border-right: 1px solid var(--rule); padding: 18px 18px 28px; }
+  #panel { width: 400px; flex: none; background: var(--panel); border-right: 1px solid var(--rule); padding: 12px 16px 10px; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+  .phead { flex: none; }
+  .tools { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 8px; }
+  .tools { flex-wrap: nowrap; }
+  .tools button { padding: 4px 9px; font-size: 12.5px; white-space: nowrap; }
+  .tools button[aria-pressed="true"]#readBtn { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .stepnav { flex: none; }
+  .stepnav ol { list-style: none; display: flex; gap: 5px; padding: 0; margin: 0 0 8px; flex-wrap: wrap; }
+  .stepnav button { width: 38px; height: 38px; padding: 0; border-radius: 50%; font-size: 14px; }
+  .stepnav button[aria-current="step"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  #chapter { flex: 1; min-height: 0; display: flex; flex-direction: column; position: relative; }
+  .stepof { margin: 2px 0 0; }
+  #chapter h3 { margin: 2px 0 6px; font-size: 18px; }
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--rule); flex: none; flex-wrap: wrap; }
+  .tabs button { border-radius: 8px 8px 0 0; padding: 6px 8px; font-size: 13px; border-bottom: 0; background: transparent; }
+  .tabs button[aria-selected="true"] { background: var(--chip); box-shadow: inset 0 -3px 0 var(--accent); }
+  .tabs button.try { color: var(--accent); }
+  .tabs button[hidden] { display: none; }
+  .panes { flex: 1; min-height: 0; overflow-y: auto; padding: 10px 2px 6px; }
+  .more { position: absolute; left: 0; right: 0; bottom: 0; text-align: center; font-size: 12px; font-weight: 600; color: var(--accent); background: linear-gradient(transparent, var(--panel) 60%); padding: 16px 0 2px; pointer-events: none; display: none; }
+  .pfoot { flex: none; border-top: 1px solid var(--rule); padding-top: 8px; }
+  .pfoot .btns { margin-top: 0; justify-content: space-between; }
+  .pfoot .btns button { flex: 1; }
+  #mapDesc { font-size: 14.5px; margin: 0; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-visible, .panes:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  dialog#teachDlg { max-width: 640px; width: calc(100% - 32px); max-height: calc(100% - 48px); border: 1px solid var(--rule); border-radius: 12px; background: var(--panel); color: var(--ink); padding: 14px 18px; }
+  dialog#teachDlg::backdrop { background: rgba(0,0,0,.45); }
+  .dlghead { display: flex; justify-content: space-between; align-items: center; }
+  .dlghead h2 { margin: 0; }
+  #legend .more-layers { margin-top: 6px; font-size: 12px; padding: 3px 8px; }
+  @media (max-height: 760px) { .lede { display: none; } }
   #mapwrap { position: relative; flex: 1; min-width: 0; }
   arcgis-scene { display: block; width: 100%; height: 100%; }
   h1 { font-size: 20px; line-height: 1.2; margin: 0 0 4px; }
@@ -41,7 +72,7 @@
   #story { border-left: 3px solid var(--accent); padding: 2px 0 2px 10px; font-size: 14.5px; }
   #story p { margin: 0 0 8px; }
   .hint { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
-  #status { font-size: 13px; color: var(--muted); margin-top: 10px; min-height: 1.4em; }
+  #status { font-size: 12.5px; color: var(--muted); margin-top: 6px; min-height: 1.2em; }
   .bar { height: 4px; background: var(--rule); border-radius: 2px; overflow: hidden; margin-top: 6px; }
   .bar > div { height: 100%; width: 0; background: var(--accent); transition: width .15s; }
   ol.qs { padding-left: 20px; margin: 4px 0 14px; font-size: 14px; } ol.qs li { margin: 4px 0; }
@@ -125,26 +156,80 @@
 </head>
 <body>
 <div id="app">
-  <aside id="panel">
-    <div class="kicker">Case study <span class="ver" id="verTop"></span></div>
-    <h1>Why the Appalachians? Helene, September 2024</h1>
-    <p class="lede">The worst floods and landslides from Hurricane Helene happened in the mountains of western North Carolina, 400 miles from where it came ashore. Helene was only one part of the story: a stream of tropical moisture, a stalled front, soaked ground and a wall of steep mountains all lined up in the same place.</p>
-
-    <h2>The story in eight steps</h2>
-    <div class="steps" id="steps"></div>
-
-    <div id="chapter" style="margin-top:14px">
+  <aside id="panel" aria-label="Story and controls">
+    <header class="phead">
+      <div class="kicker">Case study <span class="ver" id="verTop"></span></div>
+      <h1>Why the Appalachians? Helene, September 2024</h1>
+      <p class="lede">Why did the worst floods and landslides happen in the mountains of North Carolina, 400 miles from where Hurricane Helene came ashore?</p>
+      <div class="tools">
+        <button id="readBtn" aria-pressed="false" title="Read this step out loud">🔊 Read aloud</button>
+        <button id="motionBtn" aria-pressed="true" title="Stop or start the moving streaks and spinning clouds">❚❚ Stop motion</button>
+        <button id="teachBtn" aria-haspopup="dialog">Teachers</button>
+      </div>
+    </header>
+    <nav class="stepnav" aria-label="Steps"><ol id="steps"></ol></nav>
+    <section id="chapter" aria-labelledby="chTitle">
+      <h2 class="stepof" id="stepOf"></h2>
       <h3 id="chTitle"></h3>
-      <div id="story"></div>
-      <div id="chExtra"></div>
-      <h2>Things to notice</h2>
-      <ol class="qs" id="chQs"></ol>
+      <div class="tabs" role="tablist" aria-label="Step contents">
+        <button role="tab" id="tab-story" aria-controls="pane-story" aria-selected="true">Story</button>
+        <button role="tab" id="tab-map" aria-controls="pane-map" aria-selected="false" tabindex="-1">Map now</button>
+        <button role="tab" id="tab-explore" aria-controls="pane-explore" aria-selected="false" tabindex="-1" class="try">Explore ▸</button>
+        <button role="tab" id="tab-qs" aria-controls="pane-qs" aria-selected="false" tabindex="-1">Questions</button>
+      </div>
+      <div class="panes" id="panes" tabindex="0">
+        <div role="tabpanel" id="pane-story" aria-labelledby="tab-story"><div id="story"></div><p class="hint" id="exploreHint" hidden>This step has more to explore: open the <b>Explore</b> tab.</p></div>
+        <div role="tabpanel" id="pane-map" aria-labelledby="tab-map" hidden><p id="mapDesc"></p></div>
+        <div role="tabpanel" id="pane-explore" aria-labelledby="tab-explore" hidden><div id="chExtra"></div></div>
+        <div role="tabpanel" id="pane-qs" aria-labelledby="tab-qs" hidden><ol class="qs" id="chQs"></ol></div>
+      </div>
+      <div class="more" id="moreHint" aria-hidden="true">More below ↓</div>
+    </section>
+    <footer class="pfoot">
       <div class="btns"><button id="prevBtn">‹ Back</button><button class="primary" id="nextBtn">Next step ›</button></div>
-    </div>
-    <div id="status"></div>
-    <div class="bar"><div id="bar"></div></div>
+      <div id="status" role="status" aria-live="polite"></div>
+      <div class="bar" aria-hidden="true"><div id="bar"></div></div>
+    </footer>
+    <div class="sr-only" aria-live="polite" id="liveDesc"></div>
+  </aside>
 
-    <h2>For teachers</h2>
+  <main id="mapwrap" aria-label="3D map of the storm and the mountains. A written description is in the Map now tab.">
+    <arcgis-scene basemap="satellite" camera-position="-83.3, 18.0, 2300000" camera-heading="0" camera-tilt="18">
+      <arcgis-zoom slot="top-left"></arcgis-zoom>
+      <arcgis-navigation-toggle slot="top-left"></arcgis-navigation-toggle>
+      <arcgis-compass slot="top-left"></arcgis-compass>
+    </arcgis-scene>
+    <div id="exag">Mountains <button data-x="1" aria-pressed="false">true height</button><button data-x="2" aria-pressed="true">2×</button><button data-x="3" aria-pressed="false">3×</button></div>
+    <div id="toast"></div>
+    <div id="legend" role="group" aria-labelledby="legendTitle">
+      <div class="t" id="legendTitle">Show on the map</div>
+      <button class="k" data-l="rainSurf" aria-pressed="false" disabled><span class="tick"></span>Rain so far (radar)</button>
+      <div class="band" aria-hidden="true"><i style="background:#cde2fb"></i><i style="background:#86b6ef"></i><i style="background:#3987e5"></i><i style="background:#1c5cab"></i><i style="background:#0d366b"></i></div>
+      <div class="band"><span>2</span><span>5</span><span>10</span><span>15</span><span>20+ in</span></div>
+      <button class="k" data-l="steep" aria-pressed="false" disabled><span class="tick"></span><span class="sw" style="background:#eda100"></span>Steep ground</button>
+      <button class="k" data-l="overlap" aria-pressed="false" disabled><span class="tick"></span><span class="sw" style="background:#d55181"></span>Heavy rain on steep ground</button>
+      <button class="k" data-l="slides" aria-pressed="false" disabled><span class="tick"></span><span class="sw" style="background:#fff;border:2px solid #7a1414;border-radius:50%;width:10px;height:10px"></span>Landslides</button>
+      <button class="k" data-l="records" aria-pressed="false" disabled><span class="tick"></span><span class="sw" style="background:#00b4d8;transform:rotate(45deg);width:10px;height:10px"></span>River broke its record</button>
+      <button class="k" data-l="gauges" aria-pressed="false" disabled><span class="tick"></span>River gauge columns</button>
+      <button class="k" data-l="pattern" aria-pressed="false"><span class="tick"></span><span class="sw" style="background:#b98cff"></span>Weather pattern (approximate)</button>
+      <button class="k" data-l="stream" aria-pressed="false"><span class="tick"></span><span class="sw" style="background:#96e1ff"></span>Moisture stream (sketch)</button>
+      <button class="k" data-l="storm" aria-pressed="true"><span class="tick"></span>Storm and track</button>
+      <button class="k" data-l="winds" aria-pressed="false"><span class="tick"></span><span class="sw" style="background:none;color:inherit;font-size:14px;line-height:12px;text-align:center">➜</span>Storm winds (sketch)</button>
+      <button class="k" data-l="nws" aria-pressed="false" disabled><span class="tick"></span>NWS rain map, 24–27 Sep</button>
+      <div id="nwsKey"></div>
+      <button class="more-layers" id="allLayers" aria-pressed="false">Show all layers</button>
+    </div>
+    <div id="timebar">
+      <button id="playBtn" class="primary" aria-label="Play">▶ Play</button>
+      <input id="tSlider" type="range" min="0" max="108" step="0.25" value="0" aria-label="Time" />
+      <select id="speed" aria-label="Playback speed"><option value="1">very slow</option><option value="2">slow</option><option value="4" selected>normal</option><option value="10">fast</option></select>
+      <div id="tLabel">—</div>
+      <div id="tSub"><span id="tUtc"></span><span class="far" id="tStorm"></span></div>
+    </div>
+  </main>
+</div>
+<dialog id="teachDlg" aria-labelledby="teachTitle">
+  <div class="dlghead"><h2 id="teachTitle">For teachers</h2><button id="teachClose" aria-label="Close">✕</button></div>
     <details><summary>What the 3D view shows</summary>
       <ul>
         <li><b>Rain so far.</b> The blue shading on the ground is the rain that had fallen since 8 am EDT on Tuesday 24 September, and it grows as the timeline plays. It is made from NOAA's hourly radar estimates (MRMS) at about 390 towns and river gauges, prepared for NOAA's <i>Helene in Southern Appalachia</i> dashboard, spread between those places by inverse-distance weighting. It covers the southern Appalachians only. Click the map to read the value at a spot.</li>
@@ -183,48 +268,22 @@
       <table class="ver" id="verTable"></table>
       <div class="hint" id="camRead" style="margin-top:8px"></div>
     </details>
-  </aside>
-
-  <main id="mapwrap">
-    <arcgis-scene basemap="satellite" camera-position="-83.3, 18.0, 2300000" camera-heading="0" camera-tilt="18">
-      <arcgis-zoom slot="top-left"></arcgis-zoom>
-      <arcgis-navigation-toggle slot="top-left"></arcgis-navigation-toggle>
-      <arcgis-compass slot="top-left"></arcgis-compass>
-    </arcgis-scene>
-    <div id="exag">Mountains <button data-x="1" aria-pressed="false">true height</button><button data-x="2" aria-pressed="true">2×</button><button data-x="3" aria-pressed="false">3×</button></div>
-    <div id="toast"></div>
-    <div id="legend">
-      <div class="t">Show on the map</div>
-      <button class="k" data-l="rainSurf" aria-pressed="false" disabled><span class="tick"></span>Rain so far (radar)</button>
-      <div class="band" aria-hidden="true"><i style="background:#cde2fb"></i><i style="background:#86b6ef"></i><i style="background:#3987e5"></i><i style="background:#1c5cab"></i><i style="background:#0d366b"></i></div>
-      <div class="band"><span>2</span><span>5</span><span>10</span><span>15</span><span>20+ in</span></div>
-      <button class="k" data-l="steep" aria-pressed="false" disabled><span class="tick"></span><span class="sw" style="background:#eda100"></span>Steep ground</button>
-      <button class="k" data-l="overlap" aria-pressed="false" disabled><span class="tick"></span><span class="sw" style="background:#d55181"></span>Heavy rain on steep ground</button>
-      <button class="k" data-l="slides" aria-pressed="false" disabled><span class="tick"></span><span class="sw" style="background:#fff;border:2px solid #7a1414;border-radius:50%;width:10px;height:10px"></span>Landslides</button>
-      <button class="k" data-l="records" aria-pressed="false" disabled><span class="tick"></span><span class="sw" style="background:#00b4d8;transform:rotate(45deg);width:10px;height:10px"></span>River broke its record</button>
-      <button class="k" data-l="gauges" aria-pressed="false" disabled><span class="tick"></span>River gauge columns</button>
-      <button class="k" data-l="pattern" aria-pressed="false"><span class="tick"></span><span class="sw" style="background:#b98cff"></span>Weather pattern (approximate)</button>
-      <button class="k" data-l="stream" aria-pressed="false"><span class="tick"></span><span class="sw" style="background:#96e1ff"></span>Moisture stream (sketch)</button>
-      <button class="k" data-l="storm" aria-pressed="true"><span class="tick"></span>Storm and track</button>
-      <button class="k" data-l="winds" aria-pressed="false"><span class="tick"></span><span class="sw" style="background:none;color:inherit;font-size:14px;line-height:12px;text-align:center">➜</span>Storm winds (sketch)</button>
-      <button class="k" data-l="nws" aria-pressed="false" disabled><span class="tick"></span>NWS rain map, 24–27 Sep</button>
-      <div id="nwsKey"></div>
-    </div>
-    <div id="timebar">
-      <button id="playBtn" class="primary" aria-label="Play">▶ Play</button>
-      <input id="tSlider" type="range" min="0" max="108" step="0.25" value="0" aria-label="Time" />
-      <select id="speed" aria-label="Playback speed"><option value="1">very slow</option><option value="2">slow</option><option value="4" selected>normal</option><option value="10">fast</option></select>
-      <div id="tLabel">—</div>
-      <div id="tSub"><span id="tUtc"></span><span class="far" id="tStorm"></span></div>
-    </div>
-  </main>
-</div>
+  <details><summary>Accessibility</summary>
+      <ul>
+        <li>The page is being built towards <b>WCAG 2.1 level AA</b>, the standard US public schools must meet under the ADA Title II web rule. It has not been independently audited.</li>
+        <li>Everything can be used with a keyboard. The <b>Map now</b> tab gives a written description of what the 3D map is showing, updated as the timeline moves; screen readers announce it when the timeline is paused or the step changes.</li>
+        <li><b>Stop motion</b> freezes the moving streaks, spinning clouds and the step 7 build-up. If the device is set to reduce motion, the page starts with motion stopped.</li>
+        <li><b>Read aloud</b> uses the device's own voice to read the step and the map description. It is optional and off by default, so it does not clash with screen readers.</li>
+        <li>Known gaps: the 3D map itself cannot be explored by a screen reader beyond the written description; the river and slope charts have written summaries but no data tables yet.</li>
+      </ul>
+    </details>
+</dialog>
 <div class="tip" id="tip"></div>
 
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.9";
+const APP_VERSION = "0.10";
 const APP_DATE = "30 September 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
@@ -236,6 +295,7 @@ const MODELS = [
   ["Where it lined up", "0.1", "Grid cells split by total rain (24–28 Sep) and steepness thresholds; landslides counted per cell; density per 100 km²"],
   ["River gauges", "0.2", "USGS 15-minute stage; NWS flood levels; highest stage before 2024 from NOAA crest table; 1 ft drawn as 120 m; names as deconflicted labels"],
   ["Landslides and slope test", "0.1", "USGS preliminary inventory; aspect from Esri World Elevation at ~40 m, ±60 m differences, slopes under 8° left out"],
+  ["Map description", "0.1", "Written description of the 3D map built from the same data and settings as the map: storm position and strength, which layers are on, wettest town so far and now, gauges in major flood or over their record"],
   ["Terrain exaggeration", "0.1", "Esri World Elevation (Terrain3D) multiplied by 1, 2 or 3"]
 ];
 const $ = (id) => document.getElementById(id);
@@ -923,7 +983,19 @@ function applyVis() {
   slideLayer.visible = vis.slides && avail.slides;
   syncLegend(); render(true);
 }
+let allLayers = false;
+function filterLegend() {
+  const keep = new Set(Object.keys(CH[chapter].show)); let cur = null;
+  for (const el of $("legend").children) {
+    if (el.matches("button.k")) cur = el.dataset.l;
+    if (el.id === "allLayers" || el.id === "legendTitle" || el.id === "nwsKey" || !cur) continue;
+    el.hidden = !(allLayers || keep.has(cur) || vis[cur]);
+  }
+  $("allLayers").textContent = allLayers ? "Show this step's layers" : "Show all layers"; $("allLayers").setAttribute("aria-pressed", String(allLayers));
+}
+$("allLayers").onclick = () => { allLayers = !allLayers; filterLegend(); };
 function syncLegend() {
+  filterLegend();
   document.querySelectorAll("#legend button.k").forEach(b => { const k = b.dataset.l; b.disabled = !avail[k] && !(k === "steep" || k === "overlap"); b.setAttribute("aria-pressed", String(!!vis[k] && !!avail[k])); });
   document.querySelectorAll(".chips button[data-l]").forEach(b => b.setAttribute("aria-pressed", String(!!vis[b.dataset.l])));
 }
@@ -1010,10 +1082,11 @@ const REVEAL = [
 ];
 let revealTimer = null;
 function runReveal() {
+  if (!motionOn) { clearTimeout(revealTimer); for (const [k] of REVEAL) vis[k] = k !== "steep"; applyVis(); $("revealCap") && ($("revealCap").textContent = "All layers are shown. Switch them on and off with the buttons above."); return; }
   clearTimeout(revealTimer);
   for (const [k] of REVEAL) vis[k] = false; applyVis();
   let i = 0;
-  const step = () => { const [k, , , cap] = REVEAL[i]; vis[k] = true; if (k === "overlap") vis.steep = false; applyVis(); $("revealCap") && ($("revealCap").textContent = cap); i++; if (i < REVEAL.length) revealTimer = setTimeout(step, 3500); };
+  const step = () => { const [k, , , cap] = REVEAL[i]; vis[k] = true; if (k === "overlap") vis.steep = false; applyVis(); $("revealCap") && ($("revealCap").textContent = cap); i++; revealTimer = i < REVEAL.length ? setTimeout(step, 3500) : null; };
   step();
 }
 async function renderStats() {
@@ -1071,16 +1144,13 @@ function renderChapterExtra() {
     const upd = () => { const r = +$("thR").value, s = +$("thS").value; $("thRv").textContent = r + " in"; $("thSv").textContent = s + "°"; G.setThresholds(r, s); renderStats(); };
     $("thR").oninput = upd; $("thS").oninput = upd;
     G.loadSlope().then(renderStats); renderStats();
-  } else if (c.key === "oro") {
-    el.innerHTML = `<h2>Right now ${mv("Rain so far")}</h2><div class="hint" id="rainInfo" style="font-size:13.5px;color:var(--ink)"></div>`;
-    rainInfo();
   } else if (c.key === "cost") {
     el.innerHTML = `<h2>Deaths by state (NHC report)</h2>
       <div class="key"><span><i style="background:var(--s1)"></i>Flooding and landslides</span><span><i style="background:var(--ref)"></i>Wind, storm surge and other causes</span></div>
       ${stackedBars(DEATHS.map(([s, t, f]) => ({ label: s, f, o: t - f })), [{ f: "f", c: "var(--s1)", name: "Flooding and landslides" }, { f: "o", c: "var(--ref)", name: "Other causes" }])}
       <div class="cap" style="font-size:12.5px;color:var(--muted);margin-top:6px">Totals include direct and indirect deaths. "Flooding and landslides" counts direct deaths from freshwater flooding, which the NHC says includes landslides and debris flows. Source: NHC Tropical Cyclone Report, February 2026 update.</div>`;
   } else el.innerHTML = "";
-  syncLegend();
+  syncLegend(); checkMore();
 }
 function rainInfo() {
   const el = $("rainInfo"); if (!el) return;
@@ -1094,23 +1164,106 @@ function rainInfo() {
 }
 
 // ---------- chapters UI ----------
-$("steps").innerHTML = CH.map((c, i) => `<button data-i="${i}" aria-pressed="false"><span class="n">${c.n}</span>${c.name}</button>`).join("");
+$("steps").innerHTML = CH.map((c, i) => `<li><button data-i="${i}" aria-label="Step ${i + 1}: ${c.name}" title="${c.name}">${i + 1}</button></li>`).join("");
 document.querySelectorAll("#steps button").forEach(b => b.addEventListener("click", () => goChapter(+b.dataset.i)));
 $("prevBtn").onclick = () => goChapter(Math.max(0, chapter - 1));
 $("nextBtn").onclick = () => goChapter(Math.min(CH.length - 1, chapter + 1));
+const EXPLORE = { rivers: "River chart", slides: "Slope test", lined: "Build and test", cost: "Chart" };
+
+// tabs (keyboard: arrow keys move between tabs)
+const TABS = ["story", "map", "explore", "qs"];
+function selectTab(name, focus) {
+  for (const t of TABS) { const b = $("tab-" + t), on = t === name; b.setAttribute("aria-selected", String(on)); b.tabIndex = on ? 0 : -1; $("pane-" + t).hidden = !on; }
+  if (focus) $("tab-" + name).focus();
+  $("panes").scrollTop = 0; checkMore();
+}
+TABS.forEach(t => $("tab-" + t).addEventListener("click", () => selectTab(t)));
+$("chapter").querySelector(".tabs").addEventListener("keydown", (e) => {
+  const vis = TABS.filter(t => !$("tab-" + t).hidden), cur = vis.indexOf(TABS.find(t => $("tab-" + t).getAttribute("aria-selected") === "true"));
+  if (e.key === "ArrowRight" || e.key === "ArrowLeft") { e.preventDefault(); selectTab(vis[(cur + (e.key === "ArrowRight" ? 1 : vis.length - 1)) % vis.length], true); }
+});
+// "More below" when a tab's content is taller than the space
+function checkMore() { const p = $("panes"); $("moreHint").style.display = p.scrollHeight - p.scrollTop - p.clientHeight > 6 ? "block" : "none"; }
+$("panes").addEventListener("scroll", checkMore); addEventListener("resize", checkMore);
+
+// ---------- motion (WCAG 2.2.2): everything that moves on its own can be stopped ----------
+let motionOn = !matchMedia("(prefers-reduced-motion: reduce)").matches;
+function setMotion(on) {
+  motionOn = on;
+  $("motionBtn").textContent = on ? "❚❚ Stop motion" : "▶ Start motion"; $("motionBtn").setAttribute("aria-pressed", String(on));
+  if (!on && revealTimer) { clearTimeout(revealTimer); for (const [k] of REVEAL) vis[k] = k !== "steep"; applyVis(); }
+}
+$("motionBtn").onclick = () => setMotion(!motionOn);
+
+// ---------- written description of the map (text alternative for the 3D view) ----------
+function where(s) {
+  if (s.lat < 24) return "in the Caribbean, near Cuba";
+  if (tAt(hNow) < LANDFALL.t) return `over the Gulf, about ${Math.round(Math.hypot((s.lat - 30.0) * 69, (s.lon + 83.7) * 60) / 10) * 10} miles from Florida's coast`;
+  if (s.lat < 31) return "over north Florida, just after landfall";
+  if (s.lat < 34.2) return "over Georgia, heading north";
+  if (s.lat < 36.3) return "over the Carolinas and Tennessee, near the mountains";
+  return "over Kentucky and Tennessee, fading";
+}
+function describeMap() {
+  const c = CH[chapter], hr = Math.min(HOURS, Math.floor(hNow)), ms = tAt(hNow), s = stormAt(ms), out = [`${fmtEDT(ms)} EDT.`];
+  if (vis.storm) out.push(s ? `Helene is a ${category(s.kt, s.stage)} ${where(s)}, with winds of about ${knMph(s.kt)} mph.` : "Helene has faded away.");
+  if (vis.pattern && ms >= PAT_FROM && ms <= PAT_TO) out.push("Purple shapes mark the weather pattern: the Bermuda High far out over the Atlantic, with arrows turning clockwise; the upper-level low over Tennessee; and the stalled front, a dashed line running from the Gulf coast north to the west side of the Appalachians.");
+  else if (vis.pattern) out.push("Purple shapes mark the Bermuda High over the Atlantic, with arrows turning clockwise.");
+  if (vis.stream && s && ms >= Date.UTC(2024, 8, 25) && s.lat < 34) out.push("Light blue streaks show the moisture stream: tropical air flowing north from Helene's east side, between Helene and the Bermuda High, over Florida, Georgia and South Carolina to the Blue Ridge mountains in North Carolina.");
+  if (vis.winds && s) { const w = vortexWind(s, 35.6, -82.4); out.push(`White streaks show Helene's spin, turning anticlockwise.${w.r < 900 ? ` Over the mountains the wind is blowing from the ${compass(fromBearing(w.u, w.v))}.` : ""}`); }
+  if (vis.rainSurf && rainPts.length) {
+    const towns = rainPts.filter(p => p.kind === "City"), top = [...towns].sort((a, b) => b.r[hr] - a.r[hr])[0], now = [...towns].sort((a, b) => b.h[hr] - a.h[hr])[0];
+    out.push(top.r[hr] < 0.2 ? "Hardly any rain has fallen on the mountains yet." : `Blue shading shows rain so far. The wettest town shown is ${top.name}, ${top.state}, with ${top.r[hr].toFixed(1)} inches since Tuesday morning.`);
+    if (now.h[hr] >= 0.25 && (vis.stream || vis.winds)) out.push(`It is raining hardest now at ${now.name}, about ${now.h[hr].toFixed(1)} inches this hour; streaks over heavy rain turn dark blue.`);
+  }
+  if (vis.gauges && gauges.size) { const g = [...gauges.values()], maj = g.filter(x => { const v = stageAt(x, ms); return v != null && x.major != null && v >= x.major; }).length, rec = g.filter(x => x.recordAt && ms >= x.recordAt).length;
+    out.push(`River gauges: ${maj} of ${g.length} are in major flood and ${rec} have broken their record.`); }
+  if (vis.slides && ms >= SLIDES_FROM) out.push(`White dots show ${slideCount ? slideCount.toLocaleString() + " " : ""}landslides mapped by the USGS, crowded in the mountains of western North Carolina.`);
+  if (vis.steep) out.push("Amber shading shows steep ground: the mountain sides and the Blue Ridge escarpment.");
+  if (vis.overlap) out.push("Pink shading shows where heavy rain fell on steep ground.");
+  if (vis.records) out.push("Blue diamonds mark river gauges that broke their records.");
+  return out.join(" ");
+}
+let lastDesc = "";
+function updateDesc(announce) {
+  const d = describeMap(); if (d !== lastDesc) { lastDesc = d; $("mapDesc").textContent = d; }
+  if (announce) $("liveDesc").textContent = d;   // screen readers hear it only when paused or on a new step, not during playback
+}
+
+// ---------- read aloud (optional; uses the device's own voice) ----------
+const canSpeak = "speechSynthesis" in window;
+if (!canSpeak) { $("readBtn").disabled = true; $("readBtn").title = "This browser cannot read aloud"; }
+function stopReading() { if (canSpeak) speechSynthesis.cancel(); $("readBtn").setAttribute("aria-pressed", "false"); $("readBtn").textContent = "🔊 Read aloud"; }
+$("readBtn").onclick = () => {
+  if (!canSpeak) return;
+  if (speechSynthesis.speaking) { stopReading(); return; }
+  const c = CH[chapter], tmp = document.createElement("div"); tmp.innerHTML = c.story;
+  const u = new SpeechSynthesisUtterance(`Step ${chapter + 1}: ${c.name}. ${tmp.textContent} On the map now: ${describeMap()}`);
+  u.lang = "en-US"; u.rate = 0.95; u.onend = u.onerror = stopReading;
+  speechSynthesis.speak(u); $("readBtn").setAttribute("aria-pressed", "true"); $("readBtn").textContent = "■ Stop reading";
+};
+
+// ---------- teacher notes dialog ----------
+$("teachBtn").onclick = () => $("teachDlg").showModal();
+$("teachClose").onclick = () => $("teachDlg").close();
+
 function goChapter(i, animate = true) {
-  clearTimeout(revealTimer);
+  clearTimeout(revealTimer); revealTimer = null; stopReading();
   chapter = i; const c = CH[i]; pause();
-  document.querySelectorAll("#steps button").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.i === i)));
+  document.querySelectorAll("#steps button").forEach(b => { if (+b.dataset.i === i) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current"); });
+  $("stepOf").textContent = `Step ${i + 1} of ${CH.length} · ${c.n.split("·")[1].trim()}`;
   $("chTitle").textContent = c.name; $("story").innerHTML = c.story;
   $("chQs").innerHTML = c.qs.map(q => `<li>${q}</li>`).join("");
   $("prevBtn").disabled = i === 0; $("nextBtn").disabled = i === CH.length - 1;
+  const ex = EXPLORE[c.key]; $("tab-explore").hidden = !ex; $("exploreHint").hidden = !ex;
+  if (ex) { $("tab-explore").textContent = ex + " ▸"; $("exploreHint").innerHTML = `This step has something to try: open the <b>${ex}</b> tab.`; }
   for (const k of Object.keys(vis)) vis[k] = !!c.show[k];
   view.closePopup && view.closePopup();
   $("speed").value = c.speed || "4";
-  applyVis(); setTime(c.t0); renderChapterExtra();
-  view.goTo(c.cam, { duration: animate ? 2500 : 0, easing: "in-out-cubic" }).catch(() => {});
+  applyVis(); setTime(c.t0); renderChapterExtra(); selectTab("story");
+  view.goTo(c.cam, { duration: animate && motionOn ? 2500 : 0, easing: "in-out-cubic" }).catch(() => {});
   if (c.key === "lined") setTimeout(runReveal, animate ? 2600 : 200);
+  updateDesc(true);
 }
 
 // ---------- timeline ----------
@@ -1122,6 +1275,8 @@ function render(force) {
   $("tLabel").textContent = fmtEDT(ms) + " EDT";
   $("tUtc").textContent = fmtUTC(ms);
   G.drawRain(); drawGauges(); drawSlides(); drawPattern(); rainInfo();
+  $("tSlider").setAttribute("aria-valuetext", fmtEDT(ms) + " EDT");
+  updateDesc(!playing);
 }
 $("tSlider").addEventListener("input", (e) => { pause(); setTime(+e.target.value); });
 function play() {
@@ -1129,7 +1284,7 @@ function play() {
   if (c.t1 <= c.t0) return;
   playing = true; $("playBtn").textContent = "❚❚ Pause"; $("playBtn").setAttribute("aria-label", "Pause");
 }
-function pause() { playing = false; $("playBtn").textContent = "▶ Play"; $("playBtn").setAttribute("aria-label", "Play"); }
+function pause() { if (playing) setTimeout(() => updateDesc(true), 0); playing = false; $("playBtn").textContent = "▶ Play"; $("playBtn").setAttribute("aria-label", "Play"); }
 $("playBtn").onclick = () => playing ? pause() : play();
 let rot = 0;
 function loop(ts) {
@@ -1140,8 +1295,8 @@ function loop(ts) {
     $("tSlider").value = hNow; render(false);
     if (hNow >= end) pause();
   }
-  rot += dt * 0.3;   // storm clouds turn anticlockwise, redrawn ~15 times a second
-  loop._acc = (loop._acc || 0) + dt;
+  if (motionOn) rot += dt * 0.3;   // storm clouds turn anticlockwise, redrawn ~15 times a second
+  loop._acc = (loop._acc || 0) + (motionOn ? dt : 0);
   if (!loop._n || ts - loop._n > 50) { loop._n = ts; drawStorm(tAt(hNow), rot); drawHigh(rot); flow.frame(Math.min(0.1, loop._acc)); loop._acc = 0; }
   requestAnimationFrame(loop);
 }
@@ -1149,6 +1304,7 @@ requestAnimationFrame(loop);
 
 // ---------- start ----------
 setExag(2);
+setMotion(motionOn);
 goChapter(0, false);
 setStatus("Loading places…", 0.05);
 try {
