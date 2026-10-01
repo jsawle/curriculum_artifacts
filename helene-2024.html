@@ -133,6 +133,8 @@
   #exag button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
   #beat { position: absolute; right: 12px; top: 60px; width: min(380px, calc(100% - 90px)); max-height: calc(100% - 330px); overflow-y: auto; background: var(--panel); color: var(--ink); border: 1px solid var(--rule); border-left: 5px solid var(--accent); border-radius: 10px; padding: 10px 12px; box-shadow: 0 6px 24px rgba(0,0,0,.3); z-index: 6; font-size: 14px; }
   #beat[hidden] { display: none; }
+  .beatbtns { display: flex; gap: 8px; }
+  #beatListen[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
   #beat h3 { margin: 2px 0 6px; font-size: 17px; }
   #beat p { margin: 0 0 8px; }
   #beat .bk { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--accent); }
@@ -208,7 +210,7 @@
     </arcgis-scene>
     <div id="exag">Mountains <button data-x="1" aria-pressed="false">true height</button><button data-x="2" aria-pressed="true">2×</button><button data-x="3" aria-pressed="false">3×</button></div>
     <div id="toast"></div>
-    <div id="beat" role="region" aria-labelledby="beatTitle" hidden><div class="bk" id="beatWhen"></div><h3 id="beatTitle"></h3><div id="beatText"></div><button id="beatGo" class="primary">▶ Continue</button></div>
+    <div id="beat" role="region" aria-labelledby="beatTitle" hidden><div class="bk" id="beatWhen"></div><h3 id="beatTitle"></h3><div id="beatText"></div><div class="beatbtns"><button id="beatGo" class="primary">▶ Continue</button><button id="beatListen" aria-pressed="false" title="Read this out loud">🔊 Listen</button></div></div>
     <div id="legend" role="group" aria-labelledby="legendTitle">
       <div class="t" id="legendTitle">Show on the map</div>
       <button class="k" data-l="rainSurf" aria-pressed="false" disabled><span class="tick"></span>Rain so far (radar)</button>
@@ -294,7 +296,7 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.20";
+const APP_VERSION = "0.21";
 const APP_DATE = "30 September 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
@@ -1305,20 +1307,24 @@ function pickVoice() {
   const sel = $("voiceSel"); if (sel) { sel.innerHTML = vs.map(v => `<option ${v === voice ? "selected" : ""}>${v.name}</option>`).join(""); sel.onchange = () => { voice = vs.find(v => v.name === sel.value); try { localStorage.setItem("heleneVoice", voice.name); } catch (e) {} }; }
 }
 if (canSpeak) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
-function stopReading() { if (canSpeak) speechSynthesis.cancel(); $("readBtn").setAttribute("aria-pressed", "false"); $("readBtn").textContent = "🔊 Listen"; }
-$("readBtn").onclick = () => {
+const LISTEN_BTNS = ["readBtn", "beatListen"];
+function stopReading() { if (canSpeak) speechSynthesis.cancel(); LISTEN_BTNS.forEach(id => { const b = $(id); if (b) { b.setAttribute("aria-pressed", "false"); b.textContent = "🔊 Listen"; } }); }
+// speak some text one sentence at a time (sounds more natural and avoids some browsers cutting off long speech)
+function speak(raw, btnId) {
   if (!canSpeak) return;
-  if (speechSynthesis.speaking || speechSynthesis.pending) { stopReading(); return; }
-  const c = CH[chapter], tmp = document.createElement("div"); tmp.innerHTML = c.story.replace(/<\/(p|li)>/g, ". ");
-  const text = `Step ${chapter + 1}: ${c.name}. ${tmp.textContent} On the map now. ${describeMap()}`
-    .replace(/\bEDT\b/g, "Eastern time").replace(/\bin\b(?=[ .,)])/g, (m, i, str) => /\d\s$/.test(str.slice(0, i)) ? "inches" : m)
+  const wasThis = $(btnId).getAttribute("aria-pressed") === "true";
+  stopReading(); if (wasThis) return;   // second press stops
+  const text = raw.replace(/\bEDT\b/g, "Eastern time").replace(/\bin\b(?=[ .,)])/g, (m, i, str) => /\d\s$/.test(str.slice(0, i)) ? "inches" : m)
     .replace(/\bmph\b/g, "miles per hour").replace(/\bkm\/h\b/g, "kilometers per hour").replace(/(\d) mm\b/g, "$1 millimeters").replace(/(\d) km\b/g, "$1 kilometers").replace(/\s+/g, " ");
-  // one sentence at a time: sounds more natural and avoids some browsers cutting off long speech
   const parts = text.split(/(?<=[.!?])\s+/).filter(t => t.trim());
   parts.forEach((t, k) => { const u = new SpeechSynthesisUtterance(t.trim()); if (voice) u.voice = voice; u.lang = voice ? voice.lang : "en-US"; u.rate = 0.92; u.pitch = 1.05;
     if (k === parts.length - 1) u.onend = stopReading; u.onerror = (e) => { if (e.error !== "interrupted" && e.error !== "canceled") stopReading(); }; speechSynthesis.speak(u); });
-  $("readBtn").setAttribute("aria-pressed", "true"); $("readBtn").textContent = "■ Stop";
-};
+  $(btnId).setAttribute("aria-pressed", "true"); $(btnId).textContent = "■ Stop";
+}
+const htmlText = (h) => { const d = document.createElement("div"); d.innerHTML = h.replace(/<\/(p|li)>/g, ". "); return d.textContent; };
+$("readBtn").onclick = () => { const c = CH[chapter]; speak(`Step ${chapter + 1}: ${c.name}. ${htmlText(c.story)} On the map now. ${describeMap()}`, "readBtn"); };
+$("beatListen").onclick = () => speak(`${$("beatTitle").textContent}. ${htmlText($("beatText").innerHTML)}`, "beatListen");
+if (!canSpeak) $("beatListen").hidden = true;
 
 // ---------- teacher notes dialog ----------
 $("teachBtn").onclick = () => $("teachDlg").showModal();
@@ -1357,7 +1363,7 @@ function render(force) {
   updateDesc(!playing);
 }
 $("tSlider").addEventListener("input", (e) => { pause(); hideBeat(); setTime(+e.target.value); });
-function hideBeat() { $("beat").hidden = true; }
+function hideBeat() { if (!$("beat").hidden && $("beatListen").getAttribute("aria-pressed") === "true") stopReading(); $("beat").hidden = true; }
 function showBeat(b) {
   $("beatWhen").textContent = "Paused · " + fmtEDT(tAt(b.t)) + " EDT"; $("beatTitle").textContent = b.title; $("beatText").innerHTML = b.text; $("beat").hidden = false;
   $("playBtn").textContent = "▶ Continue";
