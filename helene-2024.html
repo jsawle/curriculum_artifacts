@@ -284,7 +284,7 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.11";
+const APP_VERSION = "0.12";
 const APP_DATE = "30 September 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
@@ -296,7 +296,7 @@ const MODELS = [
   ["Where it lined up", "0.1", "Grid cells split by total rain (24–28 Sep) and steepness thresholds; landslides counted per cell; density per 100 km²"],
   ["River gauges", "0.2", "USGS 15-minute stage; NWS flood levels; highest stage before 2024 from NOAA crest table; 1 ft drawn as 120 m; names as deconflicted labels"],
   ["Landslides and slope test", "0.1", "USGS preliminary inventory; aspect from Esri World Elevation at ~40 m, ±60 m differences, slopes under 8° left out"],
-  ["Map description", "0.1", "Written description of the 3D map built from the same data and settings as the map: storm position and strength, which layers are on, wettest town so far and now, gauges in major flood or over their record"],
+  ["Map description", "0.2", "Landfall wording shared with the map label (about to come ashore / coming ashore within 1 h / just came ashore up to 6 h); written description of the 3D map built from the same data and settings as the map: storm position and strength, which layers are on, wettest town so far and now, gauges in major flood or over their record"],
   ["Terrain exaggeration", "0.1", "Esri World Elevation (Terrain3D) multiplied by 1, 2 or 3"]
 ];
 const $ = (id) => document.getElementById(id);
@@ -351,11 +351,13 @@ function category(kt, stage) {
   return "Category " + (kt < 83 ? 1 : kt < 96 ? 2 : kt < 113 ? 3 : kt < 137 ? 4 : 5) + " hurricane";
 }
 const knMph = (k) => Math.round(k * 1.15078 / 5) * 5;
+// landfall stage, used by both the map label and the written description so they always agree
+function landfallPhase(ms) { const d = (ms - LANDFALL.t) / HR; return d < -4 ? null : d < -0.5 ? "about to come ashore" : d <= 1 ? "coming ashore" : d <= 6 ? "just came ashore" : null; }
 
 // ---------- chapters ----------
 const CAM_MTN = { center: [-82.3, 35.5], zoom: 8.3, tilt: 60, heading: 318 };   // from the south-east, looking north-west over the Blue Ridge
 const CH = [
-  { key: "setup", n: "1 · 24–25 Sep", name: "The set-up", t0: 15, t1: 40,
+  { key: "setup", n: "1 · 25 Sep", name: "The set-up", t0: 15, t1: 24, speed: "2",
     cam: { center: [-76.5, 27.6], zoom: 5.3, tilt: 20, heading: 0 }, show: { pattern: 1, storm: 1, stream: 1 },
     story: `<p>Four things came together over the south-eastern United States in late September 2024:</p>
       <ol style="padding-left:20px;margin:0 0 8px"><li><b>Hurricane Helene</b>, growing over the very warm Caribbean and Gulf, full of water vapour.</li>
@@ -364,7 +366,7 @@ const CH = [
       <li>A <b>stalled front</b> west of the Appalachians, where warm, wet air was forced to rise.</li></ol>
       <p>Between Helene's anticlockwise spin and the High's clockwise spin, tropical moisture was squeezed into a narrow stream flowing north, towards the mountains. Scientists compared it to an <b>atmospheric river</b>.</p>`,
     qs: ["Find the four features on the map. Which way does air turn around the High? Around Helene?", "Press Play. Where does the moisture stream (light blue) end up?", "Why might it matter that a line of steep mountains stood in the stream's path?"] },
-  { key: "pre", n: "2 · 25–26 Sep", name: "Rain before the storm", t0: 12, t1: 60,
+  { key: "pre", n: "2 · 25–26 Sep", name: "Rain before the storm", t0: 24, t1: 56,
     cam: { center: [-82.5, 31.2], zoom: 5.8, tilt: 32, heading: 0 }, show: { pattern: 1, storm: 1, stream: 1, rainSurf: 1 },
     story: `<p>On 25 and 26 September, Helene was still far out over the Gulf. But the moisture stream was already pouring onto the mountains, where the stalled front and the slopes pushed the air upward.</p>
       <p>Before Helene came ashore, 10 to 15 inches of rain had already fallen in parts of the region. Forecasters call this a <b>predecessor rain event</b>. By the time Helene arrived, the ground was soaked and rivers were already rising.</p>`,
@@ -372,8 +374,9 @@ const CH = [
   { key: "storm", n: "3 · 26–27 Sep", name: "Helene arrives", t0: 56, t1: 80, speed: "1",
     cam: { center: [-82.9, 33.6], zoom: 6.6, tilt: 50, heading: 340 }, show: { storm: 1, winds: 1, stream: 1, rainSurf: 1 },
     story: `<p>At about 11 pm EDT on Thursday 26 September, Helene came ashore in Florida's Big Bend as a <b>Category 4 hurricane</b> with winds of about 140 mph (225 km/h). It was huge and moving fast: its centre reached the mountains about nine hours later.</p>
+      <p>On the Florida coast, the wind pushed the sea ashore as a <b>storm surge</b> 12 to 16 feet deep near Keaton Beach and Steinhatchee, destroying most buildings there. Cedar Key and Tampa Bay had their highest water levels on record. All 14 storm-surge deaths were in Florida.</p>
       <p>Its anticlockwise spin (white streaks) now joined the moisture stream, driving even wetter air straight at the Blue Ridge, like a <b>conveyor belt</b>. On the morning of 27 September rain fell at 2 to 3 inches an hour on ground that was already soaked.</p>`,
-    qs: ["Follow a white streak on the storm's east side. Where does it end up? Where does it turn blue?", "Watch the label on the storm. How quickly does it weaken after it crosses the coast?", "The storm moved fast. Why did so much rain still fall in one place?"] },
+    qs: ["Follow a white streak on the storm's east side. Where does it end up? Where does it turn blue?", "Watch the label on the storm. How quickly does it weaken after it crosses the Florida coast? Why does a hurricane weaken over land?", "The storm moved fast. Why did so much rain still fall in one place?"] },
   { key: "oro", n: "4 · 25–27 Sep", name: "Mountains squeeze out the rain", t0: 24, t1: 80, speed: "2",
     cam: CAM_MTN, show: { winds: 1, stream: 1, rainSurf: 1 },
     story: `<p>You are looking north-west over the <b>Blue Ridge</b>, a steep wall of mountains facing south-east, straight into the stream of wet air. When air is forced up a mountainside it cools. Cool air can hold less water vapour, so the vapour turns into cloud and rain. This is called <b>orographic</b> rain.</p>
@@ -509,7 +512,7 @@ const pastTrack = new Graphic({ geometry: null, symbol: { type: "simple-line", c
 trackLayer.add(pastTrack);
 const landfallG = new Graphic({ geometry: { type: "point", longitude: LANDFALL.lon, latitude: LANDFALL.lat },
   symbol: { type: "point-3d", symbolLayers: [{ type: "icon", size: 9, resource: { primitive: "circle" }, material: { color: [255, 214, 90] }, outline: { color: "white", size: 1.2 } },
-    { type: "text", text: "Landfall · Category 4", size: 11, material: { color: "white" }, halo: { color: [0, 0, 0, 0.8], size: 1.4 }, verticalAlignment: "bottom" }],
+    { type: "text", text: "Came ashore here: Category 4, 11 pm 26 Sep", size: 11, material: { color: "white" }, halo: { color: [0, 0, 0, 0.8], size: 1.4 }, verticalAlignment: "bottom" }],
     verticalOffset: { screenLength: 22 }, callout: { type: "line", size: 1, color: [255, 255, 255, 0.9] } } });
 trackLayer.add(landfallG);
 const cloudGraphics = [];
@@ -545,7 +548,7 @@ function drawStorm(ms, rot) {
     g.symbol = { type: "polygon-3d", symbolLayers: [{ type: "fill", material: { color: [255, 255, 255, 0.42 * strength + 0.05] } }] };
   }
   stormLabel.geometry = { type: "point", longitude: s.lon, latitude: s.lat, z: CLOUD_Z + 1500, spatialReference: { wkid: 4326 } };
-  stormLabel.symbol = { type: "point-3d", symbolLayers: [{ type: "text", text: `Helene · ${category(s.kt, s.stage)}`, size: 12, material: { color: "white" }, halo: { color: [0, 0, 0, 0.85], size: 1.5 }, font: { weight: "bold" } }] };
+  stormLabel.symbol = { type: "point-3d", symbolLayers: [{ type: "text", text: `Helene · ${category(s.kt, s.stage)}${landfallPhase(ms) === "coming ashore" ? " · coming ashore" : ""}`, size: 12, material: { color: "white" }, halo: { color: [0, 0, 0, 0.85], size: 1.5 }, font: { weight: "bold" } }] };
 }
 
 // ---------- storm winds sketch: moving streaks, the "conveyor belt" ----------
@@ -1207,7 +1210,13 @@ function where(s) {
 }
 function describeMap() {
   const c = CH[chapter], hr = Math.min(HOURS, Math.floor(hNow)), ms = tAt(hNow), s = stormAt(ms), out = [`${fmtEDT(ms)} EDT.`];
-  if (vis.storm) out.push(s ? `Helene is a ${category(s.kt, s.stage)} ${where(s)}, with winds of about ${knMph(s.kt)} mph.` : "Helene has faded away.");
+  if (vis.storm) {
+    const ph = landfallPhase(ms);
+    if (!s) out.push("Helene has faded away.");
+    else if (ph === "about to come ashore" || ph === "coming ashore") out.push(`Helene is a ${category(s.kt, s.stage)} with winds of about ${knMph(s.kt)} mph, ${ph} in Florida's Big Bend near Perry. Storm surge, sea water pushed onto the land by the wind, is flooding the coast from the Big Bend south to Tampa Bay.`);
+    else if (ph === "just came ashore") out.push(`Helene came ashore near Perry, Florida, at 11 pm on 26 September as a Category 4 hurricane. It is now a ${category(s.kt, s.stage)} ${where(s)}, with winds of about ${knMph(s.kt)} mph, weakening as it moves quickly north over land.`);
+    else out.push(`Helene is a ${category(s.kt, s.stage)} ${where(s)}, with winds of about ${knMph(s.kt)} mph.`);
+  }
   if (vis.pattern && ms >= PAT_FROM && ms <= PAT_TO) out.push("Purple shapes mark the weather pattern: the Bermuda High far out over the Atlantic, with arrows turning clockwise; the upper-level low over Tennessee; and the stalled front, a dashed line running from the Gulf coast north to the west side of the Appalachians.");
   else if (vis.pattern) out.push("Purple shapes mark the Bermuda High over the Atlantic, with arrows turning clockwise.");
   if (vis.stream && s && ms >= Date.UTC(2024, 8, 25) && s.lat < 34) out.push("Light blue streaks show the moisture stream: tropical air flowing north from Helene's east side, between Helene and the Bermuda High, over Florida, Georgia and South Carolina to the Blue Ridge mountains in North Carolina.");
