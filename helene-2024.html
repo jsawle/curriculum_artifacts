@@ -296,7 +296,7 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.24";
+const APP_VERSION = "0.25";
 const APP_DATE = "30 September 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
@@ -389,12 +389,13 @@ const CH = [
     qs: ["Press Play. Where does the blue (rain so far) grow while Helene is still over the Gulf?", "Pause on Thursday evening and click near Asheville. How much rain had fallen before the storm arrived?", "Why would rain before the storm make the storm's own rain more dangerous?"] },
   { key: "storm", n: "3 · 26–27 Sep", name: "Helene arrives", t0: 56, t1: 80,
     cam: { center: [-82.9, 33.6], zoom: 6.6, tilt: 50, heading: 340 }, show: { storm: 1, winds: 1, stream: 1, rainSurf: 1 },
-    story: `<p>At about 11 pm EDT on Thursday 26 September, Helene came ashore in Florida's Big Bend as a <b>Category 4 hurricane</b> with winds of about 140 mph (225 km/h). It was huge and moving fast: its centre reached the mountains about nine hours later.</p>
-      <p>On the Florida coast, the wind pushed the sea ashore as a <b>storm surge</b> 12 to 16 feet deep near Keaton Beach and Steinhatchee, destroying most buildings there. Cedar Key and Tampa Bay had their highest water levels on record. All 14 storm-surge deaths were in Florida.</p>
-      <p>Its anticlockwise spin (white streaks) now joined the moisture stream, driving even wetter air straight at the Blue Ridge, like a <b>conveyor belt</b>. On the morning of 27 September rain fell at 2 to 3 inches an hour on ground that was already soaked.</p>`,
+    story: `<p>Press Play to watch Helene come ashore in Florida late on Thursday 26 September, then race north over Georgia. It weakens over land, but it is still huge.</p>
+      <p>Its anticlockwise spin (white streaks) joins the moisture stream, driving even wetter air straight at the Blue Ridge, like a <b>conveyor belt</b>. On the morning of 27 September rain falls at 2 to 3 inches an hour on ground that is already soaked.</p>`,
     beats: [
       { t: (Date.UTC(2024, 8, 27, 3, 10) - T0) / HR, title: "Landfall in Florida",
-        text: `<p>Helene comes ashore near Perry, in Florida's Big Bend, as a Category 4 hurricane. Storm surge floods the coast.</p><p>Now watch what happens as it races north towards the mountains.</p>` },
+        text: `<p>Helene comes ashore near Perry, in Florida's Big Bend, as a <b>Category 4 hurricane</b> with winds of about 140 mph (225 km/h).</p>
+          <p>Its winds push the sea onto the land: a <b>storm surge</b> 12 to 16 feet deep destroys most buildings in Keaton Beach and Steinhatchee, and Cedar Key and Tampa Bay have their highest water on record. All 14 storm-surge deaths were in Florida.</p>
+          <p>Helene is huge and moving fast. Watch it race north: its centre reaches the mountains only about nine hours later.</p>` },
       { t: 68, title: "Over the Appalachians", cam: { center: [-82.7, 35.0], zoom: 7.4, tilt: 55, heading: 330 },
         text: `<p>Helene's centre is crossing Georgia, but its worst rain is falling on the mountains of western North Carolina.</p>
           <p>The moisture stream and Helene's own spin are both driving warm, wet air into the Blue Ridge. Forced up the slopes, it rains out at 2 to 3 inches an hour, onto ground already soaked by two days of rain before the storm.</p>
