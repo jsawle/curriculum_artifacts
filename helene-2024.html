@@ -343,7 +343,7 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.33";
+const APP_VERSION = "0.34";
 const APP_DATE = "1 October 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
@@ -455,7 +455,7 @@ const CH = [
     story: `<p>It is 4 am on Friday 27 September and the rain is at its heaviest. You are looking north-west at the <b>Blue Ridge escarpment</b> (dashed white line): a steep wall where the mountains rise suddenly from the foothills, facing south-east, straight into the wet air.</p>
       <p>The blue already on the ground is the rain from the two days before Helene arrived (step 2), so the slopes are soaked. Press Play to watch the next 12 hours.</p>`,
     beats: [
-      { t: 72, title: "Lifted up the escarpment", cam: { position: { longitude: -81.17, latitude: 36.60, z: 33600, spatialReference: { wkid: 4326 } }, heading: 221, tilt: 72 }, text: `<p>Helene's centre is now in north-east Georgia, just south-west of these mountains. Its spin and the moisture stream drive wet air at the Blue Ridge.</p>
+      { t: 72, title: "Lifted up the escarpment", cam: { center: [-82.095, 35.12], zoom: 8.38, tilt: 69, heading: 219 }, text: `<p>Helene's centre is now in north-east Georgia, just south-west of these mountains. Its spin and the moisture stream drive wet air at the Blue Ridge.</p>
           <p>Watch the streaks as they reach the dashed line. Pushed up the escarpment, the air cools, its water vapour turns into cloud, and it rains: <b>orographic</b> rain. Streaks turn dark blue where the radar measured heavy rain.</p>` },
       { t: 79.9, title: "Three days of rain", text: `<p>The rain is ending. More than 18 inches fell in counties along the Blue Ridge, from Transylvania and Polk in the south to Avery and Watauga in the north. Busick, in Yancey County, measured 30.78 inches (782 mm).</p><p>Across a wide area, three-day totals this big had less than a 1-in-1,000 chance of happening in any year. Click the map to read the rain at any spot.</p>` }
     ],
