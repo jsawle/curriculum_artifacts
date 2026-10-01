@@ -273,7 +273,8 @@
         <li>The page is being built towards <b>WCAG 2.1 level AA</b>, the standard US public schools must meet under the ADA Title II web rule. It has not been independently audited.</li>
         <li>Everything can be used with a keyboard. The <b>Map now</b> tab gives a written description of what the 3D map is showing, updated as the timeline moves; screen readers announce it when the timeline is paused or the step changes.</li>
         <li><b>Stop motion</b> freezes the moving streaks, spinning clouds and the step 7 build-up. If the device is set to reduce motion, the page starts with motion stopped.</li>
-        <li><b>Read aloud</b> uses the device's own voice to read the step and the map description. It is optional and off by default, so it does not clash with screen readers.</li>
+        <li><b>Read aloud</b> uses the device's own voice to read the step and the map description. It is optional and off by default, so it does not clash with screen readers. The page picks a natural-sounding female US English voice if the device has one (for example Microsoft Aria or Jenny in Edge, Google US English in Chrome, Samantha on Apple devices). Voices differ by device and browser; Microsoft Edge has the most natural ones.
+          <label style="display:block;margin-top:6px;font-weight:600">Voice <select id="voiceSel" aria-label="Read-aloud voice"></select></label></li>
         <li>Known gaps: the 3D map itself cannot be explored by a screen reader beyond the written description; the river and slope charts have written summaries but no data tables yet.</li>
       </ul>
     </details>
@@ -283,7 +284,7 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.10";
+const APP_VERSION = "0.11";
 const APP_DATE = "30 September 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
@@ -1233,14 +1234,33 @@ function updateDesc(announce) {
 // ---------- read aloud (optional; uses the device's own voice) ----------
 const canSpeak = "speechSynthesis" in window;
 if (!canSpeak) { $("readBtn").disabled = true; $("readBtn").title = "This browser cannot read aloud"; }
+// Voices come from the device. Prefer natural-sounding female US English voices; the browser does not report gender, so this goes by name.
+const VOICE_PREF = [/aria.*natural/i, /jenny.*natural/i, /ava.*natural/i, /michelle.*natural/i, /emma.*natural/i, /natural/i,
+  /google us english/i, /samantha/i, /ava/i, /allison/i, /susan/i, /zira/i, /female/i];
+let voice = null;
+function pickVoice() {
+  if (!canSpeak) return;
+  const vs = speechSynthesis.getVoices().filter(v => /^en(-|_)/i.test(v.lang)); if (!vs.length) return;
+  let saved = null; try { saved = localStorage.getItem("heleneVoice"); } catch (e) {}
+  voice = vs.find(v => v.name === saved) || null;
+  if (!voice) for (const re of VOICE_PREF) { voice = vs.find(v => re.test(v.name) && /en(-|_)us/i.test(v.lang)) || vs.find(v => re.test(v.name)); if (voice) break; }
+  voice = voice || vs.find(v => /en(-|_)us/i.test(v.lang)) || vs[0];
+  const sel = $("voiceSel"); if (sel) { sel.innerHTML = vs.map(v => `<option ${v === voice ? "selected" : ""}>${v.name}</option>`).join(""); sel.onchange = () => { voice = vs.find(v => v.name === sel.value); try { localStorage.setItem("heleneVoice", voice.name); } catch (e) {} }; }
+}
+if (canSpeak) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
 function stopReading() { if (canSpeak) speechSynthesis.cancel(); $("readBtn").setAttribute("aria-pressed", "false"); $("readBtn").textContent = "🔊 Read aloud"; }
 $("readBtn").onclick = () => {
   if (!canSpeak) return;
-  if (speechSynthesis.speaking) { stopReading(); return; }
-  const c = CH[chapter], tmp = document.createElement("div"); tmp.innerHTML = c.story;
-  const u = new SpeechSynthesisUtterance(`Step ${chapter + 1}: ${c.name}. ${tmp.textContent} On the map now: ${describeMap()}`);
-  u.lang = "en-US"; u.rate = 0.95; u.onend = u.onerror = stopReading;
-  speechSynthesis.speak(u); $("readBtn").setAttribute("aria-pressed", "true"); $("readBtn").textContent = "■ Stop reading";
+  if (speechSynthesis.speaking || speechSynthesis.pending) { stopReading(); return; }
+  const c = CH[chapter], tmp = document.createElement("div"); tmp.innerHTML = c.story.replace(/<\/(p|li)>/g, ". ");
+  const text = `Step ${chapter + 1}: ${c.name}. ${tmp.textContent} On the map now. ${describeMap()}`
+    .replace(/\bEDT\b/g, "Eastern time").replace(/\bin\b(?=[ .,)])/g, (m, i, str) => /\d\s$/.test(str.slice(0, i)) ? "inches" : m)
+    .replace(/\bmph\b/g, "miles per hour").replace(/\bkm\/h\b/g, "kilometers per hour").replace(/(\d) mm\b/g, "$1 millimeters").replace(/(\d) km\b/g, "$1 kilometers").replace(/\s+/g, " ");
+  // one sentence at a time: sounds more natural and avoids some browsers cutting off long speech
+  const parts = text.split(/(?<=[.!?])\s+/).filter(t => t.trim());
+  parts.forEach((t, k) => { const u = new SpeechSynthesisUtterance(t.trim()); if (voice) u.voice = voice; u.lang = voice ? voice.lang : "en-US"; u.rate = 0.92; u.pitch = 1.05;
+    if (k === parts.length - 1) u.onend = stopReading; u.onerror = (e) => { if (e.error !== "interrupted" && e.error !== "canceled") stopReading(); }; speechSynthesis.speak(u); });
+  $("readBtn").setAttribute("aria-pressed", "true"); $("readBtn").textContent = "■ Stop reading";
 };
 
 // ---------- teacher notes dialog ----------
