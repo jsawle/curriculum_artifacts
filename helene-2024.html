@@ -294,7 +294,7 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.18";
+const APP_VERSION = "0.19";
 const APP_DATE = "30 September 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
@@ -378,7 +378,7 @@ const CH = [
       <li><b>High pressure</b> over the Atlantic (the Bermuda High, <b>H</b>), where air turns clockwise.</li>
       <li><b>Low pressure in the upper air</b> to the west (<b>L</b>), a swirl high in the atmosphere where air turns anticlockwise, like Helene.</li></ol>
       <p>Between them, tropical moisture was squeezed into a narrow stream and pulled north, towards the mountains. Scientists compared it to an <b>atmospheric river</b>. A weather front stalled near the mountains also helped push the wet air upward.</p>
-      <p>Press Play: this step runs from the morning Helene became a tropical storm to the morning it became a hurricane, while the rest of the pattern sets up.</p>`,
+      <p>Press Play: this step runs from the morning Helene became a tropical storm to the morning it became a hurricane. At first there is no moisture stream; watch for it to start.</p>`,
     qs: ["Find H, L and Helene on the map. Which way does air turn around each one?", "Press Play. Where does the moisture stream (light blue) end up?", "Why might it matter that a line of steep mountains stood in the stream's path?"] },
   { key: "pre", n: "2 · 25–26 Sep", name: "Rain before the storm", t0: 24, t1: 56,
     cam: { center: [-82.5, 31.2], zoom: 5.8, tilt: 32, heading: 0 }, show: { pattern: 1, storm: 1, stream: 1, rainSurf: 1 },
@@ -706,7 +706,7 @@ function drawHigh(rot) {
 }
 const timedG = [
   ptext("L", ULOW[0], ULOW[1], 30),
-  ptext("Low pressure (in the upper air)", ULOW[0] - 1.4, ULOW[1], 12)
+  ptext("Low pressure (in the upper air)", ULOW[0] + 1.5, ULOW[1], 12)
 ];
 patternLayer.addMany([...highG, ...timedG, ...lowArrows]);
 function drawPattern() { const ms = tAt(hNow), on = ms >= PAT_FROM && ms <= PAT_TO; timedG.forEach(g => g.visible = on); }
@@ -1266,6 +1266,7 @@ function describeMap() {
   }
   if (vis.pattern && ms >= PAT_FROM && ms <= PAT_TO) out.push("Purple arrows show high pressure (H, the Bermuda High) far out over the Atlantic, turning clockwise, and low pressure in the upper air (L) over Tennessee, turning anticlockwise. Together they pull the moist air north between them.");
   else if (vis.pattern) out.push("Purple arrows show high pressure (H, the Bermuda High) over the Atlantic, turning clockwise.");
+  if (vis.stream && ms < Date.UTC(2024, 8, 25)) out.push("The moisture stream has not started yet.");
   if (vis.stream && s && ms >= Date.UTC(2024, 8, 25) && s.lat < 34) out.push("Light blue streaks show the moisture stream: tropical air flowing north from Helene's east side, between Helene and the Bermuda High, over Florida, Georgia and South Carolina to the Blue Ridge mountains in North Carolina.");
   if (vis.winds && s) { const w = vortexWind(s, 35.6, -82.4); out.push(`White streaks show Helene's spin, turning anticlockwise.${w.r < 900 ? ` Over the mountains the wind is blowing from the ${compass(fromBearing(w.u, w.v))}.` : ""}`); }
   if (vis.rainSurf && rainPts.length) {
