@@ -121,6 +121,7 @@
   #legend button.k[aria-pressed="true"] .tick { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
   #legend button.k[aria-pressed="true"] .tick::after { content: "✓"; }
   #legend .sw { width: 16px; height: 12px; border-radius: 3px; flex: none; }
+  #legend .sub { color: var(--muted); font-size: 11.5px; margin: 0 0 4px 26px; }
   #legend .more-layers { margin-top: 6px; font-size: 12px; padding: 4px 10px; border-radius: 9px; }
   #nwsKey { display: none; margin: 2px 0 4px 22px; }
   #nwsKey img { width: 14px; height: 10px; vertical-align: middle; margin-right: 4px; }
@@ -224,6 +225,7 @@
       <button class="k" data-l="slides" aria-pressed="false" disabled><span class="tick"></span><span class="sw" style="background:#fff;border:2px solid #7a1414;border-radius:50%;width:10px;height:10px"></span>Landslides</button>
       <button class="k" data-l="records" aria-pressed="false" disabled><span class="tick"></span><span class="sw" style="background:#00b4d8;transform:rotate(45deg);width:10px;height:10px"></span>River broke its record</button>
       <button class="k" data-l="rivers" aria-pressed="false" disabled><span class="tick"></span><span class="sw" style="background:#00d7ff;height:5px;margin-top:4px;box-shadow:0 0 0 1.5px #00234a"></span>Rivers: wider = more water</button>
+      <div class="sub"><span class="sw" style="background:repeating-linear-gradient(90deg,#afb9c6 0 6px,transparent 6px 10px);height:3px;display:inline-block;width:22px;vertical-align:middle;margin-right:6px"></span>Grey dashed: no flow gauge, direction only</div>
       <button class="k" data-l="gauges" aria-pressed="false" disabled><span class="tick"></span>River gauge columns</button>
       <button class="k" data-l="ridge" aria-pressed="false"><span class="tick"></span><span class="sw" style="background:none;border-top:3px dashed currentColor;height:0;margin-top:6px"></span>Blue Ridge escarpment</button>
       <button class="k" data-l="pattern" aria-pressed="false"><span class="tick"></span><span class="sw" style="background:#b98cff"></span>Weather pattern (approximate)</button>
@@ -297,7 +299,7 @@
         <li><b>Steep ground.</b> Slope worked out from Esri World Elevation on a grid about 1.2 km apart, so it describes the steepness of the landscape (mountain sides, the Blue Ridge escarpment), not of single hillsides.</li>
         <li><b>Heavy rain on steep ground.</b> Places where the total rain and the steepness are both above the thresholds chosen in step 6. Students can change the thresholds.</li>
         <li><b>River gauges.</b> Each gauge is a column of water whose height is the river's stage, measured every 15 minutes by the USGS (the USGS's checked, approved values). The red ring marks the NWS "major flood" level; the white ring marks the highest the river had been measured before Helene. 1 ft of river is drawn 120 m tall. A grey column means the gauge stopped reporting.</li>
-        <li><b>Rivers.</b> The main rivers come from NHDPlus, the national map of streams, whose lines are drawn in the direction the water flows. Each river is drawn wider when the nearest USGS gauge on it measures more water; between gauges the flow is shared out in proportion to NHDPlus's estimate of each stretch's average flow, so widths between gauges are estimates. The white arrows move downstream and speed up as the river rises above its usual flow; they show direction, not the real speed of the water. The <b>Flow</b> chart in step 5 shows the measured flow at each gauge in cubic feet per second, with the highest flow recorded there before Helene from the USGS peak-flow file.</li>
+        <li><b>Rivers.</b> The main rivers come from NHDPlus, the national map of streams, whose lines are drawn in the direction the water flows. Each river is drawn wider when the nearest USGS gauge on it measures more water; between gauges the flow is shared out in proportion to NHDPlus's estimate of each stretch's average flow, so widths between gauges are estimates. The white arrows move downstream and speed up as the river rises above its usual flow; they show direction, not the real speed of the water. Where no USGS gauge on the same river fits (for example the North Toe through Spruce Pine, the Cane, the Green, and the upper Broad River, the "Rocky Broad", through Chimney Rock), the river is a grey dashed line with steady grey arrows: it shows which way the water went, not how much. The <b>Flow</b> chart in step 5 shows the measured flow at each gauge in cubic feet per second, with the highest flow recorded there before Helene from the USGS peak-flow file.</li>
         <li><b>Landslides.</b> Points from the USGS preliminary landslide inventory. It does not record when each slide happened, so the page shows them from the morning of 27 September, when most occurred.</li>
         <li><b>Weather pattern.</b> High pressure (the Bermuda High) and low pressure in the upper air are drawn in approximate positions from the NHC report ("a subtropical ridge centered over the western Atlantic"; "a deep-layer cut-off low centered over the Tennessee Valley"). The low was still forming on 24–25 September (NHC discussion 8: "a mid-latitude trough/developing cut-off low over the Mississippi valley") but is drawn from the start to keep the picture simple. The stalled front (NHC: "from the central Gulf Coast northward towards the Tennessee Valley and southern Appalachians from 25–27 September") is mentioned in step 1 but not drawn, to keep the map simple. None of these are traced from weather maps.</li>
         <li><b>Moisture stream.</b> The light-blue streaks sketch the narrow stream of tropical moisture that NOAA's CW3E centre describes as "AR-like poleward transport of enhanced water vapor on the east side of Helene", carried "into the Southern Appalachians on 26 and 27 September", and that Climate.gov describes as squeezed between Helene's anticlockwise spin and the Bermuda High's clockwise spin. The page draws it as a curved band from Helene's east side to the Blue Ridge from 25 September until Helene's own spin takes over; its exact width and path are a sketch. Scientists call this kind of stream an atmospheric river; "conveyor belt" here is a plain-language image, not the meteorological term "warm conveyor belt".</li>
@@ -347,7 +349,7 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.36";
+const APP_VERSION = "0.37";
 const APP_DATE = "2 October 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
@@ -358,7 +360,7 @@ const MODELS = [
   ["Steep ground", "0.3", "Elevation at ~300 m detail (was ~150 m, a quarter of the downloads); measured from step 3 onwards, not at start-up. Slope sampled every 0.0125° (about 1.2 km), central differences across ~2.5 km"],
   ["Where it lined up", "0.1", "Grid cells split by total rain (24–28 Sep) and steepness thresholds; landslides counted per cell; density per 100 km²"],
   ["River gauges", "0.4", "USGS approved 15-minute stage and flow from a saved copy (data/helene-rivers.json) replace NOAA's provisional stage where available (fills the Blantyre gap; Asheville peak 24.82 ft); NWS flood levels and the highest stage before 2024 still from the NOAA snapshot (data/helene-gauges.json, live fallback). Flow chart: peak and the highest flow before Helene from the USGS annual peak-flow file; USGS estimated values dashed. Loaded at step 5 or 7; 1 ft drawn as 120 m"],
-  ["Rivers", "0.2", "White chevrons (arms about 10 px on screen, 0.1–1.5 km, 2 px lines) replace the 4 km streaks. 11 named rivers from NHDPlus V2.1 (Esri-hosted), stream order 4 and above, chained upstream to downstream (4,845 of 4,894 reach ends meet the next reach's start). Width from measured USGS flow at the nearest gauge on the same river, shared along the river by the ratio of NHDPlus mean annual flows, only where that ratio is between 1/3 and 3 (stretches with no such gauge are not drawn); width = 1 + 0.9 × √(flow / 1,000 cfs) px, up to 12 px. White streaks 4 km long move downstream; their speed rises with flow ÷ mean annual flow (a drawing, not water speed). Points every 350 m, drawn 30 m above the terrain the map shows (relative to ground), so they follow the valleys at any mountain exaggeration. Loaded at step 5"],
+  ["Rivers", "0.3", "19 rivers from NHDPlus V2.1 (Esri-hosted), chained upstream to downstream, from a box 83.8°W–81.2°W, 34.85°N–36.5°N so they reach a lake or confluence; small rivers (South Toe, North Toe, Cane, Ivy, Hominy, Swannanoa) from stream order 3, others from 4; rivers stop where they enter a reservoir outside the study area. Width from measured USGS flow at the nearest gauge on the same river, shared by the ratio of NHDPlus mean annual flows where that ratio is 1/3 to 3; width = 1 + 0.9 × √(flow / 1,000 cfs) px, up to 12 px. Stretches with no such gauge: grey dashed, steady arrows (direction only). White chevrons, arms about 10 px on screen (0.1–1.5 km), speed 0.5 + 2.4 × log10(1 + flow ÷ mean annual flow) km/s of animation (a drawing, not water speed); points every 350 m, 30 m above the terrain. Loaded at step 5"],
   ["Landslides and slope test", "0.1", "USGS preliminary inventory; aspect from Esri World Elevation at ~40 m, ±60 m differences, slopes under 8° left out"],
   ["Map description", "0.3", "Adds the rivers: flow direction and the French Broad's flow at Asheville. Landfall wording shared with the map label (about to come ashore / coming ashore within 1 h / just came ashore up to 6 h); written description of the 3D map built from the same data and settings as the map: storm position and strength, which layers are on, wettest town so far and now, gauges in major flood or over their record"],
   ["Terrain exaggeration", "0.1", "Esri World Elevation (Terrain3D) multiplied by 1, 2 or 3"]
@@ -467,7 +469,7 @@ const CH = [
   { key: "rivers", n: "5 · 26–28 Sep", name: "Rivers rise", t0: 42, t1: 90,
     cam: { center: [-82.62, 35.62], zoom: 8.7, tilt: 62, heading: 335 }, show: { gauges: 1, rainSurf: 1, rivers: 1 },
     story: `<p>All that rain ran off the soaked slopes into streams and rivers at once. At least 63 river gauges broke their records.</p>
-      <p>The <b>rivers</b> grow wider as they carry more water, and the white arrows show which way the water flows. Each column is a river gauge: the <b>red ring</b> marks major flooding, the <b>white ring</b> the highest the river had been before Helene. A ★ by the name means it has broken that record.</p>`,
+      <p>The <b>rivers</b> grow wider as they carry more water, and the white arrows show which way the water flows. Grey dashed rivers had no flow gauge, so they show direction only. Each column is a river gauge: the <b>red ring</b> marks major flooding, the <b>white ring</b> the highest the river had been before Helene. A ★ by the name means it has broken that record.</p>`,
     beats: [
       { t: (Date.UTC(2024, 8, 27, 21, 38) - T0) / HR, title: "The French Broad peaks at Asheville",
         text: `<p>At 5:38 pm the French Broad River at Asheville reaches <b>24.8 ft</b>, higher than in the great flood of 1916. About <b>113,000 cubic feet of water</b> rush past every second: more than an Olympic swimming pool each second.</p>
@@ -1082,12 +1084,15 @@ map.add(riverLayer);
 const R = (() => {
   const STEP_KM = 0.35, LIFT = 30;     // points every 350 m; metres above the ground
   const LABELS = [["French Broad River", 35.80, -82.70], ["Swannanoa River", 35.60, -82.42], ["Pigeon River", 35.70, -82.98],
-    ["Nolichucky River", 36.10, -82.47], ["Catawba River", 35.66, -82.02], ["Broad River", 35.27, -81.75]];
+    ["Nolichucky River", 36.10, -82.47], ["Catawba River", 35.66, -82.02], ["Broad River", 35.27, -81.75], ["North Toe River", 35.95, -82.07],
+    ["South Toe River", 35.80, -82.20], ["Ivy Creek", 35.80, -82.60]];
   let data = null, dataP = null, geomP = null, ready = false, chains = [], pieces = [], labels = null;
   const gq = new Map();
   const kmB = (a, b) => Math.hypot((a[0] - b[0]) * KM_LAT * Math.cos(a[1] * Math.PI / 180), (a[1] - b[1]) * KM_LAT);
   const lineSym = (c, w) => ({ type: "line-3d", symbolLayers: [{ type: "line", size: w, material: { color: c }, cap: "round", join: "round" }] });
-  const streak = new Graphic({ geometry: null, symbol: lineSym([255, 255, 255, 0.97], 2) });   // all the moving chevrons
+  const streak = new Graphic({ geometry: null, symbol: lineSym([255, 255, 255, 0.97], 2) });   // all the moving chevrons on rivers with measured flow
+  const streakGrey = new Graphic({ geometry: null, symbol: lineSym([175, 185, 198, 0.9], 1.8) });   // chevrons on direction-only rivers
+  const dashSym = (c, w) => ({ type: "line-3d", symbolLayers: [{ type: "line", size: w, material: { color: c }, cap: "butt", join: "round", pattern: { type: "style", style: "dash" } }] });
   function qAt(id, ms) {   // measured flow at a gauge, cfs, straight line between 15-minute readings
     const g = gq.get(id); if (!g || !g.t.length || ms < g.t[0] || ms > g.t[g.t.length - 1]) return null;
     let lo = 0, hi = g.t.length - 1; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (g.t[m] <= ms) lo = m; else hi = m; }
@@ -1109,7 +1114,7 @@ const R = (() => {
       setStatus("Loading rivers…", 0.3);
       const j = await data_();
       chains = j.chains.map(c => {
-        const runs = c.r.map(([i, qma, g]) => ({ i, qma, g })), pts = [], runOf = [], cum = [];
+        const runs = c.r.map(([i, qma, g, dir]) => ({ i, qma, g, dir: !!dir })), pts = [], runOf = [], cum = [];
         let ri = 0, acc = 0;
         for (let i = 0; i < c.p.length; i++) {
           while (ri + 1 < runs.length && runs[ri + 1].i <= i) ri++;
@@ -1127,11 +1132,12 @@ const R = (() => {
           if (k === c.pts.length || c.runOf[k] !== c.runOf[s]) {
             const run = c.runs[c.runOf[s]], from = Math.max(0, s - 1);
             if (run.g) pieces.push({ c, run, from, to: k - 1, size: -1, line: new Graphic({ symbol: lineSym([0, 215, 255, 0.95], 1.5) }), edge: new Graphic({ symbol: lineSym([0, 35, 70, 0.75], 3.5) }) });
+            else if (run.dir) pieces.push({ c, run, from, to: k - 1, size: 2, line: new Graphic({ symbol: dashSym([175, 185, 198, 0.95], 2.2) }), edge: new Graphic({ symbol: lineSym([0, 25, 50, 0.55], 4) }) });   // no flow gauge: direction only
             s = k;
           }
         }
       }
-      riverLayer.removeAll(); riverLayer.addMany(pieces.map(p => p.edge)); riverLayer.addMany(pieces.map(p => p.line)); riverLayer.add(streak);
+      riverLayer.removeAll(); riverLayer.addMany(pieces.map(p => p.edge)); riverLayer.addMany(pieces.map(p => p.line)); riverLayer.add(streakGrey); riverLayer.add(streak);
       restack();
       const feats = [];
       for (const [name, lat, lon] of LABELS) {
@@ -1160,6 +1166,7 @@ const R = (() => {
     if (!ready || !riverLayer.visible) return;
     const ms = tAt(hNow);
     for (const p of pieces) {
+      if (p.run.dir) continue;   // direction-only rivers keep a steady grey dashed line
       const q = runFlow(p.run, ms), w = q == null ? 1 : Math.min(12, 1 + 0.9 * Math.sqrt(Math.max(0, q) / 1000));
       if (Math.abs(w - p.size) < 0.15) continue;
       p.size = w; p.line.symbol = lineSym(q == null ? [150, 150, 150, 0.6] : [0, 215, 255, 0.95], w); p.edge.symbol = lineSym([0, 35, 70, 0.75], w + 2.5);
@@ -1169,23 +1176,24 @@ const R = (() => {
     return [c.pts[i][0] + (c.pts[j][0] - c.pts[i][0]) * f, c.pts[i][1] + (c.pts[j][1] - c.pts[i][1]) * f]; }
   function frame(dt) {   // white chevrons move downstream, faster when the river carries more water than usual
     if (!ready || !riverLayer.visible) return;
-    const ms = tAt(hNow), paths = [];
+    const ms = tAt(hNow), paths = [], grey = [];
     // chevrons keep about the same size on screen: arms about 10 px at the view centre, between 0.1 and 1.5 km
     const armKm = Math.max(0.1, Math.min(1.5, view.scale * 0.0254 / 96 / 1000 * 10)), sideKm = armKm * 0.55, z = LIFT + 10;
     for (const c of chains) {
       for (const q of c.P) {
         const k = idxAt(c, q.s), run = c.runs[c.runOf[k]], f = runFlow(run, ms);
-        if (f == null) continue;
-        q.s += dt * (0.5 + 2.4 * Math.log10(1 + f / Math.max(1, run.qma)));
+        if (f == null && !run.dir) continue;
+        q.s += dt * (run.dir ? 1 : 0.5 + 2.4 * Math.log10(1 + f / Math.max(1, run.qma)));   // direction-only: steady 1 km/s
         if (q.s > c.len) q.s -= c.len;
         if (q.s < armKm * 1.3) continue;
         const tip = ptAt(c, q.s), back = ptAt(c, q.s - armKm * 0.7), cx = Math.cos(tip[1] * Math.PI / 180) * KM_LAT;
         let ux = (tip[0] - back[0]) * cx, uy = (tip[1] - back[1]) * KM_LAT; const L = Math.hypot(ux, uy) || 1; ux /= L; uy /= L;
         const arm = (side) => [tip[0] + (-ux * armKm - uy * side) / cx, tip[1] + (-uy * armKm + ux * side) / KM_LAT, z];
-        paths.push([arm(sideKm), [tip[0], tip[1], z], arm(-sideKm)]);
+        (run.dir ? grey : paths).push([arm(sideKm), [tip[0], tip[1], z], arm(-sideKm)]);
       }
     }
-    streak.geometry = paths.length ? { type: "polyline", paths, hasZ: true, spatialReference: { wkid: 4326 } } : null;
+    const pl = (a) => a.length ? { type: "polyline", paths: a, hasZ: true, spatialReference: { wkid: 4326 } } : null;
+    streak.geometry = pl(paths); streakGrey.geometry = pl(grey);
   }
   function idxAt(c, s) { let lo = 0, hi = c.cum.length - 1; while (lo < hi) { const m = (lo + hi + 1) >> 1; if (c.cum[m] <= s) lo = m; else hi = m - 1; } return lo; }
   return { data: data_, ensure, draw, frame, restack, qAt, get ready() { return ready; }, get labels() { return labels; },
@@ -1567,7 +1575,7 @@ function describeMap() {
   if (vis.gauges && gauges.size) { const g = [...gauges.values()], maj = g.filter(x => { const v = stageAt(x, ms); return v != null && x.major != null && v >= x.major; }).length, rec = g.filter(x => x.recordAt && ms >= x.recordAt).length;
     out.push(`River gauges: ${maj} of ${g.length} are in major flood and ${rec} have broken their record.`); }
   if (vis.rivers && R.ready) { const a = R.qAt("03451500", ms), m = R.qmaG("03451500");
-    out.push(`Rivers are drawn wider when they carry more water, with white arrows moving downstream. The French Broad, Pigeon and Nolichucky flow north-west into Tennessee; the Catawba and Broad flow east and south.${a != null ? ` The French Broad at Asheville is carrying about ${(Math.round(a / 100) * 100).toLocaleString("en-US")} cubic feet of water a second${m ? `, about ${Math.max(1, Math.round(a / m))} times its average flow` : ""}.` : ""}`); }
+    out.push(`Rivers are drawn wider when they carry more water, with white arrows moving downstream; grey dashed rivers, such as the North Toe through Spruce Pine, had no flow gauge and show direction only. The French Broad, Pigeon and Nolichucky flow north-west into Tennessee; the Catawba and Broad flow east and south.${a != null ? ` The French Broad at Asheville is carrying about ${(Math.round(a / 100) * 100).toLocaleString("en-US")} cubic feet of water a second${m ? `, about ${Math.max(1, Math.round(a / m))} times its average flow` : ""}.` : ""}`); }
   if (vis.slides && ms >= SLIDES_FROM) out.push(`White dots show ${slideCount ? slideCount.toLocaleString() + " " : ""}landslides mapped by the USGS, crowded in the mountains of western North Carolina.`);
   if (vis.steep) out.push("Amber shading shows steep ground: the mountain sides and the Blue Ridge escarpment.");
   if (vis.overlap) out.push("Pink shading shows where heavy rain fell on steep ground.");
