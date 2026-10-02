@@ -19,7 +19,8 @@ from datetime import datetime, timedelta, timezone
 
 T0 = datetime(2024, 9, 24, 12, tzinfo=timezone.utc)
 HOURS = 108
-BBOX = (-83.35, 34.95, -81.55, 36.25)        # the part of the study area the map shows
+CORE = (-83.35, 34.95, -81.55, 36.25)        # the part of the study area the map shows
+BBOX = (-83.8, 34.85, -81.2, 36.5)           # wider, so rivers reach a lake or confluence instead of stopping at the edge of CORE
 UA = {"User-Agent": "helene-rivers (education app; github.com/jsawle/curriculum_artifacts)"}
 NHD = "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/NHDPlusV21/FeatureServer/2"
 RIVERS = ["French Broad River", "Swannanoa River", "Mills River", "Nolichucky River", "Toe River", "North Toe River",
@@ -60,7 +61,7 @@ def fetch_lines():
     while True:
         d = json.loads(get(NHD + "/query", {"f": "json", "where": where,
             "geometry": ",".join(map(str, BBOX)), "geometryType": "esriGeometryEnvelope", "inSR": 4326, "outSR": 4326,
-            "spatialRel": "esriSpatialRelIntersects", "outFields": "COMID,GNIS_NAME,StreamOrde,QE_MA", "returnGeometry": "true",
+            "spatialRel": "esriSpatialRelIntersects", "outFields": "COMID,GNIS_NAME,StreamOrde,QE_MA,FTYPE", "returnGeometry": "true",
             "maxAllowableOffset": 0.0008, "geometryPrecision": 5, "resultOffset": off, "resultRecordCount": 2000}))
         if "error" in d:
             raise RuntimeError(d["error"])
@@ -68,7 +69,7 @@ def fetch_lines():
         for f in fs:
             a = f["attributes"]; p = f.get("geometry", {}).get("paths")
             if p:
-                out.append({"comid": a["COMID"], "name": a["GNIS_NAME"], "order": a["StreamOrde"], "qma": a["QE_MA"], "paths": p})
+                out.append({"comid": a["COMID"], "name": a["GNIS_NAME"], "order": a["StreamOrde"], "qma": a["QE_MA"], "ftype": a.get("FTYPE"), "paths": p})
         if not fs or not d.get("exceededTransferLimit"):
             return out
         off += len(fs)
@@ -137,6 +138,7 @@ def ranges(flags):
 
 def build(lines, sites, peaks):
     W, S, E, N = BBOX
+    CW, CS, CE, CN = CORE
     lines = [l for l in lines if l["name"] in RIVERS and any(W <= p[0] <= E and S <= p[1] <= N for p in l["paths"][0])]
     key = lambda p: (round(p[0], 4), round(p[1], 4))
     # 1. chain the reaches of each river, upstream to downstream
@@ -155,6 +157,9 @@ def build(lines, sites, peaks):
             pts, runs, cur = [], [], h
             while cur and cur["comid"] not in used:
                 used.add(cur["comid"])
+                # stop where the river enters a reservoir outside the core area (e.g. the French Broad at Douglas Lake)
+                if cur.get("ftype") == "ArtificialPath" and not any(CW <= x <= CE and CS <= y <= CN for x, y in cur["paths"][0]):
+                    break
                 seg = cur["paths"][0]
                 if pts:
                     seg = seg[1:]
