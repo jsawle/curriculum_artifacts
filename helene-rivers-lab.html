@@ -67,11 +67,11 @@
 </div>
 
 <script type="module">
-const LAB_VERSION = "0.1", LAB_DATE = "1 October 2026";
+const LAB_VERSION = "0.2", LAB_DATE = "2 October 2026";
 const MODELS = [
   ["Rivers (shared)", "0.1", "Same data as the app's Rivers model 0.1: data/helene-rivers.json; width = 1 + 0.9 × √(flow / 1,000 cfs) px, up to 12 px; flow shared from the nearest gauge by NHDPlus mean annual flow"],
   ["2D arrows", "0.1", "CIMLineSymbol: dark casing, cyan stroke, white chevron CIMVectorMarker every 26 pt with CIMSymbolAnimationMoveAlongLine (Speed, continuous, loop). Speed = 10 + 20 × log10(1 + flow ÷ mean annual flow) pt/s, in 6 steps; symbols change only when a stretch moves to another step"],
-  ["3D chevrons", "0.1", "One chevron every 3 km; tip at the moving point, arms about 24 px long on screen (0.15–4 km, × arrow size) and 0.55 of that to each side; 40 m above the terrain (relative to ground); speed = 0.5 + 2.4 × log10(1 + flow ÷ mean annual flow) km per second of animation"]
+  ["3D chevrons", "0.2", "Smaller: arms about 10 px long on screen (0.1–1.5 km, × arrow size), 2 px lines. One chevron every 3 km; tip at the moving point, sides 0.55 of the arm to each side; 40 m above the terrain (relative to ground); speed = 0.5 + 2.4 × log10(1 + flow ÷ mean annual flow) km per second of animation"]
 ];
 const $ = (id) => document.getElementById(id);
 $("ver").textContent = "v" + LAB_VERSION;
@@ -142,7 +142,7 @@ function draw2() {
 // ---------- 3D: chevrons moved by the app ----------
 const layer3 = new GraphicsLayer({ title: "Rivers 3D", elevationInfo: { mode: "relative-to-ground" } }); v3.map.add(layer3);
 const lineSym = (c, w) => ({ type: "line-3d", symbolLayers: [{ type: "line", size: w, material: { color: c }, cap: "round", join: "round" }] });
-const chev = new Graphic({ geometry: null, symbol: lineSym([255, 255, 255, 0.97], 3) });
+const chev = new Graphic({ geometry: null, symbol: lineSym([255, 255, 255, 0.97], 2) });
 const STEP = 0.35, LIFT = 40;
 for (const p of pieces) {   // densify so the line follows the valley floor
   const d = [p.pts[0]], cum = [0]; let acc = 0;
@@ -164,8 +164,8 @@ function ptAt(p, s) { const i = idxAt(p, s), j2 = Math.min(p.d.length - 1, i + 1
   return [p.d[i][0] + (p.d[j2][0] - p.d[i][0]) * f, p.d[i][1] + (p.d[j2][1] - p.d[i][1]) * f]; }
 function frame3(dt) {
   const ms = tAt(hNow), paths = [];
-  // chevrons keep about the same size on screen: arm ≈ 24 px at the view centre, between 0.15 and 4 km
-  const armKm = Math.max(0.15, Math.min(4, v3.scale * 0.0254 / 96 / 1000 * 24)) * sizeK, sideKm = armKm * 0.55;
+  // chevrons keep about the same size on screen: arm ≈ 10 px at the view centre, between 0.1 and 1.5 km
+  const armKm = Math.max(0.1, Math.min(1.5, v3.scale * 0.0254 / 96 / 1000 * 10)) * sizeK, sideKm = armKm * 0.55;
   for (const p of pieces) {
     const f = runFlow(p.run, ms); if (f == null) continue;
     const v = 0.5 + 2.4 * Math.log10(1 + f / Math.max(1, p.run.qma));
