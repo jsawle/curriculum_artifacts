@@ -18,10 +18,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: python scripts/fetch_helene_rivers.py
+      # while the extra rivers are being tested, write the lab file; the app keeps reading data/helene-rivers.json
+      - run: python scripts/fetch_helene_rivers.py --out data/helene-rivers-lab.json
       - name: Commit the data if it changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
-          git add data/helene-rivers.json
+          git add data/helene-rivers-lab.json
           git diff --cached --quiet && echo "No change" || (git commit -m "Update Helene rivers snapshot" && git push)

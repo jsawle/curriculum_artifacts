@@ -3,6 +3,7 @@
 Run by .github/workflows/helene-rivers.yml, or by hand:
   python scripts/fetch_helene_rivers.py              # fetch from the services
   python scripts/fetch_helene_rivers.py --from DIR   # reuse a saved probe (rivers.json, usgs-iv.json, usgs-peaks.json)
+  ... --out PATH                                     # write somewhere else (the rivers lab reads data/helene-rivers-lab.json)
 Standard library only.
 
 Sources
@@ -23,7 +24,14 @@ UA = {"User-Agent": "helene-rivers (education app; github.com/jsawle/curriculum_
 NHD = "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/NHDPlusV21/FeatureServer/2"
 RIVERS = ["French Broad River", "Swannanoa River", "Mills River", "Nolichucky River", "Toe River", "North Toe River",
           "South Toe River", "Pigeon River", "West Fork Pigeon River", "Catawba River", "Linville River", "Johns River",
-          "Broad River", "Watauga River"]
+          "Broad River", "Watauga River", "Cane River", "Ivy Creek", "Hominy Creek", "Doe River", "Tuckasegee River",
+          "Rocky Broad River", "Green River"]
+# smaller rivers fetched down to stream order 3 (everything else from order 4)
+LOW_ORDER = ["South Toe River", "North Toe River", "Toe River", "Cane River", "Rocky Broad River", "Ivy Creek", "Hominy Creek", "Swannanoa River"]
+# rivers drawn even where no flow gauge fits: shown for direction only (grey, steady arrows), never with a guessed flow
+DIRECTION_ONLY = {"North Toe River", "Toe River", "Cane River", "Rocky Broad River", "Green River"}
+# NHDPlus name -> other names the USGS uses for the same river
+ALIASES = {"Ivy Creek": ["Ivy River"]}
 MAXF = 3          # a gauge's flow is shared only along stretches whose mean annual flow is within 3x of the gauge's
 # the river-gauge columns in the app (they also need stage)
 COLUMNS = ["03439000", "03443000", "03446000", "03447687", "03451000", "03451500", "03453000", "03455000",
@@ -46,10 +54,11 @@ def iso(dt):
 
 # ------------------------------------------------------------------ fetch (or load) the three inputs
 def fetch_lines():
-    names = ",".join("'" + n.replace("'", "''") + "'" for n in RIVERS)
+    q = lambda ns: ",".join("'" + n.replace("'", "''") + "'" for n in ns)
+    where = f"(StreamOrde >= 4 AND GNIS_NAME IN ({q(RIVERS)})) OR (StreamOrde >= 3 AND GNIS_NAME IN ({q(LOW_ORDER)}))"
     out, off = [], 0
     while True:
-        d = json.loads(get(NHD + "/query", {"f": "json", "where": f"StreamOrde >= 4 AND GNIS_NAME IN ({names})",
+        d = json.loads(get(NHD + "/query", {"f": "json", "where": where,
             "geometry": ",".join(map(str, BBOX)), "geometryType": "esriGeometryEnvelope", "inSR": 4326, "outSR": 4326,
             "spatialRel": "esriSpatialRelIntersects", "outFields": "COMID,GNIS_NAME,StreamOrde,QE_MA", "returnGeometry": "true",
             "maxAllowableOffset": 0.0008, "geometryPrecision": 5, "resultOffset": off, "resultRecordCount": 2000}))
@@ -161,7 +170,7 @@ def build(lines, sites, peaks):
     gauges = {}
     for sid, s in sites.items():
         for c in chains:
-            if same_river(s["name"], c["n"]) and covers(s.get("q")):
+            if any(same_river(s["name"], n) for n in [c["n"]] + ALIASES.get(c["n"], [])) and covers(s.get("q")):
                 d, i = min((km([s["lon"], s["lat"]], p), i) for i, p in enumerate(c["p"]))
                 if d < 1.5 and (sid not in gauges or d < gauges[sid]["d"]):
                     run = max(r for r in c["runs"] if r[0] <= i)
@@ -181,11 +190,12 @@ def build(lines, sites, peaks):
             ok = [(sid, g) for sid, g in mine if g["qmaG"] and 1 / MAXF <= r[1] / g["qmaG"] <= MAXF]
             sid = min(ok, key=lambda sg: abs(A[sg[1]["i"]] - A[r[0]]))[0] if ok else None
             r.append(sid)
+            r.append(1 if not sid and c["n"] in DIRECTION_ONLY else 0)     # 1 = draw for direction only
             if sid:
                 used_g.add(sid)
-        c["runs"] = [r for k, r in enumerate(c["runs"]) if k == 0 or r[3] != c["runs"][k - 1][3]
+        c["runs"] = [r for k, r in enumerate(c["runs"]) if k == 0 or r[3] != c["runs"][k - 1][3] or r[4] != c["runs"][k - 1][4]
                      or abs(r[1] - c["runs"][k - 1][1]) > 0.1 * max(1, c["runs"][k - 1][1])]
-    chains = [c for c in chains if any(r[3] for r in c["runs"])]
+    chains = [c for c in chains if any(r[3] or r[4] for r in c["runs"])]
     # 4. gauge series
     pk = {p["site"]: p for p in peaks}
     out_g = {}
@@ -208,9 +218,9 @@ def build(lines, sites, peaks):
             yr = (p["prev_max_date"] or "")[:4]
             g |= {"peakQ": p["cfs"], "peakCodes": p["cfs_codes"], "prevQ": p["prev_max_cfs"], "prevYear": int(yr) if yr.isdigit() else None}
         out_g[sid] = g
-    out_c = [{"n": c["n"], "p": c["p"], "r": [[r[0], round(r[1], 1), r[3]] for r in c["runs"]]} for c in chains]
+    out_c = [{"n": c["n"], "p": c["p"], "r": [[r[0], round(r[1], 1), r[3] or ""] + ([1] if r[4] else []) for r in c["runs"]]} for c in chains]
     return {"note": "Main rivers (NHDPlus V2.1, drawn upstream to downstream) and USGS river flow for Hurricane Helene. "
-                    "Chains: p = [lon, lat] points downstream; r = runs [first point, NHDPlus mean annual flow cfs, gauge id]. "
+                    "Chains: p = [lon, lat] points downstream; r = runs [first point, NHDPlus mean annual flow cfs, gauge id or '', 1 if drawn for direction only]. "
                     "Gauges: qt minutes after t0; q cfs; qe = index ranges of USGS estimated values; h stage in hundredths of a foot at ht (or qt if ht is absent); "
                     "qmaG = NHDPlus mean annual flow at the gauge; peakQ / prevQ from the USGS annual peak-flow file.",
             "t0": int(T0.timestamp() * 1000), "generated": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
@@ -230,13 +240,14 @@ def main():
     n_c, n_g = len(out["chains"]), len(out["gauges"])
     print(f"{n_c} river chains, {sum(len(c['p']) for c in out['chains'])} points, {n_g} gauges")
     for c in out["chains"]:
-        print(f"  {c['n']}: {len(c['p'])} pts, gauges {sorted({r[2] for r in c['r'] if r[2]})}")
+        print(f"  {c['n']}: {len(c['p'])} pts, gauges {sorted({r[2] for r in c['r'] if r[2]})}{' + direction-only stretches' if any(len(r) > 3 for r in c['r']) else ''}")
     if n_c < 8 or n_g < 15:
         sys.exit("Too little data; not writing the file.")
-    os.makedirs("data", exist_ok=True)
-    with open("data/helene-rivers.json", "w") as f:
+    path = sys.argv[sys.argv.index("--out") + 1] if "--out" in sys.argv else "data/helene-rivers.json"
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    with open(path, "w") as f:
         json.dump(out, f, separators=(",", ":"))
-    print("wrote data/helene-rivers.json", os.path.getsize("data/helene-rivers.json") // 1024, "KB")
+    print("wrote", path, os.path.getsize(path) // 1024, "KB")
 
 if __name__ == "__main__":
     main()
