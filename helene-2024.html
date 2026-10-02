@@ -354,7 +354,7 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.42";
+const APP_VERSION = "0.43";
 const APP_DATE = "2 October 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
@@ -426,6 +426,8 @@ const knMph = (k) => Math.round(k * 1.15078 / 5) * 5;
 function landfallPhase(ms) { const d = (ms - LANDFALL.t) / HR; return d < -4 ? null : d < -0.5 ? "about to come ashore" : d <= 1 ? "coming ashore" : d <= 6 ? "just came ashore" : null; }
 
 // ---------- chapters ----------
+const VALLEY = { center: [-82.644, 35.421], zoom: 12.07, tilt: 74, heading: 196 };   // north of Asheville, looking south up the French Broad valley (steps 5 and 6)
+const PEAK_T = (Date.UTC(2024, 8, 27, 21, 38) - T0) / HR;   // the French Broad peaks at Asheville: step 5 ends here and step 6 stays at this moment
 const CAM_MTN = { center: [-82.3, 35.5], zoom: 8.3, tilt: 60, heading: 318 };   // from the south-east, looking north-west over the Blue Ridge
 const CH = [
   { key: "setup", n: "1 · 24–25 Sep", name: "The set-up", t0: 0, t1: 24,
@@ -471,21 +473,22 @@ const CH = [
       { t: 79.9, title: "Three days of rain", text: `<p>The rain is ending. More than 18 inches fell in counties along the Blue Ridge, from Transylvania and Polk in the south to Avery and Watauga in the north. Busick, in Yancey County, measured 30.78 inches (782 mm).</p><p>Across a wide area, three-day totals this big had less than a 1-in-1,000 chance of happening in any year. Click the map to read the rain at any spot.</p>` }
     ],
     qs: ["Watch the streaks as they cross the dashed line. Where do they turn dark blue: in front of the escarpment, on it, or behind it?", "Switch the mountains to 3×. Does the deepest blue follow the shape of the mountains?", "Click a few places on the map. Which has the most rain? What is the ground like there?"] },
-  { key: "rivers", n: "5 · 26–28 Sep", name: "Rivers rise", t0: 39, t1: 90, rainTotal: 1,
-    cam: { center: [-82.62, 35.62], zoom: 9.7, tilt: 62, heading: 335 }, cam2: { center: [-82.644, 35.421], zoom: 11.07, tilt: 74, heading: 196 }, show: { gauges: 1, rainSurf: 1, rivers: 1 },   // the whole river network first, then down into the French Broad valley, looking south (upstream) from north of Asheville
+  { key: "rivers", n: "5 · 26–27 Sep", name: "Rivers rise", t0: 39, t1: PEAK_T, rainTotal: 1,
+    cam: { center: [-82.62, 35.62], zoom: 9.7, tilt: 62, heading: 335 }, cam2: VALLEY, show: { gauges: 1, rainSurf: 1, rivers: 1 },   // the whole river network first, then down into the French Broad valley, looking south (upstream) from north of Asheville
     story: `<p>All that rain ran off the soaked slopes into streams and rivers at once. At least 63 river gauges broke their records.</p>
       <p>The map zooms down into the valley of the French Broad River. You are north of Asheville, looking south, up the valley: the river flows towards you. The clock starts just before Thursday 26 September.</p>
       <p>The <b>rivers</b> grow wider as they carry more water, and the white arrows show which way the water flows. Grey dashed rivers had no flow gauge, so they show direction only.</p>
       <p>Each column is a <b>river gauge</b>, a station that measures how high the river is every 15 minutes. The column rises with the river, and its colour shows how bad the flooding is: <b>red</b> is major flooding. The <b>white disc</b> marks the highest that river had ever been before Helene. When a column pushes up through its disc, the river has broken its record, and a ★ appears by its name.</p>`,
     beats: [
-      { t: (Date.UTC(2024, 8, 27, 21, 38) - T0) / HR, title: "The French Broad peaks at Asheville", cam: { center: [-82.644, 35.421], zoom: 11.07, tilt: 74, heading: 196 },
+      { t: PEAK_T, title: "The French Broad peaks at Asheville", cam: VALLEY,
         text: `<p>At 5:38 pm the French Broad River at Asheville reaches <b>24.8 ft</b>, higher than in the great flood of 1916. About <b>113,000 cubic feet of water</b> rush past every second: more than an Olympic swimming pool each second.</p>
           <p>Follow the white arrows. The French Broad flows <b>north</b>, through the mountains into Tennessee, and so do the Pigeon and the Nolichucky, so towns such as Newport and Erwin in Tennessee flood too. The Catawba flows east, towards the Atlantic.</p>` }
     ],
     qs: ["Follow the streaks from Asheville. Which state does the French Broad River flow into?", "Which gauge passes its old record first? Which is last?", "Pick a gauge in the chart. How many hours after the heaviest rain did the river peak?", "Are the gauges that broke records downstream of the deepest blue?"] },
-  { key: "slides", n: "6 · 27 Sep", name: "Slopes give way", t0: 60, t1: 84, rainTotal: 1,
-    cam: { center: [-82.28, 35.72], zoom: 9.3, tilt: 62, heading: 20 }, show: { slides: 1, rainSurf: 1 },
-    story: `<p>Soil full of water is heavy and loses its grip on the rock beneath. On steep slopes it can slide, and many slides turned into fast <b>debris flows</b> that raced down valleys, carrying trees, rocks and buildings.</p>
+  { key: "slides", n: "6 · 27 Sep", name: "Slopes give way", t0: PEAK_T, t1: PEAK_T, rainTotal: 1,   // same place and moment as the end of step 5; the landslides are added
+    cam: VALLEY, show: { slides: 1, rainSurf: 1, rivers: 1, gauges: 1 },
+    story: `<p>Same place, same moment: the rivers are at their highest. Now the landslides are added to the map (white dots). Most happened on Friday morning, while the rain was heaviest.</p>
+      <p>Soil full of water is heavy and loses its grip on the rock beneath. On steep slopes it can slide, and many slides turned into fast <b>debris flows</b>: mud, boulders and trees racing down ravines and stream channels. Where they reached the rivers, the flood swept that debris along, with soil and trees torn from the riverbanks, so the rivers carried mud, trees, cars and even houses downstream.</p>
       <p>USGS scientists mapped more than 2,000 landslides, most in western North Carolina, and more than half damaged roads, buildings or other property. They found that most began on slopes facing south-east, into the wind. You can test that below.</p>`,
     qs: ["Where are the landslides most crowded? Compare with where the blue is deepest.", "Run the slope test. Which way do most landslide slopes face?", "Why compare the landslides with nearby slopes, not just count them?"] },
   { key: "lined", n: "7 · The pattern", name: "Where it all lined up", t0: 108, t1: 108, rainTotal: 1,
@@ -1249,7 +1252,13 @@ const slideLayer = new FeatureLayer({ url: SLIDE_URL, title: "Landslides (USGS)"
   renderer: { type: "simple", symbol: { type: "point-3d", symbolLayers: [{ type: "icon", size: 6, resource: { primitive: "circle" }, material: { color: "white" }, outline: { color: [122, 20, 20], size: 1.2 } }] } },
   popupTemplate: { title: "Landslide", content: (e) => { const a = e.graphic.attributes; return `What it damaged: <b>${IMPACT[a.Impact] || a.Impact}</b><br>Mapped from: ${a.Source}<br><span style="opacity:.75">USGS preliminary inventory. The exact time is not recorded.</span>`; } } });
 map.add(slideLayer);
-let slideCount = null, slideImpacts = null, slidePts = null;
+let slideCount = null, slideImpacts = null, slidePts = null, slideReveal = 1;
+function revealSlides() {   // step 6: the landslides fade in over 3 seconds once the camera has arrived
+  if (!motionOn) { slideReveal = 1; drawSlides(); return; }
+  const t0 = performance.now(), tick = (now) => { if (CH[chapter].key !== "slides") { slideReveal = 1; return; }
+    slideReveal = Math.min(1, (now - t0) / 3000); drawSlides(); if (slideReveal < 1) requestAnimationFrame(tick); };
+  requestAnimationFrame(tick);
+}
 slideLayer.load().then(async () => {
   avail.slides = true; syncLegend(); applyVis();
   try {
@@ -1269,7 +1278,7 @@ async function loadSlidePoints() {
 function drawSlides() {
   if (!slideLayer.visible) return;
   const ms = tAt(hNow);
-  slideLayer.opacity = ms < SLIDES_FROM ? 0 : Math.min(1, (ms - SLIDES_FROM) / (SLIDES_FULL - SLIDES_FROM));
+  slideLayer.opacity = slideReveal * (ms < SLIDES_FROM ? 0 : Math.min(1, (ms - SLIDES_FROM) / (SLIDES_FULL - SLIDES_FROM)));
 }
 
 // Slope-direction test
@@ -1679,6 +1688,7 @@ $("teachClose").onclick = () => $("teachDlg").close();
 function goChapter(i, animate = true, autoplay = false) {
   clearTimeout(revealTimer); revealTimer = null; stopReading(); hideBeat();
   chapter = i; const c = CH[i]; pause();
+  slideReveal = c.key === "slides" ? 0 : 1;   // step 6 fades the landslides in after the camera arrives
   $("card").classList.toggle("later", i > 0);
   document.querySelectorAll("#steps button").forEach(b => { const k = +b.dataset.i; b.classList.toggle("done", k < i); if (k === i) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current"); });
   $("stepOf").textContent = `Step ${i + 1} of ${CH.length} · ${c.n.split("·")[1].trim()}`;
@@ -1687,13 +1697,13 @@ function goChapter(i, animate = true, autoplay = false) {
   const ex = EXPLORE[c.key]; $("tab-explore").hidden = !ex; $("exploreHint").hidden = !ex;
   if (ex) { $("tab-explore").textContent = ex; $("exploreHint").innerHTML = `Something to try in this step: <b>${ex}</b>, at the top of this card.`; }
   for (const k of Object.keys(vis)) vis[k] = !!c.show[k];
-  if (c.key === "rivers" || c.key === "lined") ensureGauges();
+  if (c.key === "rivers" || c.key === "slides" || c.key === "lined") ensureGauges();
   if (c.show.rivers) R.ensure();
   if (c.key === "storm" || c.key === "oro" || c.key === "lined") G.loadSlope();   // streaks lift over the mountains; step 7 needs steepness
   view.closePopup && view.closePopup();
   applyVis(); setTime(c.t0); renderChapterExtra(); selectTab("story"); updateGo();
   const token = goChapter.token = (goChapter.token || 0) + 1;
-  const arrived = () => { if (token === goChapter.token && autoplay && c.t1 > c.t0) play(); };
+  const arrived = () => { if (token !== goChapter.token) return; if (c.key === "slides") revealSlides(); if (autoplay && c.t1 > c.t0) play(); };
   const fly = animate && motionOn;
   if (c.cam2 && !fly) view.goTo(c.cam2, { animate: false }).then(arrived, arrived);
   else if (c.cam2) view.goTo(c.cam, { duration: 2500, easing: "in-out-cubic" })   // overview first, a short look, then down to the close view
