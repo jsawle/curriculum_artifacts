@@ -349,7 +349,7 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.39";
+const APP_VERSION = "0.40";
 const APP_DATE = "2 October 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
@@ -471,7 +471,7 @@ const CH = [
     story: `<p>All that rain ran off the soaked slopes into streams and rivers at once. At least 63 river gauges broke their records.</p>
       <p>The <b>rivers</b> grow wider as they carry more water, and the white arrows show which way the water flows. Grey dashed rivers had no flow gauge, so they show direction only. Each column is a river gauge: the <b>red ring</b> marks major flooding, the <b>white ring</b> the highest the river had been before Helene. A ★ by the name means it has broken that record.</p>`,
     beats: [
-      { t: (Date.UTC(2024, 8, 27, 21, 38) - T0) / HR, title: "The French Broad peaks at Asheville", cam: { center: [-82.56, 35.585], zoom: 11, tilt: 60, heading: 335 },
+      { t: (Date.UTC(2024, 8, 27, 21, 38) - T0) / HR, title: "The French Broad peaks at Asheville", cam: { center: [-82.448, 35.584], zoom: 10.99, tilt: 68, heading: 62 },
         text: `<p>At 5:38 pm the French Broad River at Asheville reaches <b>24.8 ft</b>, higher than in the great flood of 1916. About <b>113,000 cubic feet of water</b> rush past every second: more than an Olympic swimming pool each second.</p>
           <p>Follow the white arrows. The French Broad flows <b>north</b>, through the mountains into Tennessee, and so do the Pigeon and the Nolichucky, so towns such as Newport and Erwin in Tennessee flood too. The Catawba flows east, towards the Atlantic.</p>` }
     ],
@@ -1540,7 +1540,7 @@ $("steps").innerHTML = CH.map((c, i) => `<li><button data-i="${i}" aria-label="S
 document.querySelectorAll("#steps button").forEach(b => b.addEventListener("click", () => goChapter(+b.dataset.i, true, true)));
 $("backBtn").onclick = () => goChapter(Math.max(0, chapter - 1), true, true);
 // One main button that always says what to do next: Play, Pause, Continue (after a pause), Next step (at the end of a step)
-function stepDone() { const c = CH[chapter]; return c.t1 <= c.t0 || hNow >= c.t1 - 0.01; }
+function stepDone() { const c = CH[chapter]; return c.t1 <= c.t0 || hNow >= c.t1 - 0.15; }   // a pause in the last few minutes (step 4 ends on one at 79.9) counts as the end, so it offers Next step, not a Continue that plays 6 minutes
 function updateGo() {
   const c = CH[chapter], end = stepDone(), last = chapter === CH.length - 1, b = $("goBtn");
   b.textContent = playing ? "❚❚ Pause" : end ? (last ? "↺ Back to step 1" : "Next step ›") : (!$("beat").hidden || hNow > c.t0 + 0.01) ? "▶ Continue" : "▶ Play";
