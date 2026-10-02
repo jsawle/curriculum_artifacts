@@ -358,7 +358,7 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.52";
+const APP_VERSION = "0.53";
 const APP_DATE = "2 October 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
@@ -460,7 +460,7 @@ const CH = [
     qs: ["Press Play. Where does the blue (rain so far) grow while Helene is still over the Gulf?", "Pause on Thursday evening and click near Asheville. How much rain had fallen before the storm arrived?", "Why would rain before the storm make the storm's own rain more dangerous?"] },
   { key: "storm", n: "3 · 26–27 Sep", name: "Helene arrives", t0: 56, t1: 68,
     cam: { center: [-82.9, 33.6], zoom: 6.6, tilt: 50, heading: 340 }, show: { storm: 1, winds: 1, stream: 1, rainSurf: 1 },
-    say: `Late on Thursday night, Helene comes ashore in Florida, then races north across Georgia. Over land it starts to weaken, but it is still enormous. The white streaks show Helene's winds, spinning anticlockwise. On its eastern side, that spin joins the moisture stream, like a conveyor belt carrying even wetter air straight at the Blue Ridge Mountains. By Friday morning, rain is falling at two to three inches an hour, on ground that is already soaked.`,
+    say: `Thursday afternoon, September the twenty-sixth. Helene is out in the Gulf, heading north towards Florida and growing stronger. The white streaks show its winds, spinning anticlockwise. On its eastern side, that spin joins the moisture stream, like a conveyor belt carrying even wetter air towards the Blue Ridge Mountains, where the ground is already soaked. Watch Helene close in on the coast.`,
     story: `<p>Press Play to watch Helene come ashore in Florida late on Thursday 26 September, then race north over Georgia. It weakens over land, but it is still huge.</p>
       <p>Its anticlockwise spin (white streaks) joins the moisture stream, driving even wetter air straight at the Blue Ridge, like a <b>conveyor belt</b>. On the morning of 27 September rain falls at 2 to 3 inches an hour on ground that is already soaked.</p>`,
     beats: [
@@ -468,13 +468,13 @@ const CH = [
         text: `<p>Helene comes ashore near Perry, in Florida's Big Bend, as a <b>Category 4 hurricane</b> with winds of about 140 mph (225 km/h).</p>
           <p>Its winds push the sea onto the land: a <b>storm surge</b> 12 to 16 feet deep destroys most buildings in Keaton Beach and Steinhatchee, and Cedar Key and Tampa Bay have their highest water on record. All 14 storm-surge deaths were in Florida.</p>
           <p>Helene is huge and moving fast. Watch it race north: its centre reaches the mountains only about nine hours later.</p>` },
-      { t: 68, title: "Over the Appalachians", say: `It is four in the morning on Friday. Helene's centre is crossing Georgia, but its worst rain is falling on the mountains of western North Carolina. The moisture stream and Helene's own spin both drive warm, wet air into the Blue Ridge. Forced up the slopes, it rains out at two to three inches an hour, onto ground already soaked by two days of rain. At three thirty-nine this morning, forecasters issued the first flash flood emergency for the mountains. Over the next few hours, rivers will rise past records set in 1916, and thousands of slopes will give way.`, cam: { center: [-82.7, 35.0], zoom: 7.4, tilt: 55, heading: 330 },
+      { t: 68, title: "Over the Appalachians", say: `It is four in the morning on Friday. Helene has raced north, and its centre is crossing Georgia. Over land it is weakening, but it is still enormous, and its worst rain is falling on the mountains of western North Carolina. The moisture stream and Helene's own spin both drive warm, wet air into the Blue Ridge. Forced up the slopes, it rains out at two to three inches an hour, onto ground already soaked by two days of rain. At three thirty-nine this morning, forecasters issued the first flash flood emergency for the mountains. Over the next few hours, rivers will rise past records set in 1916, and thousands of slopes will give way.`, cam: { center: [-82.7, 35.0], zoom: 7.4, tilt: 55, heading: 330 },
         text: `<p>Helene's centre is crossing Georgia, but its worst rain is falling on the mountains of western North Carolina.</p>
           <p>The moisture stream and Helene's own spin are both driving warm, wet air into the Blue Ridge. Forced up the slopes, it rains out at 2 to 3 inches an hour, onto ground already soaked by two days of rain before the storm.</p>
           <p>The first flash-flood emergency for the mountains was issued at 3:39 am. Over the next few hours, rivers rise past their 1916 records and thousands of slopes give way. Next: a close-up of the mountains as the rain peaks.</p>` }
     ],
     qs: ["Follow a white streak on the storm's east side. Where does it end up? Where does it turn blue?", "Watch the label on the storm. How quickly does it weaken after it crosses the Florida coast? Why does a hurricane weaken over land?", "The storm moved fast. Why did so much rain still fall in one place?"] },
-  { key: "oro", n: "4 · 27 Sep", name: "Mountains squeeze out the rain", t0: 68, t1: 80,
+  { key: "oro", n: "4 · 27 Sep", name: "Mountains squeeze out the rain", t0: 68, t1: 80, tourFirst: 1,
     cam: CAM_MTN, show: { storm: 1, winds: 1, stream: 1, rainSurf: 1, ridge: 1 },
     say: `Let's get closer. It is four in the morning on Friday the twenty-seventh, and the rain is at its heaviest. You are looking north-west at the Blue Ridge escarpment, the dashed white line. It is a steep wall where the mountains rise suddenly from the foothills, and it faces south-east, straight into the wet air. The blue on the ground is the rain from the two days before Helene arrived, so these slopes are already soaked. Now watch the next twelve hours.`,
     story: `<p>It is 4 am on Friday 27 September and the rain is at its heaviest. You are looking north-west at the <b>Blue Ridge escarpment</b> (dashed white line): a steep wall where the mountains rise suddenly from the foothills, facing south-east, straight into the wet air.</p>
@@ -508,7 +508,7 @@ const CH = [
       <p>Soil full of water is heavy and loses its grip on the rock beneath. On steep slopes it can slide, and many slides turned into fast <b>debris flows</b>: mud, boulders and trees racing down ravines and stream channels. Where they reached the rivers, the flood swept that debris along, with soil and trees torn from the riverbanks, so the rivers carried mud, trees, cars and even houses downstream.</p>
       <p>USGS scientists mapped more than 2,000 landslides, most in western North Carolina, and more than half damaged roads, buildings or other property. They found that most began on slopes facing south-east, into the wind. You can test that below.</p>`,
     qs: ["Where are the landslides most crowded? Compare with where the blue is deepest.", "Run the slope test. Which way do most landslide slopes face?", "Why compare the landslides with nearby slopes, not just count them?"] },
-  { key: "lined", n: "7 · 24–28 Sep", name: "Why here? It all lined up", t0: 56, t1: 108, noAuto: true,   // the conclusion: four causes added one at a time
+  { key: "lined", n: "7 · 24–28 Sep", name: "Why here? It all lined up", t0: 56, t1: 108, noAuto: true, tourFirst: 1,   // the conclusion: four causes added one at a time
     glide: { from: 58, to: 80, cam: FINAL },   // soon after Helene starts to move, the camera follows it north to the final frame
     cam: { center: [-82.9, 33.6], zoom: 6.6, tilt: 50, heading: 340 }, show: { storm: 1, winds: 1, stream: 1, rainSurf: 1, ridge: 1 },
     say: `So why did a hurricane do its worst damage in mountains so far from the sea? Four things lined up, in the same place. Here is the first. The blue shading shows the rain that fell before Helene even arrived. By Thursday afternoon, eight to ten inches had already fallen in towns along the Blue Ridge, like Old Fort, Chimney Rock and Asheville. The ground was soaked. Now, let's bring in Helene.`,
@@ -1720,19 +1720,36 @@ function stopReading() { if (narrateCancel) narrateCancel(); if (canSpeak) speec
 const speechText = (raw) => raw.replace(/\bEDT\b/g, "Eastern time").replace(/\bmph\b/g, "miles per hour").replace(/\s+/g, " ").trim();
 // speak a script one sentence at a time (sounds more natural and avoids some browsers cutting off long speech);
 // resolves true when it finishes, false if stopped. With no voice available it waits about as long as reading it would take.
+let speakRate = 2.6;   // words per second, learned from the voice as it speaks
+const narr = { total: 1, done: 0, sentStart: 0, sentWords: 0, finished: true, t0: 0, dur: 0, timed: false };
+function narrProgress() {   // 0 to 1: how much of the current script has been spoken
+  if (narr.finished) return 1;
+  const now = performance.now();
+  if (narr.timed) return Math.min(0.99, (now - narr.t0) / narr.dur);
+  const inSent = narr.sentStart ? Math.min(narr.sentWords * 0.97, (now - narr.sentStart) / 1000 * speakRate) : 0;
+  return Math.min(0.99, (narr.done + inSent) / narr.total);
+}
+// speak a script one sentence at a time (sounds more natural and avoids some browsers cutting off long speech);
+// resolves true when it finishes, false if stopped. With no voice available it waits about as long as reading it would take.
 function narrate(raw) {
   stopReading();
   return new Promise(resolve => {
     const text = raw ? speechText(raw) : ""; if (!text) return resolve(true);
-    let done = false; const finish = (ok) => { if (done) return; done = true; narrateCancel = null; markListen(false); resolve(ok); };
+    const parts = text.split(/(?<=[.!?:])\s+/).filter(t => t.trim()), w = parts.map(t => t.split(" ").length), total = w.reduce((a, b) => a + b, 0);
+    Object.assign(narr, { total, done: 0, sentStart: 0, sentWords: w[0], finished: false, t0: performance.now(), timed: false });
+    let done = false; const finish = (ok) => { if (done) return; done = true; narr.finished = true; narrateCancel = null; markListen(false); resolve(ok); };
     narrateCancel = () => finish(false); markListen(true);
-    if (!canSpeak || !voice) { const h = setTimeout(() => finish(true), Math.max(2500, text.split(" ").length / 2.6 * 1000)); narrateCancel = () => { clearTimeout(h); finish(false); }; return; }
-    const words = text.split(" ").length, guard = setTimeout(() => finish(true), words / 1.4 * 1000 + 6000);   // if a browser never reports the end, carry on
+    if (!canSpeak || !voice) { narr.timed = true; narr.dur = Math.max(2500, total / 2.6 * 1000); const h = setTimeout(() => finish(true), narr.dur); narrateCancel = () => { clearTimeout(h); finish(false); }; return; }
+    const guard = setTimeout(() => finish(true), total / 1.4 * 1000 + 6000);   // if a browser never reports the end, carry on
     narrateCancel = () => { clearTimeout(guard); finish(false); };
-    const parts = text.split(/(?<=[.!?:])\s+/).filter(t => t.trim());
-    parts.forEach((t, k) => { const u = new SpeechSynthesisUtterance(t.trim()); u.voice = voice; u.lang = voice.lang; u.rate = 0.95; u.pitch = 1.0;
-      if (k === parts.length - 1) u.onend = () => { clearTimeout(guard); finish(true); };
-      u.onerror = (e) => finish(!(e.error === "interrupted" || e.error === "canceled")); speechSynthesis.speak(u); });
+    let cum = 0;
+    parts.forEach((t, k) => { const u = new SpeechSynthesisUtterance(t.trim()), before = cum; cum += w[k];
+      u.voice = voice; u.lang = voice.lang; u.rate = 0.95; u.pitch = 1.0;
+      u.onstart = () => { narr.done = before; narr.sentWords = w[k]; narr.sentStart = performance.now(); };
+      u.onend = () => { const d = (performance.now() - narr.sentStart) / 1000; if (narr.sentStart && d > 0.5 && w[k] >= 4) speakRate = 0.7 * speakRate + 0.3 * (w[k] / d);
+        narr.done = before + w[k]; narr.sentStart = 0; if (k === parts.length - 1) { clearTimeout(guard); finish(true); } };
+      u.onerror = (e) => { if (e.error === "interrupted" || e.error === "canceled") return finish(false); if (k === parts.length - 1) { clearTimeout(guard); finish(true); } };   // one failed sentence: carry on with the rest
+      speechSynthesis.speak(u); });
   });
 }
 const htmlText = (h) => { const d = document.createElement("div"); d.innerHTML = h.replace(/<\/(p|li)>/g, ". "); return d.textContent; };
@@ -1749,34 +1766,43 @@ $("readBtn").onclick = () => {
 };
 
 // ---------- play the whole story: every step, its pauses and stages, with narration ----------
-let tour = null;
+let tour = null, tourSync = null;   // tourSync: { from, to, p0 } while the timeline follows the narration
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 const until = (cond, tok) => new Promise(r => { const h = setInterval(() => { if (tok.stop || cond()) { clearInterval(h); r(); } }, 150); });
 function setTourBtn(on) { const b = $("tourBtn"); b.setAttribute("aria-pressed", String(on)); b.textContent = on ? "■ Stop the story" : "▶ Play the whole story"; }
-function stopTour() { if (!tour) return; tour.stop = true; tour = null; setTourBtn(false); pause(); }
+function stopTour() { tourSync = null; if (!tour) return; tour.stop = true; tour = null; setTourBtn(false); pause(); }
+// Each step's narration starts with its camera move, so "the view turns" or "fly down into the valley" is heard as it happens.
+// Where the script describes what is moving (steps 1, 2, 3 and 5), the timeline is driven by the narration: it reaches the next
+// pause just as the voice finishes. Steps whose script sets the scene first (4 and 7: tourFirst) play after the narration.
 async function runTour() {
   stopTour(); stopReading();
   const tok = tour = { stop: false }; setTourBtn(true);
   for (let i = 0; i < CH.length && !tok.stop; i++) {
     const c = CH[i];
-    goChapter(i, true, false, true); await goChapter.arrivedP; if (tok.stop) break;
-    await narrate(c.say); if (tok.stop) break;
+    goChapter(i, true, false, true);
+    const intro = narrate(c.say);
+    await goChapter.arrivedP; if (tok.stop) break;
     if (c.t1 > c.t0) {
+      if (c.tourFirst) { await intro; if (tok.stop) break; }
+      else { const next = (c.beats || []).map(b => b.t).filter(t => t > hNow + 0.01).sort((a, b) => a - b)[0] ?? c.t1; tourSync = { from: hNow, to: next, p0: narrProgress() }; }
       play();
       for (;;) {
-        await until(() => !playing, tok); if (tok.stop) break;
+        await until(() => !playing, tok); tourSync = null; if (tok.stop) break;
         if ($("beat").hidden || !curBeat) break;          // reached the end of the timeline
+        await intro; if (tok.stop) break;
         await narrate(curBeat.say); if (tok.stop) break;  // a story pause
         if (stepDone()) break;
         await sleep(400); play();
       }
     }
-    while (!tok.stop && c.after && afterIdx < c.after.length) {   // stages (steps 6 and 7)
-      const st = c.after[afterIdx++]; showStage(st); await sleep(st.cam ? 2200 : 600); if (tok.stop) break;
+    await intro; if (tok.stop) break;
+    while (!tok.stop && c.after && afterIdx < c.after.length) {   // stages (steps 6 and 7): the voice starts as the camera moves
+      const st = c.after[afterIdx++]; showStage(st); await sleep(400); if (tok.stop) break;
       await narrate(st.say);
     }
     if (!tok.stop) await sleep(1200);
   }
+  tourSync = null;
   if (tour === tok) { tour = null; setTourBtn(false); }
 }
 $("tourBtn").onclick = () => tour ? (stopTour(), stopReading()) : runTour();
@@ -1872,7 +1898,9 @@ function loop(ts) {
   const dt = lastFrame ? Math.min(0.1, (ts - lastFrame) / 1000) : 0; lastFrame = ts;
   if (playing) {
     const end = CH[chapter].t1, prev = hNow;
-    hNow = Math.min(end, hNow + dt * +$("speed").value);
+    if (tourSync) { const f = Math.max(0, Math.min(1, (narrProgress() - tourSync.p0) / Math.max(1e-6, 1 - tourSync.p0)));
+      hNow = Math.max(hNow, Math.min(end, tourSync.from + (tourSync.to - tourSync.from) * f)); }
+    else hNow = Math.min(end, hNow + dt * +$("speed").value);
     const beat = (CH[chapter].beats || []).find(b => prev < b.t && hNow >= b.t);   // story pause
     if (beat) hNow = beat.t;
     const gl = CH[chapter].glide; if (gl && prev < gl.from && hNow >= gl.from) startGlide(gl);
