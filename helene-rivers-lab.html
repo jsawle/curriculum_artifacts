@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Helene river arrows lab</title>
-<meta name="description" content="Test page for the Hurricane Helene case study: flowing river arrows in 2D (Esri CIM move-along-line animation) and 3D (chevrons drawn by the app), driven by USGS measured flow." />
+<title>Helene rivers lab</title>
+<meta name="description" content="Test page for the Hurricane Helene case study: more rivers, with flowing arrows in 3D. Cyan rivers carry USGS measured flow; grey rivers show direction only." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -15,47 +15,41 @@
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
   html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font: 14px/1.45 Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-  #views { position: absolute; inset: 0 0 92px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: #000; }
-  .pane { position: relative; }
-  arcgis-map, arcgis-scene { display: block; width: 100%; height: 100%; }
-  .tag { position: absolute; left: 12px; top: 12px; z-index: 3; padding: 8px 12px; max-width: calc(100% - 90px); font-size: 13px; }
-  .tag b { display: block; font-size: 15px; }
-  .tag small { color: var(--muted); }
+  arcgis-scene { position: absolute; inset: 0; display: block; }
   .glass { background: var(--glass); border: 1px solid var(--edge); border-radius: 14px; box-shadow: 0 10px 30px rgba(0, 0, 0, .45); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
-  #bar { position: absolute; left: 12px; right: 12px; bottom: 12px; height: 70px; display: grid; grid-template-columns: auto auto 1fr auto auto auto; gap: 4px 14px; align-items: center; padding: 8px 14px; z-index: 5; }
+  #tag { position: absolute; left: 12px; top: 12px; z-index: 3; padding: 10px 14px; max-width: 360px; font-size: 13px; }
+  #tag b { display: block; font-size: 15px; margin-bottom: 4px; }
+  .key { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+  .key i { width: 22px; height: 6px; border-radius: 3px; display: inline-block; }
+  #bar { position: absolute; left: 12px; right: 12px; bottom: 12px; display: grid; grid-template-columns: auto auto 1fr auto auto; gap: 4px 14px; align-items: center; padding: 8px 14px; z-index: 5; }
   button { font: inherit; font-weight: 700; border-radius: 12px; padding: 9px 16px; cursor: pointer; border: 1px solid var(--edge); background: var(--chip); color: var(--ink); }
   button.primary { background: linear-gradient(135deg, #2563eb, #0e7490); border-color: transparent; color: #fff; }
-  button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
   #tLabel { font-weight: 800; white-space: nowrap; min-width: 150px; }
-  #tSub { grid-column: 3 / 4; font-size: 12px; color: var(--muted); }
+  #tSub { grid-column: 1 / 6; font-size: 12px; color: var(--muted); }
   input[type=range] { width: 100%; accent-color: var(--accent); }
   select { padding: 6px 8px; border-radius: 10px; border: 1px solid var(--edge); background: var(--panel); color: var(--ink); font: inherit; }
   label.s { font-size: 12px; color: var(--muted); display: grid; gap: 2px; }
-  #credit { position: absolute; right: 12px; bottom: 92px; z-index: 6; padding: 6px 12px; font-size: 11.5px; line-height: 1.35; color: var(--muted); text-align: right; }
-  #credit b { color: var(--ink); font-weight: 600; }
-  #info { position: absolute; right: 12px; top: 12px; z-index: 6; width: 320px; padding: 10px 14px; font-size: 12.5px; max-height: calc(100% - 130px); overflow: auto; }
+  #info { position: absolute; right: 60px; top: 12px; z-index: 6; width: 340px; padding: 10px 14px; font-size: 12.5px; max-height: calc(100% - 150px); overflow: auto; }
   #info summary { cursor: pointer; font-weight: 700; }
+  #credit { position: absolute; right: 12px; bottom: 100px; z-index: 6; padding: 6px 12px; font-size: 11.5px; line-height: 1.35; color: var(--muted); text-align: right; }
+  #credit b { color: var(--ink); font-weight: 600; }
   table { width: 100%; border-collapse: collapse; font-size: 12px; } td, th { text-align: left; padding: 3px 4px 3px 0; border-bottom: 1px solid var(--rule); vertical-align: top; } th { color: var(--muted); }
-  @media (max-width: 760px) { #views { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; inset: 0 0 120px 0; } #bar { height: 104px; grid-template-columns: auto 1fr auto; } #info { display: none; } }
+  @media (max-width: 760px) { #info { display: none; } #bar { grid-template-columns: auto 1fr auto; } #tag { max-width: calc(100% - 70px); } }
 </style>
 </head>
 <body>
-<div id="views">
-  <div class="pane">
-    <arcgis-map id="map2d" basemap="satellite" center="-82.62, 35.68" zoom="10"><arcgis-zoom slot="top-right"></arcgis-zoom></arcgis-map>
-    <div class="tag glass"><b>2D · Esri animated arrows</b><small>CIM "move along line" animation (new in 5.1, beta, 2D only)</small></div>
-  </div>
-  <div class="pane">
-    <arcgis-scene id="map3d" basemap="satellite" ground="world-elevation" camera-position="-82.62, 35.2, 40000" camera-heading="0" camera-tilt="55">
-      <arcgis-zoom slot="top-right"></arcgis-zoom><arcgis-navigation-toggle slot="top-right"></arcgis-navigation-toggle><arcgis-compass slot="top-right"></arcgis-compass>
-    </arcgis-scene>
-    <div class="tag glass"><b>3D · chevrons drawn by the app</b><small>Same idea as the streaks in step 5, shaped as arrows</small></div>
-  </div>
+<arcgis-scene basemap="satellite" ground="world-elevation" camera-position="-82.45, 34.95, 60000" camera-heading="0" camera-tilt="55">
+  <arcgis-zoom slot="top-right"></arcgis-zoom><arcgis-navigation-toggle slot="top-right"></arcgis-navigation-toggle><arcgis-compass slot="top-right"></arcgis-compass>
+</arcgis-scene>
+<div id="tag" class="glass"><b>Rivers lab: more rivers, flowing arrows</b>
+  <div class="key"><i style="background:#00d7ff;box-shadow:0 0 0 1.5px #00234a"></i>Measured flow (USGS): wider = more water</div>
+  <div class="key"><i style="background:#aab4c0;height:3px"></i>No flow gauge: direction only</div>
 </div>
 <details id="info" class="glass"><summary>About this lab · <span id="ver"></span></summary>
-  <p>Both views use the same rivers (NHDPlus, drawn upstream to downstream) and the same USGS measured flow. Line width shows how much water; arrows move faster when a river carries more than its usual flow. Arrow speed is a drawing, not the real speed of the water.</p>
-  <p>The 2D arrows are Esri's own animation, drawn by the map engine. In 3D the SDK has no animated line symbols yet, so the app moves the chevrons itself, as it does for the wind streaks.</p>
-  <p>The 3D view follows the 2D view when "Link views" is on.</p>
+  <p>19 rivers from NHDPlus, drawn upstream to downstream. Where a USGS gauge on the same river measured the flow (and the river is a similar size there), the line is cyan and widens with the flow, and the arrows speed up as the river rises above its usual flow.</p>
+  <p>Where no gauge fits, such as the North Toe through Spruce Pine, the upper Broad River through Chimney Rock (the Rocky Broad), the Cane and the Green, the river is grey and its arrows move at a steady speed: it shows which way the water went, not how much.</p>
+  <p>Arrow speed is a drawing, not the real speed of the water. The app itself still uses the old rivers file until this is approved.</p>
   <table id="verTable"></table>
 </details>
 <div id="credit" class="glass"><b>Created by Jason Sawle</b><br>© Esri 2026</div>
@@ -65,29 +59,26 @@
   <input id="t" type="range" min="42" max="96" step="0.25" value="60" aria-label="Time" />
   <label class="s">Speed<select id="spd"><option value="1">slow</option><option value="3" selected>normal</option><option value="8">fast</option></select></label>
   <label class="s">Arrows<select id="size"><option value="0.75">small</option><option value="1" selected>medium</option><option value="1.4">large</option></select></label>
-  <label class="s"><span>Link views</span><input type="checkbox" id="link" checked aria-label="3D view follows the 2D view" /></label>
   <div id="tSub">Loading rivers…</div>
 </div>
 
 <script type="module">
-const LAB_VERSION = "0.3", LAB_DATE = "2 October 2026";
+const LAB_VERSION = "0.4", LAB_DATE = "2 October 2026";
 const MODELS = [
-  ["Rivers (shared)", "0.1", "Same data as the app's Rivers model 0.1: data/helene-rivers.json; width = 1 + 0.9 × √(flow / 1,000 cfs) px, up to 12 px; flow shared from the nearest gauge by NHDPlus mean annual flow"],
-  ["2D arrows", "0.1", "CIMLineSymbol: dark casing, cyan stroke, white chevron CIMVectorMarker every 26 pt with CIMSymbolAnimationMoveAlongLine (Speed, continuous, loop). Speed = 10 + 20 × log10(1 + flow ÷ mean annual flow) pt/s, in 6 steps; symbols change only when a stretch moves to another step"],
-  ["3D chevrons", "0.2", "Smaller: arms about 10 px long on screen (0.1–1.5 km, × arrow size), 2 px lines. One chevron every 3 km; tip at the moving point, sides 0.55 of the arm to each side; 40 m above the terrain (relative to ground); speed = 0.5 + 2.4 × log10(1 + flow ÷ mean annual flow) km per second of animation"]
+  ["Rivers", "0.3", "data/helene-rivers-lab.json: 19 rivers (adds South Toe, Ivy, Hominy Creek, Tuckasegee with gauges; North Toe, Cane, Doe, Green and the ungauged parts of other rivers for direction only); small rivers from stream order 3. Width = 1 + 0.9 × √(flow / 1,000 cfs) px, up to 12 px, where a gauge on the same river is within 3× of the stretch's NHDPlus mean annual flow; otherwise grey, 2 px"],
+  ["3D chevrons", "0.2", "Arms about 10 px on screen (0.1–1.5 km, × arrow size), 2 px lines, one every 3 km, 40 m above the terrain. Speed = 0.5 + 2.4 × log10(1 + flow ÷ mean annual flow) km per second of animation; direction-only rivers 1 km/s"]
 ];
 const $ = (id) => document.getElementById(id);
 $("ver").textContent = "v" + LAB_VERSION;
 $("verTable").innerHTML = `<tr><th>Part</th><th>Version</th><th>How it works</th></tr><tr><td>Lab page</td><td>${LAB_VERSION}</td><td>${LAB_DATE}</td></tr>` + MODELS.map(m => `<tr><td>${m[0]}</td><td>${m[1]}</td><td>${m[2]}</td></tr>`).join("");
 
-const [Graphic, GraphicsLayer, reactiveUtils] = await $arcgis.import(["@arcgis/core/Graphic.js", "@arcgis/core/layers/GraphicsLayer.js", "@arcgis/core/core/reactiveUtils.js"]);
-const el2 = $("map2d"), el3 = $("map3d");
-await Promise.all([el2.viewOnReady(), el3.viewOnReady()]);
-const v2 = el2.view, v3 = el3.view;
+const [Graphic, GraphicsLayer] = await $arcgis.import(["@arcgis/core/Graphic.js", "@arcgis/core/layers/GraphicsLayer.js"]);
+const el3 = document.querySelector("arcgis-scene"); await el3.viewOnReady(); const v3 = el3.view;
+v3.goTo({ center: [-82.45, 35.7], zoom: 9.3, tilt: 55, heading: 0 }, { animate: false }).catch(() => {});
 
-// ---------- data: rivers and measured flow ----------
+// ---------- data ----------
 const T0 = Date.UTC(2024, 8, 24, 12), HR = 3600e3, KM_LAT = 111.32;
-const j = await (await fetch("data/helene-rivers.json")).json();
+const j = await (await fetch("data/helene-rivers-lab.json")).json();
 const gq = new Map(Object.entries(j.gauges).map(([id, g]) => [id, { t: g.qt.map(m => T0 + m * 60000), q: g.q, qmaG: g.qmaG }]));
 function qAt(id, ms) {
   const g = gq.get(id); if (!g || !g.t.length || ms < g.t[0] || ms > g.t[g.t.length - 1]) return null;
@@ -95,116 +86,89 @@ function qAt(id, ms) {
   const f = g.t[hi] > g.t[lo] ? (ms - g.t[lo]) / (g.t[hi] - g.t[lo]) : 0; return g.q[lo] + (g.q[hi] - g.q[lo]) * f;
 }
 const runFlow = (run, ms) => { const G = run.g && gq.get(run.g), q = G ? qAt(run.g, ms) : null; return q == null || !G.qmaG ? null : q * run.qma / G.qmaG; };
-const widthOf = (q) => q == null ? 1 : Math.min(12, 1 + 0.9 * Math.sqrt(Math.max(0, q) / 1000));
+const widthOf = (q) => Math.min(12, 1 + 0.9 * Math.sqrt(Math.max(0, q) / 1000));
 const kmB = (a, b) => Math.hypot((a[0] - b[0]) * KM_LAT * Math.cos(a[1] * Math.PI / 180), (a[1] - b[1]) * KM_LAT);
 let hNow = 60, playing = false, sizeK = 1;
 const tAt = (h) => T0 + h * HR;
 const fmt = (ms) => { const d = new Date(ms - 4 * HR); const h = d.getUTCHours(); return `${["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d.getUTCDay()]} ${d.getUTCDate()} Sep, ${h % 12 || 12} ${h < 12 ? "am" : "pm"} EDT`; };
 
-// pieces: one per stretch of river that shares a gauge (both views draw the same pieces)
+// one piece per stretch that shares a gauge, or that is drawn for direction only
 const pieces = [];
 for (const c of j.chains) {
-  const runs = c.r.map(([i, qma, g]) => ({ i, qma, g }));
+  const runs = c.r.map(([i, qma, g, dir]) => ({ i, qma, g, dir: !!dir }));
   runs.forEach((run, k) => {
-    if (!run.g) return;
+    if (!run.g && !run.dir) return;
     const from = Math.max(0, run.i - 1), to = k + 1 < runs.length ? runs[k + 1].i : c.p.length - 1;
     if (to - from < 1) return;
     pieces.push({ name: c.n, run, pts: c.p.slice(from, to + 1) });
   });
 }
 
-// ---------- 2D: Esri CIM line symbol with arrows moving along the line ----------
-const layer2 = new GraphicsLayer({ title: "Rivers 2D" }); v2.map.add(layer2);
-const speedStep = (ratio) => Math.max(0, Math.min(5, Math.round(Math.log10(1 + ratio) * 3)));   // 6 steps
-function cimRiver(w, step) {
-  const speed = 10 + 20 * step / 3;   // points per second
-  const s = 6 * sizeK * Math.max(0.8, Math.min(1.6, w / 5));
-  return { type: "cim", data: { type: "CIMSymbolReference", symbol: { type: "CIMLineSymbol", symbolLayers: [
-    { type: "CIMVectorMarker", enable: true, size: s, colorLocked: true,
-      markerPlacement: { type: "CIMMarkerPlacementAlongLineSameSize", placementTemplate: [26 * sizeK], angleToLine: true, endings: "NoConstraint" },
-      frame: { xmin: -5, ymin: -5, xmax: 5, ymax: 5 },
-      markerGraphics: [{ type: "CIMMarkerGraphic", geometry: { rings: [[[-4, -4.5], [1.5, 0], [-4, 4.5], [-1.5, 0], [-4, -4.5]]] },
-        symbol: { type: "CIMPolygonSymbol", symbolLayers: [{ type: "CIMSolidFill", enable: true, color: [255, 255, 255, 245] }] } }],
-      animations: [{ type: "CIMSymbolAnimationMoveAlongLine", movementType: "Speed", speed, continuous: true,
-        animatedSymbolProperties: { type: "CIMAnimatedSymbolProperties", playAnimation: !matchMedia("(prefers-reduced-motion: reduce)").matches, repeatType: "Loop", easing: "Linear" } }] },
-    { type: "CIMSolidStroke", enable: true, width: w, color: [0, 215, 255, 240], capStyle: "Round", joinStyle: "Round" },
-    { type: "CIMSolidStroke", enable: true, width: w + 2.5, color: [0, 35, 70, 200], capStyle: "Round", joinStyle: "Round" }
-  ] } } };
-}
-for (const p of pieces) { p.g2 = new Graphic({ geometry: { type: "polyline", paths: [p.pts], spatialReference: { wkid: 4326 } } }); p.key2 = ""; }
-layer2.addMany(pieces.map(p => p.g2));
-function draw2() {
-  const ms = tAt(hNow);
-  for (const p of pieces) {
-    const q = runFlow(p.run, ms), w = Math.round(widthOf(q) * 2) / 2, step = q == null ? 0 : speedStep(q / Math.max(1, p.run.qma));
-    const key = `${w}|${step}|${sizeK}`; if (key === p.key2) continue;   // a new symbol restarts the animation, so only change when needed
-    p.key2 = key; p.g2.symbol = cimRiver(w, step);
-  }
-}
-
-// ---------- 3D: chevrons moved by the app ----------
-const layer3 = new GraphicsLayer({ title: "Rivers 3D", elevationInfo: { mode: "relative-to-ground" } }); v3.map.add(layer3);
+// ---------- 3D ----------
+const layer = new GraphicsLayer({ title: "Rivers", elevationInfo: { mode: "relative-to-ground" } }); v3.map.add(layer);
 const lineSym = (c, w) => ({ type: "line-3d", symbolLayers: [{ type: "line", size: w, material: { color: c }, cap: "round", join: "round" }] });
 const chev = new Graphic({ geometry: null, symbol: lineSym([255, 255, 255, 0.97], 2) });
-const STEP = 0.35, LIFT = 40;
-for (const p of pieces) {   // densify so the line follows the valley floor
+const STEP = 0.35, LIFT = 40, CYAN = [0, 215, 255, 0.95], GREY = [170, 180, 192, 0.85];
+for (const p of pieces) {
   const d = [p.pts[0]], cum = [0]; let acc = 0;
   for (let i = 1; i < p.pts.length; i++) { const a = p.pts[i - 1], b = p.pts[i], L = kmB(a, b), n = Math.max(1, Math.ceil(L / STEP));
     for (let k = 1; k <= n; k++) { d.push([a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n]); acc += L / n; cum.push(acc); } }
-  p.d = d; p.cum = cum; p.len = acc; p.size3 = -1;
-  p.line = new Graphic({ geometry: { type: "polyline", paths: [d.map(q => [q[0], q[1], LIFT])], hasZ: true, spatialReference: { wkid: 4326 } }, symbol: lineSym([0, 215, 255, 0.95], 1.5) });
-  p.edge = new Graphic({ geometry: p.line.geometry, symbol: lineSym([0, 35, 70, 0.75], 4) });
+  p.d = d; p.cum = cum; p.len = acc; p.size = -1;
+  const geom = { type: "polyline", paths: [d.map(q => [q[0], q[1], LIFT])], hasZ: true, spatialReference: { wkid: 4326 } };
+  p.line = new Graphic({ geometry: geom, symbol: lineSym(p.run.dir ? GREY : CYAN, 2) });
+  p.edge = new Graphic({ geometry: geom, symbol: lineSym([0, 35, 70, 0.7], p.run.dir ? 3.5 : 4) });
   const n = Math.max(1, Math.round(acc / 3)); p.P = Array.from({ length: n }, (_, k) => ({ s: (k + Math.random() * 0.6) * acc / n }));
 }
-layer3.addMany(pieces.map(p => p.edge)); layer3.addMany(pieces.map(p => p.line)); layer3.add(chev);
-function draw3() {
+layer.addMany(pieces.map(p => p.edge)); layer.addMany(pieces.map(p => p.line)); layer.add(chev);
+function draw() {
   const ms = tAt(hNow);
-  for (const p of pieces) { const w = widthOf(runFlow(p.run, ms)); if (Math.abs(w - p.size3) < 0.15) continue;
-    p.size3 = w; p.line.symbol = lineSym([0, 215, 255, 0.95], w); p.edge.symbol = lineSym([0, 35, 70, 0.75], w + 2.5); }
+  for (const p of pieces) {
+    if (p.run.dir) continue;
+    const q = runFlow(p.run, ms), w = q == null ? 1 : widthOf(q); if (Math.abs(w - p.size) < 0.15) continue;
+    p.size = w; p.line.symbol = lineSym(q == null ? GREY : CYAN, w); p.edge.symbol = lineSym([0, 35, 70, 0.75], w + 2.5);
+  }
 }
 const idxAt = (p, s) => { let lo = 0, hi = p.cum.length - 1; while (lo < hi) { const m = (lo + hi + 1) >> 1; if (p.cum[m] <= s) lo = m; else hi = m - 1; } return lo; };
-function ptAt(p, s) { const i = idxAt(p, s), j2 = Math.min(p.d.length - 1, i + 1), seg = p.cum[j2] - p.cum[i] || 1, f = Math.min(1, (s - p.cum[i]) / seg);
-  return [p.d[i][0] + (p.d[j2][0] - p.d[i][0]) * f, p.d[i][1] + (p.d[j2][1] - p.d[i][1]) * f]; }
-function frame3(dt) {
+function ptAt(p, s) { const i = idxAt(p, s), k = Math.min(p.d.length - 1, i + 1), seg = p.cum[k] - p.cum[i] || 1, f = Math.max(0, Math.min(1, (s - p.cum[i]) / seg));
+  return [p.d[i][0] + (p.d[k][0] - p.d[i][0]) * f, p.d[i][1] + (p.d[k][1] - p.d[i][1]) * f]; }
+function frame(dt) {
   const ms = tAt(hNow), paths = [];
-  // chevrons keep about the same size on screen: arm ≈ 10 px at the view centre, between 0.1 and 1.5 km
-  const armKm = Math.max(0.1, Math.min(1.5, v3.scale * 0.0254 / 96 / 1000 * 10)) * sizeK, sideKm = armKm * 0.55;
+  const armKm = Math.max(0.1, Math.min(1.5, v3.scale * 0.0254 / 96 / 1000 * 10)) * sizeK, sideKm = armKm * 0.55, z = LIFT + 15;
   for (const p of pieces) {
-    const f = runFlow(p.run, ms); if (f == null) continue;
-    const v = 0.5 + 2.4 * Math.log10(1 + f / Math.max(1, p.run.qma));
+    let v;
+    if (p.run.dir) v = 1;
+    else { const f = runFlow(p.run, ms); if (f == null) continue; v = 0.5 + 2.4 * Math.log10(1 + f / Math.max(1, p.run.qma)); }
     for (const q of p.P) {
       q.s += dt * v; if (q.s > p.len) q.s -= p.len;
       if (q.s < armKm * 1.3) continue;
-      const tip = ptAt(p, q.s), back = ptAt(p, q.s - armKm * 0.7);
-      const cx = Math.cos(tip[1] * Math.PI / 180) * KM_LAT;
+      const tip = ptAt(p, q.s), back = ptAt(p, q.s - armKm * 0.7), cx = Math.cos(tip[1] * Math.PI / 180) * KM_LAT;
       let ux = (tip[0] - back[0]) * cx, uy = (tip[1] - back[1]) * KM_LAT; const L = Math.hypot(ux, uy) || 1; ux /= L; uy /= L;
-      const arm = (bk, side) => [tip[0] + (-ux * bk - uy * side) / cx, tip[1] + (-uy * bk + ux * side) / KM_LAT, LIFT + 15];
-      paths.push([arm(armKm, sideKm), [tip[0], tip[1], LIFT + 15], arm(armKm, -sideKm)]);
+      const arm = (side) => [tip[0] + (-ux * armKm - uy * side) / cx, tip[1] + (-uy * armKm + ux * side) / KM_LAT, z];
+      paths.push([arm(sideKm), [tip[0], tip[1], z], arm(-sideKm)]);
     }
   }
   chev.geometry = paths.length ? { type: "polyline", paths, hasZ: true, spatialReference: { wkid: 4326 } } : null;
 }
 
-// ---------- time, controls, linked views ----------
-function render() { $("tLabel").textContent = fmt(tAt(hNow)); $("t").value = hNow; $("t").setAttribute("aria-valuetext", fmt(tAt(hNow)));
-  const a = qAt("03451500", tAt(hNow));
-  $("tSub").textContent = a != null ? `French Broad at Asheville: ${(Math.round(a / 100) * 100).toLocaleString("en-US")} cubic feet per second (USGS)` : "";
-  draw2(); draw3(); }
+// ---------- time ----------
+function render() {
+  $("tLabel").textContent = fmt(tAt(hNow)); $("t").value = hNow; $("t").setAttribute("aria-valuetext", fmt(tAt(hNow)));
+  const a = qAt("03451500", tAt(hNow)), b = qAt("03463300", tAt(hNow));
+  $("tSub").textContent = [a != null ? `French Broad at Asheville ${(Math.round(a / 100) * 100).toLocaleString("en-US")} cfs` : "", b != null ? `South Toe near Celo ${(Math.round(b / 100) * 100).toLocaleString("en-US")} cfs` : ""].filter(Boolean).join(" · ") + " (USGS measured)";
+  draw();
+}
 $("t").addEventListener("input", (e) => { hNow = +e.target.value; render(); });
 $("play").onclick = () => { playing = !playing; if (playing && hNow >= 96) hNow = 42; $("play").textContent = playing ? "❚❚ Pause" : "▶ Play"; $("play").setAttribute("aria-label", playing ? "Pause" : "Play"); };
-$("size").onchange = (e) => { sizeK = +e.target.value; render(); };
+$("size").onchange = (e) => { sizeK = +e.target.value; };
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-let last = 0, acc = 0;
+let last = 0, acc = 0, lastQ = -1;
 function loop(ts) {
   const dt = last ? Math.min(0.1, (ts - last) / 1000) : 0; last = ts;
-  if (playing) { hNow = Math.min(96, hNow + dt * +$("spd").value); if (hNow >= 96) $("play").click(); if (Math.floor(hNow * 4) !== Math.floor((hNow - dt * +$("spd").value) * 4)) render(); }
-  acc += dt; if (acc > 0.05) { if (!reduce) frame3(acc); acc = 0; }
+  if (playing) { hNow = Math.min(96, hNow + dt * +$("spd").value); if (hNow >= 96) $("play").click(); if (Math.floor(hNow * 4) !== lastQ) { lastQ = Math.floor(hNow * 4); render(); } }
+  acc += dt; if (acc > 0.05) { if (!reduce) frame(acc); acc = 0; }
   requestAnimationFrame(loop);
 }
 render(); requestAnimationFrame(loop);
-// 3D follows 2D (same centre and scale, tilted)
-reactiveUtils.when(() => v2.stationary, () => { if (!$("link").checked) return;
-  v3.goTo({ center: [v2.center.longitude, v2.center.latitude], scale: v2.scale, tilt: 50, heading: 0 }, { duration: 1200 }).catch(() => {}); });
 </script>
 </body>
 </html>
