@@ -217,8 +217,8 @@
     <div id="toast" role="status"></div>
     <div id="legend" class="glass" role="group" aria-labelledby="legendTitle">
       <button class="t" id="legendTitle" aria-expanded="true">Map key</button>
-      <button class="k" data-l="rainSurf" aria-pressed="false" disabled><span class="tick"></span>Rain so far (radar)</button>
-      <div class="band" aria-hidden="true"><i style="background:#cde2fb"></i><i style="background:#86b6ef"></i><i style="background:#3987e5"></i><i style="background:#1c5cab"></i><i style="background:#0d366b"></i></div>
+      <button class="k" data-l="rainSurf" aria-pressed="false" disabled><span class="tick"></span><span id="rainLbl">Rain so far (radar)</span></button>
+      <div class="band" id="rainBand" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
       <div class="band"><span>2</span><span>5</span><span>10</span><span>15</span><span>20+ in</span></div>
       <button class="k" data-l="steep" aria-pressed="false" disabled><span class="tick"></span><span class="sw" style="background:#eda100"></span>Steep ground</button>
       <button class="k" data-l="overlap" aria-pressed="false" disabled><span class="tick"></span><span class="sw" style="background:#d55181"></span>Heavy rain on steep ground</button>
@@ -295,7 +295,7 @@
   <div class="dlghead"><h2 id="teachTitle">For teachers</h2><button id="teachClose" aria-label="Close">✕</button></div>
     <details><summary>What the 3D view shows</summary>
       <ul>
-        <li><b>Rain so far.</b> The blue shading on the ground is the rain that had fallen since 8 am EDT on Tuesday 24 September, and it grows as the timeline plays. It is made from NOAA's hourly radar estimates (MRMS) at about 390 towns and river gauges, prepared for NOAA's <i>Helene in Southern Appalachia</i> dashboard, spread between those places by inverse-distance weighting. It covers the southern Appalachians only. Click the map to read the value at a spot.</li>
+        <li><b>Rain so far.</b> The blue shading on the ground is the rain that had fallen since 8 am EDT on Tuesday 24 September, and it grows as the timeline plays. It is made from NOAA's hourly radar estimates (MRMS) at 312 towns and river gauges, prepared for NOAA's <i>Helene in Southern Appalachia</i> dashboard, spread between those places by inverse-distance weighting. It covers the southern Appalachians only. From step 5 on, the map shows the storm total (to the end of 28 September) and stays in place, because those steps are about what the rain did. Click the map to read the value at a spot.</li>
         <li><b>Steep ground.</b> Slope worked out from Esri World Elevation on a grid about 1.2 km apart, so it describes the steepness of the landscape (mountain sides, the Blue Ridge escarpment), not of single hillsides.</li>
         <li><b>Heavy rain on steep ground.</b> Places where the total rain and the steepness are both above the thresholds chosen in step 6. Students can change the thresholds.</li>
         <li><b>River gauges.</b> Each gauge is a column of water whose height is the river's stage, measured every 15 minutes by the USGS (the USGS's checked, approved values). The red ring marks the NWS "major flood" level; the white ring marks the highest the river had been measured before Helene. 1 ft of river is drawn 120 m tall. A grey column means the gauge stopped reporting.</li>
@@ -309,7 +309,7 @@
     </details>
     <details><summary>Limitations</summary>
       <ul>
-        <li>The rain map is spread between about 390 radar points, so it smooths out small, very wet spots. Radar estimates can differ from rain gauges: the highest gauge total, 30.78 in at Busick, is higher than the radar values nearby.</li>
+        <li>The rain map is spread between 312 radar points (185 of them in the mountains shown), mostly towns and river gauges in valleys, so it smooths out small, very wet spots and the wettest ridges. Against rain gauges it is close in some places and low in others: Asheville airport measured 13.98 in (the map shows about 14.6 in there), but Spruce Pine measured 24.1 in (map 15.6 in), Mount Mitchell 24.4 in (map 18.9 in) and Busick 30.78 in (map about 20 in). So the map is lowest where the rain was heaviest.</li>
         <li>The landslide inventory is preliminary and misses slides hidden by forest or too small to see from satellites. Some points are at the damage site, not where the slide began.</li>
         <li>Step 6 compares areas, so it shows that landslides and heavy rain on steep ground happened in the same places. It cannot, by itself, prove that one caused the other; the science of why is in step 3 and step 5.</li>
         <li>River heights from different sources differ slightly: the USGS provisional peak at Asheville was 24.67 ft; the approved value used here is 24.82 ft, matching the NHC report's 24.8 ft. At many gauges the flood was too high or dangerous to measure flow directly, so the USGS worked out the peak flows afterwards (for example from high-water marks); the chart dashes the values the USGS marks as estimated. The Nolichucky gauge at Embreeville stopped recording flow at 11:15 am on 27 September and is still provisional.</li>
@@ -349,20 +349,20 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.37";
+const APP_VERSION = "0.38";
 const APP_DATE = "2 October 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
   ["Moisture stream sketch", "0.1", "350 streaks along a curved band from 320 km east of Helene's centre to the Blue Ridge (35.55°N, 82.3°W), bowed 260 km east, 140 km wide narrowing to 60 km; from 25 Sep 00 UTC (fading in over 3 h), fading out as Helene passes 32.5–34°N; lifted and turned blue by the same rules as the storm winds"],
   ["Weather pattern", "0.4", "No front line; low pressure aloft shown with L and larger arrows from 24 Sep; arrows around the High turn clockwise and around the low anticlockwise; approximate positions from the NHC report and Climate.gov: stalled front Gulf Coast to Tennessee Valley 25–27 Sep; upper-level low over the Tennessee Valley 25–27 Sep; Bermuda High over the western Atlantic"],
   ["Storm winds sketch", "0.5", "Step 4 adds 400 more streaks in a box around the Blue Ridge (34.7–36.4°N, 83.5–80.9°W) that follow the same winds and rules, so the lift and rain show close up. 700 moving streaks in an anticlockwise vortex around the NHC track position, 20° inflow; speed = track wind × (60 km / distance)^0.6 beyond 60 km; out to 850 km; ride 1.5 km above the ground (lifted over the mountains in the study area); blue where radar rain below is at least 0.25 in/hr"],
-  ["Rain so far", "0.4", "Read from a saved copy of the NOAA data in the repo (data/helene-rain.json, made by a GitHub Action), with the live service as a fallback. Fades out over the outer ~30 km of the study area; redraws every hour (a new image each time). NOAA MRMS hourly radar totals since 24 Sep 12:00 UTC at ~390 places, spread to a 0.0125° grid by inverse-distance weighting (6 nearest within 40 km); southern Appalachians only"],
+  ["Rain so far / storm total", "0.5", "Steps 2–4 show rain so far, redrawn each hour; steps 5–8 show the storm total (to 29 Sep 00:00 UTC), drawn once and left in place. Two image layers drawn in turn, so the old image stays until the new one has drawn. Colours can be previewed with ?rain=purple or ?rain=sunset. Read from a saved copy of the NOAA data in the repo (data/helene-rain.json, made by a GitHub Action), with the live service as a fallback. Fades out over the outer ~30 km of the study area. NOAA MRMS hourly radar totals since 24 Sep 12:00 UTC at 312 places (185 in the study area), spread to a 0.0125° grid by inverse-distance weighting (6 nearest within 40 km); southern Appalachians only"],
   ["Steep ground", "0.3", "Elevation at ~300 m detail (was ~150 m, a quarter of the downloads); measured from step 3 onwards, not at start-up. Slope sampled every 0.0125° (about 1.2 km), central differences across ~2.5 km"],
   ["Where it lined up", "0.1", "Grid cells split by total rain (24–28 Sep) and steepness thresholds; landslides counted per cell; density per 100 km²"],
   ["River gauges", "0.4", "USGS approved 15-minute stage and flow from a saved copy (data/helene-rivers.json) replace NOAA's provisional stage where available (fills the Blantyre gap; Asheville peak 24.82 ft); NWS flood levels and the highest stage before 2024 still from the NOAA snapshot (data/helene-gauges.json, live fallback). Flow chart: peak and the highest flow before Helene from the USGS annual peak-flow file; USGS estimated values dashed. Loaded at step 5 or 7; 1 ft drawn as 120 m"],
-  ["Rivers", "0.3", "19 rivers from NHDPlus V2.1 (Esri-hosted), chained upstream to downstream, from a box 83.8°W–81.2°W, 34.85°N–36.5°N so they reach a lake or confluence; small rivers (South Toe, North Toe, Cane, Ivy, Hominy, Swannanoa) from stream order 3, others from 4; rivers stop where they enter a reservoir outside the study area. Width from measured USGS flow at the nearest gauge on the same river, shared by the ratio of NHDPlus mean annual flows where that ratio is 1/3 to 3; width = 1 + 0.9 × √(flow / 1,000 cfs) px, up to 12 px. Stretches with no such gauge: grey dashed, steady arrows (direction only). White chevrons, arms about 10 px on screen (0.1–1.5 km), speed 0.5 + 2.4 × log10(1 + flow ÷ mean annual flow) km/s of animation (a drawing, not water speed); points every 350 m, 30 m above the terrain. Loaded at step 5"],
+  ["Rivers", "0.4", "19 rivers from NHDPlus V2.1 (Esri-hosted), chained upstream to downstream, from a box 83.8°W–81.2°W, 34.85°N–36.5°N so they reach a lake or confluence; small rivers (South Toe, North Toe, Cane, Ivy, Hominy, Swannanoa) from stream order 3, others from 4; rivers stop where they enter a reservoir outside the study area. Width from measured USGS flow at the nearest gauge on the same river, shared by the ratio of NHDPlus mean annual flows where that ratio is 1/3 to 3; width = 1 + 0.9 × √(flow / 1,000 cfs) px, up to 12 px; one solid line, no dark edge (the edge flickered against the river line). Stretches with no such gauge: grey dashed, steady arrows (direction only). White chevrons, arms about 9 px on screen, about 80 px apart (fewer when zoomed out, none beyond ~1.2 km per pixel), speed 0.5 + 2.4 × log10(1 + flow ÷ mean annual flow) km/s of animation (a drawing, not water speed); points every 350 m, 30 m above the terrain. Loaded at step 5"],
   ["Landslides and slope test", "0.1", "USGS preliminary inventory; aspect from Esri World Elevation at ~40 m, ±60 m differences, slopes under 8° left out"],
-  ["Map description", "0.3", "Adds the rivers: flow direction and the French Broad's flow at Asheville. Landfall wording shared with the map label (about to come ashore / coming ashore within 1 h / just came ashore up to 6 h); written description of the 3D map built from the same data and settings as the map: storm position and strength, which layers are on, wettest town so far and now, gauges in major flood or over their record"],
+  ["Map description", "0.4", "Rain sentence gives the storm total in steps 5–8. Adds the rivers: flow direction and the French Broad's flow at Asheville. Landfall wording shared with the map label (about to come ashore / coming ashore within 1 h / just came ashore up to 6 h); written description of the 3D map built from the same data and settings as the map: storm position and strength, which layers are on, wettest town so far and now, gauges in major flood or over their record"],
   ["Terrain exaggeration", "0.1", "Esri World Elevation (Terrain3D) multiplied by 1, 2 or 3"]
 ];
 const $ = (id) => document.getElementById(id);
@@ -466,7 +466,7 @@ const CH = [
       { t: 79.9, title: "Three days of rain", text: `<p>The rain is ending. More than 18 inches fell in counties along the Blue Ridge, from Transylvania and Polk in the south to Avery and Watauga in the north. Busick, in Yancey County, measured 30.78 inches (782 mm).</p><p>Across a wide area, three-day totals this big had less than a 1-in-1,000 chance of happening in any year. Click the map to read the rain at any spot.</p>` }
     ],
     qs: ["Watch the streaks as they cross the dashed line. Where do they turn dark blue: in front of the escarpment, on it, or behind it?", "Switch the mountains to 3×. Does the deepest blue follow the shape of the mountains?", "Click a few places on the map. Which has the most rain? What is the ground like there?"] },
-  { key: "rivers", n: "5 · 26–28 Sep", name: "Rivers rise", t0: 42, t1: 90,
+  { key: "rivers", n: "5 · 26–28 Sep", name: "Rivers rise", t0: 42, t1: 90, rainTotal: 1,
     cam: { center: [-82.62, 35.62], zoom: 8.7, tilt: 62, heading: 335 }, show: { gauges: 1, rainSurf: 1, rivers: 1 },
     story: `<p>All that rain ran off the soaked slopes into streams and rivers at once. At least 63 river gauges broke their records.</p>
       <p>The <b>rivers</b> grow wider as they carry more water, and the white arrows show which way the water flows. Grey dashed rivers had no flow gauge, so they show direction only. Each column is a river gauge: the <b>red ring</b> marks major flooding, the <b>white ring</b> the highest the river had been before Helene. A ★ by the name means it has broken that record.</p>`,
@@ -476,22 +476,33 @@ const CH = [
           <p>Follow the white arrows. The French Broad flows <b>north</b>, through the mountains into Tennessee, and so do the Pigeon and the Nolichucky, so towns such as Newport and Erwin in Tennessee flood too. The Catawba flows east, towards the Atlantic.</p>` }
     ],
     qs: ["Follow the streaks from Asheville. Which state does the French Broad River flow into?", "Which gauge passes its old record first? Which is last?", "Pick a gauge in the chart. How many hours after the heaviest rain did the river peak?", "Are the gauges that broke records downstream of the deepest blue?"] },
-  { key: "slides", n: "6 · 27 Sep", name: "Slopes give way", t0: 60, t1: 84,
+  { key: "slides", n: "6 · 27 Sep", name: "Slopes give way", t0: 60, t1: 84, rainTotal: 1,
     cam: { center: [-82.28, 35.72], zoom: 9.3, tilt: 62, heading: 20 }, show: { slides: 1, rainSurf: 1 },
     story: `<p>Soil full of water is heavy and loses its grip on the rock beneath. On steep slopes it can slide, and many slides turned into fast <b>debris flows</b> that raced down valleys, carrying trees, rocks and buildings.</p>
       <p>USGS scientists mapped more than 2,000 landslides, most in western North Carolina, and more than half damaged roads, buildings or other property. They found that most began on slopes facing south-east, into the wind. You can test that below.</p>`,
     qs: ["Where are the landslides most crowded? Compare with where the blue is deepest.", "Run the slope test. Which way do most landslide slopes face?", "Why compare the landslides with nearby slopes, not just count them?"] },
-  { key: "lined", n: "7 · The pattern", name: "Where it all lined up", t0: 108, t1: 108,
+  { key: "lined", n: "7 · The pattern", name: "Where it all lined up", t0: 108, t1: 108, rainTotal: 1,
     cam: { center: [-82.4, 35.6], zoom: 8.1, tilt: 52, heading: 330 }, show: { rainSurf: 1 },
     story: `<p>Steep mountains, very heavy rain, landslides and record floods did not happen evenly across the region. They happened together, in the same places. Geographers call this a <b>spatial correlation</b>.</p>
       <p>Build the picture one layer at a time, then test it: how much more common were landslides where heavy rain fell on steep ground?</p>`,
     qs: ["Which layer lines up best with the landslides: steep ground alone, heavy rain alone, or both together?", "Move the rain threshold up and down. At what amount of rain do landslides become common on steep ground?", "Are there steep places with few landslides? What was different there?"] },
-  { key: "cost", n: "8 · Afterwards", name: "Counting the cost", t0: 72, t1: 108,
+  { key: "cost", n: "8 · Afterwards", name: "Counting the cost", t0: 72, t1: 108, rainTotal: 1,
     cam: { center: [-82.9, 33.2], zoom: 6.4, tilt: 30, heading: 0 }, show: { slides: 1, storm: 1, rainSurf: 1 },
     story: `<p>Helene caused at least 250 deaths in the United States, the most for a hurricane on the mainland since Katrina in 2005. In the mountains, most deaths were caused by flooding and landslides, not by wind.</p>
       <p>More than 125,000 homes in western North Carolina were damaged or destroyed. Asheville had no clean tap water for 53 days. Parts of Interstate 40 were washed away. Communities there are still rebuilding.</p>`,
     qs: ["Which states had the most deaths from flooding? Which from wind?", "Asheville is about 500 miles from the sea. Why did an inland city suffer so badly from a hurricane?", "What would you want people in a mountain valley to know before the next big storm?"] }
 ];
+
+// ---------- rain colours (try ?rain=purple or ?rain=sunset; blue is the default) ----------
+const RAIN_PALS = {   // heaviest first: 20+, 15, 10, 5, 2 inches
+  blue: [[13, 54, 107, 215], [28, 92, 171, 200], [57, 135, 229, 180], [134, 182, 239, 150], [205, 226, 251, 115]],
+  purple: [[122, 1, 119, 215], [197, 27, 138, 200], [247, 104, 161, 185], [250, 159, 181, 160], [252, 205, 200, 130]],   // ColorBrewer RdPu
+  sunset: [[128, 0, 38, 215], [227, 26, 28, 200], [253, 141, 60, 185], [254, 196, 79, 160], [255, 237, 160, 130]]       // ColorBrewer YlOrRd
+};
+const RAIN_KEY = RAIN_PALS[new URLSearchParams(location.search).get("rain")] ? new URLSearchParams(location.search).get("rain") : "blue";
+const RAIN_PAL = RAIN_PALS[RAIN_KEY], RAIN_WORD = { blue: "Blue", purple: "Pink and purple", sunset: "Yellow to red" }[RAIN_KEY];
+[...document.querySelectorAll("#rainBand i")].forEach((el, k) => { const c = RAIN_PAL[4 - k]; el.style.background = `rgb(${c[0]},${c[1]},${c[2]})`; });
+const rainTotalNow = () => !!CH[chapter].rainTotal;   // steps about what the rain did show the storm total, left in place
 
 // ---------- state ----------
 let hNow = 0, playing = false, chapter = 0, lastFrame = 0, EXAG = 2;
@@ -820,7 +831,7 @@ async function queryPaged(url, params, pageSize = 1000, onProgress) {
 }
 const sqlTime = (ms) => new Date(ms).toISOString().slice(0, 19).replace("T", " ");
 
-// ---------- radar rain at ~390 places (NOAA MRMS) ----------
+// ---------- radar rain at 312 places (NOAA MRMS) ----------
 let locations = null, rainPts = [];   // {id, name, state, kind, lat, lon, r: Float32Array(HOURS+1) total since T0, h: hourly rate}
 async function loadLocations() {
   const j = await q(NOAA + "Lhhs2_location/FeatureServer/0", { where: "1=1", outFields: "id,name,state,ishape,latitude,longitude", resultRecordCount: 2000 });
@@ -871,20 +882,34 @@ const G = (() => {
   const Y0 = merc(LAT0 - STEP / 2), Y1 = merc(LAT1 + STEP / 2);
   const extent = new Extent({ xmin: X0, xmax: X1, ymin: Y0, ymax: Y1, spatialReference: { wkid: 3857 } });
   const rowJ = new Int32Array(NY); for (let r = 0; r < NY; r++) { const lat = unmerc(Y1 - (r + 0.5) * (Y1 - Y0) / NY); rowJ[r] = Math.max(0, Math.min(NY - 1, Math.round((lat - LAT0) / STEP))); }
-  const layerOf = (title, opacity) => { const el = new ImageElement({ image: blank(), georeference: new ExtentAndRotationGeoreference({ extent }) });
-    const L = new MediaLayer({ title, source: [el], opacity, visible: false }); map.add(L); return { L, el }; };
+  // each raster has two image layers drawn in turn: a new image goes into the hidden one and only replaces the old image once it has drawn,
+  // so the map never flashes empty (a new image element each time: changing .image on an existing element does not redraw in 3D, SDK 5.1.26)
+  const HIDE = 0.01;   // the waiting layer is kept just above 0 so it stays drawn and ready
+  const layerOf = (title, opacity) => {
+    const mk = (o) => { const L = new MediaLayer({ title, source: [new ImageElement({ image: blank(), georeference: new ExtentAndRotationGeoreference({ extent }) })], opacity: o, visible: false, listMode: "hide" }); map.add(L); return L; };
+    const t = { L: [mk(opacity), mk(HIDE)], front: 0, key: null, on: false, token: 0, opacity,
+      get visible() { return t.on; },
+      show(on) { t.on = !!on; t.L.forEach(L => L.visible = t.on); },
+      async paint(fn, key) {
+        if (key != null && key === t.key) return; t.key = key;
+        const c = blank(), ctx = c.getContext("2d"), img = ctx.createImageData(NX, NY), px = img.data;
+        for (let r = 0; r < NY; r++) { const j = rowJ[r]; for (let i = 0; i < NX; i++) { const col = fn(j * NX + i); if (!col) continue; const o = (r * NX + i) * 4; px[o] = col[0]; px[o + 1] = col[1]; px[o + 2] = col[2]; px[o + 3] = col[3]; } }
+        ctx.putImageData(img, 0, 0);
+        const tok = ++t.token, back = t.L[1 - t.front];
+        back.source.elements.removeAll(); back.source.elements.add(new ImageElement({ image: c, georeference: new ExtentAndRotationGeoreference({ extent }) }));
+        if (t.on) {
+          try { const lv = await view.whenLayerView(back); await Promise.race([reactiveUtils.whenOnce(() => !lv.updating), new Promise(r => setTimeout(r, 1500))]); } catch (e) { /* draw anyway */ }
+          await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+        }
+        if (tok !== t.token) return;   // a newer image is on its way
+        back.opacity = t.opacity; t.L[t.front].opacity = HIDE; t.front = 1 - t.front;
+      } };
+    return t;
+  };
   function blank() { const c = document.createElement("canvas"); c.width = NX; c.height = NY; return c; }
-  // paint(fn): fn(cell) returns [r,g,b,a] or null; drawn north-up on a Web Mercator canvas
-  function paint(target, fn) {
-    const c = blank(), ctx = c.getContext("2d"), img = ctx.createImageData(NX, NY), px = img.data;
-    for (let r = 0; r < NY; r++) { const j = rowJ[r]; for (let i = 0; i < NX; i++) { const col = fn(j * NX + i); if (!col) continue; const o = (r * NX + i) * 4; px[o] = col[0]; px[o + 1] = col[1]; px[o + 2] = col[2]; px[o + 3] = col[3]; } }
-    ctx.putImageData(img, 0, 0);
-    // a new image element each time: changing .image on an existing element does not redraw in 3D (tested with SDK 5.1.26)
-    target.el = new ImageElement({ image: c, georeference: new ExtentAndRotationGeoreference({ extent }) });
-    target.L.source.elements.removeAll(); target.L.source.elements.add(target.el);
-  }
+  // paint(fn, key): fn(cell) returns [r,g,b,a] or null; drawn north-up on a Web Mercator canvas; nothing is redrawn while key is unchanged
   const rain = layerOf("Rain so far (radar)", 0.9), steep = layerOf("Steep ground", 0.85), over = layerOf("Heavy rain on steep ground", 0.9);
-  const BANDS = [[20, [13, 54, 107, 215]], [15, [28, 92, 171, 200]], [10, [57, 135, 229, 180]], [5, [134, 182, 239, 150]], [2, [205, 226, 251, 115]]];
+  const BANDS = RAIN_PAL.map((col, k) => [[20, 15, 10, 5, 2][k], col]);
   const edgeFade = new Float32Array(N); { const F = 24; for (let c = 0; c < N; c++) { const i = c % NX, j = Math.floor(c / NX); edgeFade[c] = Math.min(1, Math.min(i, j, NX - 1 - i, NY - 1 - j) / F); } }   // fade over the outer ~30 km
   const bandColor = (v) => { if (!(v >= 2)) return null; for (const [t, c] of BANDS) if (v >= t) return c; return null; };
   const cellLat = (c) => LAT0 + Math.floor(c / NX) * STEP, cellLon = (c) => LON0 + (c % NX) * STEP;
@@ -897,16 +922,19 @@ const G = (() => {
         if (d2 > RMAX * RMAX) continue; if (best.length < K) { best.push([d2, s]); best.sort((a, b) => a[0] - b[0]); } else if (d2 < best[K - 1][0]) { best[K - 1] = [d2, s]; best.sort((a, b) => a[0] - b[0]); } }
       best.forEach(([d2, s], k) => { nb[c * K + k] = s; nw[c * K + k] = 1 / (d2 + 4); });
     }
-    rainReady = true; computeTotal(HOURS, finalTotal); totalHour = -1;
+    rainReady = true; computeTotal(HOURS, finalTotal); totalHour = -1; rain.key = null;
+    if (slope) { over.key = null; redrawThresholds(); }   // the overlap layer needs the rain totals
     avail.rainSurf = true; syncLegend(); applyVis();
   }
   function computeTotal(h, out) {
     for (let c = 0; c < N; c++) { let ws = 0, vs = 0; for (let k = 0; k < K; k++) { const s = nb[c * K + k]; if (s < 0) break; ws += nw[c * K + k]; vs += nw[c * K + k] * srcR[s][h]; } out[c] = ws ? vs / ws : NaN; }
   }
-  function drawRain() {
-    if (!rainReady || !rain.L.visible) return;
-    const h = Math.min(HOURS, Math.floor(hNow)); if (h === totalHour) return; totalHour = h;
-    computeTotal(h, total); paint(rain, (c) => { const col = bandColor(total[c]); if (!col) return null; const f = edgeFade[c]; return f >= 1 ? col : [col[0], col[1], col[2], Math.round(col[3] * f)]; });
+  function drawRain() {   // steps 2-4: rain so far, redrawn each hour; steps 5-8: the storm total, drawn once and left in place
+    if (!rainReady || !rain.visible) return;
+    const all = rainTotalNow(), h = all ? HOURS : Math.min(HOURS, Math.floor(hNow)), key = all ? "total" : h;
+    if (key === rain.key) return;
+    let src = finalTotal; if (!all) { if (h !== totalHour) { computeTotal(h, total); totalHour = h; } src = total; }
+    rain.paint((c) => { const col = bandColor(src[c]); if (!col) return null; const f = edgeFade[c]; return f >= 1 ? col : [col[0], col[1], col[2], Math.round(col[3] * f)]; }, key);
   }
   const rainAtPoint = (lat, lon, h) => {   // for clicks: same inverse-distance rule as the grid
     let ws = 0, vs = 0; const cs = Math.cos(lat * Math.PI / 180);
@@ -940,8 +968,8 @@ const G = (() => {
   let thRain = 15, thSlope = 8;
   function redrawThresholds() {
     if (!slope) return;
-    paint(steep, (c) => slope[c] >= thSlope ? [237, 161, 0, 140] : null);
-    paint(over, (c) => slope[c] >= thSlope && finalTotal[c] >= thRain ? [213, 81, 129, 190] : null);
+    steep.paint((c) => slope[c] >= thSlope ? [237, 161, 0, 140] : null, "s" + thSlope);
+    over.paint((c) => slope[c] >= thSlope && finalTotal[c] >= thRain ? [213, 81, 129, 190] : null, "o" + thSlope + "/" + thRain);
   }
   // landslides per class of ground
   function stats(slides) {
@@ -1089,9 +1117,12 @@ const R = (() => {
   let data = null, dataP = null, geomP = null, ready = false, chains = [], pieces = [], labels = null;
   const gq = new Map();
   const kmB = (a, b) => Math.hypot((a[0] - b[0]) * KM_LAT * Math.cos(a[1] * Math.PI / 180), (a[1] - b[1]) * KM_LAT);
+  // one solid line per river, no dark edge: an edge line at the same height flickers against the river line (depth fighting) and
+  // made the rivers sparkle, worst when zoomed out
+  const CYAN = [0, 215, 255, 1], GREYL = [190, 198, 208, 1];
   const lineSym = (c, w) => ({ type: "line-3d", symbolLayers: [{ type: "line", size: w, material: { color: c }, cap: "round", join: "round" }] });
-  const streak = new Graphic({ geometry: null, symbol: lineSym([255, 255, 255, 0.97], 2) });   // all the moving chevrons on rivers with measured flow
-  const streakGrey = new Graphic({ geometry: null, symbol: lineSym([175, 185, 198, 0.9], 1.8) });   // chevrons on direction-only rivers
+  const streak = new Graphic({ geometry: null, symbol: lineSym([255, 255, 255, 1], 2) });   // all the moving chevrons on rivers with measured flow
+  const streakGrey = new Graphic({ geometry: null, symbol: lineSym([200, 208, 218, 1], 1.8) });   // chevrons on direction-only rivers
   const dashSym = (c, w) => ({ type: "line-3d", symbolLayers: [{ type: "line", size: w, material: { color: c }, cap: "butt", join: "round", pattern: { type: "style", style: "dash" } }] });
   function qAt(id, ms) {   // measured flow at a gauge, cfs, straight line between 15-minute readings
     const g = gq.get(id); if (!g || !g.t.length || ms < g.t[0] || ms > g.t[g.t.length - 1]) return null;
@@ -1131,13 +1162,13 @@ const R = (() => {
         for (let k = 1; k <= c.pts.length; k++) {
           if (k === c.pts.length || c.runOf[k] !== c.runOf[s]) {
             const run = c.runs[c.runOf[s]], from = Math.max(0, s - 1);
-            if (run.g) pieces.push({ c, run, from, to: k - 1, size: -1, line: new Graphic({ symbol: lineSym([0, 215, 255, 0.95], 1.5) }), edge: new Graphic({ symbol: lineSym([0, 35, 70, 0.75], 3.5) }) });
-            else if (run.dir) pieces.push({ c, run, from, to: k - 1, size: 2, line: new Graphic({ symbol: dashSym([175, 185, 198, 0.95], 2.2) }), edge: new Graphic({ symbol: lineSym([0, 25, 50, 0.55], 4) }) });   // no flow gauge: direction only
+            if (run.g) pieces.push({ c, run, from, to: k - 1, size: -1, line: new Graphic({ symbol: lineSym(CYAN, 1.5) }) });
+            else if (run.dir) pieces.push({ c, run, from, to: k - 1, size: 2, line: new Graphic({ symbol: dashSym(GREYL, 2.2) }) });   // no flow gauge: direction only
             s = k;
           }
         }
       }
-      riverLayer.removeAll(); riverLayer.addMany(pieces.map(p => p.edge)); riverLayer.addMany(pieces.map(p => p.line)); riverLayer.add(streakGrey); riverLayer.add(streak);
+      riverLayer.removeAll(); riverLayer.addMany(pieces.map(p => p.line)); riverLayer.add(streakGrey); riverLayer.add(streak);
       restack();
       const feats = [];
       for (const [name, lat, lon] of LABELS) {
@@ -1159,7 +1190,7 @@ const R = (() => {
   function restack() {
     for (const p of pieces) {
       const path = []; for (let k = p.from; k <= p.to; k++) path.push([p.c.pts[k][0], p.c.pts[k][1], LIFT]);
-      p.line.geometry = p.edge.geometry = { type: "polyline", paths: [path], hasZ: true, spatialReference: { wkid: 4326 } };
+      p.line.geometry = { type: "polyline", paths: [path], hasZ: true, spatialReference: { wkid: 4326 } };
     }
   }
   function draw() {   // line width from the measured flow: about 2 px at 1,000 cfs, 4 px at 10,000 cfs, 10 px at 100,000 cfs
@@ -1169,7 +1200,7 @@ const R = (() => {
       if (p.run.dir) continue;   // direction-only rivers keep a steady grey dashed line
       const q = runFlow(p.run, ms), w = q == null ? 1 : Math.min(12, 1 + 0.9 * Math.sqrt(Math.max(0, q) / 1000));
       if (Math.abs(w - p.size) < 0.15) continue;
-      p.size = w; p.line.symbol = lineSym(q == null ? [150, 150, 150, 0.6] : [0, 215, 255, 0.95], w); p.edge.symbol = lineSym([0, 35, 70, 0.75], w + 2.5);
+      p.size = w; p.line.symbol = lineSym(q == null ? [120, 128, 138, 1] : CYAN, w);
     }
   }
   function ptAt(c, s) { const i = idxAt(c, s), j = Math.min(c.pts.length - 1, i + 1), seg = c.cum[j] - c.cum[i] || 1, f = Math.max(0, Math.min(1, (s - c.cum[i]) / seg));
@@ -1177,15 +1208,17 @@ const R = (() => {
   function frame(dt) {   // white chevrons move downstream, faster when the river carries more water than usual
     if (!ready || !riverLayer.visible) return;
     const ms = tAt(hNow), paths = [], grey = [];
-    // chevrons keep about the same size on screen: arms about 10 px at the view centre, between 0.1 and 1.5 km
-    const armKm = Math.max(0.1, Math.min(1.5, view.scale * 0.0254 / 96 / 1000 * 10)), sideKm = armKm * 0.55, z = LIFT + 10;
+    // chevrons keep the same size on screen (arms about 9 px at the view centre) and stay about 80 px apart, so zoomed out there are
+    // fewer of them rather than many tiny ones that sparkle; none when zoomed out past the river view (over ~1.2 km a pixel)
+    const pxKm = view.scale * 0.0254 / 96 / 1000, armKm = Math.max(0.1, pxKm * 9), sideKm = armKm * 0.55, z = LIFT + 10;
+    const every = Math.max(1, Math.round(pxKm * 80 / 4.5)), off = pxKm > 1.2;
     for (const c of chains) {
-      for (const q of c.P) {
-        const k = idxAt(c, q.s), run = c.runs[c.runOf[k]], f = runFlow(run, ms);
+      for (let n = 0; n < c.P.length; n++) {
+        const q = c.P[n], k = idxAt(c, q.s), run = c.runs[c.runOf[k]], f = runFlow(run, ms);
         if (f == null && !run.dir) continue;
         q.s += dt * (run.dir ? 1 : 0.5 + 2.4 * Math.log10(1 + f / Math.max(1, run.qma)));   // direction-only: steady 1 km/s
         if (q.s > c.len) q.s -= c.len;
-        if (q.s < armKm * 1.3) continue;
+        if (off || n % every || q.s < armKm * 1.3) continue;
         const tip = ptAt(c, q.s), back = ptAt(c, q.s - armKm * 0.7), cx = Math.cos(tip[1] * Math.PI / 180) * KM_LAT;
         let ux = (tip[0] - back[0]) * cx, uy = (tip[1] - back[1]) * KM_LAT; const L = Math.hypot(ux, uy) || 1; ux /= L; uy /= L;
         const arm = (side) => [tip[0] + (-ux * armKm - uy * side) / cx, tip[1] + (-uy * armKm + ux * side) / KM_LAT, z];
@@ -1269,8 +1302,9 @@ async function runSlopeTest() {
 function applyVis() {
   cloudLayer.visible = vis.storm; trackLayer.visible = vis.storm;
   ridgeLayer.visible = vis.ridge; windLayer.visible = vis.winds || vis.stream; patternLayer.visible = vis.pattern; drawPattern();
-  G.rain.L.visible = vis.rainSurf && avail.rainSurf;
-  G.steep.L.visible = vis.steep && avail.steep; G.over.L.visible = vis.overlap && avail.overlap;
+  G.rain.show(vis.rainSurf && avail.rainSurf);
+  G.steep.show(vis.steep && avail.steep); G.over.show(vis.overlap && avail.overlap);
+  $("rainLbl").textContent = rainTotalNow() ? "Total rain, 24–28 Sep (radar)" : "Rain so far (radar)";
   if ((vis.steep || vis.overlap) && !avail.steep) G.loadSlope();
   nwsLayer.visible = vis.nws && avail.nws; $("nwsKey").style.display = nwsLayer.visible ? "block" : "none";
   gaugeLayer.visible = vis.gauges && avail.gauges; if (gaugeLabels) gaugeLabels.visible = gaugeLayer.visible;
@@ -1304,11 +1338,11 @@ view.on("click", async (e) => {
   const h = await view.hitTest(e, { include: [gaugeLayer] });
   const r = h.results.find(r => r.graphic && r.graphic.attributes && r.graphic.attributes.gauge);
   if (r) { selGauge = r.graphic.attributes.gauge; if (CH[chapter].key !== "rivers") goChapter(CH.findIndex(c => c.key === "rivers")); else { fillGaugeSelect(); render(true); } return; }
-  if (!G.ready || !e.mapPoint || !G.rain.L.visible) return;
+  if (!G.ready || !e.mapPoint || !G.rain.visible) return;
   const p = e.mapPoint, lat = p.latitude, lon = p.longitude, c = G.atCell(lat, lon); if (c < 0) return;
   const hr = Math.min(HOURS, Math.floor(hNow)), v = G.rainAtPoint(lat, lon, hr); if (!v) return;
   const sl = G.slope ? G.slope[c] : null;
-  view.openPopup({ location: p, title: "Rain here", content: `<b>${inMm(v.v)}</b> since 8 am EDT Tue 24 Sep, as of ${fmtEDT(tAt(hr))} EDT.<br>By the end of 28 Sep: ${inMm(G.rainAtPoint(lat, lon, HOURS).v)}.${sl != null ? `<br>Steepness of the ground here: about ${sl.toFixed(0)}°.` : ""}<br><span style="opacity:.75">Estimated from radar at the nearest places (nearest: ${v.near.name}).</span>` });
+  view.openPopup({ location: p, title: "Rain here", content: `${rainTotalNow() ? `Total rain, 24 to 28 Sep: <b>${inMm(G.rainAtPoint(lat, lon, HOURS).v)}</b>.` : `<b>${inMm(v.v)}</b> since 8 am EDT Tue 24 Sep, as of ${fmtEDT(tAt(hr))} EDT.<br>By the end of 28 Sep: ${inMm(G.rainAtPoint(lat, lon, HOURS).v)}.`}${sl != null ? `<br>Steepness of the ground here: about ${sl.toFixed(0)}°.` : ""}<br><span style="opacity:.75">Estimated from radar at the nearest places (nearest: ${v.near.name}).</span>` });
 });
 
 // ---------- charts ----------
@@ -1569,7 +1603,8 @@ function describeMap() {
   if (vis.winds && s) { const w = vortexWind(s, 35.6, -82.4); out.push(`White streaks show Helene's spin, turning anticlockwise.${w.r < 900 ? ` Over the mountains the wind is blowing from the ${compass(fromBearing(w.u, w.v))}.` : ""}`); }
   if (vis.rainSurf && rainPts.length) {
     const towns = rainPts.filter(p => p.kind === "City"), top = [...towns].sort((a, b) => b.r[hr] - a.r[hr])[0], now = [...towns].sort((a, b) => b.h[hr] - a.h[hr])[0];
-    out.push(top.r[hr] < 0.2 ? "Hardly any rain has fallen on the mountains yet." : `Blue shading shows rain so far. The wettest town shown is ${top.name}, ${top.state}, with ${top.r[hr].toFixed(1)} inches since Tuesday morning.`);
+    if (rainTotalNow()) { const t = [...towns].sort((a, b) => b.r[HOURS] - a.r[HOURS])[0]; out.push(`${RAIN_WORD} shading shows the total rain from 24 to 28 September, deepest along the Blue Ridge. The wettest town shown is ${t.name}, ${t.state}, with ${t.r[HOURS].toFixed(1)} inches.`); }
+    else out.push(top.r[hr] < 0.2 ? "Hardly any rain has fallen on the mountains yet." : `${RAIN_WORD} shading shows rain so far. The wettest town shown is ${top.name}, ${top.state}, with ${top.r[hr].toFixed(1)} inches since Tuesday morning.`);
     if (now.h[hr] >= 0.25 && (vis.stream || vis.winds)) out.push(`It is raining hardest now at ${now.name}, about ${now.h[hr].toFixed(1)} inches this hour; streaks over heavy rain turn dark blue.`);
   }
   if (vis.gauges && gauges.size) { const g = [...gauges.values()], maj = g.filter(x => { const v = stageAt(x, ms); return v != null && x.major != null && v >= x.major; }).length, rec = g.filter(x => x.recordAt && ms >= x.recordAt).length;
