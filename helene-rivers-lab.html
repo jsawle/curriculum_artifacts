@@ -63,9 +63,9 @@
 </div>
 
 <script type="module">
-const LAB_VERSION = "0.4", LAB_DATE = "2 October 2026";
+const LAB_VERSION = "0.5", LAB_DATE = "2 October 2026";
 const MODELS = [
-  ["Rivers", "0.3", "data/helene-rivers-lab.json: 19 rivers (adds South Toe, Ivy, Hominy Creek, Tuckasegee with gauges; North Toe, Cane, Doe, Green and the ungauged parts of other rivers for direction only); small rivers from stream order 3. Width = 1 + 0.9 × √(flow / 1,000 cfs) px, up to 12 px, where a gauge on the same river is within 3× of the stretch's NHDPlus mean annual flow; otherwise grey, 2 px"],
+  ["Rivers", "0.3", "data/helene-rivers-lab.json, from a wider box (83.8°W–81.2°W, 34.85°N–36.5°N) so rivers reach a lake or confluence (French Broad to Knoxville, Tuckasegee to Fontana Lake, Watauga past Elizabethton); rivers stop where they enter a reservoir outside the core area. 19 rivers (adds South Toe, Ivy, Hominy Creek, Tuckasegee with gauges; North Toe, Cane, Doe, Green and the ungauged parts of other rivers for direction only); small rivers from stream order 3. Width = 1 + 0.9 × √(flow / 1,000 cfs) px, up to 12 px, where a gauge on the same river is within 3× of the stretch's NHDPlus mean annual flow; otherwise grey, 2 px"],
   ["3D chevrons", "0.2", "Arms about 10 px on screen (0.1–1.5 km, × arrow size), 2 px lines, one every 3 km, 40 m above the terrain. Speed = 0.5 + 2.4 × log10(1 + flow ÷ mean annual flow) km per second of animation; direction-only rivers 1 km/s"]
 ];
 const $ = (id) => document.getElementById(id);
