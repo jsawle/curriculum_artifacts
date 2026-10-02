@@ -354,7 +354,7 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.43";
+const APP_VERSION = "0.44";
 const APP_DATE = "2 October 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
@@ -427,6 +427,8 @@ function landfallPhase(ms) { const d = (ms - LANDFALL.t) / HR; return d < -4 ? n
 
 // ---------- chapters ----------
 const VALLEY = { center: [-82.644, 35.421], zoom: 12.07, tilt: 74, heading: 196 };   // north of Asheville, looking south up the French Broad valley (steps 5 and 6)
+const SLIDES_CAM = { center: [-82.448, 35.573], zoom: 10.43, tilt: 56, heading: 94 };    // step 6: looking east across Asheville to the Blue Ridge
+const SLIDES_WIDE = { center: [-82.322, 35.556], zoom: 8.86, tilt: 50, heading: 94 };   // step 6, zoomed out: the whole band of landslides
 const PEAK_T = (Date.UTC(2024, 8, 27, 21, 38) - T0) / HR;   // the French Broad peaks at Asheville: step 5 ends here and step 6 stays at this moment
 const CAM_MTN = { center: [-82.3, 35.5], zoom: 8.3, tilt: 60, heading: 318 };   // from the south-east, looking north-west over the Blue Ridge
 const CH = [
@@ -486,8 +488,11 @@ const CH = [
     ],
     qs: ["Follow the streaks from Asheville. Which state does the French Broad River flow into?", "Which gauge passes its old record first? Which is last?", "Pick a gauge in the chart. How many hours after the heaviest rain did the river peak?", "Are the gauges that broke records downstream of the deepest blue?"] },
   { key: "slides", n: "6 · 27 Sep", name: "Slopes give way", t0: PEAK_T, t1: PEAK_T, rainTotal: 1,   // same place and moment as the end of step 5; the landslides are added
-    cam: VALLEY, show: { slides: 1, rainSurf: 1, rivers: 1, gauges: 1 },
-    story: `<p>Same place, same moment: the rivers are at their highest. Now the landslides are added to the map (white dots). Most happened on Friday morning, while the rain was heaviest.</p>
+    cam: SLIDES_CAM, show: { slides: 1, rainSurf: 1, rivers: 1, gauges: 1 },
+    after: { t: PEAK_T, label: "Zoom out", cam: SLIDES_WIDE, title: "The bigger picture",   // the go button shows this once, before Next step
+      text: `<p>Zoomed out, you can see how many landslides there were and where they happened. They crowd along the Blue Ridge, from Chimney Rock past Black Mountain and Busick up to Boone: steep mountains that had some of the heaviest rain. Where less rain fell, there are far fewer.</p>
+        <p>When two things happen in the same places, geographers say they are <b>correlated</b>. Step 7 measures how strong the link is.</p>` },
+    story: `<p>Same moment: the rivers are at their highest. The view turns to look east across Asheville towards the Blue Ridge, and the landslides are added to the map (white dots). Most happened on Friday morning, while the rain was heaviest.</p>
       <p>Soil full of water is heavy and loses its grip on the rock beneath. On steep slopes it can slide, and many slides turned into fast <b>debris flows</b>: mud, boulders and trees racing down ravines and stream channels. Where they reached the rivers, the flood swept that debris along, with soil and trees torn from the riverbanks, so the rivers carried mud, trees, cars and even houses downstream.</p>
       <p>USGS scientists mapped more than 2,000 landslides, most in western North Carolina, and more than half damaged roads, buildings or other property. They found that most began on slopes facing south-east, into the wind. You can test that below.</p>`,
     qs: ["Where are the landslides most crowded? Compare with where the blue is deepest.", "Run the slope test. Which way do most landslide slopes face?", "Why compare the landslides with nearby slopes, not just count them?"] },
@@ -516,6 +521,7 @@ const rainTotalNow = () => !!CH[chapter].rainTotal;   // steps about what the ra
 
 // ---------- state ----------
 let hNow = 0, playing = false, chapter = 0, lastFrame = 0, EXAG = 2;
+let afterShown = false;   // step 6 has a Zoom out stage before Next step
 const vis = { ridge: false, pattern: false, stream: false, storm: true, winds: false, rainSurf: false, steep: false, overlap: false, slides: false, records: false, gauges: false, rivers: false, nws: false };
 const avail = { ridge: true, pattern: true, stream: true, storm: true, winds: true, rainSurf: false, steep: false, overlap: false, slides: false, records: false, gauges: false, rivers: false, nws: false };
 const setStatus = (t, p) => { $("status").textContent = t || ""; if (p != null) $("bar").style.width = Math.round(p * 100) + "%"; };
@@ -1559,12 +1565,13 @@ $("backBtn").onclick = () => goChapter(Math.max(0, chapter - 1), true, true);
 function stepDone() { const c = CH[chapter]; return c.t1 <= c.t0 || hNow >= c.t1 - 0.15; }   // a pause in the last few minutes (step 4 ends on one at 79.9) counts as the end, so it offers Next step, not a Continue that plays 6 minutes
 function updateGo() {
   const c = CH[chapter], end = stepDone(), last = chapter === CH.length - 1, b = $("goBtn");
-  b.textContent = playing ? "❚❚ Pause" : end ? (last ? "↺ Back to step 1" : "Next step ›") : (!$("beat").hidden || hNow > c.t0 + 0.01) ? "▶ Continue" : "▶ Play";
+  b.textContent = playing ? "❚❚ Pause" : end && c.after && !afterShown ? "▶ " + c.after.label : end ? (last ? "↺ Back to step 1" : "Next step ›") : (!$("beat").hidden || hNow > c.t0 + 0.01) ? "▶ Continue" : "▶ Play";
   $("replayBtn").hidden = !(end && !playing && c.t1 > c.t0);
   $("backBtn").disabled = chapter === 0;
 }
 $("goBtn").onclick = () => {
   if (playing) return pause();
+  if (stepDone() && CH[chapter].after && !afterShown) { afterShown = true; return showBeat(CH[chapter].after); }   // step 6: zoom out before moving on
   if (stepDone()) return chapter < CH.length - 1 ? goChapter(chapter + 1, true, true) : goChapter(0, true, false);
   play();
 };
@@ -1687,7 +1694,7 @@ $("teachClose").onclick = () => $("teachDlg").close();
 
 function goChapter(i, animate = true, autoplay = false) {
   clearTimeout(revealTimer); revealTimer = null; stopReading(); hideBeat();
-  chapter = i; const c = CH[i]; pause();
+  chapter = i; const c = CH[i]; afterShown = false; pause();
   slideReveal = c.key === "slides" ? 0 : 1;   // step 6 fades the landslides in after the camera arrives
   $("card").classList.toggle("later", i > 0);
   document.querySelectorAll("#steps button").forEach(b => { const k = +b.dataset.i; b.classList.toggle("done", k < i); if (k === i) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current"); });
