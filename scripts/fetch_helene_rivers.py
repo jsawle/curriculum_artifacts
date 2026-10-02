@@ -25,11 +25,11 @@ NHD = "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/NHDPlus
 RIVERS = ["French Broad River", "Swannanoa River", "Mills River", "Nolichucky River", "Toe River", "North Toe River",
           "South Toe River", "Pigeon River", "West Fork Pigeon River", "Catawba River", "Linville River", "Johns River",
           "Broad River", "Watauga River", "Cane River", "Ivy Creek", "Hominy Creek", "Doe River", "Tuckasegee River",
-          "Rocky Broad River", "Green River"]
+          "Green River"]
+# (the Rocky Broad through Chimney Rock is named "Broad River" in NHDPlus, so it comes with the Broad River)
 # smaller rivers fetched down to stream order 3 (everything else from order 4)
-LOW_ORDER = ["South Toe River", "North Toe River", "Toe River", "Cane River", "Rocky Broad River", "Ivy Creek", "Hominy Creek", "Swannanoa River"]
-# rivers drawn even where no flow gauge fits: shown for direction only (grey, steady arrows), never with a guessed flow
-DIRECTION_ONLY = {"North Toe River", "Toe River", "Cane River", "Rocky Broad River", "Green River"}
+LOW_ORDER = ["South Toe River", "North Toe River", "Toe River", "Cane River", "Ivy Creek", "Hominy Creek", "Swannanoa River"]
+# stretches with no flow gauge that fits are still drawn, for direction only (grey, steady arrows), never with a guessed flow
 # NHDPlus name -> other names the USGS uses for the same river
 ALIASES = {"Ivy Creek": ["Ivy River"]}
 MAXF = 3          # a gauge's flow is shared only along stretches whose mean annual flow is within 3x of the gauge's
@@ -190,7 +190,7 @@ def build(lines, sites, peaks):
             ok = [(sid, g) for sid, g in mine if g["qmaG"] and 1 / MAXF <= r[1] / g["qmaG"] <= MAXF]
             sid = min(ok, key=lambda sg: abs(A[sg[1]["i"]] - A[r[0]]))[0] if ok else None
             r.append(sid)
-            r.append(1 if not sid and c["n"] in DIRECTION_ONLY else 0)     # 1 = draw for direction only
+            r.append(0 if sid else 1)     # 1 = draw for direction only
             if sid:
                 used_g.add(sid)
         c["runs"] = [r for k, r in enumerate(c["runs"]) if k == 0 or r[3] != c["runs"][k - 1][3] or r[4] != c["runs"][k - 1][4]
