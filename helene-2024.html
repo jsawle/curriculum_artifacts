@@ -354,7 +354,7 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.45";
+const APP_VERSION = "0.46";
 const APP_DATE = "2 October 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
@@ -363,7 +363,7 @@ const MODELS = [
   ["Storm winds sketch", "0.5", "Step 4 adds 400 more streaks in a box around the Blue Ridge (34.7–36.4°N, 83.5–80.9°W) that follow the same winds and rules, so the lift and rain show close up. 700 moving streaks in an anticlockwise vortex around the NHC track position, 20° inflow; speed = track wind × (60 km / distance)^0.6 beyond 60 km; out to 850 km; ride 1.5 km above the ground (lifted over the mountains in the study area); blue where radar rain below is at least 0.25 in/hr"],
   ["Rain so far / storm total", "0.5", "Steps 2–4 show rain so far, redrawn each hour; steps 5–8 show the storm total (to 29 Sep 00:00 UTC), drawn once and left in place. Two image layers drawn in turn, so the old image stays until the new one has drawn. Colours can be previewed with ?rain=purple or ?rain=sunset. Read from a saved copy of the NOAA data in the repo (data/helene-rain.json, made by a GitHub Action), with the live service as a fallback. Fades out over the outer ~30 km of the study area. NOAA MRMS hourly radar totals since 24 Sep 12:00 UTC at 312 places (185 in the study area), spread to a 0.0125° grid by inverse-distance weighting (6 nearest within 40 km); southern Appalachians only"],
   ["Steep ground", "0.3", "Elevation at ~300 m detail (was ~150 m, a quarter of the downloads); measured from step 3 onwards, not at start-up. Slope sampled every 0.0125° (about 1.2 km), central differences across ~2.5 km"],
-  ["Where it lined up", "0.2", "Steps 7 and 8 merged into one conclusion: rain before Helene (to 26 Sep 20:00 UTC), Helene adds the rest, then three stages add steep ground, landslides with record gauges, and heavy rain on steep ground; the last card quotes the Test it result at the current thresholds. Grid cells split by total rain (24–28 Sep) and steepness thresholds; landslides counted per cell; density per 100 km²"],
+  ["Where it lined up", "0.3", "During Play the camera glides from the Gulf view to one final frame (from 6 pm Thu to 4 pm Fri on the clock, so it keeps pace at any speed); stages 3 to 5 add steep ground, then rivers and landslides, then heavy rain on steep ground, all in that frame. Steps 7 and 8 merged into one conclusion: rain before Helene (to 26 Sep 20:00 UTC), Helene adds the rest, then three stages add steep ground, landslides with record gauges, and heavy rain on steep ground; the last card quotes the Test it result at the current thresholds. Grid cells split by total rain (24–28 Sep) and steepness thresholds; landslides counted per cell; density per 100 km²"],
   ["River gauges", "0.5", "Columns scaled to each river's highest stage before Helene (that stage = 2,500 m), so one see-through white disc marks the old record at the same height everywhere; the red major-flood ring is gone (the column colour already shows flood category, now in the map key). USGS approved 15-minute stage and flow from a saved copy (data/helene-rivers.json) replace NOAA's provisional stage where available (fills the Blantyre gap; Asheville peak 24.82 ft); NWS flood levels and the highest stage before 2024 still from the NOAA snapshot (data/helene-gauges.json, live fallback). Flow chart: peak and the highest flow before Helene from the USGS annual peak-flow file; USGS estimated values dashed. Loaded at step 5 or 7; 1 ft drawn as 120 m"],
   ["Rivers", "0.4", "19 rivers from NHDPlus V2.1 (Esri-hosted), chained upstream to downstream, from a box 83.8°W–81.2°W, 34.85°N–36.5°N so they reach a lake or confluence; small rivers (South Toe, North Toe, Cane, Ivy, Hominy, Swannanoa) from stream order 3, others from 4; rivers stop where they enter a reservoir outside the study area. Width from measured USGS flow at the nearest gauge on the same river, shared by the ratio of NHDPlus mean annual flows where that ratio is 1/3 to 3; width = 1 + 0.9 × √(flow / 1,000 cfs) px, up to 12 px; one solid line, no dark edge (the edge flickered against the river line). Stretches with no such gauge: grey dashed, steady arrows (direction only). White chevrons, arms about 9 px on screen, about 80 px apart (fewer when zoomed out, none beyond ~1.2 km per pixel), speed 0.5 + 2.4 × log10(1 + flow ÷ mean annual flow) km/s of animation (a drawing, not water speed); points every 350 m, 30 m above the terrain. Loaded at step 5"],
   ["Landslides and slope test", "0.1", "USGS preliminary inventory; aspect from Esri World Elevation at ~40 m, ±60 m differences, slopes under 8° left out"],
@@ -429,6 +429,7 @@ function landfallPhase(ms) { const d = (ms - LANDFALL.t) / HR; return d < -4 ? n
 const VALLEY = { center: [-82.644, 35.421], zoom: 12.07, tilt: 74, heading: 196 };   // north of Asheville, looking south up the French Broad valley (steps 5 and 6)
 const SLIDES_CAM = { center: [-82.448, 35.573], zoom: 10.43, tilt: 56, heading: 94 };    // step 6: looking east across Asheville to the Blue Ridge
 const SLIDES_WIDE = { center: [-82.322, 35.556], zoom: 8.86, tilt: 50, heading: 94 };   // step 6, zoomed out: the whole band of landslides
+const FINAL = { center: [-82.353, 35.021], zoom: 7.74, tilt: 18, heading: 332 };   // step 7's last frame: everything that lined up, from above
 const PEAK_T = (Date.UTC(2024, 8, 27, 21, 38) - T0) / HR;   // the French Broad peaks at Asheville: step 5 ends here and step 6 stays at this moment
 const CAM_MTN = { center: [-82.3, 35.5], zoom: 8.3, tilt: 60, heading: 318 };   // from the south-east, looking north-west over the Blue Ridge
 const CH = [
@@ -497,24 +498,25 @@ const CH = [
       <p>USGS scientists mapped more than 2,000 landslides, most in western North Carolina, and more than half damaged roads, buildings or other property. They found that most began on slopes facing south-east, into the wind. You can test that below.</p>`,
     qs: ["Where are the landslides most crowded? Compare with where the blue is deepest.", "Run the slope test. Which way do most landslide slopes face?", "Why compare the landslides with nearby slopes, not just count them?"] },
   { key: "lined", n: "7 · 24–28 Sep", name: "Why here? It all lined up", t0: 56, t1: 108, noAuto: true,   // the conclusion: four causes added one at a time
+    glide: { from: 58, to: 80, cam: FINAL },   // soon after Helene starts to move, the camera follows it north to the final frame
     cam: { center: [-82.9, 33.6], zoom: 6.6, tilt: 50, heading: 340 }, show: { storm: 1, winds: 1, stream: 1, rainSurf: 1, ridge: 1 },
     story: `<p>Why did a hurricane do its worst damage in mountains so far from the sea? Four things lined up in the same place. This step adds them one at a time.</p>
       <p><b>1 · Soaked before the storm.</b> The shading shows the rain that fell before Helene arrived (step 2). By Thursday afternoon, 26 September, 8 to 10 inches had already fallen in towns along the Blue Ridge (dashed line), such as Old Fort, Chimney Rock and Asheville.</p>
       <p>Press Play to bring Helene in.</p>`,
     beats: [
-      { t: 108, title: "2 · More rain on the same place",
+      { t: 108, cam: FINAL, title: "2 · More rain on the same place",
         text: `<p>Helene raced north just west of the mountains. Its winds and the moisture stream drove wet air at the Blue Ridge from the south-east, onto ground that was already soaked.</p>
           <p>It added about as much rain again, in the same places: Old Fort ended with 21 inches and Chimney Rock with 20 (radar).</p>` }
     ],
     after: [
-      { label: "Next: the mountains", when: "Why here? 3 of 5", cam: CAM_MTN, show: { rainSurf: 1, ridge: 1, steep: 1 }, title: "3 · The mountains squeeze out more rain",
+      { label: "Next: the mountains", when: "Why here? 3 of 5", cam: FINAL, show: { storm: 1, rainSurf: 1, ridge: 1, steep: 1 }, title: "3 · The mountains squeeze out more rain",
         text: `<p>The deepest rain lies along the Blue Ridge escarpment (dashed line) and the steep mountains behind it (amber).</p>
           <p>Wet air from the south-east was forced up these slopes, cooled and rained out: <b>orographic</b> rain (step 4). The mountains made a wet storm wetter, right where the ground was already soaked.</p>` },
-      { label: "Next: slopes and rivers", when: "Why here? 4 of 5", cam: SLIDES_WIDE, show: { rainSurf: 1, ridge: 1, slides: 1, records: 1 }, reveal: true, title: "4 · Steep, soaked slopes shed the water",
-        text: `<p>Soaked ground cannot hold more water, and on steep slopes it runs off fast. Streams and rivers rose within hours, many to record heights (blue diamonds mark the gauges in this app that broke their records).</p>
+      { label: "Next: slopes and rivers", when: "Why here? 4 of 5", cam: FINAL, show: { storm: 1, rainSurf: 1, ridge: 1, steep: 1, rivers: 1, slides: 1 }, reveal: true, title: "4 · Steep, soaked slopes shed the water",
+        text: `<p>Soaked ground cannot hold more water, and on steep slopes it runs off fast. Streams and rivers (blue lines) rose within hours, many to record heights.</p>
           <p>The same steep, soaked slopes gave way: more than 2,000 landslides (white dots), many turning into debris flows that poured into the rivers (step 6).</p>` },
-      { label: "Next: it all lined up", when: "Why here? 5 of 5", cam: SLIDES_WIDE, show: { rainSurf: 1, ridge: 1, slides: 1, records: 1, overlap: 1 }, title: "It all lined up",
-        text: `<p>Pink shows where heavy rain fell on steep ground. The landslides and the record floods crowd into the same places. <span id="linkStat"></span></p>
+      { label: "Next: it all lined up", when: "Why here? 5 of 5", cam: FINAL, show: { storm: 1, rainSurf: 1, ridge: 1, steep: 1, rivers: 1, slides: 1, overlap: 1 }, title: "It all lined up",
+        text: `<p>Pink shows where heavy rain fell on steep ground, and the landslides crowd into the same places. <span id="linkStat"></span></p>
           <p>Four things lined up: ground soaked by rain before the storm, Helene's track sending more wet air at the same mountains, the Blue Ridge squeezing out even more rain, and steep slopes that shed it fast. That is why Helene did its worst damage about 380 miles from where it came ashore.</p>
           <p>The cost: at least 250 deaths in the United States, the most for a hurricane on the mainland since Katrina in 2005; in the mountains most were caused by flooding and landslides, not wind. More than 125,000 homes in western North Carolina were damaged or destroyed, and Asheville had no clean tap water for 53 days.</p>` }
     ],
@@ -1602,7 +1604,7 @@ $("goBtn").onclick = () => {
   if (stepDone()) return chapter < CH.length - 1 ? goChapter(chapter + 1, true, true) : goChapter(0, true, false);
   play();
 };
-$("replayBtn").onclick = () => { setTime(CH[chapter].t0); play(); };
+$("replayBtn").onclick = () => { const c = CH[chapter]; setTime(c.t0); if (c.glide) view.goTo(c.cam, { animate: false }).catch(() => {}); play(); };
 $("legendTitle").onclick = () => { const c = $("legend").classList.toggle("collapsed"); $("legendTitle").setAttribute("aria-expanded", String(!c)); };
 if (innerWidth <= 760) { $("legend").classList.add("collapsed"); $("legendTitle").setAttribute("aria-expanded", "false"); }
 const EXPLORE = { rivers: "River chart", slides: "Slope test", lined: "Test it" };
@@ -1772,9 +1774,14 @@ function showBeat(b) {
   if (b.cam) view.goTo(b.cam, { duration: motionOn ? 2500 : 0, easing: "in-out-cubic" }).catch(() => {});
   $("goBtn").focus();
 }
+function startGlide(gl) {
+  const secs = Math.max(0, (gl.to - hNow) / +$("speed").value);
+  view.goTo(gl.cam, { duration: motionOn ? secs * 1000 : 0, easing: "in-out-sine" }).catch(() => {});
+}
 function play() {
   hideBeat();
-  const c = CH[chapter]; if (hNow >= c.t1 - 0.01) setTime(c.t0);
+  const c = CH[chapter]; if (hNow >= c.t1 - 0.01) { setTime(c.t0); if (c.glide) view.goTo(c.cam, { animate: false }).catch(() => {}); }
+  if (c.glide && hNow > c.glide.from && hNow < c.glide.to) startGlide(c.glide);   // pressed Play part-way through the glide
   if (c.t1 <= c.t0) return;
   playing = true; updateGo();
 }
@@ -1787,6 +1794,7 @@ function loop(ts) {
     hNow = Math.min(end, hNow + dt * +$("speed").value);
     const beat = (CH[chapter].beats || []).find(b => prev < b.t && hNow >= b.t);   // story pause
     if (beat) hNow = beat.t;
+    const gl = CH[chapter].glide; if (gl && prev < gl.from && hNow >= gl.from) startGlide(gl);
     $("tSlider").value = hNow; render(beat ? true : false);
     if (beat) { pause(); showBeat(beat); }
     else if (hNow >= end) pause();
