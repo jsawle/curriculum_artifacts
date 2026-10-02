@@ -354,7 +354,7 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.49";
+const APP_VERSION = "0.50";
 const APP_DATE = "2 October 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
@@ -427,7 +427,7 @@ const knMph = (k) => Math.round(k * 1.15078 / 5) * 5;
 function landfallPhase(ms) { const d = (ms - LANDFALL.t) / HR; return d < -4 ? null : d < -0.5 ? "about to come ashore" : d <= 1 ? "coming ashore" : d <= 6 ? "just came ashore" : null; }
 
 // ---------- chapters ----------
-const VALLEY = { center: [-82.644, 35.421], zoom: 12.07, tilt: 74, heading: 196 };   // north of Asheville, looking south up the French Broad valley (steps 5 and 6)
+const VALLEY = { center: [-82.583, 35.518], zoom: 12.4, tilt: 75, heading: 196 };   // north of Asheville, looking south up the French Broad valley; low enough (camera ~7 km up) for the falling-rain effect
 const SLIDES_CAM = { center: [-82.448, 35.573], zoom: 10.43, tilt: 56, heading: 94 };    // step 6: looking east across Asheville to the Blue Ridge
 const SLIDES_WIDE = { center: [-82.322, 35.556], zoom: 8.86, tilt: 50, heading: 94 };   // step 6, zoomed out: the whole band of landslides
 const FINAL = { center: [-82.216, 35.13], zoom: 7.74, tilt: 14, heading: 333 };   // step 7's last frame: everything that lined up, from above
