@@ -302,7 +302,7 @@
       <ul>
         <li><b>Rain so far.</b> The blue shading on the ground is the rain that had fallen since 8 am EDT on Tuesday 24 September, and it grows as the timeline plays. It is made from NOAA's hourly radar estimates (MRMS) at 312 towns and river gauges, prepared for NOAA's <i>Helene in Southern Appalachia</i> dashboard, spread between those places by inverse-distance weighting. It covers the southern Appalachians only. From step 5 on, the map shows the storm total (to the end of 28 September) and stays in place, because those steps are about what the rain did. Click the map to read the value at a spot.</li>
         <li><b>Steep ground.</b> Slope worked out from Esri World Elevation on a grid about 1.2 km apart, so it describes the steepness of the landscape (mountain sides, the Blue Ridge escarpment), not of single hillsides.</li>
-        <li><b>Heavy rain on steep ground.</b> Places where the total rain and the steepness are both above the thresholds chosen in step 6. Students can change the thresholds.</li>
+        <li><b>Heavy rain on steep ground.</b> Places where the total rain and the steepness are both above the thresholds set in step 7 (Test it). Students can change the thresholds.</li>
         <li><b>River gauges.</b> Each gauge is a column whose height follows the river's stage, measured every 15 minutes by the USGS (the USGS's checked, approved values). Each column is scaled to that river's highest stage before Helene, so the white disc (the old record) is at the same height for every gauge and columns can be compared: a column halfway to its disc is at half its record stage. Stage is measured from a fixed point at each gauge, not from the river bed, so this compares each river with its own past, not depths between rivers. Colour shows the NWS flood category: blue below flood stage, then yellow minor, orange moderate and red major flooding. A grey column means the gauge stopped reporting. The River chart gives the actual heights in feet.</li>
         <li><b>Rivers.</b> The main rivers come from NHDPlus, the national map of streams, whose lines are drawn in the direction the water flows. Each river is drawn wider when the nearest USGS gauge on it measures more water; between gauges the flow is shared out in proportion to NHDPlus's estimate of each stretch's average flow, so widths between gauges are estimates. The white arrows move downstream and speed up as the river rises above its usual flow; they show direction, not the real speed of the water. Where no USGS gauge on the same river fits (for example the North Toe through Spruce Pine, the Cane, the Green, and the upper Broad River, the "Rocky Broad", through Chimney Rock), the river is a grey dashed line with steady grey arrows: it shows which way the water went, not how much. The <b>Flow</b> chart in step 5 shows the measured flow at each gauge in cubic feet per second, with the highest flow recorded there before Helene from the USGS peak-flow file.</li>
         <li><b>Landslides.</b> Points from the USGS preliminary landslide inventory. It does not record when each slide happened, so the page shows them from the morning of 27 September, when most occurred.</li>
@@ -316,7 +316,7 @@
       <ul>
         <li>The rain map is spread between 312 radar points (185 of them in the mountains shown), mostly towns and river gauges in valleys, so it smooths out small, very wet spots and the wettest ridges. Against rain gauges it is close in some places and low in others: Asheville airport measured 13.98 in (the map shows about 14.6 in there), but Spruce Pine measured 24.1 in (map 15.6 in), Mount Mitchell 24.4 in (map 18.9 in) and Busick 30.78 in (map about 20 in). So the map is lowest where the rain was heaviest.</li>
         <li>The landslide inventory is preliminary and misses slides hidden by forest or too small to see from satellites. Some points are at the damage site, not where the slide began.</li>
-        <li>Step 6 compares areas, so it shows that landslides and heavy rain on steep ground happened in the same places. It cannot, by itself, prove that one caused the other; the science of why is in step 3 and step 5.</li>
+        <li>Step 7 compares areas, so it shows that landslides and heavy rain on steep ground happened in the same places. It cannot, by itself, prove that one caused the other; the science of why is in step 4 (orographic rain) and step 6 (landslides).</li>
         <li>River heights from different sources differ slightly: the USGS provisional peak at Asheville was 24.67 ft; the approved value used here is 24.82 ft, matching the NHC report's 24.8 ft. At many gauges the flood was too high or dangerous to measure flow directly, so the USGS worked out the peak flows afterwards (for example from high-water marks); the chart dashes the values the USGS marks as estimated. The Nolichucky gauge at Embreeville stopped recording flow at 11:15 am on 27 September and is still provisional.</li>
         <li>NOAA's National Water Model was checked as a source of river flow and not used: it matched gauges that kept reporting, but gave only a quarter to just over half of the measured peak at several of the worst-hit mountain gauges, including Asheville and the Swannanoa.</li>
         <li>The rainfall, river and gauge data are read from saved copies in the site (three files, about 120 KB to download), made from the live NOAA, USGS and NHDPlus services by automatic scripts; if the NOAA copy is missing, the page reads the live NOAA services instead. The landslides, elevation and maps are live services. River data load only at steps 5 and 7, and the mountains are measured from step 3, to keep the start quick on school networks. Some gauges stopped reporting during the flood; the USGS approved records used here fill most of those gaps (for example, the French Broad at Blantyre now shows its peak of 28.4 ft, above its 1916 record).</li>
@@ -343,7 +343,7 @@
       <ul>
         <li>The page is being built towards <b>WCAG 2.1 level AA</b>, the standard US public schools must meet under the ADA Title II web rule. It has not been independently audited.</li>
         <li>Everything can be used with a keyboard. <b>Describe the map</b>, in the story card, gives a written description of what the 3D map is showing, updated as the timeline moves; screen readers announce it when the timeline is paused or the step changes.</li>
-        <li>The moving streaks and spinning clouds can be stopped in <b>Settings</b> (⚙, top of the story card); this also stops the step 7 build-up. If the device is set to reduce motion, the page starts with them stopped. Pressing <b>Pause</b> stops the timeline.</li>
+        <li>The moving streaks and spinning clouds can be stopped in <b>Settings</b> (⚙, top of the story card); this also makes the landslides appear at once instead of fading in. If the device is set to reduce motion, the page starts with them stopped. Pressing <b>Pause</b> stops the timeline.</li>
         <li><b>Listen</b> (🔊, top right of the story card) uses the device's own voice to read whatever the story card is showing (the step or the current pause) and the map description. It is optional and off by default, so it does not clash with screen readers. The page picks a natural-sounding female US English voice if the device has one (for example Microsoft Aria or Jenny in Edge, Google US English in Chrome, Samantha on Apple devices); a different voice can be chosen in Settings. Voices differ by device and browser; Microsoft Edge has the most natural ones.</li>
         <li>Known gaps: the 3D map itself cannot be explored by a screen reader beyond the written description; the river and slope charts have written summaries but no data tables yet.</li>
       </ul>
@@ -354,7 +354,7 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.44";
+const APP_VERSION = "0.45";
 const APP_DATE = "2 October 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
@@ -363,7 +363,7 @@ const MODELS = [
   ["Storm winds sketch", "0.5", "Step 4 adds 400 more streaks in a box around the Blue Ridge (34.7–36.4°N, 83.5–80.9°W) that follow the same winds and rules, so the lift and rain show close up. 700 moving streaks in an anticlockwise vortex around the NHC track position, 20° inflow; speed = track wind × (60 km / distance)^0.6 beyond 60 km; out to 850 km; ride 1.5 km above the ground (lifted over the mountains in the study area); blue where radar rain below is at least 0.25 in/hr"],
   ["Rain so far / storm total", "0.5", "Steps 2–4 show rain so far, redrawn each hour; steps 5–8 show the storm total (to 29 Sep 00:00 UTC), drawn once and left in place. Two image layers drawn in turn, so the old image stays until the new one has drawn. Colours can be previewed with ?rain=purple or ?rain=sunset. Read from a saved copy of the NOAA data in the repo (data/helene-rain.json, made by a GitHub Action), with the live service as a fallback. Fades out over the outer ~30 km of the study area. NOAA MRMS hourly radar totals since 24 Sep 12:00 UTC at 312 places (185 in the study area), spread to a 0.0125° grid by inverse-distance weighting (6 nearest within 40 km); southern Appalachians only"],
   ["Steep ground", "0.3", "Elevation at ~300 m detail (was ~150 m, a quarter of the downloads); measured from step 3 onwards, not at start-up. Slope sampled every 0.0125° (about 1.2 km), central differences across ~2.5 km"],
-  ["Where it lined up", "0.1", "Grid cells split by total rain (24–28 Sep) and steepness thresholds; landslides counted per cell; density per 100 km²"],
+  ["Where it lined up", "0.2", "Steps 7 and 8 merged into one conclusion: rain before Helene (to 26 Sep 20:00 UTC), Helene adds the rest, then three stages add steep ground, landslides with record gauges, and heavy rain on steep ground; the last card quotes the Test it result at the current thresholds. Grid cells split by total rain (24–28 Sep) and steepness thresholds; landslides counted per cell; density per 100 km²"],
   ["River gauges", "0.5", "Columns scaled to each river's highest stage before Helene (that stage = 2,500 m), so one see-through white disc marks the old record at the same height everywhere; the red major-flood ring is gone (the column colour already shows flood category, now in the map key). USGS approved 15-minute stage and flow from a saved copy (data/helene-rivers.json) replace NOAA's provisional stage where available (fills the Blantyre gap; Asheville peak 24.82 ft); NWS flood levels and the highest stage before 2024 still from the NOAA snapshot (data/helene-gauges.json, live fallback). Flow chart: peak and the highest flow before Helene from the USGS annual peak-flow file; USGS estimated values dashed. Loaded at step 5 or 7; 1 ft drawn as 120 m"],
   ["Rivers", "0.4", "19 rivers from NHDPlus V2.1 (Esri-hosted), chained upstream to downstream, from a box 83.8°W–81.2°W, 34.85°N–36.5°N so they reach a lake or confluence; small rivers (South Toe, North Toe, Cane, Ivy, Hominy, Swannanoa) from stream order 3, others from 4; rivers stop where they enter a reservoir outside the study area. Width from measured USGS flow at the nearest gauge on the same river, shared by the ratio of NHDPlus mean annual flows where that ratio is 1/3 to 3; width = 1 + 0.9 × √(flow / 1,000 cfs) px, up to 12 px; one solid line, no dark edge (the edge flickered against the river line). Stretches with no such gauge: grey dashed, steady arrows (direction only). White chevrons, arms about 9 px on screen, about 80 px apart (fewer when zoomed out, none beyond ~1.2 km per pixel), speed 0.5 + 2.4 × log10(1 + flow ÷ mean annual flow) km/s of animation (a drawing, not water speed); points every 350 m, 30 m above the terrain. Loaded at step 5"],
   ["Landslides and slope test", "0.1", "USGS preliminary inventory; aspect from Esri World Elevation at ~40 m, ±60 m differences, slopes under 8° left out"],
@@ -489,23 +489,36 @@ const CH = [
     qs: ["Follow the streaks from Asheville. Which state does the French Broad River flow into?", "Which gauge passes its old record first? Which is last?", "Pick a gauge in the chart. How many hours after the heaviest rain did the river peak?", "Are the gauges that broke records downstream of the deepest blue?"] },
   { key: "slides", n: "6 · 27 Sep", name: "Slopes give way", t0: PEAK_T, t1: PEAK_T, rainTotal: 1,   // same place and moment as the end of step 5; the landslides are added
     cam: SLIDES_CAM, show: { slides: 1, rainSurf: 1, rivers: 1, gauges: 1 },
-    after: { t: PEAK_T, label: "Zoom out", cam: SLIDES_WIDE, title: "The bigger picture",   // the go button shows this once, before Next step
+    after: [{ t: PEAK_T, label: "Zoom out", cam: SLIDES_WIDE, title: "The bigger picture",   // the go button steps through these before Next step
       text: `<p>Zoomed out, you can see how many landslides there were and where they happened. They crowd along the Blue Ridge, from Chimney Rock past Black Mountain and Busick up to Boone: steep mountains that had some of the heaviest rain. Where less rain fell, there are far fewer.</p>
-        <p>When two things happen in the same places, geographers say they are <b>correlated</b>. Step 7 measures how strong the link is.</p>` },
+        <p>When two things happen in the same places, geographers say they are <b>correlated</b>. Step 7 puts the whole story together.</p>` }],
     story: `<p>Same moment: the rivers are at their highest. The view turns to look east across Asheville towards the Blue Ridge, and the landslides are added to the map (white dots). Most happened on Friday morning, while the rain was heaviest.</p>
       <p>Soil full of water is heavy and loses its grip on the rock beneath. On steep slopes it can slide, and many slides turned into fast <b>debris flows</b>: mud, boulders and trees racing down ravines and stream channels. Where they reached the rivers, the flood swept that debris along, with soil and trees torn from the riverbanks, so the rivers carried mud, trees, cars and even houses downstream.</p>
       <p>USGS scientists mapped more than 2,000 landslides, most in western North Carolina, and more than half damaged roads, buildings or other property. They found that most began on slopes facing south-east, into the wind. You can test that below.</p>`,
     qs: ["Where are the landslides most crowded? Compare with where the blue is deepest.", "Run the slope test. Which way do most landslide slopes face?", "Why compare the landslides with nearby slopes, not just count them?"] },
-  { key: "lined", n: "7 · The pattern", name: "Where it all lined up", t0: 108, t1: 108, rainTotal: 1,
-    cam: { center: [-82.4, 35.6], zoom: 8.1, tilt: 52, heading: 330 }, show: { rainSurf: 1 },
-    story: `<p>Steep mountains, very heavy rain, landslides and record floods did not happen evenly across the region. They happened together, in the same places. Geographers call this a <b>spatial correlation</b>.</p>
-      <p>Build the picture one layer at a time, then test it: how much more common were landslides where heavy rain fell on steep ground?</p>`,
-    qs: ["Which layer lines up best with the landslides: steep ground alone, heavy rain alone, or both together?", "Move the rain threshold up and down. At what amount of rain do landslides become common on steep ground?", "Are there steep places with few landslides? What was different there?"] },
-  { key: "cost", n: "8 · Afterwards", name: "Counting the cost", t0: 72, t1: 108, rainTotal: 1,
-    cam: { center: [-82.9, 33.2], zoom: 6.4, tilt: 30, heading: 0 }, show: { slides: 1, storm: 1, rainSurf: 1 },
-    story: `<p>Helene caused at least 250 deaths in the United States, the most for a hurricane on the mainland since Katrina in 2005. In the mountains, most deaths were caused by flooding and landslides, not by wind.</p>
-      <p>More than 125,000 homes in western North Carolina were damaged or destroyed. Asheville had no clean tap water for 53 days. Parts of Interstate 40 were washed away. Communities there are still rebuilding.</p>`,
-    qs: ["Which states had the most deaths from flooding? Which from wind?", "Asheville is about 500 miles from the sea. Why did an inland city suffer so badly from a hurricane?", "What would you want people in a mountain valley to know before the next big storm?"] }
+  { key: "lined", n: "7 · 24–28 Sep", name: "Why here? It all lined up", t0: 56, t1: 108, noAuto: true,   // the conclusion: four causes added one at a time
+    cam: { center: [-82.9, 33.6], zoom: 6.6, tilt: 50, heading: 340 }, show: { storm: 1, winds: 1, stream: 1, rainSurf: 1, ridge: 1 },
+    story: `<p>Why did a hurricane do its worst damage in mountains so far from the sea? Four things lined up in the same place. This step adds them one at a time.</p>
+      <p><b>1 · Soaked before the storm.</b> The shading shows the rain that fell before Helene arrived (step 2). By Thursday afternoon, 26 September, 8 to 10 inches had already fallen in towns along the Blue Ridge (dashed line), such as Old Fort, Chimney Rock and Asheville.</p>
+      <p>Press Play to bring Helene in.</p>`,
+    beats: [
+      { t: 108, title: "2 · More rain on the same place",
+        text: `<p>Helene raced north just west of the mountains. Its winds and the moisture stream drove wet air at the Blue Ridge from the south-east, onto ground that was already soaked.</p>
+          <p>It added about as much rain again, in the same places: Old Fort ended with 21 inches and Chimney Rock with 20 (radar).</p>` }
+    ],
+    after: [
+      { label: "Next: the mountains", when: "Why here? 3 of 5", cam: CAM_MTN, show: { rainSurf: 1, ridge: 1, steep: 1 }, title: "3 · The mountains squeeze out more rain",
+        text: `<p>The deepest rain lies along the Blue Ridge escarpment (dashed line) and the steep mountains behind it (amber).</p>
+          <p>Wet air from the south-east was forced up these slopes, cooled and rained out: <b>orographic</b> rain (step 4). The mountains made a wet storm wetter, right where the ground was already soaked.</p>` },
+      { label: "Next: slopes and rivers", when: "Why here? 4 of 5", cam: SLIDES_WIDE, show: { rainSurf: 1, ridge: 1, slides: 1, records: 1 }, reveal: true, title: "4 · Steep, soaked slopes shed the water",
+        text: `<p>Soaked ground cannot hold more water, and on steep slopes it runs off fast. Streams and rivers rose within hours, many to record heights (blue diamonds mark the gauges in this app that broke their records).</p>
+          <p>The same steep, soaked slopes gave way: more than 2,000 landslides (white dots), many turning into debris flows that poured into the rivers (step 6).</p>` },
+      { label: "Next: it all lined up", when: "Why here? 5 of 5", cam: SLIDES_WIDE, show: { rainSurf: 1, ridge: 1, slides: 1, records: 1, overlap: 1 }, title: "It all lined up",
+        text: `<p>Pink shows where heavy rain fell on steep ground. The landslides and the record floods crowd into the same places. <span id="linkStat"></span></p>
+          <p>Four things lined up: ground soaked by rain before the storm, Helene's track sending more wet air at the same mountains, the Blue Ridge squeezing out even more rain, and steep slopes that shed it fast. That is why Helene did its worst damage about 380 miles from where it came ashore.</p>
+          <p>The cost: at least 250 deaths in the United States, the most for a hurricane on the mainland since Katrina in 2005; in the mountains most were caused by flooding and landslides, not wind. More than 125,000 homes in western North Carolina were damaged or destroyed, and Asheville had no clean tap water for 53 days.</p>` }
+    ],
+    qs: ["Which lines up best with the landslides: steep ground alone, heavy rain alone, or both together? Use the layer buttons in Test it.", "Move the rain threshold in Test it. At what amount of rain do landslides become common on steep ground?", "Which of the four causes would be the same in any storm, and which depended on this storm?", "Asheville is about 380 miles from where Helene came ashore. Why did an inland city suffer so badly from a hurricane?", "What would you want people in a mountain valley to know before the next big storm?"] }
 ];
 
 // ---------- rain colours (try ?rain=purple or ?rain=sunset; blue is the default) ----------
@@ -521,7 +534,7 @@ const rainTotalNow = () => !!CH[chapter].rainTotal;   // steps about what the ra
 
 // ---------- state ----------
 let hNow = 0, playing = false, chapter = 0, lastFrame = 0, EXAG = 2;
-let afterShown = false;   // step 6 has a Zoom out stage before Next step
+let afterIdx = 0;   // steps 6 and 7 have stages (the go button steps through them before Next step)
 const vis = { ridge: false, pattern: false, stream: false, storm: true, winds: false, rainSurf: false, steep: false, overlap: false, slides: false, records: false, gauges: false, rivers: false, nws: false };
 const avail = { ridge: true, pattern: true, stream: true, storm: true, winds: true, rainSurf: false, steep: false, overlap: false, slides: false, records: false, gauges: false, rivers: false, nws: false };
 const setStatus = (t, p) => { $("status").textContent = t || ""; if (p != null) $("bar").style.width = Math.round(p * 100) + "%"; };
@@ -1261,7 +1274,7 @@ map.add(slideLayer);
 let slideCount = null, slideImpacts = null, slidePts = null, slideReveal = 1;
 function revealSlides() {   // step 6: the landslides fade in over 3 seconds once the camera has arrived
   if (!motionOn) { slideReveal = 1; drawSlides(); return; }
-  const t0 = performance.now(), tick = (now) => { if (CH[chapter].key !== "slides") { slideReveal = 1; return; }
+  const t0 = performance.now(), ch = chapter, tick = (now) => { if (chapter !== ch) { slideReveal = 1; return; }
     slideReveal = Math.min(1, (now - t0) / 3000); drawSlides(); if (slideReveal < 1) requestAnimationFrame(tick); };
   requestAnimationFrame(tick);
 }
@@ -1326,7 +1339,7 @@ function applyVis() {
   ridgeLayer.visible = vis.ridge; windLayer.visible = vis.winds || vis.stream; patternLayer.visible = vis.pattern; drawPattern();
   G.rain.show(vis.rainSurf && avail.rainSurf);
   G.steep.show(vis.steep && avail.steep); G.over.show(vis.overlap && avail.overlap);
-  $("rainLbl").textContent = rainTotalNow() ? "Total rain, 24–28 Sep (radar)" : "Rain so far (radar)";
+  $("rainLbl").textContent = rainTotalNow() || hNow >= HOURS - 0.01 ? "Total rain, 24–28 Sep (radar)" : "Rain so far (radar)";
   if ((vis.steep || vis.overlap) && !avail.steep) G.loadSlope();
   nwsLayer.visible = vis.nws && avail.nws; $("nwsKey").style.display = nwsLayer.visible ? "block" : "none";
   gaugeLayer.visible = vis.gauges && avail.gauges; if (gaugeLabels) gaugeLabels.visible = gaugeLayer.visible;
@@ -1500,6 +1513,9 @@ async function renderStats() {
     ${recs.length ? `<div class="cap" style="margin-top:6px">Gauges that broke their records, with the radar rain total at the gauge: ${recs.map(r => `${r.n} ${isNaN(r.r) ? "(outside area)" : r.r.toFixed(0) + " in"}`).join(" · ")}.</div>` : ""}`;
 }
 
+const deathsChart = () => `<div class="key"><span><i style="background:var(--s1)"></i>Flooding and landslides</span><span><i style="background:var(--ref)"></i>Wind, storm surge and other causes</span></div>
+      ${stackedBars(DEATHS.map(([s, t, f]) => ({ label: s, f, o: t - f })), [{ f: "f", c: "var(--s1)", name: "Flooding and landslides" }, { f: "o", c: "var(--ref)", name: "Other causes" }])}
+      <div class="cap" style="font-size:12.5px;color:var(--muted);margin-top:6px">Totals include direct and indirect deaths. "Flooding and landslides" counts direct deaths from freshwater flooding, which the NHC says includes landslides and debris flows. Source: NHC Tropical Cyclone Report, February 2026 update.</div>`;
 function renderChapterExtra() {
   const c = CH[chapter], el = $("chExtra");
   if (c.key === "rivers") {
@@ -1525,24 +1541,18 @@ function renderChapterExtra() {
     $("slopeBtn").onclick = runSlopeTest;
   } else if (c.key === "lined") {
     const [thR, thS] = G.th;
-    el.innerHTML = `<h2>Build the picture ${mv("Where it lined up")}</h2>
+    el.innerHTML = `<h2>Layers ${mv("Where it lined up")}</h2>
       <div class="chips">${REVEAL.map(([k, col, name], i) => `<button data-l="${k}" aria-pressed="${!!vis[k]}"><i style="background:${col};${k === "slides" ? "border:2px solid #7a1414;border-radius:50%" : ""}"></i>${i + 1} ${name}</button>`).join("")}</div>
       <div id="revealCap"></div>
-      <button id="revealBtn">▶ Show one layer at a time</button>
       <h2>Test it</h2>
       <div class="ctl">Heavy rain means at least <span id="thRv">${thR} in</span></div><input class="th" type="range" id="thR" min="4" max="26" step="1" value="${thR}" aria-label="Heavy rain threshold, inches">
       <div class="ctl">Steep means at least <span id="thSv">${thS}°</span></div><input class="th" type="range" id="thS" min="2" max="20" step="1" value="${thS}" aria-label="Steepness threshold, degrees">
-      <div id="mxBox"></div>`;
+      <div id="mxBox"></div>
+      <h2>Deaths by state (NHC report)</h2>${deathsChart()}`;
     el.querySelectorAll(".chips button").forEach(b => b.onclick = () => { clearTimeout(revealTimer); const k = b.dataset.l; vis[k] = !vis[k]; applyVis(); const r = REVEAL.find(x => x[0] === k); if (vis[k] && r) $("revealCap").textContent = r[3]; });
-    $("revealBtn").onclick = runReveal;
     const upd = () => { const r = +$("thR").value, s = +$("thS").value; $("thRv").textContent = r + " in"; $("thSv").textContent = s + "°"; G.setThresholds(r, s); renderStats(); };
     $("thR").oninput = upd; $("thS").oninput = upd;
     G.loadSlope().then(renderStats); renderStats();
-  } else if (c.key === "cost") {
-    el.innerHTML = `<h2>Deaths by state (NHC report)</h2>
-      <div class="key"><span><i style="background:var(--s1)"></i>Flooding and landslides</span><span><i style="background:var(--ref)"></i>Wind, storm surge and other causes</span></div>
-      ${stackedBars(DEATHS.map(([s, t, f]) => ({ label: s, f, o: t - f })), [{ f: "f", c: "var(--s1)", name: "Flooding and landslides" }, { f: "o", c: "var(--ref)", name: "Other causes" }])}
-      <div class="cap" style="font-size:12.5px;color:var(--muted);margin-top:6px">Totals include direct and indirect deaths. "Flooding and landslides" counts direct deaths from freshwater flooding, which the NHC says includes landslides and debris flows. Source: NHC Tropical Cyclone Report, February 2026 update.</div>`;
   } else el.innerHTML = "";
   syncLegend(); checkMore();
 }
@@ -1562,23 +1572,40 @@ $("steps").innerHTML = CH.map((c, i) => `<li><button data-i="${i}" aria-label="S
 document.querySelectorAll("#steps button").forEach(b => b.addEventListener("click", () => goChapter(+b.dataset.i, true, true)));
 $("backBtn").onclick = () => goChapter(Math.max(0, chapter - 1), true, true);
 // One main button that always says what to do next: Play, Pause, Continue (after a pause), Next step (at the end of a step)
+function showStage(st) {   // a stage: set the layers it lists, fade in landslides if asked, then show its card (and fly to its camera)
+  if (st.reveal) slideReveal = 0;   // set before the layers change, so the landslides do not flash on at full strength
+  if (st.show) { for (const k of Object.keys(vis)) vis[k] = !!st.show[k]; if (st.show.records || st.show.gauges) ensureGauges(); applyVis(); renderChapterExtra(); }
+  if (st.reveal) revealSlides();
+  showBeat({ t: hNow, ...st });
+  if ($("linkStat")) fillLinkStat();
+}
+async function fillLinkStat() {   // the conclusion's number, from the same test as Test it
+  try {
+    await G.loadSlope(); await loadSlidePoints(); const el = $("linkStat"); if (!el || !G.slope) return;
+    const [thR, thS] = G.th, { cls } = G.stats(slidePts), area = cls.hs.a + cls.hg.a + cls.ls.a + cls.lg.a, all = cls.hs.n + cls.hg.n + cls.ls.n + cls.lg.n;
+    if (!area || !all) return;
+    el.textContent = `With heavy rain meaning ${thR} inches or more and steep meaning ${thS}° or more, heavy rain on steep ground covered ${Math.round(100 * cls.hs.a / area)}% of the study area but had ${Math.round(100 * cls.hs.n / all)}% of its landslides.`;
+  } catch (e) { console.warn("link stat", e); }
+}
 function stepDone() { const c = CH[chapter]; return c.t1 <= c.t0 || hNow >= c.t1 - 0.15; }   // a pause in the last few minutes (step 4 ends on one at 79.9) counts as the end, so it offers Next step, not a Continue that plays 6 minutes
 function updateGo() {
   const c = CH[chapter], end = stepDone(), last = chapter === CH.length - 1, b = $("goBtn");
-  b.textContent = playing ? "❚❚ Pause" : end && c.after && !afterShown ? "▶ " + c.after.label : end ? (last ? "↺ Back to step 1" : "Next step ›") : (!$("beat").hidden || hNow > c.t0 + 0.01) ? "▶ Continue" : "▶ Play";
+  const stage = end && c.after && afterIdx < c.after.length ? c.after[afterIdx] : null;
+  b.textContent = playing ? "❚❚ Pause" : stage ? "▶ " + stage.label : end ? (last ? "↺ Back to step 1" : "Next step ›") : (!$("beat").hidden || hNow > c.t0 + 0.01) ? "▶ Continue" : "▶ Play";
   $("replayBtn").hidden = !(end && !playing && c.t1 > c.t0);
   $("backBtn").disabled = chapter === 0;
 }
 $("goBtn").onclick = () => {
   if (playing) return pause();
-  if (stepDone() && CH[chapter].after && !afterShown) { afterShown = true; return showBeat(CH[chapter].after); }   // step 6: zoom out before moving on
+  const c = CH[chapter];
+  if (stepDone() && c.after && afterIdx < c.after.length) return showStage(c.after[afterIdx++]);
   if (stepDone()) return chapter < CH.length - 1 ? goChapter(chapter + 1, true, true) : goChapter(0, true, false);
   play();
 };
 $("replayBtn").onclick = () => { setTime(CH[chapter].t0); play(); };
 $("legendTitle").onclick = () => { const c = $("legend").classList.toggle("collapsed"); $("legendTitle").setAttribute("aria-expanded", String(!c)); };
 if (innerWidth <= 760) { $("legend").classList.add("collapsed"); $("legendTitle").setAttribute("aria-expanded", "false"); }
-const EXPLORE = { rivers: "River chart", slides: "Slope test", lined: "Build and test", cost: "Chart" };
+const EXPLORE = { rivers: "River chart", slides: "Slope test", lined: "Test it" };
 
 // tabs (keyboard: arrow keys move between tabs)
 const TABS = ["story", "explore", "qs"];
@@ -1694,7 +1721,7 @@ $("teachClose").onclick = () => $("teachDlg").close();
 
 function goChapter(i, animate = true, autoplay = false) {
   clearTimeout(revealTimer); revealTimer = null; stopReading(); hideBeat();
-  chapter = i; const c = CH[i]; afterShown = false; pause();
+  chapter = i; const c = CH[i]; afterIdx = 0; pause();
   slideReveal = c.key === "slides" ? 0 : 1;   // step 6 fades the landslides in after the camera arrives
   $("card").classList.toggle("later", i > 0);
   document.querySelectorAll("#steps button").forEach(b => { const k = +b.dataset.i; b.classList.toggle("done", k < i); if (k === i) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current"); });
@@ -1710,13 +1737,12 @@ function goChapter(i, animate = true, autoplay = false) {
   view.closePopup && view.closePopup();
   applyVis(); setTime(c.t0); renderChapterExtra(); selectTab("story"); updateGo();
   const token = goChapter.token = (goChapter.token || 0) + 1;
-  const arrived = () => { if (token !== goChapter.token) return; if (c.key === "slides") revealSlides(); if (autoplay && c.t1 > c.t0) play(); };
+  const arrived = () => { if (token !== goChapter.token) return; if (c.key === "slides") revealSlides(); if (autoplay && c.t1 > c.t0 && !c.noAuto) play(); };
   const fly = animate && motionOn;
   if (c.cam2 && !fly) view.goTo(c.cam2, { animate: false }).then(arrived, arrived);
   else if (c.cam2) view.goTo(c.cam, { duration: 2500, easing: "in-out-cubic" })   // overview first, a short look, then down to the close view
     .then(() => new Promise(r => setTimeout(r, 1500))).then(() => token === goChapter.token ? view.goTo(c.cam2, { duration: 3500, easing: "in-out-cubic" }) : null).then(arrived, arrived);
   else view.goTo(c.cam, { duration: fly ? 2500 : 0, easing: "in-out-cubic" }).then(arrived, arrived);
-  if (c.key === "lined") setTimeout(runReveal, animate ? 2600 : 200);
   updateDesc(true);
 }
 
@@ -1740,7 +1766,7 @@ function hideBeat() {   // the pause leaves the card and the step's story comes 
 }
 function showBeat(b) {
   stopReading(); selectTab("story");
-  $("beatWhen").textContent = "Paused · " + fmtEDT(tAt(b.t)) + " EDT"; $("beatTitle").textContent = b.title; $("beatText").innerHTML = b.text;
+  $("beatWhen").textContent = b.when || "Paused · " + fmtEDT(tAt(b.t)) + " EDT"; $("beatTitle").textContent = b.title; $("beatText").innerHTML = b.text;
   $("beat").hidden = false; $("story").hidden = true; $("panes").scrollTop = 0; checkMore(); updateGo();
   const tmp = document.createElement("div"); tmp.innerHTML = b.text; $("liveDesc").textContent = `${b.title}. ${tmp.textContent}`;
   if (b.cam) view.goTo(b.cam, { duration: motionOn ? 2500 : 0, easing: "in-out-cubic" }).catch(() => {});
