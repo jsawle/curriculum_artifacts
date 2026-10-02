@@ -354,7 +354,7 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.41";
+const APP_VERSION = "0.42";
 const APP_DATE = "2 October 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
@@ -471,13 +471,14 @@ const CH = [
       { t: 79.9, title: "Three days of rain", text: `<p>The rain is ending. More than 18 inches fell in counties along the Blue Ridge, from Transylvania and Polk in the south to Avery and Watauga in the north. Busick, in Yancey County, measured 30.78 inches (782 mm).</p><p>Across a wide area, three-day totals this big had less than a 1-in-1,000 chance of happening in any year. Click the map to read the rain at any spot.</p>` }
     ],
     qs: ["Watch the streaks as they cross the dashed line. Where do they turn dark blue: in front of the escarpment, on it, or behind it?", "Switch the mountains to 3×. Does the deepest blue follow the shape of the mountains?", "Click a few places on the map. Which has the most rain? What is the ground like there?"] },
-  { key: "rivers", n: "5 · 26–28 Sep", name: "Rivers rise", t0: 42, t1: 90, rainTotal: 1,
-    cam: { center: [-82.62, 35.62], zoom: 9.7, tilt: 62, heading: 335 }, show: { gauges: 1, rainSurf: 1, rivers: 1 },
+  { key: "rivers", n: "5 · 26–28 Sep", name: "Rivers rise", t0: 39, t1: 90, rainTotal: 1,
+    cam: { center: [-82.62, 35.62], zoom: 9.7, tilt: 62, heading: 335 }, cam2: { center: [-82.644, 35.421], zoom: 11.07, tilt: 74, heading: 196 }, show: { gauges: 1, rainSurf: 1, rivers: 1 },   // the whole river network first, then down into the French Broad valley, looking south (upstream) from north of Asheville
     story: `<p>All that rain ran off the soaked slopes into streams and rivers at once. At least 63 river gauges broke their records.</p>
+      <p>The map zooms down into the valley of the French Broad River. You are north of Asheville, looking south, up the valley: the river flows towards you. The clock starts just before Thursday 26 September.</p>
       <p>The <b>rivers</b> grow wider as they carry more water, and the white arrows show which way the water flows. Grey dashed rivers had no flow gauge, so they show direction only.</p>
       <p>Each column is a <b>river gauge</b>, a station that measures how high the river is every 15 minutes. The column rises with the river, and its colour shows how bad the flooding is: <b>red</b> is major flooding. The <b>white disc</b> marks the highest that river had ever been before Helene. When a column pushes up through its disc, the river has broken its record, and a ★ appears by its name.</p>`,
     beats: [
-      { t: (Date.UTC(2024, 8, 27, 21, 38) - T0) / HR, title: "The French Broad peaks at Asheville", cam: { center: [-82.505, 35.588], zoom: 11.31, tilt: 68, heading: 61 },
+      { t: (Date.UTC(2024, 8, 27, 21, 38) - T0) / HR, title: "The French Broad peaks at Asheville", cam: { center: [-82.644, 35.421], zoom: 11.07, tilt: 74, heading: 196 },
         text: `<p>At 5:38 pm the French Broad River at Asheville reaches <b>24.8 ft</b>, higher than in the great flood of 1916. About <b>113,000 cubic feet of water</b> rush past every second: more than an Olympic swimming pool each second.</p>
           <p>Follow the white arrows. The French Broad flows <b>north</b>, through the mountains into Tennessee, and so do the Pigeon and the Nolichucky, so towns such as Newport and Erwin in Tennessee flood too. The Catawba flows east, towards the Atlantic.</p>` }
     ],
@@ -1693,7 +1694,11 @@ function goChapter(i, animate = true, autoplay = false) {
   applyVis(); setTime(c.t0); renderChapterExtra(); selectTab("story"); updateGo();
   const token = goChapter.token = (goChapter.token || 0) + 1;
   const arrived = () => { if (token === goChapter.token && autoplay && c.t1 > c.t0) play(); };
-  view.goTo(c.cam, { duration: animate && motionOn ? 2500 : 0, easing: "in-out-cubic" }).then(arrived, arrived);
+  const fly = animate && motionOn;
+  if (c.cam2 && !fly) view.goTo(c.cam2, { animate: false }).then(arrived, arrived);
+  else if (c.cam2) view.goTo(c.cam, { duration: 2500, easing: "in-out-cubic" })   // overview first, a short look, then down to the close view
+    .then(() => new Promise(r => setTimeout(r, 1500))).then(() => token === goChapter.token ? view.goTo(c.cam2, { duration: 3500, easing: "in-out-cubic" }) : null).then(arrived, arrived);
+  else view.goTo(c.cam, { duration: fly ? 2500 : 0, easing: "in-out-cubic" }).then(arrived, arrived);
   if (c.key === "lined") setTimeout(runReveal, animate ? 2600 : 200);
   updateDesc(true);
 }
