@@ -122,6 +122,9 @@
   #legend button.k[aria-pressed="true"] .tick::after { content: "✓"; }
   #legend .sw { width: 16px; height: 12px; border-radius: 3px; flex: none; }
   #legend .sub { color: var(--muted); font-size: 11.5px; margin: 0 0 4px 26px; }
+  #legend .gkey span { white-space: nowrap; }
+  #legend .gkey i { display: inline-block; width: 9px; height: 12px; border-radius: 2px; vertical-align: -2px; margin: 0 3px 0 2px; }
+  #legend .gkey i.disc { width: 18px; height: 5px; border-radius: 50%; background: #fff; vertical-align: 1px; margin-left: 0; }
   #legend .more-layers { margin-top: 6px; font-size: 12px; padding: 4px 10px; border-radius: 9px; }
   #nwsKey { display: none; margin: 2px 0 4px 22px; }
   #nwsKey img { width: 14px; height: 10px; vertical-align: middle; margin-right: 4px; }
@@ -227,6 +230,8 @@
       <button class="k" data-l="rivers" aria-pressed="false" disabled><span class="tick"></span><span class="sw" style="background:#00d7ff;height:5px;margin-top:4px;box-shadow:0 0 0 1.5px #00234a"></span>Rivers: wider = more water</button>
       <div class="sub"><span class="sw" style="background:repeating-linear-gradient(90deg,#afb9c6 0 6px,transparent 6px 10px);height:3px;display:inline-block;width:22px;vertical-align:middle;margin-right:6px"></span>Grey dashed: no flow gauge, direction only</div>
       <button class="k" data-l="gauges" aria-pressed="false" disabled><span class="tick"></span>River gauge columns</button>
+      <div class="sub gkey"><span><i style="background:#3987e5"></i>normal</span> <span><i style="background:#fab219"></i>minor</span> <span><i style="background:#ec835a"></i>moderate</span> <span><i style="background:#d03b3b"></i>major flood</span></div>
+      <div class="sub gkey"><i class="disc"></i>white disc: highest before Helene</div>
       <button class="k" data-l="ridge" aria-pressed="false"><span class="tick"></span><span class="sw" style="background:none;border-top:3px dashed currentColor;height:0;margin-top:6px"></span>Blue Ridge escarpment</button>
       <button class="k" data-l="pattern" aria-pressed="false"><span class="tick"></span><span class="sw" style="background:#b98cff"></span>Weather pattern (approximate)</button>
       <button class="k" data-l="stream" aria-pressed="false"><span class="tick"></span><span class="sw" style="background:#96e1ff"></span>Moisture stream (sketch)</button>
@@ -298,7 +303,7 @@
         <li><b>Rain so far.</b> The blue shading on the ground is the rain that had fallen since 8 am EDT on Tuesday 24 September, and it grows as the timeline plays. It is made from NOAA's hourly radar estimates (MRMS) at 312 towns and river gauges, prepared for NOAA's <i>Helene in Southern Appalachia</i> dashboard, spread between those places by inverse-distance weighting. It covers the southern Appalachians only. From step 5 on, the map shows the storm total (to the end of 28 September) and stays in place, because those steps are about what the rain did. Click the map to read the value at a spot.</li>
         <li><b>Steep ground.</b> Slope worked out from Esri World Elevation on a grid about 1.2 km apart, so it describes the steepness of the landscape (mountain sides, the Blue Ridge escarpment), not of single hillsides.</li>
         <li><b>Heavy rain on steep ground.</b> Places where the total rain and the steepness are both above the thresholds chosen in step 6. Students can change the thresholds.</li>
-        <li><b>River gauges.</b> Each gauge is a column of water whose height is the river's stage, measured every 15 minutes by the USGS (the USGS's checked, approved values). The red ring marks the NWS "major flood" level; the white ring marks the highest the river had been measured before Helene. 1 ft of river is drawn 120 m tall. A grey column means the gauge stopped reporting.</li>
+        <li><b>River gauges.</b> Each gauge is a column whose height follows the river's stage, measured every 15 minutes by the USGS (the USGS's checked, approved values). Each column is scaled to that river's highest stage before Helene, so the white disc (the old record) is at the same height for every gauge and columns can be compared: a column halfway to its disc is at half its record stage. Stage is measured from a fixed point at each gauge, not from the river bed, so this compares each river with its own past, not depths between rivers. Colour shows the NWS flood category: blue below flood stage, then yellow minor, orange moderate and red major flooding. A grey column means the gauge stopped reporting. The River chart gives the actual heights in feet.</li>
         <li><b>Rivers.</b> The main rivers come from NHDPlus, the national map of streams, whose lines are drawn in the direction the water flows. Each river is drawn wider when the nearest USGS gauge on it measures more water; between gauges the flow is shared out in proportion to NHDPlus's estimate of each stretch's average flow, so widths between gauges are estimates. The white arrows move downstream and speed up as the river rises above its usual flow; they show direction, not the real speed of the water. Where no USGS gauge on the same river fits (for example the North Toe through Spruce Pine, the Cane, the Green, and the upper Broad River, the "Rocky Broad", through Chimney Rock), the river is a grey dashed line with steady grey arrows: it shows which way the water went, not how much. The <b>Flow</b> chart in step 5 shows the measured flow at each gauge in cubic feet per second, with the highest flow recorded there before Helene from the USGS peak-flow file.</li>
         <li><b>Landslides.</b> Points from the USGS preliminary landslide inventory. It does not record when each slide happened, so the page shows them from the morning of 27 September, when most occurred.</li>
         <li><b>Weather pattern.</b> High pressure (the Bermuda High) and low pressure in the upper air are drawn in approximate positions from the NHC report ("a subtropical ridge centered over the western Atlantic"; "a deep-layer cut-off low centered over the Tennessee Valley"). The low was still forming on 24–25 September (NHC discussion 8: "a mid-latitude trough/developing cut-off low over the Mississippi valley") but is drawn from the start to keep the picture simple. The stalled front (NHC: "from the central Gulf Coast northward towards the Tennessee Valley and southern Appalachians from 25–27 September") is mentioned in step 1 but not drawn, to keep the map simple. None of these are traced from weather maps.</li>
@@ -349,7 +354,7 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.40";
+const APP_VERSION = "0.41";
 const APP_DATE = "2 October 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
@@ -359,7 +364,7 @@ const MODELS = [
   ["Rain so far / storm total", "0.5", "Steps 2–4 show rain so far, redrawn each hour; steps 5–8 show the storm total (to 29 Sep 00:00 UTC), drawn once and left in place. Two image layers drawn in turn, so the old image stays until the new one has drawn. Colours can be previewed with ?rain=purple or ?rain=sunset. Read from a saved copy of the NOAA data in the repo (data/helene-rain.json, made by a GitHub Action), with the live service as a fallback. Fades out over the outer ~30 km of the study area. NOAA MRMS hourly radar totals since 24 Sep 12:00 UTC at 312 places (185 in the study area), spread to a 0.0125° grid by inverse-distance weighting (6 nearest within 40 km); southern Appalachians only"],
   ["Steep ground", "0.3", "Elevation at ~300 m detail (was ~150 m, a quarter of the downloads); measured from step 3 onwards, not at start-up. Slope sampled every 0.0125° (about 1.2 km), central differences across ~2.5 km"],
   ["Where it lined up", "0.1", "Grid cells split by total rain (24–28 Sep) and steepness thresholds; landslides counted per cell; density per 100 km²"],
-  ["River gauges", "0.4", "USGS approved 15-minute stage and flow from a saved copy (data/helene-rivers.json) replace NOAA's provisional stage where available (fills the Blantyre gap; Asheville peak 24.82 ft); NWS flood levels and the highest stage before 2024 still from the NOAA snapshot (data/helene-gauges.json, live fallback). Flow chart: peak and the highest flow before Helene from the USGS annual peak-flow file; USGS estimated values dashed. Loaded at step 5 or 7; 1 ft drawn as 120 m"],
+  ["River gauges", "0.5", "Columns scaled to each river's highest stage before Helene (that stage = 2,500 m), so one see-through white disc marks the old record at the same height everywhere; the red major-flood ring is gone (the column colour already shows flood category, now in the map key). USGS approved 15-minute stage and flow from a saved copy (data/helene-rivers.json) replace NOAA's provisional stage where available (fills the Blantyre gap; Asheville peak 24.82 ft); NWS flood levels and the highest stage before 2024 still from the NOAA snapshot (data/helene-gauges.json, live fallback). Flow chart: peak and the highest flow before Helene from the USGS annual peak-flow file; USGS estimated values dashed. Loaded at step 5 or 7; 1 ft drawn as 120 m"],
   ["Rivers", "0.4", "19 rivers from NHDPlus V2.1 (Esri-hosted), chained upstream to downstream, from a box 83.8°W–81.2°W, 34.85°N–36.5°N so they reach a lake or confluence; small rivers (South Toe, North Toe, Cane, Ivy, Hominy, Swannanoa) from stream order 3, others from 4; rivers stop where they enter a reservoir outside the study area. Width from measured USGS flow at the nearest gauge on the same river, shared by the ratio of NHDPlus mean annual flows where that ratio is 1/3 to 3; width = 1 + 0.9 × √(flow / 1,000 cfs) px, up to 12 px; one solid line, no dark edge (the edge flickered against the river line). Stretches with no such gauge: grey dashed, steady arrows (direction only). White chevrons, arms about 9 px on screen, about 80 px apart (fewer when zoomed out, none beyond ~1.2 km per pixel), speed 0.5 + 2.4 × log10(1 + flow ÷ mean annual flow) km/s of animation (a drawing, not water speed); points every 350 m, 30 m above the terrain. Loaded at step 5"],
   ["Landslides and slope test", "0.1", "USGS preliminary inventory; aspect from Esri World Elevation at ~40 m, ±60 m differences, slopes under 8° left out"],
   ["Map description", "0.4", "Rain sentence gives the storm total in steps 5–8. Adds the rivers: flow direction and the French Broad's flow at Asheville. Landfall wording shared with the map label (about to come ashore / coming ashore within 1 h / just came ashore up to 6 h); written description of the 3D map built from the same data and settings as the map: storm position and strength, which layers are on, wettest town so far and now, gauges in major flood or over their record"],
@@ -469,9 +474,10 @@ const CH = [
   { key: "rivers", n: "5 · 26–28 Sep", name: "Rivers rise", t0: 42, t1: 90, rainTotal: 1,
     cam: { center: [-82.62, 35.62], zoom: 9.7, tilt: 62, heading: 335 }, show: { gauges: 1, rainSurf: 1, rivers: 1 },
     story: `<p>All that rain ran off the soaked slopes into streams and rivers at once. At least 63 river gauges broke their records.</p>
-      <p>The <b>rivers</b> grow wider as they carry more water, and the white arrows show which way the water flows. Grey dashed rivers had no flow gauge, so they show direction only. Each column is a river gauge: the <b>red ring</b> marks major flooding, the <b>white ring</b> the highest the river had been before Helene. A ★ by the name means it has broken that record.</p>`,
+      <p>The <b>rivers</b> grow wider as they carry more water, and the white arrows show which way the water flows. Grey dashed rivers had no flow gauge, so they show direction only.</p>
+      <p>Each column is a <b>river gauge</b>, a station that measures how high the river is every 15 minutes. The column rises with the river, and its colour shows how bad the flooding is: <b>red</b> is major flooding. The <b>white disc</b> marks the highest that river had ever been before Helene. When a column pushes up through its disc, the river has broken its record, and a ★ appears by its name.</p>`,
     beats: [
-      { t: (Date.UTC(2024, 8, 27, 21, 38) - T0) / HR, title: "The French Broad peaks at Asheville", cam: { center: [-82.448, 35.584], zoom: 10.99, tilt: 68, heading: 62 },
+      { t: (Date.UTC(2024, 8, 27, 21, 38) - T0) / HR, title: "The French Broad peaks at Asheville", cam: { center: [-82.505, 35.588], zoom: 11.31, tilt: 68, heading: 61 },
         text: `<p>At 5:38 pm the French Broad River at Asheville reaches <b>24.8 ft</b>, higher than in the great flood of 1916. About <b>113,000 cubic feet of water</b> rush past every second: more than an Olympic swimming pool each second.</p>
           <p>Follow the white arrows. The French Broad flows <b>north</b>, through the mountains into Tennessee, and so do the Pigeon and the Nolichucky, so towns such as Newport and Erwin in Tennessee flood too. The Catawba flows east, towards the Atlantic.</p>` }
     ],
@@ -1000,7 +1006,8 @@ const GAUGES = [
   ["03453000", "Ivy River · Marshall"], ["03455000", "French Broad · Newport TN"], ["03461500", "Pigeon River · Newport TN"],
   ["03465500", "Nolichucky · Embreeville TN"], ["02137727", "Catawba · Pleasant Gardens"]
 ];
-const FT_M = 120;
+const FT_M = 120, REC_H = 2500;   // every column is scaled so the river's record before Helene is 2,500 m up: the same height for every gauge
+const colH = (g, s) => g.rec ? s / g.rec * REC_H : s * FT_M;
 const gauges = new Map();
 let selGauge = "03451500", gaugeLabels = null, recordLayer = null;
 const gaugeLayer = new GraphicsLayer({ title: "River gauges", elevationInfo: { mode: "relative-to-ground" }, visible: false });
@@ -1054,10 +1061,9 @@ async function loadGauges() {
     }
     if (g.rec != null) { const k = g.s.findIndex(v => v > g.rec); if (k >= 0) g.recordAt = g.t[k]; }
     g.water = new Graphic({ geometry: { type: "point", longitude: g.lon, latitude: g.lat, z: 0 }, attributes: { gauge: id } });
-    const ringSym = (color, w) => ({ type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "cylinder" }, width: w, depth: w, height: 70, anchor: "center", material: { color } }] });
-    const extras = [];
-    if (g.major != null) extras.push(new Graphic({ geometry: { type: "point", longitude: g.lon, latitude: g.lat, z: g.major * FT_M }, symbol: ringSym([208, 59, 59, 0.9], 2300), attributes: { gauge: id } }));
-    if (g.rec != null) extras.push(new Graphic({ geometry: { type: "point", longitude: g.lon, latitude: g.lat, z: g.rec * FT_M }, symbol: ringSym([255, 255, 255, 0.95], 2800), attributes: { gauge: id } }));
+    const extras = [];   // the record line: a thin, see-through white disc, so the column shows through it and rises above it
+    if (g.rec != null) extras.push(new Graphic({ geometry: { type: "point", longitude: g.lon, latitude: g.lat, z: REC_H }, attributes: { gauge: id },
+      symbol: { type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "cylinder" }, width: 2900, depth: 2900, height: 50, anchor: "center", material: { color: [255, 255, 255, 0.6] } }] } }));
     gaugeLayer.addMany([g.water, ...extras]);
     labelFeats.push(new Graphic({ geometry: { type: "point", longitude: g.lon, latitude: g.lat }, attributes: { oid: g.oid, gid: id, short, rec: 0 } }));
     if (g.recordAt) recFeats.push(new Graphic({ geometry: { type: "point", longitude: g.lon, latitude: g.lat }, attributes: { oid: recFeats.length + 1, short, peak: g.peak.stage, rec: g.rec, year: g.recYear } }));
@@ -1066,7 +1072,7 @@ async function loadGauges() {
   const common = { objectIdField: "oid", geometryType: "point", spatialReference: { wkid: 4326 }, outFields: ["*"] };
   gaugeLabels = new FeatureLayer({ ...common, title: "Gauge names", source: labelFeats, visible: false, popupEnabled: false,
     fields: [{ name: "oid", type: "oid" }, { name: "gid", type: "string" }, { name: "short", type: "string" }, { name: "rec", type: "integer" }],
-    elevationInfo: { mode: "relative-to-ground", offset: 3900 },
+    elevationInfo: { mode: "relative-to-ground", offset: 4500 },
     renderer: { type: "simple", symbol: { type: "point-3d", symbolLayers: [{ type: "icon", size: 0.1, resource: { primitive: "circle" }, material: { color: [0, 0, 0, 0] } }] } },
     labelingInfo: [{ labelExpressionInfo: { expression: "$feature.short + IIf($feature.rec == 1, ' ★', '')" }, labelPlacement: "above-center", symbol: labelSym(11, "white", "bold") }] });
   recordLayer = new FeatureLayer({ ...common, title: "River broke its record", source: recFeats, visible: false,
@@ -1097,7 +1103,7 @@ function drawGauges() {
   const ms = tAt(hNow), changed = [];
   for (const g of gauges.values()) {
     const s = stageAt(g, ms), fc = floodClass(g, s);
-    const h = Math.max(0.2, s ?? lastStage(g, ms) ?? 0) * FT_M;          // grey column keeps the last reading's height
+    const h = Math.max(30, colH(g, s ?? lastStage(g, ms) ?? 0));          // grey column keeps the last reading's height
     g.water.symbol = { type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "cylinder" }, width: 1300, depth: 1300, height: h, anchor: "bottom", material: { color: fc.c } }] };
     const broke = g.recordAt != null && ms >= g.recordAt ? 1 : 0;
     if (broke !== g.shownRec) { g.shownRec = broke; changed.push(new Graphic({ geometry: { type: "point", longitude: g.lon, latitude: g.lat }, attributes: { oid: g.oid, gid: g.id, short: g.short, rec: broke } })); }
