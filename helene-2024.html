@@ -354,13 +354,14 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.48";
+const APP_VERSION = "0.49";
 const APP_DATE = "2 October 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
   ["Moisture stream sketch", "0.1", "350 streaks along a curved band from 320 km east of Helene's centre to the Blue Ridge (35.55°N, 82.3°W), bowed 260 km east, 140 km wide narrowing to 60 km; from 25 Sep 00 UTC (fading in over 3 h), fading out as Helene passes 32.5–34°N; lifted and turned blue by the same rules as the storm winds"],
   ["Weather pattern", "0.4", "No front line; low pressure aloft shown with L and larger arrows from 24 Sep; arrows around the High turn clockwise and around the low anticlockwise; approximate positions from the NHC report and Climate.gov: stalled front Gulf Coast to Tennessee Valley 25–27 Sep; upper-level low over the Tennessee Valley 25–27 Sep; Bermuda High over the western Atlantic"],
   ["Storm winds sketch", "0.5", "Step 4 adds 400 more streaks in a box around the Blue Ridge (34.7–36.4°N, 83.5–80.9°W) that follow the same winds and rules, so the lift and rain show close up. 700 moving streaks in an anticlockwise vortex around the NHC track position, 20° inflow; speed = track wind × (60 km / distance)^0.6 beyond 60 km; out to 850 km; ride 1.5 km above the ground (lifted over the mountains in the study area); blue where radar rain below is at least 0.25 in/hr"],
+  ["Falling rain (3D effect)", "0.1", "Step 5 only: the SDK's rainy weather, precipitation 0.25 + 0.75 × the hour's radar rain (inches, mean of Asheville, Fletcher, Hendersonville, Brevard and Mills River), up to 1; cloudy below 0.03 in. The SDK shows it only below 10 km camera height (the valley view); off when motion is off"],
   ["Rain so far", "0.6", "Every step shows rain so far, redrawn each hour as the clock runs (0.5 showed a fixed storm total in steps 5–8; step 5 now builds up with the rivers, step 6 keeps step 5's last moment, step 7 replays from Thursday). Two image layers drawn in turn, so the old image stays until the new one has drawn. Colours can be previewed with ?rain=purple or ?rain=sunset. Read from a saved copy of the NOAA data in the repo (data/helene-rain.json, made by a GitHub Action), with the live service as a fallback. Fades out over the outer ~30 km of the study area. NOAA MRMS hourly radar totals since 24 Sep 12:00 UTC at 312 places (185 in the study area), spread to a 0.0125° grid by inverse-distance weighting (6 nearest within 40 km); southern Appalachians only"],
   ["Steep ground", "0.3", "Elevation at ~300 m detail (was ~150 m, a quarter of the downloads); measured from step 3 onwards, not at start-up. Slope sampled every 0.0125° (about 1.2 km), central differences across ~2.5 km"],
   ["Where it lined up", "0.3", "During Play the camera glides from the Gulf view to one final frame (from 6 pm Thu to 4 pm Fri on the clock, so it keeps pace at any speed); stages 3 to 5 add steep ground, then rivers and landslides, then heavy rain on steep ground, all in that frame. Steps 7 and 8 merged into one conclusion: rain before Helene (to 26 Sep 20:00 UTC), Helene adds the rest, then three stages add steep ground, landslides with record gauges, and heavy rain on steep ground; the last card quotes the Test it result at the current thresholds. Grid cells split by total rain (24–28 Sep) and steepness thresholds; landslides counted per cell; density per 100 km²"],
@@ -476,7 +477,7 @@ const CH = [
       { t: 79.9, title: "Three days of rain", text: `<p>The rain is ending. More than 18 inches fell in counties along the Blue Ridge, from Transylvania and Polk in the south to Avery and Watauga in the north. Busick, in Yancey County, measured 30.78 inches (782 mm).</p><p>Across a wide area, three-day totals this big had less than a 1-in-1,000 chance of happening in any year. Click the map to read the rain at any spot.</p>` }
     ],
     qs: ["Watch the streaks as they cross the dashed line. Where do they turn dark blue: in front of the escarpment, on it, or behind it?", "Switch the mountains to 3×. Does the deepest blue follow the shape of the mountains?", "Click a few places on the map. Which has the most rain? What is the ground like there?"] },
-  { key: "rivers", n: "5 · 26–27 Sep", name: "Rivers rise", t0: 39, t1: PEAK_T,   // rain builds up with the clock, alongside the rivers
+  { key: "rivers", n: "5 · 26–27 Sep", name: "Rivers rise", t0: 39, t1: PEAK_T, rainFx: 1,   // rain builds up with the clock, alongside the rivers; falling rain in the valley view
     cam: { center: [-82.62, 35.62], zoom: 9.7, tilt: 62, heading: 335 }, cam2: VALLEY, show: { gauges: 1, rainSurf: 1, rivers: 1 },   // the whole river network first, then down into the French Broad valley, looking south (upstream) from north of Asheville
     story: `<p>All that rain ran off the soaked slopes into streams and rivers at once. At least 63 river gauges broke their records.</p>
       <p>The map zooms down into the valley of the French Broad River. You are north of Asheville, looking south, up the valley: the river flows towards you. The clock starts just before Thursday 26 September.</p>
@@ -1632,7 +1633,7 @@ $("panes").addEventListener("scroll", checkMore); addEventListener("resize", che
 // ---------- motion (WCAG 2.2.2): everything that moves on its own can be stopped ----------
 let motionOn = !matchMedia("(prefers-reduced-motion: reduce)").matches;
 function setMotion(on) {
-  motionOn = on;
+  motionOn = on; rainFx();
   $("motionSw").textContent = on ? "On" : "Off"; $("motionSw").setAttribute("aria-checked", String(on));
   if (!on && revealTimer) { clearTimeout(revealTimer); for (const [k] of REVEAL) vis[k] = k !== "steep"; applyVis(); }
 }
@@ -1760,7 +1761,7 @@ function render(force) {
   const ms = tAt(hNow);
   $("tLabel").textContent = fmtEDT(ms) + " EDT";
   $("tUtc").textContent = fmtUTC(ms);
-  G.drawRain(); drawGauges(); R.draw(); drawSlides(); drawPattern(); rainInfo();
+  G.drawRain(); drawGauges(); R.draw(); drawSlides(); drawPattern(); rainInfo(); rainFx();
   $("tSlider").setAttribute("aria-valuetext", fmtEDT(ms) + " EDT");
   updateDesc(!playing);
 }
@@ -1777,6 +1778,21 @@ function showBeat(b) {
   const tmp = document.createElement("div"); tmp.innerHTML = b.text; $("liveDesc").textContent = `${b.title}. ${tmp.textContent}`;
   if (b.cam) view.goTo(fitCam(b.cam), { duration: motionOn ? 2500 : 0, easing: "in-out-cubic" }).catch(() => {});
   $("goBtn").focus();
+}
+// ---------- falling rain in the 3D view (step 5) ----------
+// The SDK's rainy weather, as heavy as the radar rain falling that hour in the French Broad valley (mean of five towns). The SDK draws
+// weather only when the camera is below 10 km, so it shows in the valley view, not in the overview. Off when motion is off.
+const RAIN_FX_PTS = [[35.595, -82.551], [35.429, -82.553], [35.318, -82.461], [35.233, -82.734], [35.398, -82.595]];   // Asheville, Fletcher, Hendersonville, Brevard, Mills River
+const WEATHER0 = view.environment.weather.clone();
+let fxKey = "off";
+function rainFx() {
+  let key = "off", w = WEATHER0;
+  if (motionOn && CH[chapter].rainFx && G.ready) {
+    const r = RAIN_FX_PTS.reduce((a, [la, lo]) => a + G.rateAt(la, lo), 0) / RAIN_FX_PTS.length;   // inches this hour
+    if (r < 0.03) { key = "cloudy"; w = { type: "cloudy", cloudCover: 0.8 }; }
+    else { const pr = Math.min(1, 0.25 + 0.75 * r); key = "rain" + pr.toFixed(1); w = { type: "rainy", cloudCover: 0.9, precipitation: +pr.toFixed(1) }; }
+  }
+  if (key !== fxKey) { fxKey = key; view.environment.weather = key === "off" ? WEATHER0.clone() : w; }
 }
 function startGlide(gl) {
   const secs = Math.max(0, (gl.to - hNow) / +$("speed").value);
