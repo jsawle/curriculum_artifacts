@@ -354,7 +354,7 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.46";
+const APP_VERSION = "0.47";
 const APP_DATE = "2 October 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
@@ -429,7 +429,7 @@ function landfallPhase(ms) { const d = (ms - LANDFALL.t) / HR; return d < -4 ? n
 const VALLEY = { center: [-82.644, 35.421], zoom: 12.07, tilt: 74, heading: 196 };   // north of Asheville, looking south up the French Broad valley (steps 5 and 6)
 const SLIDES_CAM = { center: [-82.448, 35.573], zoom: 10.43, tilt: 56, heading: 94 };    // step 6: looking east across Asheville to the Blue Ridge
 const SLIDES_WIDE = { center: [-82.322, 35.556], zoom: 8.86, tilt: 50, heading: 94 };   // step 6, zoomed out: the whole band of landslides
-const FINAL = { center: [-82.353, 35.021], zoom: 7.74, tilt: 18, heading: 332 };   // step 7's last frame: everything that lined up, from above
+const FINAL = { center: [-82.216, 35.13], zoom: 7.74, tilt: 14, heading: 333 };   // step 7's last frame: everything that lined up, from above
 const PEAK_T = (Date.UTC(2024, 8, 27, 21, 38) - T0) / HR;   // the French Broad peaks at Asheville: step 5 ends here and step 6 stays at this moment
 const CAM_MTN = { center: [-82.3, 35.5], zoom: 8.3, tilt: 60, heading: 318 };   // from the south-east, looking north-west over the Blue Ridge
 const CH = [
@@ -554,6 +554,10 @@ const mpoint = (pts) => new Multipoint({ points: pts, spatialReference: { wkid: 
 const sceneEl = document.querySelector("arcgis-scene");
 await sceneEl.viewOnReady();
 const view = sceneEl.view, map = sceneEl.map;
+// The step views were set on a 1907 × 937 map. The same zoom shows a smaller area in a smaller window, so zoom is adjusted by the
+// window's diagonal: the camera then sits in the same place and the view frames the same area on any screen (checked against
+// two screenshots of the final view, 1907 × 937 and 1517 × 751: their fitted zooms differ by 0.33, and log2(2125 / 1693) = 0.33).
+const fitCam = (cam) => cam && cam.zoom != null ? { ...cam, zoom: cam.zoom + Math.log2(Math.hypot(view.width || 1907, view.height || 937) / 2125) } : cam;
 view.environment.atmosphereEnabled = true;
 view.popupEnabled = true;
 // keep the camera's focus in the part of the map that the floating card and time bar do not cover
@@ -1604,7 +1608,7 @@ $("goBtn").onclick = () => {
   if (stepDone()) return chapter < CH.length - 1 ? goChapter(chapter + 1, true, true) : goChapter(0, true, false);
   play();
 };
-$("replayBtn").onclick = () => { const c = CH[chapter]; setTime(c.t0); if (c.glide) view.goTo(c.cam, { animate: false }).catch(() => {}); play(); };
+$("replayBtn").onclick = () => { const c = CH[chapter]; setTime(c.t0); if (c.glide) view.goTo(fitCam(c.cam), { animate: false }).catch(() => {}); play(); };
 $("legendTitle").onclick = () => { const c = $("legend").classList.toggle("collapsed"); $("legendTitle").setAttribute("aria-expanded", String(!c)); };
 if (innerWidth <= 760) { $("legend").classList.add("collapsed"); $("legendTitle").setAttribute("aria-expanded", "false"); }
 const EXPLORE = { rivers: "River chart", slides: "Slope test", lined: "Test it" };
@@ -1741,10 +1745,10 @@ function goChapter(i, animate = true, autoplay = false) {
   const token = goChapter.token = (goChapter.token || 0) + 1;
   const arrived = () => { if (token !== goChapter.token) return; if (c.key === "slides") revealSlides(); if (autoplay && c.t1 > c.t0 && !c.noAuto) play(); };
   const fly = animate && motionOn;
-  if (c.cam2 && !fly) view.goTo(c.cam2, { animate: false }).then(arrived, arrived);
-  else if (c.cam2) view.goTo(c.cam, { duration: 2500, easing: "in-out-cubic" })   // overview first, a short look, then down to the close view
-    .then(() => new Promise(r => setTimeout(r, 1500))).then(() => token === goChapter.token ? view.goTo(c.cam2, { duration: 3500, easing: "in-out-cubic" }) : null).then(arrived, arrived);
-  else view.goTo(c.cam, { duration: fly ? 2500 : 0, easing: "in-out-cubic" }).then(arrived, arrived);
+  if (c.cam2 && !fly) view.goTo(fitCam(c.cam2), { animate: false }).then(arrived, arrived);
+  else if (c.cam2) view.goTo(fitCam(c.cam), { duration: 2500, easing: "in-out-cubic" })   // overview first, a short look, then down to the close view
+    .then(() => new Promise(r => setTimeout(r, 1500))).then(() => token === goChapter.token ? view.goTo(fitCam(c.cam2), { duration: 3500, easing: "in-out-cubic" }) : null).then(arrived, arrived);
+  else view.goTo(fitCam(c.cam), { duration: fly ? 2500 : 0, easing: "in-out-cubic" }).then(arrived, arrived);
   updateDesc(true);
 }
 
@@ -1771,16 +1775,16 @@ function showBeat(b) {
   $("beatWhen").textContent = b.when || "Paused · " + fmtEDT(tAt(b.t)) + " EDT"; $("beatTitle").textContent = b.title; $("beatText").innerHTML = b.text;
   $("beat").hidden = false; $("story").hidden = true; $("panes").scrollTop = 0; checkMore(); updateGo();
   const tmp = document.createElement("div"); tmp.innerHTML = b.text; $("liveDesc").textContent = `${b.title}. ${tmp.textContent}`;
-  if (b.cam) view.goTo(b.cam, { duration: motionOn ? 2500 : 0, easing: "in-out-cubic" }).catch(() => {});
+  if (b.cam) view.goTo(fitCam(b.cam), { duration: motionOn ? 2500 : 0, easing: "in-out-cubic" }).catch(() => {});
   $("goBtn").focus();
 }
 function startGlide(gl) {
   const secs = Math.max(0, (gl.to - hNow) / +$("speed").value);
-  view.goTo(gl.cam, { duration: motionOn ? secs * 1000 : 0, easing: "in-out-sine" }).catch(() => {});
+  view.goTo(fitCam(gl.cam), { duration: motionOn ? secs * 1000 : 0, easing: "in-out-sine" }).catch(() => {});
 }
 function play() {
   hideBeat();
-  const c = CH[chapter]; if (hNow >= c.t1 - 0.01) { setTime(c.t0); if (c.glide) view.goTo(c.cam, { animate: false }).catch(() => {}); }
+  const c = CH[chapter]; if (hNow >= c.t1 - 0.01) { setTime(c.t0); if (c.glide) view.goTo(fitCam(c.cam), { animate: false }).catch(() => {}); }
   if (c.glide && hNow > c.glide.from && hNow < c.glide.to) startGlide(c.glide);   // pressed Play part-way through the glide
   if (c.t1 <= c.t0) return;
   playing = true; updateGo();
