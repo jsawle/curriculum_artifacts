@@ -349,7 +349,7 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.38";
+const APP_VERSION = "0.39";
 const APP_DATE = "2 October 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
@@ -467,11 +467,11 @@ const CH = [
     ],
     qs: ["Watch the streaks as they cross the dashed line. Where do they turn dark blue: in front of the escarpment, on it, or behind it?", "Switch the mountains to 3×. Does the deepest blue follow the shape of the mountains?", "Click a few places on the map. Which has the most rain? What is the ground like there?"] },
   { key: "rivers", n: "5 · 26–28 Sep", name: "Rivers rise", t0: 42, t1: 90, rainTotal: 1,
-    cam: { center: [-82.62, 35.62], zoom: 8.7, tilt: 62, heading: 335 }, show: { gauges: 1, rainSurf: 1, rivers: 1 },
+    cam: { center: [-82.62, 35.62], zoom: 9.7, tilt: 62, heading: 335 }, show: { gauges: 1, rainSurf: 1, rivers: 1 },
     story: `<p>All that rain ran off the soaked slopes into streams and rivers at once. At least 63 river gauges broke their records.</p>
       <p>The <b>rivers</b> grow wider as they carry more water, and the white arrows show which way the water flows. Grey dashed rivers had no flow gauge, so they show direction only. Each column is a river gauge: the <b>red ring</b> marks major flooding, the <b>white ring</b> the highest the river had been before Helene. A ★ by the name means it has broken that record.</p>`,
     beats: [
-      { t: (Date.UTC(2024, 8, 27, 21, 38) - T0) / HR, title: "The French Broad peaks at Asheville",
+      { t: (Date.UTC(2024, 8, 27, 21, 38) - T0) / HR, title: "The French Broad peaks at Asheville", cam: { center: [-82.56, 35.585], zoom: 11, tilt: 60, heading: 335 },
         text: `<p>At 5:38 pm the French Broad River at Asheville reaches <b>24.8 ft</b>, higher than in the great flood of 1916. About <b>113,000 cubic feet of water</b> rush past every second: more than an Olympic swimming pool each second.</p>
           <p>Follow the white arrows. The French Broad flows <b>north</b>, through the mountains into Tennessee, and so do the Pigeon and the Nolichucky, so towns such as Newport and Erwin in Tennessee flood too. The Catawba flows east, towards the Atlantic.</p>` }
     ],
@@ -1357,6 +1357,7 @@ function fillGaugeSelect() {
 let hydroMode = "h";
 const fmtQ = (q) => `${Math.round(q).toLocaleString("en-US")} ft³/s (${Math.round(q * 0.0283168).toLocaleString("en-US")} m³/s)`;
 function flowAt(g, ms) { if (!g.qt) return null; let k = -1; for (let i = 0; i < g.qt.length && g.qt[i] <= ms; i++) k = i; return k < 0 || ms - g.qt[k] > 45 * 60e3 ? null : g.q[k]; }
+const chartLabel = (x, y, t) => `<text x="${x}" y="${y}" font-size="10.5" fill="var(--muted)" stroke="var(--panel)" stroke-width="3" stroke-linejoin="round" paint-order="stroke">${t}</text>`;
 function drawFlow(box, g) {
   if (!g.qt) { box.innerHTML = `<div class="cap">The USGS has no flow record for this gauge in the saved data.</div>`; return; }
   const W = 360, H = 190, L = 40, R = 8, T = 10, B = 24, x0 = tAt(0), x1 = tAt(HOURS);
@@ -1371,7 +1372,7 @@ function drawFlow(box, g) {
   const ticks = []; for (let day = 25; day <= 28; day++) { const t = Date.UTC(2024, 8, day, 4); ticks.push(`<line x1="${X(t)}" x2="${X(t)}" y1="${T}" y2="${H - B}" stroke="var(--rule)"/><text x="${X(t)}" y="${H - 8}" font-size="10.5" text-anchor="middle" fill="var(--muted)">${DAYS[new Date(t).getUTCDay()]} ${day}</text>`); }
   const yt = []; for (let q = 0; q <= ymax; q += step * (ymax / step > 6 ? 2 : 1)) yt.push(`<text x="${L - 5}" y="${Y(q) + 3.5}" font-size="10.5" text-anchor="end" fill="var(--muted)">${q >= 1000 ? q / 1000 + "k" : q}</text>`);
   const now = tAt(hNow), qNow = flowAt(g, now);
-  const rec = g.prevQ != null ? `<line x1="${L}" x2="${W - R}" y1="${Y(g.prevQ)}" y2="${Y(g.prevQ)}" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="4 3"/><text x="${W - R}" y="${Y(g.prevQ) - 3}" text-anchor="end" font-size="10.5" fill="var(--muted)">highest before Helene ${Math.round(g.prevQ).toLocaleString("en-US")} (${g.prevYear})</text>` : "";
+  const rec = g.prevQ != null ? `<line x1="${L}" x2="${W - R}" y1="${Y(g.prevQ)}" y2="${Y(g.prevQ)}" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="4 3"/>${chartLabel(L + 5, Y(g.prevQ) - 4, `highest before Helene ${Math.round(g.prevQ).toLocaleString("en-US")} (${g.prevYear})`)}` : "";
   box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="River flow at ${g.short}">
     ${ticks.join("")}${yt.join("")}<text x="4" y="${T + 4}" font-size="10.5" fill="var(--muted)">ft³/s</text>${rec}
     <path d="${d}" fill="none" stroke="var(--s1)" stroke-width="2" stroke-linejoin="round"/>
@@ -1397,15 +1398,18 @@ function drawHydro() {
   let d = "", pen = false;
   for (let i = 0; i < g.t.length; i++) { if (g.t[i] < x0 || g.t[i] > x1) { pen = false; continue; }
     const gap = i > 0 && g.t[i] - g.t[i - 1] > 45 * 60e3; d += (pen && !gap ? "L" : "M") + X(g.t[i]).toFixed(1) + "," + Y(g.s[i]).toFixed(1); pen = true; }
-  const hline = (v, color, label) => v == null ? "" : `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="${color}" stroke-width="1.5" stroke-dasharray="4 3"/><text x="${W - R}" y="${Y(v) - 3}" text-anchor="end" font-size="10.5" fill="var(--muted)">${label}</text>`;
+  // line labels sit at the left, where the river is still low, with a halo so lines behind them do not cut through the words;
+  // when the two lines are close, the lower line's label goes under its line
+  const close = g.major != null && g.rec != null && Math.abs(Y(g.major) - Y(g.rec)) < 13;
+  const hline = (v, color, label, below) => v == null ? "" : `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="${color}" stroke-width="1.5" stroke-dasharray="4 3"/>${chartLabel(L + 5, below ? Y(v) + 11 : Y(v) - 4, label)}`;
   const ticks = []; for (let day = 25; day <= 28; day++) { const t = Date.UTC(2024, 8, day, 4); ticks.push(`<line x1="${X(t)}" x2="${X(t)}" y1="${T}" y2="${H - B}" stroke="var(--rule)"/><text x="${X(t)}" y="${H - 8}" font-size="10.5" text-anchor="middle" fill="var(--muted)">${DAYS[new Date(t).getUTCDay()]} ${day}</text>`); }
   const yt = []; for (let s = 0; s <= ymax; s += 5) yt.push(`<text x="${L - 5}" y="${Y(s) + 3.5}" font-size="10.5" text-anchor="end" fill="var(--muted)">${s}</text>`);
   const now = tAt(hNow), sNow = stageAt(g, now);
   box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="River height at ${g.short}">
     ${ticks.join("")}${yt.join("")}
     <text x="4" y="${T + 4}" font-size="10.5" fill="var(--muted)">ft</text>
-    ${hline(g.major, "var(--critical)", "major flood " + g.major + " ft")}
-    ${hline(g.rec, "var(--ink)", `record before Helene ${g.rec?.toFixed(1)} ft (${g.recYear})`)}
+    ${hline(g.major, "var(--critical)", "major flood " + g.major + " ft", close && g.major <= g.rec)}
+    ${hline(g.rec, "var(--ink)", `record before Helene ${g.rec?.toFixed(1)} ft (${g.recYear})`, close && g.rec < g.major)}
     <path d="${d}" fill="none" stroke="var(--s1)" stroke-width="2" stroke-linejoin="round"/>
     <line x1="${X(now)}" x2="${X(now)}" y1="${T}" y2="${H - B}" stroke="var(--ink)" stroke-width="1"/>
     ${sNow != null ? `<circle cx="${X(now)}" cy="${Y(sNow)}" r="4.5" fill="var(--s1)" stroke="var(--panel)" stroke-width="2"/>` : ""}
