@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-<title>Hurricane Helene 2024: Rain, Rivers and Landslides</title>
+<title>Thinking Spatially: Understanding Hurricane Helene and its impact on Appalachian communities</title>
 <meta name="description" content="Grades 6-8 case study: follow Hurricane Helene (September 2024) from the Gulf to the southern Appalachians in 3D, with real NOAA radar rainfall, USGS river gauges and the USGS landslide inventory." />
 <script type="module" src="https://js.arcgis.com/5.1/"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -218,6 +218,17 @@
   body.compact.folded #timebar { left: 12px; }
   body.compact.folded #exag, body.compact.folded #toast { left: 50%; }
 
+  /* title bar: a thin panel across the top of the map at the start; after 30 seconds (or when closed) it becomes a small button */
+  #titleBar { position: absolute; left: 416px; right: 64px; top: 12px; z-index: 5; display: flex; align-items: center; gap: 4px 14px; flex-wrap: wrap; padding: 8px 8px 8px 18px; border-radius: 14px; }
+  #titleBar .tk { font-size: 19px; font-weight: 800; letter-spacing: -0.01em; color: var(--ink); white-space: nowrap; }
+  #titleBar .ts { flex: 1; min-width: 0; font-size: 15px; font-weight: 500; line-height: 1.3; color: var(--muted); }
+  #titleBar .iconbtn { width: 30px; height: 30px; font-size: 14px; flex: none; margin-left: auto; }
+  #titlePill { position: absolute; right: 64px; top: 12px; z-index: 5; padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 800; color: var(--ink); }
+  @media (prefers-reduced-motion: no-preference) { #titleBar:not([hidden]), #titlePill:not([hidden]) { animation: titleIn .4s ease-out; } @keyframes titleIn { from { opacity: 0; transform: translateY(-6px); } } }
+  body.titled #exag { top: 72px; }
+  body.titled #toast { top: 120px; }
+  body.compact #titleBar { left: 354px; right: 60px; }
+
   /* phones and narrow windows: the card becomes a sheet at the bottom, the time bar moves to the top */
   @media (max-width: 760px) {
     #card { left: 8px; right: 8px; top: auto; bottom: 26px; width: auto; max-height: 50%; padding: 12px 14px 10px; }
@@ -231,6 +242,10 @@
     #credit { right: 8px; top: auto; bottom: calc(50% + 30px); padding: 4px 8px; font-size: 10.5px; }
     #exag { left: 8px; top: 92px; transform: none; font-size: 11.5px; }
     #toast { left: 50%; max-width: calc(100% - 32px); top: 96px; }
+    #titleBar { left: 8px; right: 8px; top: 8px; z-index: 7; padding: 6px 6px 6px 12px; }
+    #titleBar .ts { font-size: 14px; }
+    #titlePill { right: 8px; top: auto; bottom: calc(50% + 74px); }
+    body.titled #exag { top: 92px; }
     arcgis-zoom, arcgis-navigation-toggle, arcgis-compass { display: none; }
   }
 </style>
@@ -243,6 +258,8 @@
       <arcgis-navigation-toggle slot="top-right"></arcgis-navigation-toggle>
       <arcgis-compass slot="top-right"></arcgis-compass>
     </arcgis-scene>
+    <div id="titleBar" class="glass" role="region" aria-label="Title"><span class="tk">Thinking Spatially</span><span class="ts">Understanding Hurricane Helene and its impact on Appalachian communities</span><button id="titleClose" class="iconbtn" aria-label="Hide the title" title="Hide the title">✕</button></div>
+    <button id="titlePill" class="glass" aria-expanded="true" aria-controls="titleBar" title="Show the title" hidden>Thinking Spatially</button>
     <div id="exag" class="glass">Mountains <button data-x="1" aria-pressed="false">true height</button><button data-x="2" aria-pressed="true">2×</button><button data-x="3" aria-pressed="false">3×</button></div>
     <div id="toast" role="status"></div>
     <div id="legend" class="glass" role="group" aria-labelledby="legendTitle">
@@ -390,7 +407,7 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.57";
+const APP_VERSION = "0.58";
 const APP_DATE = "2 October 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
@@ -409,7 +426,7 @@ const MODELS = [
 ];
 const $ = (id) => document.getElementById(id);
 $("verTop").textContent = "v" + APP_VERSION;
-document.title = "Hurricane Helene 2024 (v" + APP_VERSION + ")";
+document.title = "Thinking Spatially: Hurricane Helene (v" + APP_VERSION + ")";
 $("verTable").innerHTML = `<tr><th>Part</th><th>Version</th><th>How it works</th></tr><tr><td>App</td><td class="v">${APP_VERSION}</td><td>${APP_DATE}</td></tr>` +
   MODELS.map(([n, v, d]) => `<tr><td>${n}</td><td class="v">${v}</td><td>${d}</td></tr>`).join("");
 const mv = (name) => { const m = MODELS.find(x => x[0] === name); return m ? `<span class="mv">model ${m[1]}</span>` : ""; };
@@ -616,7 +633,7 @@ function setPadding() {
 const fsOK = !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
 const fsOn = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
 function setFolded(on) {
-  document.body.classList.toggle("folded", on);
+  document.body.classList.toggle("folded", on); if (on) { clearTimeout(titleT); setTitle(false); }
   $("mini").hidden = !on; setPadding();
   (on ? $("unfoldBtn") : $("foldBtn")).focus();
 }
@@ -629,6 +646,12 @@ function applyLayout() {
   if (small && !compactInit) { compactInit = true; $("legend").classList.add("collapsed"); $("legendTitle").setAttribute("aria-expanded", "false"); }   // the map key starts closed
   setPadding();
 }
+// ---------- title bar ----------
+function setTitle(open) { $("titleBar").hidden = !open; $("titlePill").hidden = open; $("titlePill").setAttribute("aria-expanded", String(open)); document.body.classList.toggle("titled", open); }
+let titleT = setTimeout(() => setTitle(false), 30000);
+$("titleClose").onclick = () => { clearTimeout(titleT); setTitle(false); $("titlePill").focus(); };
+$("titlePill").onclick = () => { clearTimeout(titleT); setTitle(true); $("titleClose").focus(); };
+setTitle(true);
 $("foldBtn").onclick = () => setFolded(true);
 $("unfoldBtn").onclick = () => setFolded(false);
 $("miniGo").onclick = () => $("goBtn").click();
