@@ -194,6 +194,30 @@
   table.mx td b { display: block; font-size: 18px; font-variant-numeric: tabular-nums; }
   table.mx td span { font-size: 11.5px; color: var(--muted); }
 
+  .tourrow { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  #timebar { grid-template-columns: auto 1fr auto auto; }
+  #tSub { grid-column: 1 / -1; }
+  #fsBtn { width: 34px; height: 34px; }
+  #mini { position: absolute; left: 12px; top: 12px; z-index: 6; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 14px; max-width: calc(100% - 96px); }
+  #mini[hidden] { display: none; }
+  #miniStep { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  #miniGo { flex: none; padding: 8px 14px; border-radius: 12px; }
+
+  /* small screens such as school Chromebooks and iPads (wider than 760 px but under 1280 × 780): a narrower card with tighter
+     spacing (text stays the same size), a slimmer time bar, the map key starting closed, a full-screen button and a Hide card button */
+  body.compact #card { left: 12px; top: 12px; bottom: 24px; width: 330px; padding: 12px 14px 10px; max-height: calc(100% - 36px); }
+  body.compact h1 { margin: 2px 0 0; }
+  body.compact .stepnav ol { margin-bottom: 6px; }
+  body.compact .tour { margin: 0 0 4px; padding: 5px 12px; }
+  body.compact #timebar { left: 354px; right: 12px; bottom: 24px; padding: 6px 12px; }
+  body.compact #tSub { display: none; }
+  body.compact #credit { right: 12px; bottom: 80px; }
+  body.compact #legend { right: 12px; bottom: 126px; }
+  body.compact #exag, body.compact #toast { left: calc(50% + 171px); }
+  body.compact.folded #card { display: none; }
+  body.compact.folded #timebar { left: 12px; }
+  body.compact.folded #exag, body.compact.folded #toast { left: 50%; }
+
   /* phones and narrow windows: the card becomes a sheet at the bottom, the time bar moves to the top */
   @media (max-width: 760px) {
     #card { left: 8px; right: 8px; top: auto; bottom: 26px; width: auto; max-height: 50%; padding: 12px 14px 10px; }
@@ -245,10 +269,16 @@
       <button class="more-layers" id="allLayers" aria-pressed="false">More layers…</button>
     </div>
     <div id="credit" class="glass"><b>Created by Jason Sawle</b><br>© Esri 2026</div>
+    <div id="mini" class="glass" role="region" aria-label="Story controls" hidden>
+      <button id="unfoldBtn" class="ghost" title="Show the story card">› Show card</button>
+      <span id="miniStep"></span>
+      <button id="miniGo" class="primary">▶ Play</button>
+    </div>
     <div id="timebar" class="glass">
       <div id="tLabel">—</div>
       <input id="tSlider" type="range" min="0" max="108" step="0.25" value="0" aria-label="Time" />
       <select id="speed" aria-label="Playback speed"><option value="1">very slow</option><option value="2">slow</option><option value="4" selected>normal</option><option value="10">fast</option></select>
+      <button id="fsBtn" class="iconbtn" aria-pressed="false" aria-label="Full screen" title="Full screen" hidden><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path id="fsIcon" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
       <div id="tSub"><span id="tUtc"></span><span class="far" id="tStorm"></span></div>
     </div>
   </main>
@@ -268,7 +298,8 @@
       <p class="lede">Hurricane Helene, September 2024. Why did the worst floods and landslides happen in the mountains of North Carolina, nearly 400 miles from where Helene came ashore?</p>
     </header>
     <nav class="stepnav" aria-label="Steps"><ol id="steps"></ol></nav>
-    <button id="tourBtn" class="tour" aria-pressed="false" title="Plays all seven steps with spoken narration">▶ Play the whole story</button>
+    <div class="tourrow"><button id="tourBtn" class="tour" aria-pressed="false" title="Plays all seven steps with spoken narration">▶ Play the whole story</button>
+      <button id="foldBtn" class="ghost" hidden title="Hide this card to see more of the map">Hide card ‹</button></div>
     <section id="chapter" aria-labelledby="chTitle">
       <div class="titlerow"><div><div class="stepof" id="stepOf"></div><h2 id="chTitle"></h2></div></div>
       <div class="tabs" role="tablist" aria-label="Step contents">
@@ -348,6 +379,7 @@
         <li>The page is being built towards <b>WCAG 2.1 level AA</b>, the standard US public schools must meet under the ADA Title II web rule. It has not been independently audited.</li>
         <li>Everything can be used with a keyboard. <b>Describe the map</b>, in the story card, gives a written description of what the 3D map is showing, updated as the timeline moves; screen readers announce it when the timeline is paused or the step changes.</li>
         <li>The moving streaks and spinning clouds can be stopped in <b>Settings</b> (⚙, top of the story card); this also makes the landslides appear at once instead of fading in. If the device is set to reduce motion, the page starts with them stopped. Pressing <b>Pause</b> stops the timeline.</li>
+        <li><b>Small screens.</b> On school Chromebooks, iPads and other screens under about 1280 × 780 (but wider than a phone), the card is a little narrower, the time bar slimmer and the map key starts closed; text stays the same size. Two extra buttons appear: <b>full screen</b> (in the time bar, where the browser allows it) and <b>Hide card</b> (under the step buttons), which folds the card to a small strip with the step and its main button so the map can use the whole width. Larger screens keep the usual layout.</li>
         <li><b>Listen</b> (🔊, top right of the story card) uses the device's own voice to tell the part of the story the card is showing (the step, a pause or a stage). The spoken words are written to be heard, so they differ a little from the card text. <b>Play the whole story</b> (under the step buttons) runs all seven steps in order, with the narration, the timeline and the camera moves; any button, the timeline or Stop ends it. It is optional and off by default, so it does not clash with screen readers. The page picks a natural-sounding female US English voice if the device has one (for example Microsoft Aria or Jenny in Edge, Google US English in Chrome, Samantha on Apple devices); a different voice can be chosen in Settings. Voices differ by device and browser; Microsoft Edge has the most natural ones.</li>
         <li>Known gaps: the 3D map itself cannot be explored by a screen reader beyond the written description; the river and slope charts have written summaries but no data tables yet.</li>
       </ul>
@@ -358,7 +390,7 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.56";
+const APP_VERSION = "0.57";
 const APP_DATE = "2 October 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
@@ -573,8 +605,41 @@ const fitCam = (cam) => cam && cam.zoom != null ? { ...cam, zoom: cam.zoom + Mat
 view.environment.atmosphereEnabled = true;
 view.popupEnabled = true;
 // keep the camera's focus in the part of the map that the floating card and time bar do not cover
-function setPadding() { const wide = innerWidth > 760; view.padding = wide ? { left: 410, bottom: 100, top: 20, right: 60 } : { top: 80, bottom: Math.round(innerHeight * 0.5), left: 0, right: 0 }; }
-setPadding(); addEventListener("resize", setPadding);
+const isCompact = () => innerWidth > 760 && (innerWidth < 1280 || innerHeight < 780);   // school Chromebooks (about 1366 × 650 in Chrome) and iPads
+function setPadding() {
+  if (innerWidth <= 760) { view.padding = { top: 80, bottom: Math.round(innerHeight * 0.5), left: 0, right: 0 }; return; }
+  if (!document.body.classList.contains("compact")) { view.padding = { left: 410, bottom: 100, top: 20, right: 60 }; return; }   // the original layout
+  const folded = document.body.classList.contains("folded"), tb = $("timebar").getBoundingClientRect();
+  // folded: the map controls start below the small strip at the top left
+  view.padding = { left: folded ? 20 : Math.round($("card").getBoundingClientRect().right + 10), bottom: Math.round(innerHeight - tb.top + 10), top: folded ? Math.round($("mini").getBoundingClientRect().bottom + 8) : 20, right: 60 };
+}
+const fsOK = !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
+const fsOn = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+function setFolded(on) {
+  document.body.classList.toggle("folded", on);
+  $("mini").hidden = !on; setPadding();
+  (on ? $("unfoldBtn") : $("foldBtn")).focus();
+}
+let compactInit = false;
+function applyLayout() {
+  const small = isCompact();
+  document.body.classList.toggle("compact", small);
+  if (!small && document.body.classList.contains("folded")) { document.body.classList.remove("folded"); $("mini").hidden = true; }
+  $("foldBtn").hidden = !small; $("fsBtn").hidden = !(small && fsOK);
+  if (small && !compactInit) { compactInit = true; $("legend").classList.add("collapsed"); $("legendTitle").setAttribute("aria-expanded", "false"); }   // the map key starts closed
+  setPadding();
+}
+$("foldBtn").onclick = () => setFolded(true);
+$("unfoldBtn").onclick = () => setFolded(false);
+$("miniGo").onclick = () => $("goBtn").click();
+$("fsBtn").onclick = () => {
+  if (fsOn()) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+  else { const el = document.documentElement; (el.requestFullscreen || el.webkitRequestFullscreen).call(el); }
+};
+const fsChanged = () => { const on = fsOn(); $("fsBtn").setAttribute("aria-pressed", String(on)); $("fsBtn").setAttribute("aria-label", on ? "Exit full screen" : "Full screen"); $("fsBtn").title = on ? "Exit full screen" : "Full screen";
+  $("fsIcon").setAttribute("d", on ? "M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" : "M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"); };
+document.addEventListener("fullscreenchange", fsChanged); document.addEventListener("webkitfullscreenchange", fsChanged);
+applyLayout(); let layoutT = null; addEventListener("resize", () => { clearTimeout(layoutT); layoutT = setTimeout(applyLayout, 120); });
 
 // Terrain with adjustable exaggeration
 const TERRAIN_URL = "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer";
@@ -1652,6 +1717,7 @@ function updateGo() {
   b.textContent = playing ? "❚❚ Pause" : stage ? "▶ " + stage.label : end ? (last ? "↺ Back to step 1" : "Next step ›") : (!$("beat").hidden || hNow > c.t0 + 0.01) ? "▶ Continue" : "▶ Play";
   $("replayBtn").hidden = !(end && !playing && c.t1 > c.t0);
   $("backBtn").disabled = chapter === 0;
+  $("miniGo").textContent = b.textContent;
 }
 $("goBtn").onclick = () => {
   stopTour();
@@ -1859,6 +1925,7 @@ function goChapter(i, animate = true, autoplay = false, fromTour = false) {
   $("card").classList.toggle("later", i > 0);
   document.querySelectorAll("#steps button").forEach(b => { const k = +b.dataset.i; b.classList.toggle("done", k < i); if (k === i) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current"); });
   $("stepOf").textContent = `Step ${i + 1} of ${CH.length} · ${c.n.split("·")[1].trim()}`;
+  $("miniStep").textContent = `${i + 1} · ${c.name}`;
   $("chTitle").textContent = c.name; $("story").innerHTML = c.story;
   $("chQs").innerHTML = c.qs.map(q => `<li>${q}</li>`).join("");
   const ex = EXPLORE[c.key]; $("tab-explore").hidden = !ex; $("exploreHint").hidden = !ex;
@@ -1896,10 +1963,10 @@ $("tSlider").addEventListener("input", (e) => { stopTour(); pause(); hideBeat();
 function hideBeat() {   // the pause leaves the card and the step's story comes back
   if ($("beat").hidden) return;
   if ($("readBtn").getAttribute("aria-pressed") === "true") stopReading();
-  $("beat").hidden = true; $("story").hidden = false; checkMore();
+  $("beat").hidden = true; $("story").hidden = false; checkMore(); $("miniStep").textContent = `${chapter + 1} · ${CH[chapter].name}`;
 }
 function showBeat(b) {
-  stopReading(); selectTab("story"); curBeat = b;
+  stopReading(); selectTab("story"); curBeat = b; $("miniStep").textContent = b.title;
   $("beatWhen").textContent = b.when || "Paused · " + fmtEDT(tAt(b.t)) + " EDT"; $("beatTitle").textContent = b.title; $("beatText").innerHTML = b.text;
   $("beat").hidden = false; $("story").hidden = true; $("panes").scrollTop = 0; checkMore(); updateGo();
   const tmp = document.createElement("div"); tmp.innerHTML = b.text; $("liveDesc").textContent = `${b.title}. ${tmp.textContent}`;
