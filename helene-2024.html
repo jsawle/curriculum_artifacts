@@ -407,7 +407,7 @@
 <script type="module">
 /* Hurricane Helene 2024 case study. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "0.58";
+const APP_VERSION = "0.59";
 const APP_DATE = "2 October 2026";
 const MODELS = [
   ["Storm track and clouds", "0.2", "NHC best track, 6-hourly, joined by straight lines; cloud spiral is a drawing sized to Helene's wind field, turning anticlockwise with bands that trail the spin"],
@@ -1846,38 +1846,49 @@ const LISTEN_BTNS = ["readBtn"];
 const markListen = (on) => LISTEN_BTNS.forEach(id => { const b = $(id); if (b) { b.setAttribute("aria-pressed", String(on)); b.textContent = on ? "■ Stop" : "🔊 Listen"; } });
 let narrateCancel = null;
 function stopReading() { if (narrateCancel) narrateCancel(); if (canSpeak) speechSynthesis.cancel(); markListen(false); }
-const speechText = (raw) => raw.replace(/\bEDT\b/g, "Eastern time").replace(/\bmph\b/g, "miles per hour").replace(/\s+/g, " ").trim();
+const SAY_AS = [[/\bHelene\b/g, "Heh-leen"], [/\bSteinhatchee\b/g, "Steen-hatchee"]];   // spellings the voices say correctly (NHC: Helene is "heh-LEEN")
+const speechText = (raw) => SAY_AS.reduce((t, [re, sub]) => t.replace(re, sub), raw.replace(/\bEDT\b/g, "Eastern time").replace(/\bmph\b/g, "miles per hour")).replace(/\s+/g, " ").trim();
 // speak a script one sentence at a time (sounds more natural and avoids some browsers cutting off long speech);
 // resolves true when it finishes, false if stopped. With no voice available it waits about as long as reading it would take.
 let speakRate = 2.6;   // words per second, learned from the voice as it speaks
-const narr = { total: 1, done: 0, sentStart: 0, sentWords: 0, finished: true, t0: 0, dur: 0, timed: false };
+const narr = { total: 1, done: 0, sentStart: 0, sentWords: 0, finished: true, t0: 0, est: 1, evt: false };
+const utterKeep = [];   // Chrome can garbage-collect an utterance and then never send its end event; holding them here prevents that
 function narrProgress() {   // 0 to 1: how much of the current script has been spoken
   if (narr.finished) return 1;
   const now = performance.now();
-  if (narr.timed) return Math.min(0.99, (now - narr.t0) / narr.dur);
-  const inSent = narr.sentStart ? Math.min(narr.sentWords * 0.97, (now - narr.sentStart) / 1000 * speakRate) : 0;
-  return Math.min(0.99, (narr.done + inSent) / narr.total);
+  if (narr.evt) { const inSent = narr.sentStart ? Math.min(narr.sentWords * 0.97, (now - narr.sentStart) / 1000 * speakRate) : 0; return Math.min(0.97, (narr.done + inSent) / narr.total); }
+  return Math.min(0.97, (now - narr.t0) / narr.est);   // the browser sends no sentence events: go by the clock at the voice's speaking rate
 }
 // speak a script one sentence at a time (sounds more natural and avoids some browsers cutting off long speech);
-// resolves true when it finishes, false if stopped. With no voice available it waits about as long as reading it would take.
+// resolves true when it finishes, false if stopped. The end is detected three ways, whichever comes first: the last sentence's end
+// event, the browser reporting it has stopped speaking, or (if neither ever comes) a generous time limit. With no voice at all it
+// waits about as long as reading it would take.
 function narrate(raw) {
   stopReading();
   return new Promise(resolve => {
     const text = raw ? speechText(raw) : ""; if (!text) return resolve(true);
     const parts = text.split(/(?<=[.!?:])\s+/).filter(t => t.trim()), w = parts.map(t => t.split(" ").length), total = w.reduce((a, b) => a + b, 0);
-    Object.assign(narr, { total, done: 0, sentStart: 0, sentWords: w[0], finished: false, t0: performance.now(), timed: false });
-    let done = false; const finish = (ok) => { if (done) return; done = true; narr.finished = true; narrateCancel = null; markListen(false); resolve(ok); };
-    narrateCancel = () => finish(false); markListen(true);
-    if (!canSpeak || !voice) { narr.timed = true; narr.dur = Math.max(2500, total / 2.6 * 1000); const h = setTimeout(() => finish(true), narr.dur); narrateCancel = () => { clearTimeout(h); finish(false); }; return; }
-    const guard = setTimeout(() => finish(true), total / 1.4 * 1000 + 6000);   // if a browser never reports the end, carry on
-    narrateCancel = () => { clearTimeout(guard); finish(false); };
-    let cum = 0;
-    parts.forEach((t, k) => { const u = new SpeechSynthesisUtterance(t.trim()), before = cum; cum += w[k];
+    Object.assign(narr, { total, done: 0, sentStart: 0, sentWords: w[0], finished: false, t0: performance.now(), est: Math.max(2500, total / speakRate * 1000), evt: false });
+    let done = false, timers = [];
+    const finish = (ok) => { if (done) return; done = true; timers.forEach(t => { clearTimeout(t); clearInterval(t); });
+      const d = (performance.now() - narr.t0) / 1000; if (ok && narr.spoke && d > 3) speakRate = Math.min(4, Math.max(1.6, 0.6 * speakRate + 0.4 * (total / d)));
+      narr.finished = true; narrateCancel = null; utterKeep.length = 0; markListen(false); resolve(ok); };
+    narrateCancel = () => finish(false); markListen(true); narr.spoke = false;
+    if (!canSpeak || !voice) { timers.push(setTimeout(() => finish(true), narr.est)); return; }
+    timers.push(setTimeout(() => finish(true), narr.est * 2 + 8000));   // last resort
+    let started = false;
+    timers.push(setInterval(() => {   // the browser's own state: speaking, then not speaking and nothing queued = finished
+      if (speechSynthesis.speaking || speechSynthesis.pending) { if (!started) { started = true; narr.spoke = true; if (!narr.evt) narr.t0 = performance.now(); } }
+      else if (started) finish(true);
+      else if (performance.now() - narr.t0 > 6000) { narr.est = Math.max(500, narr.est - 6000); }   // never started: carry on by the clock
+    }, 250));
+    let cum = 0; utterKeep.length = 0;
+    parts.forEach((t, k) => { const u = new SpeechSynthesisUtterance(t.trim()), before = cum; cum += w[k]; utterKeep.push(u);
       u.voice = voice; u.lang = voice.lang; u.rate = 0.95; u.pitch = 1.0;
-      u.onstart = () => { narr.done = before; narr.sentWords = w[k]; narr.sentStart = performance.now(); };
-      u.onend = () => { const d = (performance.now() - narr.sentStart) / 1000; if (narr.sentStart && d > 0.5 && w[k] >= 4) speakRate = 0.7 * speakRate + 0.3 * (w[k] / d);
-        narr.done = before + w[k]; narr.sentStart = 0; if (k === parts.length - 1) { clearTimeout(guard); finish(true); } };
-      u.onerror = (e) => { if (e.error === "interrupted" || e.error === "canceled") return finish(false); if (k === parts.length - 1) { clearTimeout(guard); finish(true); } };   // one failed sentence: carry on with the rest
+      u.onstart = () => { if (!narr.evt) { narr.evt = true; } narr.done = before; narr.sentWords = w[k]; narr.sentStart = performance.now(); };
+      u.onend = () => { const d = (performance.now() - narr.sentStart) / 1000; if (narr.sentStart && d > 0.5 && w[k] >= 4) speakRate = Math.min(4, Math.max(1.6, 0.7 * speakRate + 0.3 * (w[k] / d)));
+        narr.done = before + w[k]; narr.sentStart = 0; if (k === parts.length - 1) finish(true); };
+      u.onerror = (e) => { if (e.error === "interrupted" || e.error === "canceled") return finish(false); if (k === parts.length - 1) finish(true); };   // one failed sentence: carry on with the rest
       speechSynthesis.speak(u); });
   });
 }
@@ -1910,7 +1921,7 @@ async function runTour() {
     const c = CH[i];
     goChapter(i, true, false, true);
     const intro = narrate(c.say);
-    await goChapter.arrivedP; if (tok.stop) break;
+    await Promise.race([goChapter.arrivedP, sleep(10000)]); if (tok.stop) break;
     if (c.t1 > c.t0) {
       if (c.tourFirst) { await intro; if (tok.stop) break; }
       else { const next = (c.beats || []).map(b => b.t).filter(t => t > hNow + 0.01).sort((a, b) => a - b)[0] ?? c.t1; tourSync = { from: hNow, to: next, p0: narrProgress() }; }
