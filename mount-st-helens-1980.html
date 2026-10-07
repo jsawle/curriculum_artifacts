@@ -89,6 +89,14 @@
   #clock { position: absolute; left: 12px; bottom: 28px; background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 8px 12px; font-size: 13px; box-shadow: 0 2px 10px rgba(0,0,0,.15); display: none; max-width: 240px; }
   #clock .big { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
   #toast { position: absolute; left: 50%; top: 52px; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 8px 14px; border-radius: 20px; font-size: 13.5px; font-weight: 600; display: none; z-index: 5; max-width: calc(100% - 32px); text-align: center; }
+  .vtag { font: 600 11px/1 ui-monospace, Menlo, Consolas, monospace; color: var(--muted); background: var(--chip); border: 1px solid var(--rule); border-radius: 4px; padding: 2px 5px; white-space: nowrap; vertical-align: 1px; }
+  #modelVers { margin-top: 6px; line-height: 1.8; }
+  table.vers { border-collapse: collapse; width: 100%; font-size: 13px; margin-top: 6px; }
+  table.vers caption { text-align: left; font-size: 12.5px; color: var(--muted); padding-bottom: 4px; }
+  table.vers th, table.vers td { text-align: left; padding: 4px 6px; border-top: 1px solid var(--rule); vertical-align: top; }
+  table.vers th { font-size: 12px; color: var(--muted); }
+  #credit { position: absolute; right: 12px; bottom: 28px; z-index: 6; background: rgba(0,0,0,.8); color: #fff; border: 1px solid rgba(255,255,255,.25); border-radius: 6px; padding: 5px 9px; font-size: 12px; line-height: 1.3; text-align: right; pointer-events: none; }
+  #legend { bottom: 80px; }   /* sits above the credit box */
   @media (max-width: 760px) {
     #app { flex-direction: column-reverse; }
     #panel { width: 100%; height: 50%; border-right: 0; border-top: 1px solid var(--rule); padding: 14px 16px 24px; }
@@ -98,13 +106,15 @@
     #legend .note, #legend .hint2, #clockNote, #surfaceSub { display: none !important; }
     #legend .t { display: none; }
     #surfaceTag { font-size: 11.5px; top: 8px; max-width: calc(100% - 90px); }
+    #credit { right: 8px; bottom: 20px; padding: 4px 7px; font-size: 11px; }
+    #legend { bottom: 66px; }
   }
 </style>
 </head>
 <body>
 <div id="app">
   <aside id="panel">
-    <div class="kicker">Volcanoes <span class="ver" id="verTop">· version 1.15</span></div>
+    <div class="kicker">Volcanoes <span class="ver" id="verTop">· app version <span data-ver="app">–</span></span></div>
     <h1>Mount St Helens, 18 May 1980</h1>
     <p class="lede">One morning, four hazards. Run each one and compare it with what really happened.</p>
 
@@ -116,6 +126,7 @@
     </div>
 
     <div class="row" id="story" style="margin-top:14px"></div>
+    <div class="hint" id="modelVers"></div>
 
     <div id="controls"></div>
     <div class="btns">
@@ -154,8 +165,8 @@
       </div>
       <details>
         <summary>How the models work</summary>
-        <p><b>Energy cone</b> (pyroclastic flows and the blast). Picture a cone upside down, with its tip high above the vent. A flow starts at that height and loses a fixed amount of height for every metre it travels, set by the <i>mobility</i> (H/L). It can reach any spot where that falling line stays above the ground. A high ridge stops it; a low one is swept over. Scientists use mobility values from 0.05 (very mobile) to 0.5.</p>
-        <p><b>LAHARZ</b> (lahars and the avalanche). From a US Geological Survey method: the bigger the volume, the more of each valley it fills and the more ground it covers. Lahars are runny, so they spread over ten times more ground than a rock avalanche of the same volume. The model follows the river downhill, fills each stretch of valley to the right depth, and stops when it has covered its total area. Close to the summit, everything is treated as a danger zone: ground lower than a cone from the summit that drops 0.23 m for every metre outwards (the value the method's authors used at Mount Rainier), compared square by square as the USGS Laharz_py software does. The map shades only the part of that zone that drains into the valley the flow goes down. Valley-filling starts where the flow leaves the zone.</p>
+        <p><b>Energy cone</b> <span class="vtag" data-model="cone"></span> (pyroclastic flows and the blast). Picture a cone upside down, with its tip high above the vent. A flow starts at that height and loses a fixed amount of height for every metre it travels, set by the <i>mobility</i> (H/L). It can reach any spot where that falling line stays above the ground. A high ridge stops it; a low one is swept over. Scientists use mobility values from 0.05 (very mobile) to 0.5.</p>
+        <p><b>LAHARZ</b> <span class="vtag" data-model="laharz"></span> (lahars and the avalanche). From a US Geological Survey method: the bigger the volume, the more of each valley it fills and the more ground it covers. Lahars are runny, so they spread over ten times more ground than a rock avalanche of the same volume. The model follows the river downhill, fills each stretch of valley to the right depth, and stops when it has covered its total area. Close to the summit, everything is treated as a danger zone: ground lower than a cone from the summit that drops 0.23 m for every metre outwards (the value the method's authors used at Mount Rainier), compared square by square as the USGS Laharz_py software does. The map shades only the part of that zone that drains into the valley the flow goes down. Valley-filling starts where the flow leaves the zone.</p>
       </details>
       <details>
         <summary>What these models can't tell you</summary>
@@ -184,8 +195,17 @@
         <a href="https://gscommunitycodes.usf.edu/geoscicommunitycodes/public/energy-cone/energy_cone.php" target="_blank" rel="noopener">Energy cone model</a> ·
         <a href="https://volcano.oregonstate.edu/mount-st-helens-fact-sheet" target="_blank" rel="noopener">Oregon State Volcano World fact sheet</a>
       </div>
-      <div class="hint" id="version" style="margin-top:10px">Model version 1.15 · 23 September 2026</div>
+      <div class="hint" id="version" style="margin-top:10px">App version <span data-ver="app">–</span> · 7 October 2026</div>
       <div class="hint" id="camRead"></div>
+    </details>
+
+    <details class="teacher" id="aboutVers">
+      <summary>About and versions</summary>
+      <table class="vers">
+        <caption>Version numbers for this app and each model it uses</caption>
+        <thead><tr><th scope="col">Part</th><th scope="col">Version</th><th scope="col">What it does</th></tr></thead>
+        <tbody id="versRows"></tbody>
+      </table>
     </details>
   </aside>
 
@@ -210,11 +230,13 @@
       <div class="k note"><span class="sw" style="background:linear-gradient(90deg, rgba(138,90,43,.5) 50%, rgba(14,116,144,.5) 50%)"></span>Paler shade: danger zone near the summit</div>
       <div class="hint2" id="legendHint">Run a hazard, then tap it here to show or hide it.</div>
     </div>
+    <div id="credit">Created by Jason Sawle<br />© Esri 2026</div>
   </main>
 </div>
 
 <script>
 /* Volcanic hazard models for classroom use. Version 1.5 (23 September 2026).
+   The version numbers shown in the app are kept in VERSIONS in the page script below.
    1. Energy cone (Malin & Sheridan 1982) for pyroclastic density currents and, as an
       approximation, a lateral blast limited to a sector. A current starts at height H above
       the vent and its "energy line" drops by k (= H/L) metres per metre travelled. It can
@@ -504,12 +526,30 @@
 
 <script type="module">
 const HM = window.HazardModels;
-const MODEL_VERSION = "1.15";
-document.title = "Mount St Helens 1980: Four Hazards (v" + MODEL_VERSION + ")";
+// ---------- Versions (single source of truth: the page, the About table and the console all read from here) ----------
+// Bump a model's number whenever its maths or data handling changes, and bump the app version on every release.
+// Up to 1.15 the app version was labelled "model version"; it is the version of the whole app.
+const APP_VERSION = "1.16";
+const MODELS = {
+  cone:     { name: "Energy cone", v: "1.5", what: "Pyroclastic flows and, limited to a fan, the lateral blast. A flow can reach any spot where a line falling H/L metres per metre from above the vent stays above the ground (Malin & Sheridan 1982)." },
+  laharz:   { name: "LAHARZ", v: "1.5", what: "Lahars and the debris avalanche. The volume sets how much of each valley is filled and the total area covered (Iverson and others 1998; Griswold & Iverson 2008), plus the danger zone near the summit (H/L 0.23)." },
+  tidy:     { name: "Map tidying", v: "1.5", what: "Drawing only: removes one-square spikes, fills tiny holes and rounds off thin fingers. Distances and areas come from the model before tidying." },
+  pfMatch:  { name: "Match to the 1980 map", v: "1.0", what: "Sets the pyroclastic flows' mobility so the default column reaches as far north as the USGS map of the 18 May deposits (7.6 km), then measures how much of the mapped deposits the model covers." },
+  clock:    { name: "Hazard clock", v: "1.0", what: "Arrival times from USGS speeds: blast 480 km/h, pyroclastic flows 105 km/h, lahars 5–145 km/h estimated from the slope. The avalanche plays in order without a clock." },
+  ground52: { name: "1952 ground", v: "1.0", what: "USGS pre-1980 elevation model (Bard & Phillips-Netherton 2024) blended into today's terrain with a 600 m feathered edge, used by hazards 1 and 2 and drawn as shaded relief." }
+};
+const VERSIONS = { app: APP_VERSION, ...Object.fromEntries(Object.entries(MODELS).map(([k, m]) => [k, m.v])) };
+const HAZ_MODELS = { aval: ["laharz", "tidy", "ground52"], blast: ["cone", "ground52", "clock"], pf: ["cone", "pfMatch", "clock"], lahar: ["laharz", "tidy", "clock"] };
+document.title = "Mount St Helens 1980: Four Hazards (v" + APP_VERSION + ")";
+document.querySelectorAll("[data-ver]").forEach(el => { el.textContent = VERSIONS[el.dataset.ver] || "–"; });
+document.querySelectorAll("[data-model]").forEach(el => { const m = MODELS[el.dataset.model]; el.textContent = m ? "v" + m.v : "–"; });
+{ const vEsc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  document.getElementById("versRows").innerHTML = `<tr><td>App</td><td>${APP_VERSION}</td><td>1.16: a version for each model, shown beside each hazard and in this table; credit box. 1.15 and earlier were labelled “model version”.</td></tr>` +
+    Object.values(MODELS).map(m => `<tr><td>${vEsc(m.name)}</td><td>${m.v}</td><td>${vEsc(m.what)}</td></tr>`).join(""); }
 // One fixed overview camera: always looking the same way (east-north-east, back up the North Fork Toutle towards the volcano).
 // It frames the mountain box, which holds the avalanche, blast and pyroclastic flows; a lahar that runs beyond it zooms out along the same line.
 const CAM = { heading: 180, tilt: 58, start: { lon: -122.25, lat: 46.40, z: 11000 }, box: [-122.50, 46.08, -121.92, 46.44] };
-console.info("Mount St Helens 1980 hazard explorer, model version " + MODEL_VERSION);
+console.info("Mount St Helens 1980 hazard explorer", VERSIONS);
 const $ = (id) => document.getElementById(id);
 const status = (t) => { $("status").textContent = t; };
 const prog = (f) => { $("prog").style.width = Math.round(f * 100) + "%"; };
@@ -588,9 +628,15 @@ let current = "aval";
 const values = {};
 for (const k in HAZ) for (const c of HAZ[k].controls) values[c.id] = c.value;
 let startOverride = {}, kpTouched = false;               // hazard -> {lon, lat}
+// The models this hazard uses, each with its version (from MODELS above)
+function showModelVers() {
+  $("modelVers").innerHTML = "Models used: " + HAZ_MODELS[current].map(k => `${MODELS[k].name} <span class="vtag">v${MODELS[k].v}</span>`).join(" · ");
+}
+showModelVers();
 function renderControls() {
   const hz = HAZ[current];
   $("story").textContent = hz.story;
+  showModelVers();
   const box0 = $("controls"), box1 = $("advControls"); box0.innerHTML = ""; box1.innerHTML = "";
   for (const c of hz.controls) {
     const box = c.adv ? box1 : box0;

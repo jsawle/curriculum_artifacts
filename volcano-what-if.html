@@ -72,11 +72,15 @@
   input[type=range] { width: 100%; accent-color: var(--accent); }
   table.vers { border-collapse: collapse; width: 100%; font-size: 12.5px; }
   table.vers td, table.vers th { text-align: left; padding: 4px 5px; border-top: 1px solid var(--rule); vertical-align: top; }
+  .step > h2 .ver { white-space: nowrap; }
+  table.vers caption { text-align: left; font-size: 12.5px; color: var(--muted); padding-bottom: 4px; }
+  #credit { position: absolute; right: 12px; bottom: 28px; z-index: 6; background: rgba(0,0,0,.8); color: #fff; border: 1px solid rgba(255,255,255,.25);
+    border-radius: 6px; padding: 5px 9px; font-size: 12px; line-height: 1.3; text-align: right; pointer-events: none; }
   .sources { font-size: 12.5px; color: var(--muted); } .sources a { color: inherit; }
   #clock { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); z-index: 3; background: var(--panel); border: 1px solid var(--rule); border-radius: 12px;
     padding: 6px 14px; box-shadow: 0 2px 12px rgba(0,0,0,.2); font-weight: 700; font-variant-numeric: tabular-nums; display: none; text-align: center; }
   #clock small { display: block; font-weight: 400; font-size: 12px; color: var(--muted); }
-  #legend { position: absolute; right: 12px; bottom: 28px; background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 10px 12px; font-size: 12.5px; max-width: 220px; box-shadow: 0 2px 10px rgba(0,0,0,.15); display: none; }
+  #legend { position: absolute; right: 12px; bottom: 80px; background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 10px 12px; font-size: 12.5px; max-width: 220px; box-shadow: 0 2px 10px rgba(0,0,0,.15); display: none; }
   #legend .t { font-weight: 700; margin-bottom: 4px; }
   #legend .k { display: flex; align-items: center; gap: 8px; margin: 2px 0; }
   #legend .sw { width: 18px; height: 12px; border-radius: 2px; flex: none; }
@@ -87,13 +91,14 @@
     #mapwrap { height: 45%; flex: none; }
     #legend { display: none !important; }
     #clock { left: 56px; transform: none; right: 8px; }
+    #credit { right: 8px; bottom: 20px; padding: 4px 7px; font-size: 11px; }
   }
 </style>
 </head>
 <body>
 <div id="app">
   <aside id="panel">
-    <div class="kicker">Volcano hazards · What if? <span class="ver">v0.2</span></div>
+    <div class="kicker">Volcano hazards · What if? <span class="ver">app v<span data-ver="app">–</span></span></div>
     <h1>What if a volcano erupted?</h1>
     <p class="lede">Choose a real volcano, where the eruption starts and what kind of lava comes out. A computer model shows where the lava could go, how fast, and who lives in its path.</p>
 
@@ -104,21 +109,21 @@
     </section>
 
     <section class="step">
-      <h2><span class="n">2</span>Where does the eruption start?</h2>
+      <h2><span class="n">2</span>Where does the eruption start? <span class="ver">vent placing v<span data-ver="vent">–</span></span></h2>
       <div class="grid" id="vents"></div>
       <button id="pick" style="margin-top:6px;width:100%" aria-pressed="false">Or choose a spot on the map</button>
       <p class="hint" id="ventNote"></p>
     </section>
 
     <section class="step">
-      <h2><span class="n">3</span>What kind of lava? <span class="ver">speed model v0.2</span></h2>
+      <h2><span class="n">3</span>What kind of lava? <span class="ver">speed model v<span data-ver="speed">–</span></span></h2>
       <div class="grid" id="lavas"></div>
       <p class="hint" id="lavaNote"></p>
     </section>
 
     <section class="step">
       <button id="erupt" class="primary" disabled>▶ Erupt!</button>
-      <div class="hint" style="margin-top:4px">Lava path model <span class="ver">v1.0</span> · speed model <span class="ver">v0.2</span> · people <span class="ver">v0.2</span></div>
+      <div class="hint" style="margin-top:4px">Lava path model <span class="ver">v<span data-ver="path">–</span></span> · speed model <span class="ver">v<span data-ver="speed">–</span></span> · people <span class="ver">v<span data-ver="people">–</span></span></div>
       <div id="status" role="status">Loading…</div>
       <div class="bar"><div id="prog"></div></div>
     </section>
@@ -129,7 +134,7 @@
       <div class="tiles">
         <div class="tile"><div class="t">How far</div><div class="v" id="rFar">–</div><div class="s" id="rFarS"></div></div>
         <div class="tile"><div class="t">How fast</div><div class="v" id="rFast">–</div><div class="s" id="rFastS"></div></div>
-        <div class="tile"><div class="t">Who lives in its path <span class="ver">people v0.2</span></div><div class="v" id="rPeople">–</div><div class="s" id="rPeopleS"></div></div>
+        <div class="tile"><div class="t">Who lives in its path <span class="ver">people v<span data-ver="people">–</span></span></div><div class="v" id="rPeople">–</div><div class="s" id="rPeopleS"></div></div>
       </div>
       <div class="real" id="rReal"></div>
       <div class="q" id="rQ"></div>
@@ -186,13 +191,17 @@
       <p class="hint">These change the model on this page only, until it is reloaded. The defaults suit class use.</p>
     </details>
     <details>
-      <summary>Versions and sources</summary>
+      <summary>About, versions and sources</summary>
       <table class="vers">
-        <tr><th>Part</th><th>Version</th><th>What it is</th></tr>
-        <tr><td>App</td><td>0.2</td><td>0.2: fixes from review (choices locked while the model runs, corrected facts, clearer results key, reduced motion). 0.1: first version, 8 volcanoes, 1–3 start points each, 4 kinds of lava; lava only</td></tr>
-        <tr><td>Lava path model</td><td>1.0</td><td>DOWNFLOW-style steepest descent with hollow filling (same code as the Vesuvius lava explorer), 300 flows with ±3 m random bumps</td></tr>
-        <tr><td>Speed model</td><td>0.2</td><td>0.2: sticky lava stops at 400 m, like the 200–400 m lobes at Mount St. Helens (was 1 km). Jeffreys equation per step: speed = ρ g sinθ h² / (3η), with ρ = 2,600 kg/m³, slope at least 0.5°, and viscosity η and thickness h set by the kind of lava</td></tr>
-        <tr><td>People in the path</td><td>0.2</td><td>WorldPop 2020, 100 m grid, counted where 20% or more of flows went. Where the model grid is finer than 60 m, people in each 100 m square are shared by area; on coarser grids each 100 m square counts if its center is in the zone. 0.2: the coarse-grid method (0.1 missed some squares on the Mauna Loa grid)</td></tr>
+        <caption>Version numbers for this app and each model it uses</caption>
+        <thead><tr><th scope="col">Part</th><th scope="col">Version</th><th scope="col">What it is</th></tr></thead>
+        <tbody>
+        <tr><td>App</td><td data-ver="app">–</td><td>0.3: a version for every model, including vent placing; credit box. 0.2: fixes from review (choices locked while the model runs, corrected facts, clearer results key, reduced motion). 0.1: first version, 8 volcanoes, 1–3 start points each, 4 kinds of lava; lava only</td></tr>
+        <tr><td>Lava path model</td><td data-ver="path">–</td><td>DOWNFLOW-style steepest descent with hollow filling (same code as the Vesuvius lava explorer), 300 flows with ±3 m random bumps</td></tr>
+        <tr><td>Speed model</td><td data-ver="speed">–</td><td>0.2: sticky lava stops at 400 m, like the 200–400 m lobes at Mount St. Helens (was 1 km). Jeffreys equation per step: speed = ρ g sinθ h² / (3η), with ρ = 2,600 kg/m³, slope at least 0.5°, and viscosity η and thickness h set by the kind of lava</td></tr>
+        <tr><td>People in the path</td><td data-ver="people">–</td><td>WorldPop 2020, 100 m grid, counted where 20% or more of flows went. Where the model grid is finer than 60 m, people in each 100 m square are shared by area; on coarser grids each 100 m square counts if its center is in the zone. 0.2: the coarse-grid method (0.1 missed some squares on the Mauna Loa grid)</td></tr>
+        <tr><td>Vent placing</td><td data-ver="vent">–</td><td>Start points marked “about”: where a source gives only a direction and height, the app walks down from the summit on the real terrain along that direction until the ground reaches that height</td></tr>
+        </tbody>
       </table>
       <p class="sources">Volcano facts: <a href="https://volcano.si.edu/" target="_blank" rel="noopener">Smithsonian Global Volcanism Program</a>, USGS, INGV, Italian Civil Protection and the Japan Meteorological Agency (links with each volcano). Method: <a href="https://www.researchgate.net/publication/282203833_Simulating_the_area_covered_by_lava_flows_using_the_DOWNFLOW_code" target="_blank" rel="noopener">DOWNFLOW</a>. Elevation: Esri World Elevation. Population: <a href="https://www.esri.com/arcgis-blog/products/arcgis-pro/announcements/worldpop-100m-gridded-population-layers-now-available-in-the-living-atlas" target="_blank" rel="noopener">WorldPop 100 m (Esri Living Atlas)</a>. Place names: Esri World Geocoding.</p>
       <p class="sources">See a real eruption step by step: <a href="vesuvius-1944-story.html">Vesuvius, March 1944</a>.</p>
@@ -214,8 +223,16 @@
       <div class="k"><span class="sw" style="background:var(--l2)"></span>Unlikely (5–20%)</div>
       <div class="k"><span class="sw" style="background:var(--l1)"></span>Very unlikely (under 5%)</div>
     </div>
+    <div id="credit">Created by Jason Sawle<br />© Esri 2026</div>
   </main>
 </div>
+<script>
+// ---------- Versions (single source of truth: every [data-ver] label, the versions table and the console read from here) ----------
+// Bump a model's number whenever its maths or data handling changes, and bump the app version on every release.
+const APP_VERSION = "0.3";
+const VERSIONS = { app: APP_VERSION, path: "1.0", speed: "0.2", people: "0.2", vent: "1.0" };
+document.querySelectorAll("[data-ver]").forEach(el => { el.textContent = VERSIONS[el.dataset.ver] || "–"; });
+</script>
 <!-- Lava model (DOWNFLOW-style). Kept identical to lava-model.js so it can be tested on its own. -->
 <script>
 /* Lava flow model — DOWNFLOW-style probabilistic steepest descent.
@@ -419,8 +436,7 @@
 
 <script type="module">
 const LavaModel = window.LavaModel;
-const APP_VERSION = "0.2";
-const VERSIONS = { app: APP_VERSION, path: "1.0", speed: "0.2", people: "0.2" };
+// APP_VERSION and VERSIONS are defined once, in the script before the lava model.
 
 // ---------- Volcanoes ----------
 // Summits from the Smithsonian Global Volcanism Program (GVP) unless noted. Vents: { lat, lon } where a source gives a

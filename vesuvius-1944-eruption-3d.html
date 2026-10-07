@@ -71,7 +71,7 @@
   details ol, details ul { padding-left: 20px; margin: 6px 0; }
   .sources { font-size: 12.5px; color: var(--muted); }
   .sources a { color: inherit; }
-  #legend { position: absolute; right: 12px; bottom: 28px; background: var(--panel); border: 1px solid var(--rule);
+  #legend { position: absolute; right: 12px; bottom: 80px; background: var(--panel); border: 1px solid var(--rule);
     border-radius: 10px; padding: 10px 12px; font-size: 12.5px; max-width: 230px; box-shadow: 0 2px 10px rgba(0,0,0,.15); }
   #legend .t { font-weight: 700; margin-bottom: 4px; }
   #legend .k { display: flex; align-items: center; gap: 8px; margin: 2px 0; }
@@ -83,7 +83,7 @@
     #app { flex-direction: column-reverse; }
     #panel { width: 100%; height: 48%; border-right: 0; border-top: 1px solid var(--rule); padding: 14px 16px 24px; }
     #mapwrap { height: 52%; flex: none; }
-    #legend { right: 8px; bottom: 20px; padding: 6px 8px; font-size: 11px; max-width: 150px; }
+    #legend { right: 8px; bottom: 66px; padding: 6px 8px; font-size: 11px; max-width: 150px; }
     #legend .t { font-size: 11px; }
   }
   .erupt { border: 1px solid var(--rule); border-radius: 10px; padding: 12px; background: var(--chip); }
@@ -95,6 +95,11 @@
   .ver { font: 600 11px/1 ui-monospace, Menlo, Consolas, monospace; color: var(--muted); background: var(--chip); border: 1px solid var(--rule); border-radius: 4px; padding: 2px 5px; vertical-align: 2px; margin-left: 6px; }
   table.vers { border-collapse: collapse; width: 100%; font-size: 13px; }
   table.vers td, table.vers th { text-align: left; padding: 4px 6px; border-top: 1px solid var(--rule); }
+  .kicker .ver { text-transform: none; letter-spacing: 0; }
+  table.vers caption { text-align: left; font-size: 12.5px; color: var(--muted); padding-bottom: 4px; }
+  #credit { position: absolute; right: 12px; bottom: 28px; z-index: 6; background: rgba(0,0,0,.8); color: #fff; border: 1px solid rgba(255,255,255,.25);
+    border-radius: 6px; padding: 5px 9px; font-size: 12px; line-height: 1.3; text-align: right; pointer-events: none; }
+  @media (max-width: 760px) { #credit { right: 8px; bottom: 20px; padding: 4px 7px; font-size: 11px; } }
   .newer { background: var(--chip); border: 1px solid var(--rule); border-left: 4px solid var(--accent); border-radius: 8px; padding: 8px 12px; margin: 0 0 12px; font-size: 13.5px; }
   .newer a { color: var(--accent); font-weight: 600; }
 </style>
@@ -103,7 +108,7 @@
 <div id="app">
   <aside id="panel">
     <div class="newer"><b>For students, try the newer pages:</b> <a href="vesuvius-1944-story.html">Vesuvius 1944, step by step</a> (what happened) and <a href="volcano-what-if.html?v=vesuvius">What if a volcano erupted?</a> (explore 8 volcanoes). This page keeps every model setting for teachers and older students.</div>
-    <div class="kicker">Physical processes · Volcanoes <span class="ver" id="appVer">v0.11</span></div>
+    <div class="kicker">Physical processes · Volcanoes <span class="ver" id="appVer">app v<span data-ver="app">–</span></span></div>
     <h1>Vesuvius 1944: the eruption in 3D</h1>
     <p class="lede">In March 1944 lava from Mount Vesuvius destroyed the towns of San Sebastiano al Vesuvio and Massa di Somma. Watch the eruption unfold on real ArcGIS terrain: lava flows, lava fountains, then the ash cloud. Then run the lava model yourself.</p>
 
@@ -117,12 +122,12 @@
       </div>
       <p class="phase" id="ePhase">Loading terrain…</p>
       <div class="tg">
-        <label><input type="checkbox" id="eCloud" checked /> Ash cloud and lava fountains <span class="ver">v0.2</span></label>
-        <label><input type="checkbox" id="eGround" checked /> Ash on the ground <span class="ver">v0.2</span></label>
-        <label><input type="checkbox" id="eSound" checked /> Sound <span class="ver">v0.1</span></label>
+        <label><input type="checkbox" id="eCloud" checked /> Ash cloud and lava fountains <span class="ver">v<span data-ver="cloud">–</span></span></label>
+        <label><input type="checkbox" id="eGround" checked /> Ash on the ground <span class="ver">v<span data-ver="ground">–</span></span></label>
+        <label><input type="checkbox" id="eSound" checked /> Sound <span class="ver">v<span data-ver="sound">–</span></span></label>
         <label><input type="checkbox" id="eVoices" checked onchange="VesuviusArchive.setCards(this.checked)" /> Eyewitness cards <span class="ver va-ver">archive v1.3</span></label>
       </div>
-      <p class="note">The lava's path comes from the lava model below <span class="ver">v1.0</span>, drawn as molten lava along the most likely paths of both 1944 flows <span class="ver">v0.3</span>. Run the model to see the full hazard map of where lava could go. The fountains, ash cloud and ash on the ground are an <b>illustration</b> based on accounts of 1944. They are not modelled.</p>
+      <p class="note">The lava's path comes from the lava model below <span class="ver">v<span data-ver="lava">–</span></span>, drawn as molten lava along the most likely paths of both 1944 flows <span class="ver">lava look v<span data-ver="lavaLook">–</span></span>. Run the model to see the full hazard map of where lava could go. The fountains, ash cloud and ash on the ground are an <b>illustration</b> based on accounts of 1944. They are not modelled.</p>
     </div>
 
     <h2>Vent</h2>
@@ -141,7 +146,7 @@
       </div>
     </div>
 
-    <h2>Model settings <span class="ver">lava model v1.0</span></h2>
+    <h2>Model settings <span class="ver">lava model v<span data-ver="lava">–</span></span></h2>
     <div class="row">
       <label class="ctl" for="runs">Number of simulated flows <span class="val" id="runsVal">500</span></label>
       <input id="runs" type="range" min="100" max="1500" step="100" value="500" />
@@ -180,7 +185,7 @@
       <div style="margin-top:8px;font-weight:600;font-size:13px">Share of simulated flows reaching each town</div>
       <div id="rTowns"></div>
       <div id="impact" style="display:none">
-        <div style="margin-top:14px;font-weight:600;font-size:13px">Buildings and people in the lava zone today</div>
+        <div style="margin-top:14px;font-weight:600;font-size:13px">Buildings and people in the lava zone today <span class="ver">count v<span data-ver="impact">–</span></span></div>
         <table class="imp">
           <thead><tr><th>Lava reached this spot in</th><th>Buildings</th><th>People living there</th></tr></thead>
           <tbody id="impRows"></tbody>
@@ -243,16 +248,20 @@
     </details>
 
     <details>
-      <summary>Versions</summary>
+      <summary>About and versions</summary>
       <table class="vers">
-        <tr><th>Part</th><th>Version</th><th>What it is</th></tr>
-        <tr><td>App</td><td>0.11</td><td>0.11: “had to leave their homes” (INGV: forced to evacuate). 0.10: links to the new story and what-if pages. 0.9: the eruption plays both 1944 lava flows. 0.8: archive 1.3, version labels read from the archive file. 0.7: archive 1.2 (B-25 photo restored). 0.6: archive 1.1 (licence check). Test page: eruption animation inside the ArcGIS 3D scene. 0.5: adds the 1944 archive and eyewitness cards on the timeline</td></tr>
-        <tr><td>Lava model</td><td>1.0</td><td>DOWNFLOW-style steepest descent with pit filling, 20 m grid</td></tr>
-        <tr><td>Lava look and timing</td><td>0.3</td><td>0.3: both 1944 flows, as INGV records: north (then west into San Sebastiano, stopping at about 140 m) and south-east (stopping at about 350 m), at one speed. If you move the vent, only your flow plays. 0.2: one flow, the model's most likely path (and the hollows it fills), widened to the Flow width setting, drawn as molten lava with a glowing front that cools to a crust with glowing cracks. Timed along the path so the northern flow reaches San Sebastiano early on 21 March. 0.1 used every area reached by 20% or more of flows</td></tr>
-        <tr><td>Sound</td><td>0.1</td><td>Made in the browser (no recordings): rumble, roar, explosions and crackling lava. Louder when you are closer</td></tr>
-        <tr><td>Ash cloud and fountains</td><td>0.2</td><td>Illustrative particles drawn with an ArcGIS RenderNode (custom WebGL). 0.2: grey column with glow only near the vent, dimmer fountains, lumpier cloud</td></tr>
+        <caption>Version numbers for this app and each model it uses</caption>
+        <thead><tr><th scope="col">Part</th><th scope="col">Version</th><th scope="col">What it is</th></tr></thead>
+        <tbody>
+        <tr><td>App</td><td data-ver="app">–</td><td>0.12: a version for every model, including the buildings and people count; credit box. 0.11: “had to leave their homes” (INGV: forced to evacuate). 0.10: links to the new story and what-if pages. 0.9: the eruption plays both 1944 lava flows. 0.8: archive 1.3, version labels read from the archive file. 0.7: archive 1.2 (B-25 photo restored). 0.6: archive 1.1 (licence check). Test page: eruption animation inside the ArcGIS 3D scene. 0.5: adds the 1944 archive and eyewitness cards on the timeline</td></tr>
+        <tr><td>Lava model</td><td data-ver="lava">–</td><td>DOWNFLOW-style steepest descent with pit filling, 20 m grid</td></tr>
+        <tr><td>Lava look and timing</td><td data-ver="lavaLook">–</td><td>0.3: both 1944 flows, as INGV records: north (then west into San Sebastiano, stopping at about 140 m) and south-east (stopping at about 350 m), at one speed. If you move the vent, only your flow plays. 0.2: one flow, the model's most likely path (and the hollows it fills), widened to the Flow width setting, drawn as molten lava with a glowing front that cools to a crust with glowing cracks. Timed along the path so the northern flow reaches San Sebastiano early on 21 March. 0.1 used every area reached by 20% or more of flows</td></tr>
+        <tr><td>Sound</td><td data-ver="sound">–</td><td>Made in the browser (no recordings): rumble, roar, explosions and crackling lava. Louder when you are closer</td></tr>
+        <tr><td>Ash cloud and fountains</td><td data-ver="cloud">–</td><td>Illustrative particles drawn with an ArcGIS RenderNode (custom WebGL). 0.2: grey column with glow only near the vent, dimmer fountains, lumpier cloud</td></tr>
         <tr><td>1944 archive and eyewitness cards</td><td class="va-ver-n">–</td><td>Shared file vesuvius-1944-archive.js (photos, newsreels, eyewitness accounts; also used by the story and VR pages). The number shown is the version loaded</td></tr>
-        <tr><td>Ash on the ground</td><td>0.2</td><td>Illustrative ash-fall lobes: east 22–23 March, south-west 23–29 March. 0.2: faded in by symbol colour instead of layer opacity</td></tr>
+        <tr><td>Ash on the ground</td><td data-ver="ground">–</td><td>Illustrative ash-fall lobes: east 22–23 March, south-west 23–29 March. 0.2: faded in by symbol colour instead of layer opacity</td></tr>
+        <tr><td>Buildings and people count</td><td data-ver="impact">–</td><td>OpenStreetMap buildings counted where their centre is in the zone; WorldPop 2020 people (100 m grid) shared by how much of each square the zone covers. Counted at 50%, 20% and 5% of flows</td></tr>
+        </tbody>
       </table>
     </details>
 
@@ -293,8 +302,18 @@
       <div class="k"><span class="sw" style="background:var(--l1)"></span>Less than 5%</div>
       <div class="k"><span class="ln"></span>Most likely path</div>
     </div>
+    <div id="credit">Created by Jason Sawle<br />© Esri 2026</div>
   </main>
 </div>
+
+<script>
+// ---------- Versions (single source of truth: every [data-ver] label, the versions table and the console read from here) ----------
+// Bump a model's number whenever its maths or data handling changes, and bump the app version on every release.
+// The archive's number lives in vesuvius-1944-archive.js.
+const APP_VERSION = "0.12";
+const VERSIONS = { app: APP_VERSION, lava: "1.0", lavaLook: "0.3", cloud: "0.2", ground: "0.2", sound: "0.1", impact: "1.0", archive: window.VesuviusArchive ? VesuviusArchive.version : "missing" };
+document.querySelectorAll("[data-ver]").forEach(el => { el.textContent = VERSIONS[el.dataset.ver] || "–"; });
+</script>
 
 <!-- Lava model (DOWNFLOW-style). Kept identical to lava-model.js so it can be tested on its own. -->
 <script>
@@ -959,8 +978,7 @@ $("replay").onclick = () => { if (lastFrames) { eruption.stop(); play(lastFrames
 // Lava comes from the model above. Fountains, the ash cloud and ash on the ground are illustrative, following
 // INGV and contemporary accounts. Particles are drawn with an ArcGIS RenderNode: custom WebGL inside the SceneView,
 // so they sit in the same 3D scene as the terrain and are hidden by it.
-const APP_VERSION = "0.11";
-const VERSIONS = { app: APP_VERSION, lava: "1.0", lavaLook: "0.3", cloud: "0.2", ground: "0.2", sound: "0.1", archive: window.VesuviusArchive ? VesuviusArchive.version : "missing" };
+// APP_VERSION and VERSIONS are defined once, in the script before the lava model.
 console.info("Vesuvius 1944 eruption 3D", VERSIONS);
 
 // Timeline in hours from 00:00 on 18 March 1944 (same as the VR version)

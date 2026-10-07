@@ -62,7 +62,7 @@
   #nowBox { border-radius: 14px; padding: 10px 12px; margin: 4px 0 10px; background: linear-gradient(135deg, rgba(37, 99, 235, 0.18), rgba(14, 116, 144, 0.16)); border: 1px solid rgba(125, 211, 252, 0.3); font-size: 13.5px; display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; }
   #nowBox dt { color: var(--muted); }
   #nowBox dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
-  .mv { font-size: 10.5px; font-weight: 600; color: var(--muted); border: 1px solid var(--rule); border-radius: 999px; padding: 0 6px; margin-left: 4px; white-space: nowrap; }
+  .mv { font-size: 10.5px; font-weight: 600; color: var(--muted); border: 1px solid var(--rule); border-radius: 999px; padding: 0 6px; margin-left: 4px; white-space: nowrap; text-transform: none; letter-spacing: 0; }
   #mapDescBox summary { font-size: 13px; color: var(--muted); cursor: pointer; }
   #mapDesc { font-size: 14px; margin: 6px 0 0; }
   .cfoot { flex: none; padding-top: 10px; border-top: 1px solid var(--rule); }
@@ -80,9 +80,10 @@
   .ckey { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11.5px; color: var(--muted); margin-top: 2px; }
   .ckey i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: 3px; margin-right: 5px; }
 
-  #credit { position: absolute; right: 16px; bottom: 196px; z-index: 4; padding: 6px 12px; border-radius: 12px; font-size: 11.5px; line-height: 1.35; color: var(--muted); text-align: right; }
-  #credit b { color: var(--ink); font-weight: 600; }
-  #legend { position: absolute; right: 16px; top: 16px; padding: 10px 12px; font-size: 12.5px; width: 270px; z-index: 4; border-radius: 14px; max-height: calc(100% - 260px); overflow-y: auto; }
+  /* --tbh is the time bar's height, set from the page script, so the credit always sits just above the time bar */
+  #credit { position: absolute; right: 16px; bottom: calc(var(--tbh, 202px) + 26px); z-index: 4; padding: 6px 12px; border-radius: 12px; font-size: 11.5px; line-height: 1.35; color: #fff; text-align: right; }
+  #credit b { color: #fff; font-weight: 600; }
+  #legend { position: absolute; right: 16px; top: 16px; padding: 10px 12px; font-size: 12.5px; width: 270px; z-index: 4; border-radius: 14px; max-height: calc(100% - var(--tbh, 202px) - 96px); overflow-y: auto; }
   #legend .t { width: 100%; display: flex; justify-content: space-between; align-items: center; border: 0; background: none; padding: 0 0 4px; font-weight: 700; font-size: 13px; color: var(--ink); }
   #legend .t::after { content: "▾"; color: var(--muted); }
   #legend.collapsed .t::after { content: "▸"; }
@@ -115,6 +116,7 @@
   table.ver { width: 100%; border-collapse: collapse; font-size: 13px; }
   table.ver td, table.ver th { text-align: left; padding: 4px 6px 4px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
   table.ver th { font-size: 12px; color: var(--muted); font-weight: 600; }
+  table.ver caption { text-align: left; font-size: 12px; color: var(--muted); padding-bottom: 4px; }
   table.ver td.v { font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 700; }
 
   @media (max-width: 1280px), (max-height: 780px) {
@@ -123,13 +125,14 @@
     #exag { left: calc(50% + 176px); }
     #legend { width: 240px; }
   }
+  @media (max-width: 1220px) { #exag .mv { display: none; } }   /* no room beside the map key; the version is in About and versions */
   @media (max-width: 760px) {
     #card { left: 8px; right: 8px; width: auto; top: auto; bottom: 8px; height: 46%; }
     #timebar { left: 8px; right: 8px; bottom: calc(46% + 16px); padding: 8px 10px; }
     #chart { height: 60px; }
     #legend { right: 8px; top: 8px; width: 220px; max-height: 40%; }
     #exag { left: 8px; top: 8px; transform: none; font-size: 11.5px; }
-    #credit { right: 8px; bottom: auto; top: 50%; font-size: 10.5px; }
+    #credit { right: 8px; bottom: calc(46% + 24px + var(--tbh, 230px)); z-index: 3; font-size: 10.5px; }
     #loading { left: 50%; }
   }
 </style>
@@ -143,7 +146,7 @@
       <arcgis-compass slot="top-right"></arcgis-compass>
     </arcgis-scene>
     <div id="loading" class="glass" role="status">Loading the ice sheets…</div>
-    <div id="exag" class="glass" role="group" aria-label="Height exaggeration">Heights <button data-x="1" aria-pressed="false">true</button><button data-x="5" aria-pressed="false">5×</button><button data-x="10" aria-pressed="true">10×</button><button data-x="20" aria-pressed="false">20×</button></div>
+    <div id="exag" class="glass" role="group" aria-label="Height exaggeration">Heights <span class="mv" data-mv="Terrain"></span> <button data-x="1" aria-pressed="false">true</button><button data-x="5" aria-pressed="false">5×</button><button data-x="10" aria-pressed="true">10×</button><button data-x="20" aria-pressed="false">20×</button></div>
 
     <div id="legend" class="glass" role="group" aria-labelledby="legendTitle">
       <button class="t" id="legendTitle" aria-expanded="true">Map key</button>
@@ -153,11 +156,12 @@
       <div class="bandlbl"><span>thin</span><span>2.5 km thick</span></div>
       <button class="k" data-l="seeThrough" aria-pressed="false"><span class="tick"></span>See-through ice</button>
       <button class="k" data-l="sea" aria-pressed="true"><span class="tick"></span><span class="sw" style="background:var(--sea)"></span>Sea at that time <span class="mv" data-mv="Sea level"></span></button>
+      <div class="sub">Modelled sea area <span class="mv" data-mv="Sea surface"></span></div>
       <button class="k" data-l="lakes" aria-pressed="true"><span class="tick"></span><span class="sw" style="background:var(--lake)"></span>Lakes <span class="mv" data-mv="Lakes"></span></button>
       <div class="sub">Modelled: water trapped by ice or land, filled to its overflow</div>
       <button class="k" data-l="coast" aria-pressed="true"><span class="tick"></span><span class="sw" style="background:none;border-top:2px solid rgba(255,255,255,.8);height:0;margin-top:6px"></span>Today's coastline</button>
       <button class="k" data-l="labels" aria-pressed="true"><span class="tick"></span>Place names</button>
-      <h3>BRITICE evidence (University of Sheffield)</h3>
+      <h3>BRITICE evidence (University of Sheffield) <span class="mv" data-mv="BRITICE layers"></span></h3>
       <button class="k" data-l="britExtent" aria-pressed="false"><span class="tick"></span><span class="sw" style="background:rgba(245,158,11,.55)"></span>Furthest extent of the last ice sheet</button>
       <button class="k" data-l="llr" aria-pressed="false"><span class="tick"></span><span class="sw" style="background:rgba(244,114,182,.55);border:2px solid #f472b6;box-sizing:border-box"></span>Loch Lomond Readvance ice</button>
       <button class="k" data-l="britLakes" aria-pressed="false"><span class="tick"></span><span class="sw" style="background:rgba(56,189,248,.6);border:2px solid #0ea5e9;box-sizing:border-box"></span>Glacial lakes and ice dams</button>
@@ -178,7 +182,7 @@
       </div>
       <svg id="chart" role="img" aria-labelledby="chartTitle" tabindex="-1"><title id="chartTitle">Chart of Greenland temperature (from ice cores) and sea level over the last 80,000 years. Click to jump to a time.</title></svg>
       <input id="tSlider" type="range" min="0" max="80" step="0.1" value="60" aria-label="Time" />
-      <div class="ckey" aria-hidden="true"><span><i style="background:#fdba74"></i>Greenland temperature (ice core δ¹⁸O, warmer up)</span><span><i style="background:#60a5fa"></i>Sea level</span><span><i style="background:rgba(253,186,116,.35);height:8px"></i>Interstadial (warm)</span><span><i style="background:rgba(147,197,253,.30);height:8px"></i>Stadial (cold)</span></div>
+      <div class="ckey"><span aria-hidden="true"><i style="background:#fdba74"></i>Greenland temperature (ice core δ¹⁸O, warmer up)</span><span aria-hidden="true"><i style="background:#60a5fa"></i>Sea level</span><span aria-hidden="true"><i style="background:rgba(253,186,116,.35);height:8px"></i>Interstadial (warm)</span><span aria-hidden="true"><i style="background:rgba(147,197,253,.30);height:8px"></i>Stadial (cold)</span><span><span class="sr-only">Climate chart </span><span class="mv" data-mv="Climate chart"></span></span></div>
     </section>
   </main>
 
@@ -198,7 +202,7 @@
         <dl id="nowBox" aria-label="At the time shown">
           <dt>Sea level</dt><dd id="nSea">—</dd>
           <dt>Ice</dt><dd id="nIce">—</dd>
-          <dt>Ice outline</dt><dd id="nOutline">—</dd>
+          <dt>Ice outline <span class="mv" data-mv="Ice outlines"></span></dt><dd id="nOutline">—</dd>
           <dt>Lakes</dt><dd id="nLakes">—</dd>
         </dl>
         <details id="mapDescBox"><summary>Describe the map</summary><p id="mapDesc"></p></details>
@@ -273,8 +277,8 @@
 <script type="module">
 /* Ice Age Britain and Europe. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "1.0";
-const APP_DATE = "6 October 2026";
+const APP_VERSION = "1.1";
+const APP_DATE = "7 October 2026";
 const MODELS = [
   ["Ice outlines", "1.0", "Gowan et al. 2021 Eurasian margins every 2.5 ka, 0–80 ka (DATED-1 based 25–10 ka); between outlines the edge moves by blending each outline's signed distance to its edge, thickness blended in a straight line and tapered near the moving edge (1.5 × flat-bed Nye profile)"],
   ["Ice thickness", "1.0", "Perfectly plastic ice (Nye) built outwards from the margin over RTopo-2 bed, Gowan's basal shear stress domains (15–195 kPa), flotation thickness at marine margins, no isostatic sinking; 0.16° × 0.08° grid"],
@@ -288,9 +292,11 @@ const MODELS = [
 const $ = (id) => document.getElementById(id);
 $("verTop").textContent = "v" + APP_VERSION;
 document.title = "Ice Age Britain and Europe (v" + APP_VERSION + ")";
-$("verTable").innerHTML = `<tr><th>Part</th><th>Version</th><th>How it works</th></tr><tr><td>App</td><td class="v">${APP_VERSION}</td><td>${APP_DATE}</td></tr>` +
-  MODELS.map(([n, v, d]) => `<tr><td>${n}</td><td class="v">${v}</td><td>${d}</td></tr>`).join("");
+$("verTable").innerHTML = `<caption>Versions of the app and its models</caption><thead><tr><th scope="col">Part</th><th scope="col">Version</th><th scope="col">How it works</th></tr></thead><tbody><tr><td>App</td><td class="v">${APP_VERSION}</td><td>${APP_DATE}</td></tr>` +
+  MODELS.map(([n, v, d]) => `<tr><td>${n}</td><td class="v">${v}</td><td>${d}</td></tr>`).join("") + `</tbody>`;
 document.querySelectorAll("[data-mv]").forEach(el => { const m = MODELS.find(x => x[0] === el.dataset.mv); el.textContent = m ? "model " + m[1] : ""; });
+// keep the credit box just above the time bar, whatever its height
+if (window.ResizeObserver) new ResizeObserver(() => document.documentElement.style.setProperty("--tbh", $("timebar").offsetHeight + "px")).observe($("timebar"));
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 // ---------- formatting ----------

@@ -38,11 +38,32 @@
   .note{font-size:13.5px;color:var(--ink-2);margin:14px 0 0;max-width:72ch}
   @media (max-width:700px){.fig{grid-template-columns:1fr}.inset img,.inset svg{width:100%;height:auto;aspect-ratio:1}.stage{grid-template-columns:1fr}h1{font-size:25px}.timeline button{width:80px;font-size:10.5px;white-space:normal}}
   @media (prefers-reduced-motion:reduce){.anim{transition:none!important}}
+  /* versions, About dialog and credit */
+  .ver{font-size:14px;font-weight:400;letter-spacing:0;color:var(--ink-2);margin-left:10px;white-space:nowrap}
+  .models{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px}
+  .badge{display:inline-block;font-size:12.5px;line-height:1.35;color:var(--ink-2);border:1px solid var(--rule);border-radius:2px;padding:1px 7px}
+  .links button{font:inherit;font-size:15px;padding:10px 16px;border-radius:2px;border:1px solid var(--water);color:var(--water);background:transparent;cursor:pointer}
+  .links button:hover{background:#E6E9E4}
+  .links button:focus-visible,#about button:focus-visible{outline:2px solid var(--water);outline-offset:2px}
+  .fig{position:relative}.inset{margin-bottom:56px}
+  .credit{position:absolute;right:0;bottom:8px;background:rgba(34,48,47,.92);color:#fff;font-size:12px;line-height:1.4;padding:5px 9px;border-radius:2px}
+  @media (max-width:700px){.inset{margin-bottom:0}.credit{position:static;justify-self:end}}
+  #about{background:var(--paper);color:var(--ink);border:1px solid var(--ink);border-radius:2px;padding:0;width:min(720px,calc(100vw - 32px));max-width:none;font-family:inherit}
+  #about::backdrop{background:rgba(34,48,47,.55)}
+  #about .dlg{padding:20px 22px}
+  #about h2{font-size:19px;font-weight:600;margin:0 0 10px}
+  #about table{width:100%;border-collapse:collapse;font-size:14.5px}
+  #about caption{text-align:left;color:var(--ink-2);font-size:13.5px;margin-bottom:6px}
+  #about th,#about td{text-align:left;vertical-align:top;padding:8px;border-bottom:1px solid var(--rule)}
+  #about thead th{border-bottom:1px solid var(--ink);font-weight:600}
+  #about tbody th{font-weight:600}#about td:nth-child(2){white-space:nowrap}
+  #about .dlg>p{font-size:13.5px;color:var(--ink-2);margin:12px 0 16px}
+  #about button{font:inherit;font-size:15px;padding:8px 16px;border-radius:2px;border:1px solid var(--water);background:var(--water);color:#fff;cursor:pointer}
 </style>
 </head>
 <body>
 <main>
-  <h1>How Yosemite Valley was made</h1>
+  <h1>How Yosemite Valley was made<span class="ver" data-app-version></span></h1>
   <p class="lede">A real cross-section, sampled from Esri's world elevation data along a north–south line through El Capitan. Step through the stages to see what the same line looked like before, during and after the ice.</p>
 
   <div class="fig">
@@ -71,8 +92,10 @@
       <svg viewBox="0 0 180 180" aria-hidden="true"><line id="insetLine" stroke="#C8452B" stroke-width="2.5"/><text id="insetN" font-size="11" fill="#fff" font-weight="600"></text><text id="insetS" font-size="11" fill="#fff" font-weight="600"></text></svg>
       <p class="cap">Line of section, north (top) to south. Imagery: Esri, Maxar, Earthstar Geographics.</p>
     </div>
+    <div class="credit">Created by Jason Sawle<br>© Esri 2026</div>
   </div>
   <p id="status">Loading elevation…</p>
+  <div class="models"><span class="badge" data-model="profile"></span><span class="badge" data-model="recon"></span></div>
 
   <div class="timeline" role="tablist" aria-label="Stages">
     <div class="bar"></div>
@@ -92,10 +115,47 @@
     <a class="primary" href="https://www.arcgis.com/apps/instant/atlas/index.html?appid=0cd1cdee853c413a84bfe4b9a6931f0d&center=-119.6370,37.7300&level=13" target="_blank" rel="noopener">Open Yosemite Valley in MapMaker</a>
     <a id="threeD" href="yosemite-3d.html">3D version</a>
     <a href="https://jsawle.github.io/profile/elevation-profile-tool.html" target="_blank" rel="noopener">Draw your own profile</a>
+    <button type="button" id="aboutBtn" aria-haspopup="dialog">About and versions</button>
   </div>
   <p class="note">Today's line is measured from the elevation data. The earlier stages are reconstructions: the depth of sediment under the floor is taken from USGS drilling (a few hundred metres here, up to about 600 m further east), the Tioga ice limit is marked by moraines that still exist, and the Sherwin ice limit and the shape of the pre-glacial canyon are inferred and less certain. BP means years before present, counted from 1950.</p>
 </main>
 
+<dialog id="about" aria-labelledby="aboutTitle">
+  <div class="dlg">
+    <h2 id="aboutTitle">About and versions</h2>
+    <table>
+      <caption>Version of this app and of each model it uses</caption>
+      <thead><tr><th scope="col">Part</th><th scope="col">Version</th><th scope="col">What it does</th></tr></thead>
+      <tbody id="versionRows"></tbody>
+    </table>
+    <p>Created by Jason Sawle. © Esri 2026.</p>
+    <button type="button" class="close">Close</button>
+  </div>
+</dialog>
+
+<script>
+// ---------- versions: single source of truth for the app and model version numbers ----------
+// Bump a model's version whenever its maths or data handling changes. Bump APP_VERSION on every release.
+const APP_VERSION="1.0.0";
+const MODELS={
+  profile:{name:'Elevation profile',version:'1.0',desc:'Samples 300 points of Esri World Elevation (Terrain3D), or Mapzen Terrarium if Esri is unavailable, along a 7.8 km north–south line through El Capitan, with bilinear interpolation and light smoothing.'},
+  recon:{name:'Valley reconstruction',version:'1.0',desc:'Rebuilds the earlier stages from today’s line: bedrock under about 300 m of sediment, a V-shaped river canyon inside today’s rims, and the ice, lake and sediment levels for each stage.'}
+};
+(function(){
+  document.querySelectorAll('[data-app-version]').forEach(el=>el.textContent='v'+APP_VERSION);
+  document.querySelectorAll('[data-model]').forEach(el=>{const m=MODELS[el.dataset.model];if(m)el.textContent=m.name+' v'+m.version;});
+  const rows=document.getElementById('versionRows');
+  const row=(name,ver,desc)=>{const tr=document.createElement('tr'),th=document.createElement('th');th.scope='row';th.textContent=name;tr.append(th);
+    for(const t of [ver,desc]){const td=document.createElement('td');td.textContent=t;tr.append(td);}rows.append(tr);};
+  row('How Yosemite Valley was made (app)','v'+APP_VERSION,'The whole app: the cross-section drawing, stages and text.');
+  for(const m of Object.values(MODELS))row(m.name,'v'+m.version,m.desc);
+  const dlg=document.getElementById('about'),btn=document.getElementById('aboutBtn');
+  btn.addEventListener('click',()=>dlg.showModal());
+  dlg.querySelector('.close').addEventListener('click',()=>dlg.close());
+  dlg.addEventListener('click',e=>{if(e.target===dlg)dlg.close();});   // click on the backdrop
+  dlg.addEventListener('close',()=>btn.focus());
+})();
+</script>
 <script src="https://cdn.jsdelivr.net/npm/lerc@4.0.4/LercDecode.min.js"></script>
 <script>
 (async function(){
@@ -224,7 +284,7 @@
     document.querySelectorAll('.timeline button').forEach(bt=>bt.setAttribute('aria-current',bt.dataset.s==i?'true':'false'));
   }
   document.querySelectorAll('.timeline button').forEach(bt=>bt.addEventListener('click',()=>go(+bt.dataset.s)));
-  document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'&&cur<S.length-1)go(cur+1);if(e.key==='ArrowLeft'&&cur>0)go(cur-1);});
+  document.addEventListener('keydown',e=>{if($('about').open)return;if(e.key==='ArrowRight'&&cur<S.length-1)go(cur+1);if(e.key==='ArrowLeft'&&cur>0)go(cur-1);});
   status.textContent=`Elevation: ${src}. ${N} samples along ${lenKm.toFixed(1)} km. Floor ${Math.round(floor)} m, El Capitan side ${Math.round(rimN)} m, Cathedral Rocks side ${Math.round(rimS)} m.`;
   go(4);
 })();

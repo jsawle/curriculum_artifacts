@@ -49,12 +49,29 @@
   .tools{position:absolute;right:14px;top:14px;display:flex;gap:6px}.tools button{font-size:12.5px;background:#10202dea;padding:7px 10px}
   .attrib{position:absolute;left:14px;bottom:36px;font-size:11px;color:var(--muted);background:#10202dc8;padding:3px 7px;border-radius:4px;max-width:70%}
   @media (max-width:800px){#app{grid-template-columns:1fr;grid-template-rows:50vh minmax(0,1fr)}#world{order:-1}aside{border-right:0;border-top:1px solid var(--line)}}
+  /* versions, About dialog and credit */
+  .ver{font-size:12px;font-weight:400;letter-spacing:0;color:var(--muted);margin-left:6px}
+  .models{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 6px}.models[hidden],.badge[hidden]{display:none}
+  .badge{display:inline-block;font-size:11.5px;line-height:1.35;color:var(--muted);border:1px solid var(--line);border-radius:10px;padding:1px 8px}
+  .links button{font-size:13.5px;padding:7px 12px;border-color:var(--lime);color:var(--lime)}
+  .credit{position:absolute;right:14px;bottom:36px;background:#10202de6;color:#fff;font-size:11.5px;line-height:1.4;padding:5px 9px;border-radius:4px;pointer-events:none}
+  @media (max-width:1160px){.credit{bottom:100px}}   /* map pane under ~760px wide: .attrib wraps, so sit above it */
+  #about{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:0;width:min(680px,calc(100vw - 32px));max-width:none}
+  #about::backdrop{background:#000000b0}
+  #about .dlg{padding:18px 20px}
+  #about h2{font-size:17px;margin:0 0 10px}
+  #about table{width:100%;border-collapse:collapse;font-size:13.5px}
+  #about caption{text-align:left;color:var(--muted);font-size:12.5px;margin-bottom:6px}
+  #about th,#about td{text-align:left;vertical-align:top;padding:7px 8px;border-bottom:1px solid var(--line)}
+  #about thead th{color:var(--lime);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+  #about tbody th{font-weight:600}#about td:nth-child(2){white-space:nowrap}
+  #about .dlg>p{font-size:12.5px;color:var(--muted);margin:10px 0 14px}
 </style>
 </head>
 <body>
 <header>
-  <div class="brand">Landforms <b>Uncovered</b></div>
-  
+  <div class="brand">Landforms <b>Uncovered</b><span class="ver" data-app-version></span></div>
+
 </header>
 <div id="app">
   <aside>
@@ -63,12 +80,15 @@
     <p class="lede" id="siteLede"></p>
     <ol class="stages" id="stages" aria-label="Stages: choose one"></ol>
     <div class="info">
-      <h2 id="title"></h2><p id="b1"></p><p id="b2"></p>
+      <h2 id="title"></h2>
+      <div class="models" id="stageModels" hidden><span class="badge" data-model="grid" hidden></span><span class="badge" data-model="glacier" hidden></span><span class="badge" data-model="lake" hidden></span><span class="badge" data-model="retreat" hidden></span></div>
+      <p id="b1"></p><p id="b2"></p>
       <div class="look"><h3>Look for this</h3><ul id="look"></ul></div>
     </div>
     <div class="links">
       <a class="primary" id="mm" href="#" target="_blank" rel="noopener">Open in MapMaker</a>
       <a id="xs" href="#" hidden>Cross-section</a>
+      <button type="button" id="aboutBtn" aria-haspopup="dialog">About and versions</button>
       <span>BP = years before now.</span>
     </div>
   </aside>
@@ -77,9 +97,51 @@
     <div id="status">Loading the globe…</div>
     <div class="tools"><button id="recenter">⌖ Recenter</button><button id="overhead">↓ Overhead</button><button id="rotate">↻ Rotate</button></div>
     <div class="attrib">Imagery: Esri, Maxar, Earthstar Geographics. Elevation: Esri World Elevation. Heights are not exaggerated.</div>
+    <div class="credit">Created by Jason Sawle<br>© Esri 2026</div>
   </div>
 </div>
 
+<dialog id="about" aria-labelledby="aboutTitle">
+  <div class="dlg">
+    <h2 id="aboutTitle">About and versions</h2>
+    <table>
+      <caption>Version of this app and of each model it uses</caption>
+      <thead><tr><th scope="col">Part</th><th scope="col">Version</th><th scope="col">What it does</th></tr></thead>
+      <tbody id="versionRows"></tbody>
+    </table>
+    <p>Created by Jason Sawle. © Esri 2026.</p>
+    <button type="button" class="close">Close</button>
+  </div>
+</dialog>
+
+<script>
+// ======================================================================
+// VERSIONS: single source of truth for the app and model version numbers.
+// Bump a model's version whenever its maths or data handling changes.
+// Bump APP_VERSION on every release.
+// ======================================================================
+const APP_VERSION="1.0.0";
+const MODELS={
+ grid:{name:'Elevation grid',version:'1.0',desc:'Downloads Esri World Elevation (Terrain3D) tiles at zoom 13 for the place and samples every 4th cell into a height grid that the ice, lake and label models use.'},
+ glacier:{name:'Glacier model',version:'1.0',desc:'Measures distance up the valley from the glacier snout across the elevation grid and adds an ice thickness of √(2τd/ρg) to the valley-floor profile, then grows the ice out from the snout.'},
+ lake:{name:'Lake model',version:'1.0',desc:'Draws Lake Yosemite as a flat water surface at a set level east of the Tioga moraine, with the depth figures stored in the place data.'},
+ retreat:{name:'Falls retreat model',version:'1.0',desc:'Moves Niagara Falls along an approximate line of the gorge from Queenston to today, in proportion to how far each stage has retreated.'}
+};
+(function(){
+  document.querySelectorAll('[data-app-version]').forEach(el=>el.textContent='v'+APP_VERSION);
+  document.querySelectorAll('[data-model]').forEach(el=>{const m=MODELS[el.dataset.model];if(m)el.textContent=m.name+' v'+m.version;});
+  const rows=document.getElementById('versionRows');
+  const row=(name,ver,desc)=>{const tr=document.createElement('tr'),th=document.createElement('th');th.scope='row';th.textContent=name;tr.append(th);
+    for(const t of [ver,desc]){const td=document.createElement('td');td.textContent=t;tr.append(td);}rows.append(tr);};
+  row('Landforms Uncovered (app)','v'+APP_VERSION,'The whole app: places, stages, text and the 3D globe.');
+  for(const m of Object.values(MODELS))row(m.name,'v'+m.version,m.desc);
+  const dlg=document.getElementById('about'),btn=document.getElementById('aboutBtn');
+  btn.addEventListener('click',()=>dlg.showModal());
+  dlg.querySelector('.close').addEventListener('click',()=>dlg.close());
+  dlg.addEventListener('click',e=>{if(e.target===dlg)dlg.close();});   // click on the backdrop
+  dlg.addEventListener('close',()=>btn.focus());
+})();
+</script>
 <script src="https://cdn.jsdelivr.net/npm/lerc@4.0.4/LercDecode.min.js"></script>
 <script>
 // ======================================================================
@@ -318,6 +380,9 @@ function go(j){
   [...$('stages').querySelectorAll('button')].forEach(b=>b.setAttribute('aria-current',b.dataset.s==j?'true':'false'));
   $('title').textContent=s.name+' ('+s.bp+')';$('b1').textContent=s.b1;$('b2').textContent=s.b2;
   $('look').innerHTML=s.look.map(t=>`<li>${t}</li>`).join('');
+  // version badges for the models this stage uses
+  const used=s.fill?['grid',s.fill.lake?'lake':'glacier']:s.retreat!==undefined?['retreat']:(s.sediment&&site.overlay.sediment)?['grid']:[];
+  $('stageModels').querySelectorAll('[data-model]').forEach(b=>b.hidden=!used.includes(b.dataset.model));$('stageModels').hidden=!used.length;
   if(!view)return;
   labelLayer.graphics.items.forEach(g=>g.visible=true);labelLayerFill.removeAll();
   labelLayerFill.removeAll();

@@ -66,6 +66,10 @@
   .ver { font: 600 11px/1 ui-monospace, Menlo, Consolas, monospace; color: var(--muted); background: var(--chip); border: 1px solid var(--rule); border-radius: 4px; padding: 2px 5px; vertical-align: 2px; margin-left: 6px; }
   table.vers { border-collapse: collapse; width: 100%; font-size: 13px; }
   table.vers td, table.vers th { text-align: left; padding: 4px 6px; border-top: 1px solid var(--rule); }
+  .kicker .ver { text-transform: none; letter-spacing: 0; }
+  table.vers caption { text-align: left; font-size: 12.5px; color: var(--muted); padding-bottom: 4px; }
+  #credit { position: absolute; right: 12px; bottom: 28px; z-index: 6; background: rgba(0,0,0,.8); color: #fff; border: 1px solid rgba(255,255,255,.25);
+    border-radius: 6px; padding: 5px 9px; font-size: 12px; line-height: 1.3; text-align: right; pointer-events: none; }
   table.imp .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
   details { border-top: 1px solid var(--rule); padding: 10px 0; }
   details:last-of-type { border-bottom: 1px solid var(--rule); }
@@ -74,7 +78,7 @@
   details ol, details ul { padding-left: 20px; margin: 6px 0; }
   .sources { font-size: 12.5px; color: var(--muted); }
   .sources a { color: inherit; }
-  #legend { position: absolute; right: 12px; bottom: 28px; background: var(--panel); border: 1px solid var(--rule);
+  #legend { position: absolute; right: 12px; bottom: 80px; background: var(--panel); border: 1px solid var(--rule);
     border-radius: 10px; padding: 10px 12px; font-size: 12.5px; max-width: 230px; box-shadow: 0 2px 10px rgba(0,0,0,.15); }
   #legend .t { font-weight: 700; margin-bottom: 4px; }
   #legend .k { display: flex; align-items: center; gap: 8px; margin: 2px 0; }
@@ -86,8 +90,9 @@
     #app { flex-direction: column-reverse; }
     #panel { width: 100%; height: 48%; border-right: 0; border-top: 1px solid var(--rule); padding: 14px 16px 24px; }
     #mapwrap { height: 52%; flex: none; }
-    #legend { right: 8px; bottom: 20px; padding: 6px 8px; font-size: 11px; max-width: 150px; }
+    #legend { right: 8px; bottom: 66px; padding: 6px 8px; font-size: 11px; max-width: 150px; }
     #legend .t { font-size: 11px; }
+    #credit { right: 8px; bottom: 20px; padding: 4px 7px; font-size: 11px; }
   }
   .newer { background: var(--chip); border: 1px solid var(--rule); border-left: 4px solid var(--accent); border-radius: 8px; padding: 8px 12px; margin: 0 0 12px; font-size: 13.5px; }
   .newer a { color: var(--accent); font-weight: 600; }
@@ -97,7 +102,7 @@
 <div id="app">
   <aside id="panel">
     <div class="newer"><b>For students, try the newer pages:</b> <a href="vesuvius-1944-story.html">Vesuvius 1944, step by step</a> (what happened) and <a href="volcano-what-if.html?v=vesuvius">What if a volcano erupted?</a> (explore 8 volcanoes). This page keeps every model setting for teachers and older students.</div>
-    <div class="kicker">Physical processes · Volcanoes <span class="ver">v1.6</span></div>
+    <div class="kicker">Physical processes · Volcanoes <span class="ver">app v<span data-ver="app">–</span></span></div>
     <h1>Vesuvius 1944: where would the lava go?</h1>
     <p class="lede">In March 1944 lava from Mount Vesuvius destroyed the towns of San Sebastiano al Vesuvio and Massa di Somma. Run a real lava-hazard method on today's terrain and see where the lava is most likely to flow.</p>
 
@@ -117,7 +122,7 @@
       </div>
     </div>
 
-    <h2>Model settings <span class="ver">lava model v1.0</span></h2>
+    <h2>Model settings <span class="ver">lava model v<span data-ver="lava">–</span></span></h2>
     <div class="row">
       <label class="ctl" for="runs">Number of simulated flows <span class="val" id="runsVal">500</span></label>
       <input id="runs" type="range" min="100" max="1500" step="100" value="500" />
@@ -156,7 +161,7 @@
       <div style="margin-top:8px;font-weight:600;font-size:13px">Share of simulated flows reaching each town</div>
       <div id="rTowns"></div>
       <div id="impact" style="display:none">
-        <div style="margin-top:14px;font-weight:600;font-size:13px">Buildings and people in the lava zone today</div>
+        <div style="margin-top:14px;font-weight:600;font-size:13px">Buildings and people in the lava zone today <span class="ver">count v<span data-ver="impact">–</span></span></div>
         <table class="imp">
           <thead><tr><th>Lava reached this spot in</th><th>Buildings</th><th>People living there</th></tr></thead>
           <tbody id="impRows"></tbody>
@@ -219,12 +224,16 @@
     </details>
 
     <details>
-      <summary>Versions</summary>
+      <summary>About and versions</summary>
       <table class="vers">
-        <tr><th>Part</th><th>Version</th><th>What it is</th></tr>
-        <tr><td>App</td><td>1.6</td><td>1.6: “had to leave their homes” (INGV: forced to evacuate). 1.5: links to the new story and what-if pages. 1.4: archive 1.3, version label read from the archive file. 1.3: archive 1.2 (B-25 photo restored). 1.2: archive 1.1 (licence check). 1.1: adds the 1944 archive (newsreels, photographs, eyewitness accounts, historian tasks) and the death toll. 1.0: lava explorer with building and population counts</td></tr>
-        <tr><td>Lava model</td><td>1.0</td><td>DOWNFLOW-style steepest descent with pit filling, 20 m grid</td></tr>
+        <caption>Version numbers for this app and each model it uses</caption>
+        <thead><tr><th scope="col">Part</th><th scope="col">Version</th><th scope="col">What it is</th></tr></thead>
+        <tbody>
+        <tr><td>App</td><td data-ver="app">–</td><td>1.7: a version for every model, including the buildings and people count; credit box. 1.6: “had to leave their homes” (INGV: forced to evacuate). 1.5: links to the new story and what-if pages. 1.4: archive 1.3, version label read from the archive file. 1.3: archive 1.2 (B-25 photo restored). 1.2: archive 1.1 (licence check). 1.1: adds the 1944 archive (newsreels, photographs, eyewitness accounts, historian tasks) and the death toll. 1.0: lava explorer with building and population counts</td></tr>
+        <tr><td>Lava model</td><td data-ver="lava">–</td><td>DOWNFLOW-style steepest descent with pit filling, 20 m grid</td></tr>
+        <tr><td>Buildings and people count</td><td data-ver="impact">–</td><td>OpenStreetMap buildings counted where their centre is in the zone; WorldPop 2020 people (100 m grid) shared by how much of each square the zone covers. Counted at 50%, 20% and 5% of flows</td></tr>
         <tr><td>1944 archive</td><td class="va-ver-n">–</td><td>Shared file vesuvius-1944-archive.js (photos, newsreels, eyewitness accounts; also used by the story and VR pages). The number shown is the version loaded</td></tr>
+        </tbody>
       </table>
     </details>
 
@@ -265,8 +274,18 @@
       <div class="k"><span class="sw" style="background:var(--l1)"></span>Less than 5%</div>
       <div class="k"><span class="ln"></span>Most likely path</div>
     </div>
+    <div id="credit">Created by Jason Sawle<br />© Esri 2026</div>
   </main>
 </div>
+
+<script>
+// ---------- Versions (single source of truth: every [data-ver] label, the versions table and the console read from here) ----------
+// Bump a model's number whenever its maths or data handling changes, and bump the app version on every release.
+// The archive's number lives in vesuvius-1944-archive.js.
+const APP_VERSION = "1.7";
+const VERSIONS = { app: APP_VERSION, lava: "1.0", impact: "1.0", archive: window.VesuviusArchive ? VesuviusArchive.version : "missing" };
+document.querySelectorAll("[data-ver]").forEach(el => { el.textContent = VERSIONS[el.dataset.ver] || "–"; });
+</script>
 
 <!-- Lava model (DOWNFLOW-style). Kept identical to lava-model.js so it can be tested on its own. -->
 <script>
@@ -934,7 +953,7 @@ try {
 }
 </script>
 <script>
-  console.info("Vesuvius 1944 lava explorer", { app: "1.6", lava: "1.0", archive: VesuviusArchive.version });
+  console.info("Vesuvius 1944 lava explorer", VERSIONS);
   document.querySelectorAll(".va-ver-n").forEach(el => { el.textContent = VesuviusArchive.version; });
   VesuviusArchive.mount({ panel: document.getElementById("vaPanel"), page: "lava", mapwrap: document.getElementById("mapwrap") });
 </script>

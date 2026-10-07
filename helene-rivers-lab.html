@@ -32,9 +32,10 @@
   label.s { font-size: 12px; color: var(--muted); display: grid; gap: 2px; }
   #info { position: absolute; right: 60px; top: 12px; z-index: 6; width: 340px; padding: 10px 14px; font-size: 12.5px; max-height: calc(100% - 150px); overflow: auto; }
   #info summary { cursor: pointer; font-weight: 700; }
-  #credit { position: absolute; right: 12px; bottom: 100px; z-index: 6; padding: 6px 12px; font-size: 11.5px; line-height: 1.35; color: var(--muted); text-align: right; }
-  #credit b { color: var(--ink); font-weight: 600; }
-  table { width: 100%; border-collapse: collapse; font-size: 12px; } td, th { text-align: left; padding: 3px 4px 3px 0; border-bottom: 1px solid var(--rule); vertical-align: top; } th { color: var(--muted); }
+  #credit { position: absolute; right: 12px; bottom: calc(var(--barh, 88px) + 20px); z-index: 6;   /* --barh: the time bar's height, set from the script, so the credit sits just above it */ padding: 6px 12px; font-size: 11.5px; line-height: 1.35; color: #fff; text-align: right; }
+  #credit b { color: #fff; font-weight: 600; }
+  .mv { font-size: 11px; color: var(--muted); font-weight: 500; white-space: nowrap; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; } caption { text-align: left; color: var(--muted); padding-bottom: 4px; } td, th { text-align: left; padding: 3px 4px 3px 0; border-bottom: 1px solid var(--rule); vertical-align: top; } th { color: var(--muted); }
   @media (max-width: 760px) { #info { display: none; } #bar { grid-template-columns: auto 1fr auto; } #tag { max-width: calc(100% - 70px); } }
 </style>
 </head>
@@ -43,7 +44,7 @@
   <arcgis-zoom slot="top-right"></arcgis-zoom><arcgis-navigation-toggle slot="top-right"></arcgis-navigation-toggle><arcgis-compass slot="top-right"></arcgis-compass>
 </arcgis-scene>
 <div id="tag" class="glass"><b>Rivers lab: more rivers, flowing arrows</b>
-  <div class="key"><i style="background:#00d7ff;box-shadow:0 0 0 1.5px #00234a"></i>Measured flow (USGS): wider = more water</div>
+  <div class="key"><i style="background:#00d7ff;box-shadow:0 0 0 1.5px #00234a"></i>Measured flow (USGS): wider = more water <span class="mv" data-mv="Rivers"></span></div>
   <div class="key"><i style="background:repeating-linear-gradient(90deg,#afb9c6 0 6px,transparent 6px 10px);height:3px"></i>No flow gauge: direction only (grey dashed, grey arrows)</div>
 </div>
 <details id="info" class="glass"><summary>About this lab · <span id="ver"></span></summary>
@@ -58,19 +59,23 @@
   <div id="tLabel">—</div>
   <input id="t" type="range" min="42" max="96" step="0.25" value="60" aria-label="Time" />
   <label class="s">Speed<select id="spd"><option value="1">slow</option><option value="3" selected>normal</option><option value="8">fast</option></select></label>
-  <label class="s">Arrows<select id="size"><option value="0.75">small</option><option value="1" selected>medium</option><option value="1.4">large</option></select></label>
+  <label class="s"><span>Arrows <span class="mv" data-mv="3D chevrons"></span></span><select id="size"><option value="0.75">small</option><option value="1" selected>medium</option><option value="1.4">large</option></select></label>
   <div id="tSub">Loading rivers…</div>
 </div>
 
 <script type="module">
-const LAB_VERSION = "0.6", LAB_DATE = "2 October 2026";
+/* Lab version and per-model versions below (single source of truth);
+   bump a model's number whenever its maths or data handling changes, and bump the lab version on every release. */
+const LAB_VERSION = "0.7", LAB_DATE = "7 October 2026";
 const MODELS = [
   ["Rivers", "0.3", "data/helene-rivers.json (same as the app), from a wider box (83.8°W–81.2°W, 34.85°N–36.5°N) so rivers reach a lake or confluence (French Broad to Knoxville, Tuckasegee to Fontana Lake, Watauga past Elizabethton); rivers stop where they enter a reservoir outside the core area. 19 rivers (adds South Toe, Ivy, Hominy Creek, Tuckasegee with gauges; North Toe, Cane, Doe, Green and the ungauged parts of other rivers for direction only); small rivers from stream order 3. Width = 1 + 0.9 × √(flow / 1,000 cfs) px, up to 12 px, where a gauge on the same river is within 3× of the stretch's NHDPlus mean annual flow; otherwise grey, 2 px"],
   ["3D chevrons", "0.2", "Arms about 10 px on screen (0.1–1.5 km, × arrow size), 2 px lines, one every 3 km, 40 m above the terrain. Speed = 0.5 + 2.4 × log10(1 + flow ÷ mean annual flow) km per second of animation; direction-only rivers 1 km/s"]
 ];
 const $ = (id) => document.getElementById(id);
 $("ver").textContent = "v" + LAB_VERSION;
-$("verTable").innerHTML = `<tr><th>Part</th><th>Version</th><th>How it works</th></tr><tr><td>Lab page</td><td>${LAB_VERSION}</td><td>${LAB_DATE}</td></tr>` + MODELS.map(m => `<tr><td>${m[0]}</td><td>${m[1]}</td><td>${m[2]}</td></tr>`).join("");
+$("verTable").innerHTML = `<caption>Versions of the lab page and its models</caption><thead><tr><th scope="col">Part</th><th scope="col">Version</th><th scope="col">How it works</th></tr></thead><tbody><tr><td>Lab page</td><td>${LAB_VERSION}</td><td>${LAB_DATE}</td></tr>` + MODELS.map(m => `<tr><td>${m[0]}</td><td>${m[1]}</td><td>${m[2]}</td></tr>`).join("") + `</tbody>`;
+document.querySelectorAll("[data-mv]").forEach(el => { const m = MODELS.find(x => x[0] === el.dataset.mv); el.textContent = m ? "model " + m[1] : ""; });
+if (window.ResizeObserver) new ResizeObserver(() => document.documentElement.style.setProperty("--barh", $("bar").offsetHeight + "px")).observe($("bar"));
 
 const [Graphic, GraphicsLayer] = await $arcgis.import(["@arcgis/core/Graphic.js", "@arcgis/core/layers/GraphicsLayer.js"]);
 const el3 = document.querySelector("arcgis-scene"); await el3.viewOnReady(); const v3 = el3.view;
