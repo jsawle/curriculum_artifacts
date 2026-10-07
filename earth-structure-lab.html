@@ -112,6 +112,25 @@
   #credit { position: absolute; right: 16px; bottom: 24px; z-index: 4; padding: 6px 12px; border-radius: 12px; font-size: 11.5px; line-height: 1.35; color: #fff; text-align: right; }
   #credit b { font-weight: 600; }
 
+  /* slice slider: a floating bar under the globe */
+  #cutbar { position: absolute; left: 404px; right: 210px; bottom: 24px; margin: 0 auto; max-width: 680px; padding: 10px 14px 9px; z-index: 5; }
+  @media (min-width: 821px) { #app.panel-open #cutbar { right: 420px; } }
+  #cutbar .cbhead { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  #cutbar h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0; }
+  #cutOut { font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums; }
+  #cutbar .cbrow { display: flex; align-items: center; gap: 10px; margin-top: 2px; }
+  #cutbar .track { flex: 1; min-width: 0; }
+  #cutbar input[type=range] { display: block; margin: 0; height: 28px; cursor: pointer; }
+  #cutbar button { white-space: nowrap; }
+  .strip { display: flex; height: 7px; border-radius: 4px; overflow: hidden; margin: 0 8px; } /* 8px = half the slider thumb, so depths line up with the thumb */
+  .strip + .strip { margin-top: 2px; }
+  .ends { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin: 2px 2px 0; }
+  @media (max-width: 1180px) {
+    #cutbar .cbrow { flex-wrap: wrap; }
+    #cutbar .track { flex-basis: 100%; order: -1; }
+    #cutbar .cbrow button { flex: 1; }
+  }
+
   dialog { max-width: 660px; width: calc(100% - 32px); max-height: calc(100% - 48px); border: 1px solid var(--glass-edge); border-radius: var(--radius); background: var(--panel); color: var(--ink); padding: 16px 20px; box-shadow: var(--shadow); }
   dialog::backdrop { background: rgba(2, 6, 16, .6); }
   dialog h2 { margin: 0 0 6px; font-size: 18px; }
@@ -121,8 +140,9 @@
   /* narrow screens: card becomes a bottom sheet, info panel sits at the top */
   @media (max-width: 820px) {
     #card { left: 8px; right: 8px; top: auto; bottom: 22px; width: auto; height: 46%; }
-    #info, #conv, #waves { left: 8px; right: 56px; top: 8px; width: auto; max-height: 40%; }
-    #credit { bottom: calc(46% + 30px); right: 8px; }
+    #info, #conv, #waves { left: 8px; right: 56px; top: 8px; width: auto; max-height: calc(54% - 190px); }
+    #cutbar { left: 8px; right: 8px; bottom: calc(46% + 28px); max-width: none; padding: 8px 10px; }
+    #credit { bottom: calc(46% + 212px); right: 8px; }
     .lede { display: none; }
     .lbl { font-size: 11.5px; padding: 2px 7px; }
     .lbl .ld { display: none; }
@@ -133,7 +153,7 @@
 <body>
 <a class="skip" href="#card">Skip to controls</a>
 <div id="app">
-  <main id="mapwrap" aria-label="3D globe cut open to show the Earth's layers. The layer list and the information panel give the same information as text.">
+  <main id="mapwrap" aria-label="3D globe of the Earth, which the slider cuts open to show its layers. The layer list and the information panel give the same information as text.">
     <arcgis-scene id="scene" viewing-mode="global">
       <arcgis-zoom slot="top-right"></arcgis-zoom>
       <arcgis-navigation-toggle slot="top-right"></arcgis-navigation-toggle>
@@ -144,7 +164,7 @@
   <aside id="card" class="glass" aria-label="Controls">
     <div class="brand"><span class="kicker">Thinking Spatially</span><span class="sp"></span><span class="labchip">Lab <span id="appVersion"></span></span></div>
     <h1>Inside the Earth</h1>
-    <p class="lede">The globe is cut open through its centre. Select a layer to find out what it is like, and use the cut to look at it from other angles.</p>
+    <p class="lede">Drag the slider under the globe to slice into the Earth, or cut it in half through the centre. Select a layer to find out what it is like.</p>
     <div id="status" role="status" aria-live="polite">Loading the globe…</div>
 
     <div class="scroll">
@@ -167,8 +187,8 @@
           <label class="row"><input type="radio" name="scheme" value="both" /> Both (left: made of · right: behaves)</label>
         </fieldset>
         <ul class="layers" id="layerList"></ul>
-        <label class="stack" for="groundOpacity">Surface: <span id="groundOpacityVal">40% visible</span>
-          <input id="groundOpacity" type="range" min="0" max="100" step="5" value="40" aria-describedby="crustHint" />
+        <label class="stack" for="groundOpacity">Surface: <span id="groundOpacityVal">100% visible</span>
+          <input id="groundOpacity" type="range" min="0" max="100" step="5" value="100" aria-describedby="crustHint" />
         </label>
         <label class="row"><input type="checkbox" id="hideSurface" checked /> Keep the countries on the uncut part</label>
         <p class="sub" id="crustHint">Lower the slider to see through the surface. Untick a layer to peel it away.</p>
@@ -178,29 +198,17 @@
         <h2 id="hDims">Depth labels <span class="mv" id="v-dims"></span></h2>
         <label class="row"><input type="checkbox" id="showDims" checked /> Depth dimensions from the surface</label>
         <label class="row"><input type="checkbox" id="showLabels" checked /> Layer names on the cut</label>
-        <p class="sub">They sit on the cut through the centre, so they show while that cut is on. Zoom in to read the labels on the short, shallow lines.</p>
+        <p class="sub">The depth lines show when the Earth is cut in half; the layer names show on any cut made with the slider. Zoom in to read the labels on the short, shallow lines.</p>
       </section>
 
       <section class="sec" aria-labelledby="hSlice">
         <h2 id="hSlice">Cut the Earth <span class="mv" id="v-slice"></span></h2>
+        <p class="sub">The slider under the globe cuts straight down into the point in the middle of your view. Turn the globe and move the slider again to cut somewhere else.</p>
         <div class="btnrow">
-          <button id="btnSlice" class="primary" aria-pressed="false">Cut through the centre</button>
           <button id="btnPlace">Draw your own cut</button>
-          <button id="btnSliceOff">Remove cut</button>
         </div>
-        <p class="sub">"Cut through the centre" faces whatever you are looking at, so turn the globe and press it again to cut somewhere else.</p>
         <details>
-          <summary>Move the cut by hand</summary>
-          <label class="stack" for="sliceDepth">Cut depth below the point you're looking at: <span id="sliceDepthVal">6,378</span> km
-            <input id="sliceDepth" type="range" min="0" max="6378" step="25" value="6378" />
-          </label>
-          <label class="stack" for="sliceHeading">Heading: <span id="sliceHeadingVal">0</span>°
-            <input id="sliceHeading" type="range" min="0" max="359" step="1" value="0" />
-          </label>
-          <label class="stack" for="sliceTilt">Tilt: <span id="sliceTiltVal">0</span>° <span class="sub">(0° faces you, 90° is edge-on)</span>
-            <input id="sliceTilt" type="range" min="0" max="90" step="1" value="0" />
-          </label>
-          <p class="sub">Lab readout of the cut plane:</p>
+          <summary>Lab readout of the cut plane</summary>
           <div class="readout" id="sliceReadout">No cut yet.</div>
         </details>
       </section>
@@ -238,6 +246,22 @@
     </div>
     <div class="cfoot"><button id="btnAbout">About and versions</button></div>
   </aside>
+
+  <section id="cutbar" class="glass" aria-labelledby="cutTitle">
+    <div class="cbhead">
+      <h2 id="cutTitle">Slice through the Earth</h2>
+      <output id="cutOut" for="cutDepth">Whole Earth</output>
+    </div>
+    <div class="cbrow">
+      <button id="btnWhole" aria-pressed="true">Whole Earth</button>
+      <div class="track">
+        <input id="cutDepth" type="range" min="0" max="6370" step="10" value="0" aria-labelledby="cutTitle" aria-valuetext="0 km: the whole Earth, not cut" />
+        <div id="cutStrip" aria-hidden="true"></div>
+        <div class="ends" aria-hidden="true"><span>Surface</span><span>Centre</span></div>
+      </div>
+      <button id="btnHalf" class="primary" aria-pressed="false">Cut in half</button>
+    </div>
+  </section>
 
   <div id="labelsOverlay" role="group" aria-label="Layer names on the cut" hidden></div>
   <div id="convOverlay" role="group" aria-label="Labels for the convection model" hidden></div>
@@ -343,13 +367,13 @@
 <script type="module">
 // ================= Versions (single source of truth) =================
 // Bump a model's number whenever its maths or data handling changes, and bump the app version on every release.
-const APP_VERSION = "0.6.0";
+const APP_VERSION = "0.7.0";
 const MODELS = {
-  layers: { name: "Layer model", version: "2.0", desc: "Two ways of dividing the Earth: by what it is made of (crust 0–35, upper mantle 35–660, lower mantle 660–2,891, outer core, inner core) and by how it behaves (lithosphere 0–100, asthenosphere 100–250, mesosphere 250–2,891, outer core, inner core; km). On the centre cut each layer is a flat filled ring 40 km behind the cut, so thin layers show. Shells: concentric spheres for mantle and core at PREM depths, scaled to the globe's radius. Facts per layer for the information panel (upper mantle text now links its slow flow to convection)." },
+  layers: { name: "Layer model", version: "2.1", desc: "Two ways of dividing the Earth: by what it is made of (crust 0–35, upper mantle 35–660, lower mantle 660–2,891, outer core, inner core) and by how it behaves (lithosphere 0–100, asthenosphere 100–250, mesosphere 250–2,891, outer core, inner core; km). On a slider cut each layer the cut reaches is a flat filled ring where the cut plane meets that layer's shell (ring radius √(r² − h²), where h is the plane's distance from the centre), 2 km behind the cut, or 40 km behind it when the Earth is cut in half so the models drawn on the cut stay in front. Shells: concentric spheres for mantle and core at PREM depths, scaled to the globe's radius. Facts per layer for the information panel." },
   waves:  { name: "Seismic wave model", version: "1.0", desc: "Wave paths traced through wave speeds rounded from PREM (crust and the low-speed zone smoothed out): each path bends with the speed change and refracts with Snell's law at 400 km, 670 km, the core–mantle boundary and the inner-core boundary; S-waves stop at the liquid outer core. Shadow zones are drawn at the measured edges (USGS: 104°–140°), not the model's. The animation runs 30 real minutes in 15 seconds." },
   conv:   { name: "Convection model", version: "1.0", desc: "Schematic mantle convection on the centre cut: six loops between 3,730 km and 6,090 km from the centre (core–mantle boundary 3,480 km; base of the plates about 6,271 km), turning in alternate directions, so rising rock (ridges) and sinking rock (trenches) alternate every 60°. Plates drawn as arrows 220 km above the surface from ridge to trench; a sinking slab from each trench to 1,500 km deep. Rock parcels go once round a loop in 12 seconds (in reality hundreds of millions of years)." },
-  dims:   { name: "Depth label model", version: "1.1", desc: "Boundaries follow the chosen way of dividing the Earth (hidden when both are shown). Esri DimensionAnalysis lines from the surface to each layer boundary at true depth, on a radius 90° from the cut's anchor (to the right of the view), spaced 650 km apart. Layer names are on-screen buttons pinned to each layer's middle depth, fanned around the left half of the cut, shown while the camera is within 25° of the cut's view." },
-  slice:  { name: "Slice model", version: "1.5", desc: "Esri SliceAnalysis plane under the view centre at a chosen depth, heading and tilt. Starts cut through the centre, tilt 0° (facing a camera looking straight down). While any cut is on, the see-through ground is switched off and a solid imagery sphere (Esri World Imagery, NASA Blue Marble as a fallback) is sliced with the layers, so the countries show on the uncut part and only the cut face shows the layers (viewer can turn this off)." },
+  dims:   { name: "Depth label model", version: "1.2", desc: "Depth lines (Esri DimensionAnalysis) only when the Earth is cut in half: boundaries follow the chosen way of dividing the Earth (hidden when both are shown), drawn from the surface to each boundary at true depth on a radius 90° from the cut's anchor (to the right of the view), spaced 650 km apart. Layer names on any slider cut: on-screen buttons pinned to the middle of each ring the cut reaches (rings under 120 km wide get their name just outside the cut), fanned around the left half, shown while the camera is within 25° of the cut's view." },
+  slice:  { name: "Slice model", version: "2.0", desc: "Starts with the whole Earth (solid ground). The slider sets the cut depth from 0 to 6,371 km (step 10 km; 6,350 km or more snaps to the centre, with the plane 1 km off the exact centre, where its direction is undefined): an Esri SliceAnalysis plane facing the view (tilt 0°), that far below the surface point in the middle of the view, so it removes the cap of the Earth nearest the viewer. 'Cut in half' jumps to the centre, facing the current view. The cut stays fixed to the Earth as the globe turns, and moves to the new view the next time the slider is used after the camera has moved more than 2°. While any cut is on, the see-through ground is switched off and a solid imagery sphere (Esri World Imagery, NASA Blue Marble as a fallback) is sliced with the layers, so the countries show on the uncut part and only the cut face shows the layers (viewer can turn this off)." },
   quakes: { name: "Earthquake depth model", version: "1.0", desc: "USGS depths placed below the surface: height = −depth × 1000 × stretch." }
 };
 const $ = (id) => document.getElementById(id);
@@ -433,7 +457,10 @@ const MECH = [...MECH_ONLY, LAYERS.find(l => l.id === "outerCore"), LAYERS.find(
 const ALL_LAYERS = [...LAYERS, ...MECH_ONLY];
 const byId = Object.fromEntries(ALL_LAYERS.map(l => [l.id, l]));
 let scheme = "made"; // "made", "behaves" or "both"
-let dimAnchor = null;  // the centre cut's anchor { longitude, latitude, heading }, or null when there is no centre cut
+let cutAnchor = null;  // the slider cut's anchor { longitude, latitude, heading, cam }, or null when the slider isn't cutting
+let cutDepth = 0;      // the slider cut's true depth below the anchor, km (0 = whole Earth, 6,371 = cut in half)
+let freeCut = false;   // true while the viewer's own drawn cut is showing
+let dimAnchor = null;  // the same anchor while the Earth is cut in half (depth lines and the models need that cut), else null
 const schemeLayers = () => scheme === "behaves" ? MECH : LAYERS;           // the main list (and the left half when both)
 const listFor = (id) => scheme === "behaves" || (scheme === "both" && MECH_ONLY.some(l => l.id === id)) ? MECH : LAYERS;
 const peeled = {};                                                         // layers the viewer has unticked
@@ -478,6 +505,7 @@ function hideInfo() {
   onSelect(null);
 }
 renderLayerList();
+updateCutBar(); // (defined with the slice code below)
 $("layerList").addEventListener("click", (e) => {
   const b = e.target.closest("button.lname"); if (!b) return;
   if (selectedId === b.dataset.info) hideInfo(); else showInfo(b.dataset.info, { focus: true });
@@ -498,7 +526,11 @@ $("btnAbout").addEventListener("click", () => about.showModal());
 $("btnAboutClose").addEventListener("click", () => about.close());
 
 // ================= SDK =================
-if (typeof $arcgis === "undefined") { setStatus("The 3D globe could not load. The layer list still works."); throw new Error("ArcGIS Maps SDK not available"); }
+if (typeof $arcgis === "undefined") {
+  setStatus("The 3D globe could not load. The layer list still works.");
+  $("cutbar").querySelectorAll("input, button").forEach(el => { el.disabled = true; });
+  throw new Error("ArcGIS Maps SDK not available");
+}
 const [ArcGISMap, GraphicsLayer, FeatureLayer, Graphic, Mesh, MeshComponent, MeshMaterial, MeshMaterialMetallicRoughness, MeshTexture, MeshLocalVertexSpace,
        Point, SliceAnalysis, SlicePlane, DimensionAnalysis, LengthDimension, reactiveUtils] = await $arcgis.import([
   "@arcgis/core/Map.js",
@@ -520,7 +552,7 @@ const [ArcGISMap, GraphicsLayer, FeatureLayer, Graphic, Mesh, MeshComponent, Mes
 ]);
 
 const map = new ArcGISMap({ basemap: "satellite", ground: "world-elevation" });
-map.ground.opacity = 0.4;
+map.ground.opacity = 1; // start with the whole, solid Earth
 map.ground.navigationConstraint = { type: "none" };
 
 const sceneEl = $("scene");
@@ -531,8 +563,9 @@ view.popupEnabled = false;
 // keep the globe clear of the floating card on the left
 const setPadding = () => {
   const infoOpen = !$("info").hidden || !$("conv").hidden || !$("waves").hidden;
-  view.padding = window.innerWidth > 820 ? { left: 400, right: infoOpen ? 400 : 0, top: 0, bottom: 0 }
-                                         : { left: 0, top: 0, right: 0, bottom: Math.round(window.innerHeight * 0.46) };
+  $("app").classList.toggle("panel-open", infoOpen); // the slider bar moves out from under the right-hand panel
+  view.padding = window.innerWidth > 820 ? { left: 400, right: infoOpen ? 400 : 0, top: 0, bottom: $("cutbar").offsetHeight + 24 }
+                                         : { left: 0, top: 0, right: 0, bottom: Math.round(window.innerHeight * 0.46) + $("cutbar").offsetHeight + 28 };
 };
 setPadding(); window.addEventListener("resize", setPadding);
 try {
@@ -633,12 +666,12 @@ let highlight = null;
 // shells show for the layers of the chosen division (both: what it's made of), unless peeled away
 function applyShells() {
   const ids = new Set((scheme === "behaves" ? MECH : LAYERS).map(l => l.id));
-  const capsOn = !!dimAnchor; // the filled cut face replaces the hollow shells
+  const capsOn = !!cutAnchor && cutDepth > 0; // the filled cut face replaces the hollow shells
   for (const [id, g] of Object.entries(shell)) g.visible = !capsOn && ids.has(id) && !peeled[id];
 }
 applyShells();
 // Flat filled rings on the cut face, so thin layers (like the 100 km lithosphere) show as solid bands.
-// They sit 40 km behind the cut, so the lines drawn exactly on the cut (convection, waves) stay in front of them.
+// They sit just behind the cut (40 km when the Earth is cut in half, so the lines drawn exactly on that cut stay in front of them).
 const capsLayer = new GraphicsLayer({ title: "Cut face", elevationInfo: { mode: "absolute-height" } });
 map.add(capsLayer);
 const capsView = await view.whenLayerView(capsLayer);
@@ -658,7 +691,7 @@ document.getElementById("layerList").addEventListener("change", (e) => {
 });
 document.querySelectorAll('input[name="scheme"]').forEach(r => r.addEventListener("change", () => {
   scheme = document.querySelector('input[name="scheme"]:checked').value;
-  renderLayerList(); applyShells(); drawCaps(); drawDims(); drawLabels();
+  renderLayerList(); applyShells(); drawCaps(); drawDims(); drawLabels(); updateCutBar();
   setStatus(scheme === "made" ? "Layers divided by what they are made of." : scheme === "behaves" ? "Layers divided by how the rock behaves: rigid lithosphere, weak asthenosphere, and so on."
     : "Left half: divided by what it's made of. Right half: divided by how it behaves.");
 }));
@@ -673,7 +706,11 @@ function applySurface() {
   go.disabled = swap;
   $("groundOpacityVal").textContent = swap ? "solid while the Earth is cut" : go.value + "% visible";
 }
-function setCut(on) { cutOn = on; applySurface(); }
+function setCut(on) {
+  cutOn = on; applySurface();
+  // the atmosphere haze washes over the cut face in pale bands when the cut is not through the centre, so it is off while cut
+  try { view.environment.atmosphereEnabled = !on; } catch (e) { console.warn(e); }
+}
 go.addEventListener("input", applySurface);
 $("hideSurface").addEventListener("change", applySurface);
 
@@ -695,32 +732,48 @@ function fromAnchor(anchor, bearingDeg, distDeg) {
   let lon = lon2 / r; lon = ((lon + 540) % 360) - 180;
   return { longitude: lon, latitude: lat2 / r };
 }
-const CAP_OFFSET_KM = -40; // behind the cut
-function capPt(th, rKm) { // th: angle on the cut from screen-up; rKm: true distance from the centre
-  const rs = Math.max(rKm * SCALE, Math.abs(CAP_OFFSET_KM) + 1);
-  const dist = Math.acos(CAP_OFFSET_KM / rs) * 180 / Math.PI;
-  const q = fromAnchor(dimAnchor, dimAnchor.heading + th, dist);
-  return [q.longitude, q.latitude, -(R_SCENE_KM - rs) * 1000];
+// The slider's cut is a plane facing the anchor, h km (scene scale) from the Earth's centre: h = (6,371 − depth) × SCALE,
+// so h = 0 when the Earth is cut in half. A sphere of radius r meets a plane h from the centre in a circle of radius √(r² − h²).
+const planeH = () => (R_TRUE_KM - cutDepth) * SCALE;
+const ringRadius = (rScene, h) => Math.sqrt(Math.max(rScene * rScene - h * h, 0));
+// A point on a plane facing the anchor: th = angle on the plane from screen-up (clockwise), rho = distance from the
+// plane's middle and h = the plane's distance from the Earth's centre (scene km). Returns [lon, lat, z in m].
+function cutPoint(th, rho, h) {
+  const r3 = Math.hypot(rho, h), dist = Math.atan2(rho, h) * 180 / Math.PI;
+  const q = fromAnchor(cutAnchor, cutAnchor.heading + th, dist);
+  return [q.longitude, q.latitude, -(R_SCENE_KM - r3) * 1000];
 }
-function capMesh(th0, th1, rIn, rOut, color) {
+function capMesh(th0, th1, rhoIn, rhoOut, h, color) {
   const n = Math.max(8, Math.round(Math.abs(th1 - th0) / 2)), pos = [], faces = [];
-  for (let i = 0; i <= n; i++) { const th = th0 + (th1 - th0) * i / n; pos.push(...capPt(th, rOut), ...capPt(th, rIn)); }
+  for (let i = 0; i <= n; i++) { const th = th0 + (th1 - th0) * i / n; pos.push(...cutPoint(th, rhoOut, h), ...cutPoint(th, rhoIn, h)); }
   for (let i = 0; i < n; i++) { const a = 2 * i; faces.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
   return new Mesh({ spatialReference: { wkid: 4326 }, vertexAttributes: { position: new Float64Array(pos) },
     components: [new MeshComponent({ faces: new Uint32Array(faces), shading: "flat",
       material: new MeshMaterialMetallicRoughness({ color: [0, 0, 0], emissiveColor: color, metallic: 0, roughness: 1, doubleSided: true }) })] });
 }
+// One graphic per half and layer, reused while the slider moves (replacing graphics every frame makes them flicker).
+const capGraphics = {};
 function drawCaps() {
-  capsLayer.removeAll();
   applyShells();
-  if (!dimAnchor) return;
-  const halves = scheme === "both" ? [[LAYERS, 180, 360], [MECH, 0, 180]] : [[schemeLayers(), 0, 360]];
-  for (const [list, a, b] of halves) for (const l of list) {
-    if (peeled[l.id]) continue;
-    capsLayer.add(new Graphic({ geometry: capMesh(a, b, R_TRUE_KM - l.bottom, R_TRUE_KM - l.top, l.color),
-      symbol: { type: "mesh-3d", symbolLayers: [{ type: "fill" }] }, attributes: { id: l.id } }));
+  const shown = new Set();
+  let added = false;
+  if (cutAnchor && cutDepth > 0) {
+    const hc = planeH() - (dimAnchor ? 40 : 2); // just behind the cut
+    const halves = scheme === "both" ? [[LAYERS, 180, 360, "L"], [MECH, 0, 180, "R"]] : [[schemeLayers(), 0, 360, "A"]];
+    for (const [list, a, b, side] of halves) for (const l of list) {
+      const rOut = (R_TRUE_KM - l.top) * SCALE, rIn = (R_TRUE_KM - l.bottom) * SCALE;
+      if (peeled[l.id] || rOut <= Math.abs(hc)) continue; // peeled away, or the cut doesn't reach it
+      const key = side + ":" + l.id, geometry = capMesh(a, b, ringRadius(rIn, hc), ringRadius(rOut, hc), hc, l.color);
+      shown.add(key);
+      if (capGraphics[key]) capGraphics[key].geometry = geometry;
+      else {
+        capGraphics[key] = new Graphic({ geometry, symbol: { type: "mesh-3d", symbolLayers: [{ type: "fill" }] }, attributes: { id: l.id } });
+        capsLayer.add(capGraphics[key]); added = true;
+      }
+    }
   }
-  if (selectedId) onSelect(selectedId);
+  for (const [key, g] of Object.entries(capGraphics)) g.visible = shown.has(key);
+  if (added && selectedId) onSelect(selectedId);
 }
 let mode = "layers"; // "layers" (names and depth dimensions) or "conv" (convection and plates)
 const dims = new DimensionAnalysis({
@@ -742,22 +795,27 @@ function drawDims() {
     }));
   });
 }
-// Layer names: HTML buttons placed with view.toScreen() at each layer's middle depth, on the radius to the left.
+// Layer names: HTML buttons placed with view.toScreen() in the middle of each ring the cut reaches, fanned round the left half.
 const overlay = $("labelsOverlay");
 overlay.innerHTML = ALL_LAYERS.map(l => `<button class="lbl" data-info="${l.id}" aria-pressed="false" style="--c:${l.color}">${l.name} <span class="ld">${km(l.top)}–${km(l.bottom)} km</span></button>`).join("");
 overlay.querySelectorAll(".lbl").forEach(b => b.addEventListener("click", () => showInfo(b.dataset.info, { focus: true })));
 let labelPts = null;
 function drawLabels() {
   labelPts = null;
-  if (dimAnchor && $("showLabels").checked && mode === "layers") {
+  if (cutAnchor && cutDepth > 0 && $("showLabels").checked && mode === "layers") {
     // each name on its own radius (fanned around the left half of the cut) so they don't overlap;
     // with both divisions, the behaviour layers are fanned round the right half instead
     const shown = scheme === "both" ? [...LAYERS.map(l => [l, l.fan]), ...MECH_ONLY.map(l => [l, l.fanR])] : schemeLayers().map(l => [l, l.fan]);
-    labelPts = Object.fromEntries(shown.map(([l, fan]) => {
-      const q = quarterRound(dimAnchor, dimAnchor.heading + fan);
-      const mid = l.id === "crust" || l.id === "lithosphere" ? -350 : (l.top + l.bottom) / 2; // too thin to hold a label: put it just outside
-      return [l.id, pointAt(q.longitude, q.latitude, -mid * SCALE * 1000)];
-    }));
+    const h = planeH();
+    labelPts = {};
+    for (const [l, fan] of shown) {
+      const rOut = (R_TRUE_KM - l.top) * SCALE, rIn = (R_TRUE_KM - l.bottom) * SCALE;
+      if (rOut <= Math.abs(h)) continue; // the cut doesn't reach this layer
+      const pOut = ringRadius(rOut, h), pIn = ringRadius(rIn, h);
+      const thin = pIn > 0 && pOut - pIn < 120; // a band too thin to hold a label: put the name just outside the cut
+      const [lon, lat, z] = cutPoint(fan, thin ? pOut + 350 * SCALE : (pOut + pIn) / 2, h);
+      labelPts[l.id] = pointAt(lon, lat, z);
+    }
   }
   placeLabels();
 }
@@ -783,7 +841,7 @@ let raf = 0;
 function placeGroup(container, pts, key) {
   // labels only make sense while the camera still looks at the cut face-on
   const cam = view.camera?.position;
-  const onView = pts && dimAnchor && cam && arcDeg(cam, dimAnchor) < 25;
+  const onView = pts && cutAnchor && cam && arcDeg(cam, cutAnchor) < 25;
   container.hidden = !onView;
   if (!onView) return;
   for (const b of container.querySelectorAll(".lbl")) {
@@ -794,6 +852,21 @@ function placeGroup(container, pts, key) {
     b.hidden = !ok;
     if (ok) { b.style.left = sp.x + "px"; b.style.top = sp.y + "px"; }
   }
+  spreadLabels(container);
+}
+// Labels can land on top of each other (for example when a shallow cut makes a small disc), so nudge any
+// overlapping ones down until they clear, working from the top of the screen.
+function spreadLabels(container) {
+  const items = [...container.querySelectorAll(".lbl")].filter(b => !b.hidden)
+    .map(b => ({ b, x: parseFloat(b.style.left), y: parseFloat(b.style.top), w: b.offsetWidth, h: b.offsetHeight }))
+    .sort((a, b) => a.y - b.y);
+  for (let pass = 0; pass < 2; pass++) {
+    for (let i = 1; i < items.length; i++) for (let j = 0; j < i; j++) {
+      const a = items[j], c = items[i], gapY = (a.h + c.h) / 2 + 3;
+      if (Math.abs(a.x - c.x) < (a.w + c.w) / 2 + 4 && c.y - a.y < gapY && c.y >= a.y) c.y = a.y + gapY;
+    }
+  }
+  for (const it of items) it.b.style.top = it.y + "px";
 }
 const WAVE_CHIPS = [
   { id: "quake", text: "Earthquake",                                   c: "#ffd43b", th: 0,   r: 6371 + 700,  show: "any" },
@@ -858,58 +931,88 @@ const PLANE_SIZE = 120000000; // far wider than the globe, so the plane's outlin
 const slice = new SliceAnalysis({ tiltEnabled: true });
 view.analyses.add(slice);
 const sliceView = await view.whenAnalysisView(slice);
-try { sliceView.interactive = false; } catch (e) { console.warn(e); } // no drag handles on the guided cut
-const sd = $("sliceDepth"), sh = $("sliceHeading"), st = $("sliceTilt"), btnSlice = $("btnSlice");
-let sliceAnchor = null;
+try { sliceView.interactive = false; } catch (e) { console.warn(e); } // no drag handles on the slider's cut
+const cutRange = $("cutDepth");
+const SNAP_KM = 20;    // slider values this close to the centre cut the Earth exactly in half
+let placeAbort = null;
+// The point in the middle of the view, the camera's heading, and where the camera was (to notice when the view has moved).
 function centreAnchor() {
-  const c = view.center || view.camera.position;
-  return { longitude: c.longitude, latitude: c.latitude, heading: view.camera.heading || 0 };
+  const c = view.center || view.camera.position, cam = view.camera;
+  return { longitude: c.longitude, latitude: c.latitude, heading: cam.heading || 0,
+           cam: { longitude: cam.position.longitude, latitude: cam.position.latitude } };
 }
-function applyGuidedSlice() {
-  if (!sliceAnchor) sliceAnchor = centreAnchor();
-  slice.shape = new SlicePlane({
-    position: pointAt(sliceAnchor.longitude, sliceAnchor.latitude, -Number(sd.value) * 1000),
-    heading: Number(sh.value), tilt: Number(st.value), width: PLANE_SIZE, height: PLANE_SIZE
-  });
-  sliceView.active = true;
-  try { sliceView.interactive = false; } catch (e) { console.warn(e); }
-  btnSlice.setAttribute("aria-pressed", "true");
-  setCut(true);
-  // depth labels only belong on the centre cut facing the camera
-  const centred = Number(sd.value) >= 6350 && Number(st.value) === 0;
-  dimAnchor = centred ? sliceAnchor : null;
+const viewMoved = (a) => {
+  const cam = view.camera; if (!cam) return false;
+  const dh = Math.abs(((cam.heading - a.heading) % 360 + 540) % 360 - 180);
+  return arcDeg(cam.position, a.cam) > 2 || dh > 3;
+};
+// what the slider's cut reaches, for the readout and for screen readers
+const layerAt = (list, d) => list.find(l => d < l.bottom) || list[list.length - 1];
+function cutText(d) {
+  if (freeCut) return { short: "Your own cut", long: "Your own cut is showing. Move the slider to go back to a straight cut." };
+  if (d <= 0) return { short: "Whole Earth", long: "0 km: the whole Earth, not cut" };
+  if (d >= R_TRUE_KM) return { short: "Cut in half through the centre", long: "6,371 km: cut in half through the centre" };
+  const lc = (l) => l.name.toLowerCase();
+  const where = scheme === "both" ? `the ${lc(layerAt(LAYERS, d))} and ${lc(layerAt(MECH, d))}` : `the ${lc(layerAt(schemeLayers(), d))}`;
+  return { short: `${km(d)} km deep: into ${where}`, long: `${km(d)} km deep, cutting into ${where}` };
+}
+function updateCutBar() {
+  const t = cutText(cutDepth), r = $("cutDepth");
+  $("cutOut").textContent = t.short;
+  r.setAttribute("aria-valuetext", t.long);
+  $("btnWhole").setAttribute("aria-pressed", String(!freeCut && cutDepth === 0));
+  $("btnHalf").setAttribute("aria-pressed", String(!freeCut && cutDepth >= R_TRUE_KM));
+  // the strip under the slider: the layers by true depth, surface on the left, centre on the right
+  const rows = scheme === "both" ? [LAYERS, MECH] : [schemeLayers()];
+  $("cutStrip").innerHTML = rows.map(list => `<div class="strip">${list.map(l => `<i style="flex:${l.bottom - l.top};background:${l.color}"></i>`).join("")}</div>`).join("");
+}
+// Cut d km (true depth) straight down into the point in the middle of the view: a plane facing the viewer that removes
+// the cap of the Earth nearest to them. 0 = the whole Earth; 6,371 = cut in half through the centre.
+function setCutDepth(d, { reanchor = false } = {}) {
+  d = Math.max(0, Math.min(R_TRUE_KM, Math.round(d)));
+  if (d >= R_TRUE_KM - SNAP_KM) d = R_TRUE_KM;
+  placeAbort?.abort(); freeCut = false;
+  if (d === 0) {
+    cutAnchor = null;
+    sliceView.active = false;
+    if (slice.clear) slice.clear(); else slice.shape = null;
+  } else {
+    if (reanchor || !cutAnchor || viewMoved(cutAnchor)) cutAnchor = centreAnchor();
+    slice.shape = new SlicePlane({ // (kept 1 km off the exact centre, where the plane's "up" direction is undefined)
+      position: pointAt(cutAnchor.longitude, cutAnchor.latitude, -Math.min(d * SCALE, R_SCENE_KM - 1) * 1000),
+      heading: cutAnchor.heading, tilt: 0, width: PLANE_SIZE, height: PLANE_SIZE
+    });
+    sliceView.active = true;
+    try { sliceView.interactive = false; } catch (e) { console.warn(e); }
+  }
+  cutDepth = d;
+  if (Number(cutRange.value) !== Math.min(d, Number(cutRange.max))) cutRange.value = d;
+  setCut(d > 0);
+  dimAnchor = d === R_TRUE_KM ? cutAnchor : null; // the depth lines and the models need the Earth cut in half
+  updateCutBar();
+  if (!dimAnchor && mode !== "layers") {
+    setMode("layers");
+    setStatus("The movement and earthquake-wave models need the Earth cut in half, so the layers are showing instead. Select \"Cut in half\" to go back.");
+    return;
+  }
   drawCaps(); drawDims(); drawLabels(); drawConvection(); drawWaves();
 }
-function cutThroughCentre() {
-  sliceAnchor = centreAnchor();
-  sd.value = 6378; st.value = 0; sh.value = Math.round(sliceAnchor.heading) % 360;
-  $("sliceDepthVal").textContent = km(6378); $("sliceTiltVal").textContent = "0"; $("sliceHeadingVal").textContent = sh.value;
-  applyGuidedSlice();
-}
-btnSlice.addEventListener("click", () => { cutThroughCentre(); setStatus("Cut through the centre, facing your view."); });
-for (const [el, out, fmt] of [[sd, "sliceDepthVal", v => km(Number(v))], [sh, "sliceHeadingVal", v => v], [st, "sliceTiltVal", v => v]]) {
-  el.addEventListener("input", () => { $(out).textContent = fmt(el.value); if (btnSlice.getAttribute("aria-pressed") === "true") applyGuidedSlice(); });
-}
-let placeAbort = null;
+cutRange.addEventListener("input", () => setCutDepth(Number(cutRange.value)));
+$("btnHalf").addEventListener("click", () => { setCutDepth(R_TRUE_KM, { reanchor: true }); setStatus("The Earth is cut in half through the centre, facing your view."); });
+$("btnWhole").addEventListener("click", () => { setCutDepth(0); setStatus("The whole Earth. Drag the slider to cut into it."); });
 $("btnPlace").addEventListener("click", async () => {
-  btnSlice.setAttribute("aria-pressed", "false");
-  dimAnchor = null; drawCaps(); drawDims(); drawLabels(); drawConvection(); drawWaves();
-  placeAbort?.abort(); placeAbort = new AbortController();
+  setCutDepth(0); // also switches back to the layers if a model was showing
+  freeCut = true; updateCutBar();
+  placeAbort = new AbortController();
   sliceView.active = true;
   try { sliceView.interactive = true; } catch (e) { console.warn(e); }
   setCut(true);
   setStatus("Click on the globe to place a cut, then drag its handles. Press Escape to cancel.");
-  try { await sliceView.place({ signal: placeAbort.signal }); setStatus("Cut placed."); }
-  catch (e) { if (e.name !== "AbortError") { console.error(e); setStatus("Placing a cut did not work in this version."); } }
-});
-$("btnSliceOff").addEventListener("click", () => {
-  placeAbort?.abort();
-  sliceView.active = false;
-  if (slice.clear) slice.clear(); else slice.shape = null;
-  btnSlice.setAttribute("aria-pressed", "false");
-  dimAnchor = null; drawCaps(); drawDims(); drawLabels(); drawConvection(); drawWaves();
-  setCut(false);
-  setStatus("Cut removed. The depth labels show again when you cut through the centre.");
+  try { await sliceView.place({ signal: placeAbort.signal }); setStatus("Cut placed. Drag its handles to move it."); }
+  catch (e) {
+    if (e.name !== "AbortError") { console.error(e); setStatus("Placing a cut did not work in this version."); }
+    if (freeCut && !slice.shape) { setCutDepth(0); setStatus("No cut placed."); } // cancelled before a cut was placed
+  }
 });
 $("excludeQuakes").addEventListener("change", (e) => {
   if (!quakeLayer) return;
@@ -1159,7 +1262,7 @@ function setMode(m) {
   mode = m;
   for (const [id, k] of [["modeLayers", "layers"], ["modeConv", "conv"], ["modeWaves", "waves"]]) $(id).setAttribute("aria-pressed", String(m === k));
   $("btnWhy").hidden = !PANELS[m]; if (PANELS[m]) $("btnWhy").textContent = PANELS[m].why;
-  if (m !== "layers" && !dimAnchor) cutThroughCentre(); // these models are drawn on the centre cut
+  if (m !== "layers" && !dimAnchor) setCutDepth(R_TRUE_KM); // these models are drawn on the Earth cut in half
   if (m === "waves") setStatus("Working out the wave paths…");
   drawCaps(); drawDims(); drawLabels(); drawConvection(); drawWaves();
   if (PANELS[m]) showPanel(m); else hidePanels();
@@ -1180,13 +1283,13 @@ view.on("click", async (evt) => {
 
 // ---------- Camera ----------
 $("underground").addEventListener("change", (e) => { map.ground.navigationConstraint = { type: e.target.checked ? "none" : "stay-above" }; });
-$("btnHome").addEventListener("click", async () => { await view.goTo(START_CAMERA, { animate: !reduceMotion }); cutThroughCentre(); });
+$("btnHome").addEventListener("click", async () => { await view.goTo(START_CAMERA, { animate: !reduceMotion }); if (cutDepth > 0) setCutDepth(cutDepth, { reanchor: true }); });
 $("btnTonga").addEventListener("click", () => view.goTo(camAt(-168, -24, 4500000, 270, 55), { animate: !reduceMotion }));
 
-// ---------- Start: open the Earth straight away ----------
-cutThroughCentre();
+// ---------- Start: the whole Earth ----------
+setCutDepth(0);
 setStatus("Ready. Loading earthquakes…");
-setStatus("Ready. " + await loadQuakes());
+setStatus("Ready. " + await loadQuakes() + " Drag the slider under the globe to cut into the Earth.");
 </script>
 </body>
 </html>
