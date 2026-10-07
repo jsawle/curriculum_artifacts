@@ -74,17 +74,19 @@
   .cfoot button { flex: 1; }
 
   /* right info panel for the selected layer */
-  #info, #conv { position: absolute; right: 64px; top: 16px; width: 340px; max-height: calc(100% - 120px); overflow-y: auto; padding: 14px 16px 12px; z-index: 6; scrollbar-width: thin; }
-  #conv .head { display: flex; align-items: center; gap: 10px; }
-  #conv h2 { font-size: 20px; margin: 0; flex: 1; font-weight: 800; line-height: 1.2; }
-  #conv ol { padding-left: 20px; margin: 10px 0; font-size: 13.5px; }
-  #conv li { margin-bottom: 7px; }
-  #conv .how { font-size: 13.5px; border-left: 3px solid var(--rule); padding-left: 10px; margin: 8px 0 6px; }
-  #conv .src { font-size: 11.5px; color: var(--muted); margin: 8px 0 0; }
+  #info, #conv, #waves { position: absolute; right: 64px; top: 16px; width: 340px; max-height: calc(100% - 120px); overflow-y: auto; padding: 14px 16px 12px; z-index: 6; scrollbar-width: thin; }
+  #conv .head, #waves .head { display: flex; align-items: center; gap: 10px; }
+  #conv h2, #waves h2 { font-size: 20px; margin: 0; flex: 1; font-weight: 800; line-height: 1.2; }
+  #conv ol, #waves ol { padding-left: 20px; margin: 10px 0; font-size: 13.5px; }
+  #conv li, #waves li { margin-bottom: 7px; }
+  #conv .how, #waves .how { font-size: 13.5px; border-left: 3px solid var(--rule); padding-left: 10px; margin: 8px 0 6px; }
+  #conv .src, #waves .src { font-size: 11.5px; color: var(--muted); margin: 8px 0 0; }
+  #waves fieldset { border: 1px solid var(--rule); border-radius: 12px; padding: 4px 10px; margin: 8px 0; }
+  #waveClock { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--accent); }
   .key { display: grid; grid-template-columns: auto 1fr; gap: 3px 8px; font-size: 12.5px; margin: 6px 0; align-items: center; }
   .key i { display: inline-block; width: 18px; height: 4px; border-radius: 2px; }
   .seg { display: flex; gap: 6px; }
-  .seg button { flex: 1; font-size: 13.5px; padding: 8px 6px; }
+  .seg button { flex: 1; font-size: 13px; padding: 8px 4px; line-height: 1.2; }
   #info .head { display: flex; align-items: center; gap: 10px; }
   #info .head .sw { width: 22px; height: 22px; border-radius: 7px; }
   #info h2 { font-size: 20px; margin: 0; flex: 1; font-weight: 800; line-height: 1.2; }
@@ -99,7 +101,7 @@
   .navrow button { flex: 1; font-size: 13px; padding: 6px 8px; }
 
   /* layer names pinned to points on the cut (HTML, because ArcGIS hides 3D text placed below the ground) */
-  #labelsOverlay, #convOverlay { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+  #labelsOverlay, #convOverlay, #wavesOverlay { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
   span.lbl { pointer-events: none; }
   .lbl { position: absolute; transform: translate(-50%, -50%); pointer-events: auto; font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 999px;
     background: rgba(11, 18, 33, 0.8); border: 1.5px solid var(--c, #fff); color: #fff; white-space: nowrap; box-shadow: 0 4px 14px rgba(0,0,0,.4); }
@@ -118,7 +120,7 @@
   /* narrow screens: card becomes a bottom sheet, info panel sits at the top */
   @media (max-width: 820px) {
     #card { left: 8px; right: 8px; top: auto; bottom: 22px; width: auto; height: 46%; }
-    #info, #conv { left: 8px; right: 56px; top: 8px; width: auto; max-height: 40%; }
+    #info, #conv, #waves { left: 8px; right: 56px; top: 8px; width: auto; max-height: 40%; }
     #credit { bottom: calc(46% + 30px); right: 8px; }
     .lede { display: none; }
     .lbl { font-size: 11.5px; padding: 2px 7px; }
@@ -146,10 +148,11 @@
 
     <div class="scroll">
       <section class="sec" aria-labelledby="hShow">
-        <h2 id="hShow">On the cut <span class="mv" id="v-conv"></span></h2>
+        <h2 id="hShow">On the cut <span class="mv" id="v-conv"></span> <span class="mv" id="v-waves"></span></h2>
         <div class="seg" role="group" aria-label="What to show on the cut">
           <button id="modeLayers" aria-pressed="true">Layers and depths</button>
           <button id="modeConv" aria-pressed="false">How it moves</button>
+          <button id="modeWaves" aria-pressed="false">Earthquake waves</button>
         </div>
         <button id="btnWhy" hidden style="width:100%;margin-top:8px">Why do the plates move?</button>
       </section>
@@ -231,6 +234,40 @@
 
   <div id="labelsOverlay" role="group" aria-label="Layer names on the cut" hidden></div>
   <div id="convOverlay" role="group" aria-label="Labels for the convection model" hidden></div>
+  <div id="wavesOverlay" role="group" aria-label="Labels for the earthquake waves" hidden></div>
+
+  <section id="waves" class="glass" aria-labelledby="wavesTitle" hidden>
+    <div class="head">
+      <h2 id="wavesTitle" tabindex="-1">How do we know what's inside?</h2>
+      <button class="iconbtn" id="wavesClose" aria-label="Close the explanation">✕</button>
+    </div>
+    <p style="font-size:13.5px;margin:8px 0">Nobody has drilled through even the crust: the deepest hole ever drilled is about 12 km. Instead, scientists use the waves that earthquakes send through the Earth, recorded by seismometers all round the world.</p>
+    <fieldset>
+      <legend class="sub">Show</legend>
+      <label class="row"><input type="radio" name="wshow" value="both" checked /> P-waves (right) and S-waves (left)</label>
+      <label class="row"><input type="radio" name="wshow" value="P" /> P-waves only</label>
+      <label class="row"><input type="radio" name="wshow" value="S" /> S-waves only</label>
+    </fieldset>
+    <div class="navrow"><button id="btnQuake" class="primary">Start an earthquake</button><button id="btnWavePause" aria-pressed="false">Pause</button></div>
+    <p class="sub" style="margin:6px 0 0">Time after the earthquake: <span id="waveClock">0 min</span></p>
+    <ol>
+      <li><b>P-waves</b> (primary) are <i>longitudinal</i>: the rock is pushed and pulled along the direction the wave travels. They are the fastest, and they travel through solids <b>and</b> liquids.</li>
+      <li><b>S-waves</b> (secondary) are <i>transverse</i>: the rock shakes from side to side. They are slower, and they can only travel through <b>solids</b>.</li>
+      <li><b>The paths curve.</b> Waves speed up as they go deeper, so they bend back up towards the surface. Where they cross a sudden change, such as the edge of the core, they bend sharply (refraction).</li>
+      <li><b>S-wave shadow zone.</b> Beyond about 104° from an earthquake, no S-waves arrive. They are stopped by the outer core, so it must be liquid. In 1914 Beno Gutenberg worked out that the core starts about 2,900 km down.</li>
+      <li><b>P-wave shadow zone.</b> Between about 104° and 140°, almost no P-waves arrive, because they bend sharply where they enter the slower, liquid core.</li>
+      <li><b>The solid inner core.</b> In 1936 Inge Lehmann noticed faint P-waves arriving inside the P-wave shadow zone. She showed they had been bent by a solid inner core.</li>
+    </ol>
+    <div class="key" aria-label="Key to the colours">
+      <i style="background:#8ce99a"></i><span>P-wave path</span>
+      <i style="background:#e9fac8"></i><span>P-wave path through the inner core</span>
+      <i style="background:#ff8787"></i><span>S-wave path</span>
+      <i style="background:#ff8787;height:8px;opacity:.7"></i><span>S-wave shadow zone</span>
+      <i style="background:#8ce99a;height:8px;opacity:.7"></i><span>P-wave shadow zone</span>
+    </div>
+    <p class="note" id="waveModelNote">The paths come from a simplified model of how fast waves travel at each depth, so they land a few degrees from the measured shadow-zone edges, which are drawn from real seismometer records.</p>
+    <p class="src">Sources: USGS, "Shadow zone"; Earle, <i>Physical Geology</i> 9.1; AQA GCSE Physics 4.6.1.5; NGSS HS-ESS2-3. Wave speeds rounded from PREM (Dziewonski &amp; Anderson, 1981).</p>
+  </section>
 
   <section id="conv" class="glass" aria-labelledby="convTitle" hidden>
     <div class="head">
@@ -288,6 +325,7 @@
     <li>Layer depths: Preliminary Reference Earth Model (Dziewonski &amp; Anderson, 1981), rounded. The crust uses a 35 km average (real range about 5–70 km).</li>
     <li>Temperatures and facts: National Geographic Education ("Core"); Earle, <i>Physical Geology</i>, 9.2 "The Temperature of Earth's Interior".</li>
     <li>Earthquakes: USGS real-time feed, magnitude 4.5+, past 30 days.</li>
+    <li>Earthquake waves: paths traced through wave speeds rounded from PREM; shadow zones from USGS ("Shadow zone": 104°–140°); history from Earle, <i>Physical Geology</i>, and Wikipedia "Shadow zone".</li>
     <li>Convection and plate forces: NGSS HS-ESS2-3 (ESS2.A, ESS2.B); Columbia University, "Driving forces of plate motions"; plate speeds from the Pacific Northwest Seismic Network.</li>
     <li>Basemap and elevation: Esri. Imagery on the cut globe: Esri World Imagery (NASA Blue Marble if that cannot load).</li>
   </ul>
@@ -297,9 +335,10 @@
 <script type="module">
 // ================= Versions (single source of truth) =================
 // Bump a model's number whenever its maths or data handling changes, and bump the app version on every release.
-const APP_VERSION = "0.4.0";
+const APP_VERSION = "0.5.0";
 const MODELS = {
   layers: { name: "Layer model", version: "1.2", desc: "Concentric spheres for mantle and core at PREM depths, scaled to the globe's radius. Facts per layer for the information panel (upper mantle text now links its slow flow to convection)." },
+  waves:  { name: "Seismic wave model", version: "1.0", desc: "Wave paths traced through wave speeds rounded from PREM (crust and the low-speed zone smoothed out): each path bends with the speed change and refracts with Snell's law at 400 km, 670 km, the core–mantle boundary and the inner-core boundary; S-waves stop at the liquid outer core. Shadow zones are drawn at the measured edges (USGS: 104°–140°), not the model's. The animation runs 30 real minutes in 15 seconds." },
   conv:   { name: "Convection model", version: "1.0", desc: "Schematic mantle convection on the centre cut: six loops between 3,730 km and 6,090 km from the centre (core–mantle boundary 3,480 km; base of the plates about 6,271 km), turning in alternate directions, so rising rock (ridges) and sinking rock (trenches) alternate every 60°. Plates drawn as arrows 220 km above the surface from ridge to trench; a sinking slab from each trench to 1,500 km deep. Rock parcels go once round a loop in 12 seconds (in reality hundreds of millions of years)." },
   dims:   { name: "Depth label model", version: "1.0", desc: "Esri DimensionAnalysis lines from the surface to each layer boundary at true depth, on a radius 90° from the cut's anchor (to the right of the view), spaced 650 km apart. Layer names are on-screen buttons pinned to each layer's middle depth, fanned around the left half of the cut, shown while the camera is within 25° of the cut's view." },
   slice:  { name: "Slice model", version: "1.5", desc: "Esri SliceAnalysis plane under the view centre at a chosen depth, heading and tilt. Starts cut through the centre, tilt 0° (facing a camera looking straight down). While any cut is on, the see-through ground is switched off and a solid imagery sphere (Esri World Imagery, NASA Blue Marble as a fallback) is sliced with the layers, so the countries show on the uncut part and only the cut face shows the layers (viewer can turn this off)." },
@@ -383,7 +422,7 @@ function showInfo(id, { focus = false } = {}) {
   const i = LAYERS.indexOf(l);
   $("infoUp").disabled = i === 0; $("infoDown").disabled = i === LAYERS.length - 1;
   document.querySelectorAll("button.lname").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.info === id)));
-  $("conv").hidden = true;
+  $("conv").hidden = true; $("waves").hidden = true;
   $("info").hidden = false;
   if (focus) $("infoTitle").focus();
   onSelect(id);
@@ -404,7 +443,7 @@ $("infoUp").addEventListener("click", () => { const i = LAYERS.findIndex(l => l.
 $("infoDown").addEventListener("click", () => { const i = LAYERS.findIndex(l => l.id === selectedId); if (i < LAYERS.length - 1) showInfo(LAYERS[i + 1].id, { focus: true }); });
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape" || document.querySelector("dialog[open]")) return;
-  if (!$("info").hidden) $("infoClose").click(); else if (!$("conv").hidden) $("convClose").click();
+  if (!$("info").hidden) $("infoClose").click(); else if (!$("conv").hidden) $("convClose").click(); else if (!$("waves").hidden) $("wavesClose").click();
 });
 
 const about = $("about");
@@ -443,7 +482,7 @@ const view = sceneEl.view;
 view.popupEnabled = false;
 // keep the globe clear of the floating card on the left
 const setPadding = () => {
-  const infoOpen = !$("info").hidden || !$("conv").hidden;
+  const infoOpen = !$("info").hidden || !$("conv").hidden || !$("waves").hidden;
   view.padding = window.innerWidth > 820 ? { left: 400, right: infoOpen ? 400 : 0, top: 0, bottom: 0 }
                                          : { left: 0, top: 0, right: 0, bottom: Math.round(window.innerHeight * 0.46) };
 };
@@ -642,13 +681,26 @@ function placeGroup(container, pts, key) {
   container.hidden = !onView;
   if (!onView) return;
   for (const b of container.querySelectorAll(".lbl")) {
-    const sp = view.toScreen(pts[b.dataset[key]]);
+    const pt = pts[b.dataset[key]];
+    if (!pt) { b.hidden = true; continue; } // this label doesn't apply to what is shown
+    const sp = view.toScreen(pt);
     const ok = sp && sp.x > 0 && sp.y > 0 && sp.x < view.width && sp.y < view.height;
     b.hidden = !ok;
     if (ok) { b.style.left = sp.x + "px"; b.style.top = sp.y + "px"; }
   }
 }
-function placeLabels() { placeGroup(overlay, labelPts, "info"); placeGroup(convOverlay, convPts, "pt"); }
+const WAVE_CHIPS = [
+  { id: "quake", text: "Earthquake",                                   c: "#ffd43b", th: 0,   r: 6371 + 700,  show: "any" },
+  { id: "pzone", text: "P-wave shadow zone 104°–140°",                 c: "#8ce99a", th: 150, r: 6371 + 950,  show: "Pright" },
+  { id: "szone", text: "S-wave shadow zone beyond 104°",               c: "#ff8787", th: 205, r: 6371 + 800,  show: "S" },
+  { id: "sstop", text: "S-waves stop: the outer core is liquid",       c: "#ff8787", th: -55, r: 2600,        show: "Sleft" },
+  { id: "pbend", text: "P-waves bend entering the core",               c: "#8ce99a", th: 95,  r: 2900,        show: "Pright" },
+  { id: "lehm",  text: "Faint P-waves: the inner core is solid",       c: "#e9fac8", th: 150, r: 1700,        show: "Pright" }
+];
+const wavesOverlay = $("wavesOverlay");
+wavesOverlay.innerHTML = WAVE_CHIPS.map(c => `<span class="lbl" data-pt="${c.id}" style="--c:${c.c}">${c.text}</span>`).join("");
+let wavePts = null;
+function placeLabels() { placeGroup(overlay, labelPts, "info"); placeGroup(convOverlay, convPts, "pt"); placeGroup(wavesOverlay, wavePts, "pt"); }
 reactiveUtils.watch(() => [view.camera, view.width, view.height, view.padding], () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(placeLabels); });
 $("showDims").addEventListener("change", drawDims);
 $("showLabels").addEventListener("change", drawLabels);
@@ -720,7 +772,7 @@ function applyGuidedSlice() {
   // depth labels only belong on the centre cut facing the camera
   const centred = Number(sd.value) >= 6350 && Number(st.value) === 0;
   dimAnchor = centred ? sliceAnchor : null;
-  drawDims(); drawLabels(); drawConvection();
+  drawDims(); drawLabels(); drawConvection(); drawWaves();
 }
 function cutThroughCentre() {
   sliceAnchor = centreAnchor();
@@ -735,7 +787,7 @@ for (const [el, out, fmt] of [[sd, "sliceDepthVal", v => km(Number(v))], [sh, "s
 let placeAbort = null;
 $("btnPlace").addEventListener("click", async () => {
   btnSlice.setAttribute("aria-pressed", "false");
-  dimAnchor = null; drawDims(); drawLabels(); drawConvection();
+  dimAnchor = null; drawDims(); drawLabels(); drawConvection(); drawWaves();
   placeAbort?.abort(); placeAbort = new AbortController();
   sliceView.active = true;
   try { sliceView.interactive = true; } catch (e) { console.warn(e); }
@@ -749,7 +801,7 @@ $("btnSliceOff").addEventListener("click", () => {
   sliceView.active = false;
   if (slice.clear) slice.clear(); else slice.shape = null;
   btnSlice.setAttribute("aria-pressed", "false");
-  dimAnchor = null; drawDims(); drawLabels(); drawConvection();
+  dimAnchor = null; drawDims(); drawLabels(); drawConvection(); drawWaves();
   setCut(false);
   setStatus("Cut removed. The depth labels show again when you cut through the centre.");
 });
@@ -834,26 +886,184 @@ function showPause() { btnPause.setAttribute("aria-pressed", String(convPaused))
 showPause();
 btnPause.addEventListener("click", () => { convPaused = !convPaused; showPause(); });
 
-function showConv({ focus = false } = {}) {
-  if (!$("info").hidden) hideInfo();
-  $("conv").hidden = false; setPadding();
-  if (focus) $("convTitle").focus();
+// ---------- Seismic wave model ----------
+// Wave paths are traced through wave speeds rounded from PREM. Each path is stepped along (4 km steps), bending with the
+// speed gradient; at a sudden change of speed it refracts by Snell's law. S-waves stop where the S speed is zero (liquid).
+const SEIS = {
+  R: 6371,
+  // [depth km, P speed, S speed] km/s; a repeated depth is a sudden change. Crust and the low-speed zone are smoothed out.
+  model: [[0, 8.0, 4.45], [400, 8.91, 4.77], [400, 9.13, 4.93], [670, 10.27, 5.57], [670, 10.75, 5.95], [771, 11.07, 6.24],
+    [1000, 11.46, 6.38], [1500, 12.06, 6.64], [2000, 12.59, 6.84], [2500, 13.09, 7.04], [2741, 13.68, 7.27], [2891, 13.72, 7.26],
+    [2891, 8.06, 0], [3500, 8.9, 0], [4000, 9.5, 0], [4500, 9.95, 0], [5150, 10.36, 0], [5150, 11.03, 3.5], [6371, 11.26, 3.67]],
+  jumps: [400, 670, 2891, 5150],
+  replaySeconds: 15, realSeconds: 1800 // 30 real minutes in 15 seconds
+};
+const seisSeg = (d) => { const m = SEIS.model; for (let i = 0; i < m.length - 1; i++) if (m[i + 1][0] > m[i][0] && d >= m[i][0] && d <= m[i + 1][0]) return i; return m.length - 2; };
+const seisV = (r, c) => { const d = SEIS.R - r, i = seisSeg(d), a = SEIS.model[i], b = SEIS.model[i + 1]; return a[c] + (d - a[0]) / (b[0] - a[0]) * (b[c] - a[c]); };
+const seisG = (r, c) => { const i = seisSeg(SEIS.R - r), a = SEIS.model[i], b = SEIS.model[i + 1]; return -(b[c] - a[c]) / (b[0] - a[0]); };
+function shootRay(takeoffDeg, wave, ds = 4) {
+  const c = wave === "P" ? 1 : 2, R = SEIS.R, JR = SEIS.jumps.map(d => R - d);
+  let x = 0, y = R, ex = Math.sin(takeoffDeg * Math.PI / 180), ey = -Math.cos(takeoffDeg * Math.PI / 180), t = 0, minR = R, blocked = false, reflected = false;
+  const path = [[0, R, 0]];
+  for (let step = 1; step < 20000; step++) {
+    const r = Math.hypot(x, y), v = seisV(r, c);
+    const g = seisG(r, c), rx = x / r, ry = y / r, ge = g * (rx * ex + ry * ey);
+    let nx = ex - ds * (g * rx - ge * ex) / v, ny = ey - ds * (g * ry - ge * ey) / v; const nl = Math.hypot(nx, ny); nx /= nl; ny /= nl;
+    let x2 = x + ds * nx, y2 = y + ds * ny; const r2 = Math.hypot(x2, y2);
+    const jr = JR.find(rb => (r - rb) * (r2 - rb) < 0);
+    if (jr !== undefined) {
+      const f = (r - jr) / (r - r2), xi = x + f * (x2 - x), yi = y + f * (y2 - y); t += f * ds / v;
+      const down = r2 < r, v1 = seisV(down ? jr + 0.001 : jr - 0.001, c), v2 = seisV(down ? jr - 0.001 : jr + 0.001, c);
+      if (v2 <= 0) { x = xi; y = yi; blocked = true; path.push([Math.atan2(x, y) * 180 / Math.PI, jr, t]); break; }
+      const rxi = xi / jr, ryi = yi / jr, cosi = nx * rxi + ny * ryi, sg = Math.sign(cosi);
+      const tx = nx - cosi * rxi, ty = ny - cosi * ryi, sini = Math.hypot(tx, ty), sin2 = sini * v2 / v1;
+      if (sin2 >= 1) { nx -= 2 * cosi * rxi; ny -= 2 * cosi * ryi; reflected = true; } // bounces off the boundary
+      else { const cos2 = Math.sqrt(1 - sin2 * sin2), k = sini > 1e-12 ? sin2 / sini : 0; nx = tx * k + sg * cos2 * rxi; ny = ty * k + sg * cos2 * ryi; }
+      const rest = (1 - f) * ds; x2 = xi + rest * nx; y2 = yi + rest * ny; t += rest / v2;
+    } else t += ds / v;
+    x = x2; y = y2; ex = nx; ey = ny;
+    const rn = Math.hypot(x, y); minR = Math.min(minR, rn);
+    if (step % 6 === 0) path.push([Math.atan2(x, y) * 180 / Math.PI, rn, t]);
+    if (rn >= R) { path.push([Math.atan2(x, y) * 180 / Math.PI, R, t]); break; }
+  }
+  const end = path[path.length - 1];
+  let delta = blocked ? null : (end[0] < 0 ? end[0] + 360 : end[0]);
+  const type = blocked ? "blocked" : reflected ? "reflected" : minR > R - 2891 ? "mantle" : minR > R - 5150 ? "outer" : "inner";
+  return { wave, blocked, delta, land: delta == null ? null : Math.min(delta, 360 - delta), type, path, time: end[2] };
 }
-function hideConv() { $("conv").hidden = true; setPadding(); }
-$("convClose").addEventListener("click", () => { hideConv(); (mode === "conv" ? $("btnWhy") : $("modeConv")).focus(); });
-$("btnWhy").addEventListener("click", () => showConv({ focus: true }));
+let seisRays = null, seisSummary = "";
+function computeRays() {
+  if (seisRays) return seisRays;
+  const pick = (rays, type, targets) => targets.map(tg => rays.filter(r => r.type === type)
+    .reduce((best, r) => (best == null || Math.abs((tg === "max" ? 999 : tg) - r.land) < Math.abs((tg === "max" ? 999 : tg) - best.land) ? r : best), null)).filter(Boolean);
+  const all = { P: [], S: [] };
+  for (const w of ["P", "S"]) for (let a = 0.25; a < 89.9; a += 0.25) all[w].push(shootRay(a, w));
+  for (let a = 6; a < 9; a += 0.03) all.P.push(shootRay(a, "P")); // finer, where P-waves just graze the inner core
+  const P = all.P, S = all.S;
+  const maxLand = (rs, type) => Math.max(...rs.filter(r => r.type === type).map(r => r.land));
+  const minLand = (rs, type) => Math.min(...rs.filter(r => r.type === type).map(r => r.land));
+  seisSummary = `In this model, P-waves through the mantle reach ${Math.round(maxLand(P, "mantle"))}°, S-waves ${Math.round(maxLand(S, "mantle"))}°. ` +
+    `P-waves through the liquid core land from ${Math.round(minLand(P, "outer"))}°, and through the solid inner core from ${Math.round(minLand(P, "inner"))}°.`;
+  // S-waves that hit the liquid outer core never land, so pick those by take-off angle instead
+  const blockedS = S.map((r, i) => ({ r, a: 0.25 + i * 0.25 })).filter(o => o.r.blocked);
+  const nearestBlocked = (a) => blockedS.reduce((b, o) => (b == null || Math.abs(o.a - a) < Math.abs(b.a - a) ? o : b), null)?.r;
+  seisRays = {
+    P: [...pick(P, "mantle", [12, 25, 40, 55, 70, 85, "max"]), ...pick(P, "outer", [146, 158, 170]), ...pick(P, "inner", [130, 140, 165, 178])],
+    S: [...pick(S, "mantle", [12, 25, 40, 55, 70, 85, "max"]), ...[2, 7, 12, 17].map(nearestBlocked).filter(Boolean)]
+  };
+  return seisRays;
+}
+const wavesLayer = new GraphicsLayer({ title: "Earthquake waves", elevationInfo: { mode: "absolute-height" } });
+const waveDotLayer = new GraphicsLayer({ title: "Wave fronts", elevationInfo: { mode: "absolute-height" } });
+map.addMany([wavesLayer, waveDotLayer]);
+slice.excludedLayers.addMany([wavesLayer, waveDotLayer]);
+const WCOL = { P: "#8ce99a", Pinner: "#e9fac8", S: "#ff8787" };
+let waveDots = [], waveTime = 0, wavePlaying = false, wavePaused = false;
+const wshow = () => document.querySelector('input[name="wshow"]:checked').value;
+function drawWaves() {
+  wavesLayer.removeAll(); waveDotLayer.removeAll(); waveDots = []; wavePts = null;
+  if (mode !== "waves" || !dimAnchor) { placeLabels(); return; }
+  const rays = computeRays(), show = wshow();
+  const sides = show === "both" ? { P: [1], S: [-1] } : show === "P" ? { P: [1, -1], S: [] } : { P: [], S: [1, -1] };
+  const add = (pts, sym) => wavesLayer.add(new Graphic({ geometry: polyAt(pts), symbol: sym }));
+  for (const w of ["P", "S"]) for (const side of sides[w]) for (const ray of rays[w]) {
+    const color = w === "S" ? WCOL.S : ray.type === "inner" ? WCOL.Pinner : WCOL.P;
+    const pts = ray.path.filter((_, i) => i % 2 === 0 || i === ray.path.length - 1).map(([th, r]) => ({ th: side * th, r }));
+    add(pts, lineSym(color, ray.type === "inner" ? 1.5 : 2, false));
+    if (ray.blocked) { // a cross where the S-wave stops at the outer core
+      const [th, r] = ray.path[ray.path.length - 1];
+      waveDotLayer.add(new Graphic({ geometry: cutPt(side * th, r), symbol: { type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "cube" },
+        width: 150000, height: 150000, depth: 150000, material: { color: "#ff6b6b" } }] } }));
+    }
+    const g = new Graphic({ geometry: cutPt(0, 6371), symbol: { type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "sphere" }, width: 230000, height: 230000, depth: 230000, material: { color } }] }, visible: false });
+    waveDots.push({ g, ray, side }); waveDotLayer.add(g);
+  }
+  // shadow zones: arcs just outside the surface, at the measured edges (104° and 140°)
+  const arc = (from, to, r) => Array.from({ length: 41 }, (_, i) => ({ th: from + (to - from) * i / 40, r }));
+  const band = (color) => ({ type: "line-3d", symbolLayers: [{ type: "line", size: 9, material: { color }, cap: "butt" }] });
+  if (sides.S.length) add(arc(104, 256, 6371 + 280), band([255, 135, 135, 0.8]));
+  for (const side of sides.P) add(arc(side * 104, side * 140, 6371 + 520), band([140, 233, 154, 0.85]));
+  // earthquake marker
+  waveDotLayer.add(new Graphic({ geometry: cutPt(0, 6371), symbol: { type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "diamond" }, width: 320000, height: 320000, depth: 320000, material: { color: "#ffd43b" } }] } }));
+  // labels that apply to what is shown
+  const shown = (c) => c.show === "any" || (c.show === "S" && sides.S.length) || (c.show === "Pright" && sides.P.length) || (c.show === "Sleft" && sides.S.length);
+  wavePts = Object.fromEntries(WAVE_CHIPS.filter(shown).map(c => {
+    // put each label on the side where its waves are drawn
+    let th = c.th;
+    if (c.show === "Pright" && !sides.P.includes(1)) th = -th;
+    if (c.show === "Sleft" && !sides.S.includes(-1)) th = -th;
+    return [c.id, cutPt(th, c.r)];
+  }));
+  $("waveModelNote").textContent = "The paths come from a simplified model of how fast waves travel at each depth, so they land a few degrees from the measured shadow-zone edges, which are drawn from real seismometer records. " + seisSummary;
+  placeLabels();
+  placeWaveDots();
+}
+function placeWaveDots() {
+  const tReal = waveTime;
+  for (const d of waveDots) {
+    const p = d.ray.path, end = p[p.length - 1][2];
+    if (!wavePlaying || tReal <= 0 || tReal > end) { d.g.visible = false; continue; }
+    let i = 1; while (i < p.length - 1 && p[i][2] < tReal) i++;
+    const a = p[i - 1], b = p[i], f = b[2] > a[2] ? (tReal - a[2]) / (b[2] - a[2]) : 0;
+    d.g.geometry = cutPt(d.side * (a[0] + f * (b[0] - a[0])), a[1] + f * (b[1] - a[1]));
+    d.g.visible = true;
+  }
+  const mins = Math.floor(waveTime / 60);
+  $("waveClock").textContent = wavePlaying ? `${mins} min ${String(Math.floor(waveTime % 60)).padStart(2, "0")} s` : "0 min";
+}
+let lastWaveTick = 0;
+function tickWaves(ts) {
+  if (ts - lastWaveTick > 80) {
+    if (wavePlaying && !wavePaused && mode === "waves") {
+      waveTime += Math.min(0.3, (ts - lastWaveTick) / 1000) * SEIS.realSeconds / SEIS.replaySeconds;
+      if (waveTime > SEIS.realSeconds) { wavePlaying = false; waveTime = 0; setStatus("The earthquake waves have all arrived. Start another to watch again."); }
+      placeWaveDots();
+    }
+    lastWaveTick = ts;
+  }
+  requestAnimationFrame(tickWaves);
+}
+requestAnimationFrame(tickWaves);
+function startQuake() {
+  waveTime = 0.01; wavePlaying = true; wavePaused = reduceMotion;
+  $("btnWavePause").setAttribute("aria-pressed", String(wavePaused)); $("btnWavePause").textContent = wavePaused ? "Play" : "Pause";
+  setStatus("Earthquake! Watch which waves arrive where. P-waves arrive first.");
+}
+$("btnQuake").addEventListener("click", startQuake);
+$("btnWavePause").addEventListener("click", () => {
+  if (!wavePlaying) { startQuake(); wavePaused = false; }
+  else wavePaused = !wavePaused;
+  $("btnWavePause").setAttribute("aria-pressed", String(wavePaused)); $("btnWavePause").textContent = wavePaused ? "Play" : "Pause";
+});
+document.querySelectorAll('input[name="wshow"]').forEach(r => r.addEventListener("change", drawWaves));
+
+// ---------- explanation panels and the three views ----------
+const PANELS = { conv: { el: "conv", title: "convTitle", why: "Why do the plates move?" }, waves: { el: "waves", title: "wavesTitle", why: "How do we know what's inside?" } };
+function showPanel(m, { focus = false } = {}) {
+  if (!$("info").hidden) hideInfo();
+  for (const [k, p] of Object.entries(PANELS)) $(p.el).hidden = k !== m;
+  setPadding();
+  if (focus && PANELS[m]) $(PANELS[m].title).focus();
+}
+function hidePanels() { for (const p of Object.values(PANELS)) $(p.el).hidden = true; setPadding(); }
+$("convClose").addEventListener("click", () => { hidePanels(); $("btnWhy").focus(); });
+$("wavesClose").addEventListener("click", () => { hidePanels(); $("btnWhy").focus(); });
+$("btnWhy").addEventListener("click", () => showPanel(mode, { focus: true }));
 function setMode(m) {
   mode = m;
-  $("modeLayers").setAttribute("aria-pressed", String(m === "layers"));
-  $("modeConv").setAttribute("aria-pressed", String(m === "conv"));
-  $("btnWhy").hidden = m !== "conv";
-  if (m === "conv" && !dimAnchor) cutThroughCentre(); // the convection model is drawn on the centre cut
-  drawDims(); drawLabels(); drawConvection();
-  if (m === "conv") { showConv(); setStatus("Showing how the mantle and plates move. Select \"Why do the plates move?\" for the explanation."); }
-  else { hideConv(); setStatus("Showing the layers and their depths."); }
+  for (const [id, k] of [["modeLayers", "layers"], ["modeConv", "conv"], ["modeWaves", "waves"]]) $(id).setAttribute("aria-pressed", String(m === k));
+  $("btnWhy").hidden = !PANELS[m]; if (PANELS[m]) $("btnWhy").textContent = PANELS[m].why;
+  if (m !== "layers" && !dimAnchor) cutThroughCentre(); // these models are drawn on the centre cut
+  if (m === "waves") setStatus("Working out the wave paths…");
+  drawDims(); drawLabels(); drawConvection(); drawWaves();
+  if (PANELS[m]) showPanel(m); else hidePanels();
+  if (m === "conv") setStatus("Showing how the mantle and plates move. Select \"Why do the plates move?\" for the explanation.");
+  else if (m === "waves") { setStatus("Showing earthquake waves. Select \"Start an earthquake\" to watch them travel."); if (!reduceMotion) startQuake(); }
+  else setStatus("Showing the layers and their depths.");
 }
 $("modeLayers").addEventListener("click", () => setMode("layers"));
 $("modeConv").addEventListener("click", () => setMode("conv"));
+$("modeWaves").addEventListener("click", () => setMode("waves"));
 
 // ---------- Selecting on the globe ----------
 view.on("click", async (evt) => {
