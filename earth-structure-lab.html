@@ -58,6 +58,7 @@
   /* layer list */
   ul.layers { list-style: none; margin: 0; padding: 0; }
   ul.layers li { display: flex; align-items: center; gap: 10px; padding: 3px 0; }
+  ul.layers li.grp { display: block; font-size: 11.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: 8px 0 2px; }
   .sw { width: 16px; height: 16px; border-radius: 5px; flex: none; border: 1px solid rgba(0,0,0,.4); }
   button.lname { flex: 1; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; text-align: left; background: transparent; border-color: transparent; padding: 6px 8px; border-radius: 10px; font-weight: 600; }
   button.lname .d { font-weight: 500; font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
@@ -159,6 +160,12 @@
 
       <section class="sec" aria-labelledby="hLayers">
         <h2 id="hLayers">Layers <span class="mv" id="v-layers"></span></h2>
+        <fieldset style="border:1px solid var(--rule);border-radius:12px;padding:4px 10px;margin:0 0 8px">
+          <legend class="sub">Divide the Earth by</legend>
+          <label class="row"><input type="radio" name="scheme" value="made" checked /> What it's made of</label>
+          <label class="row"><input type="radio" name="scheme" value="behaves" /> How it behaves</label>
+          <label class="row"><input type="radio" name="scheme" value="both" /> Both (left: made of · right: behaves)</label>
+        </fieldset>
         <ul class="layers" id="layerList"></ul>
         <label class="stack" for="groundOpacity">Surface: <span id="groundOpacityVal">40% visible</span>
           <input id="groundOpacity" type="range" min="0" max="100" step="5" value="40" aria-describedby="crustHint" />
@@ -306,7 +313,7 @@
     <dl id="infoFacts"></dl>
     <p class="how" id="infoHow"></p>
     <div class="navrow"><button id="infoUp">↑ Layer above</button><button id="infoDown">Layer below ↓</button></div>
-    <p class="src">Sources: National Geographic Education; Earle, <i>Physical Geology</i>; PREM (Dziewonski &amp; Anderson, 1981). Figures are rounded; scientists' estimates vary.</p>
+    <p class="src">Sources: National Geographic Education; Earle, <i>Physical Geology</i>; Wikipedia ("Lithosphere", "Asthenosphere"); PREM (Dziewonski &amp; Anderson, 1981). Figures are rounded; scientists' estimates vary.</p>
   </section>
 
   <div id="credit" class="glass"><b>Created by Jason Sawle</b></div>
@@ -323,6 +330,7 @@
   <h3>Data sources</h3>
   <ul>
     <li>Layer depths: Preliminary Reference Earth Model (Dziewonski &amp; Anderson, 1981), rounded. The crust uses a 35 km average (real range about 5–70 km).</li>
+    <li>Lithosphere and asthenosphere: Wikipedia, "Lithosphere" and "Asthenosphere"; Earle, <i>Physical Geology</i> 9.1 (low-velocity zone 100–250 km).</li>
     <li>Temperatures and facts: National Geographic Education ("Core"); Earle, <i>Physical Geology</i>, 9.2 "The Temperature of Earth's Interior".</li>
     <li>Earthquakes: USGS real-time feed, magnitude 4.5+, past 30 days.</li>
     <li>Earthquake waves: paths traced through wave speeds rounded from PREM; shadow zones from USGS ("Shadow zone": 104°–140°); history from Earle, <i>Physical Geology</i>, and Wikipedia "Shadow zone".</li>
@@ -335,12 +343,12 @@
 <script type="module">
 // ================= Versions (single source of truth) =================
 // Bump a model's number whenever its maths or data handling changes, and bump the app version on every release.
-const APP_VERSION = "0.5.0";
+const APP_VERSION = "0.6.0";
 const MODELS = {
-  layers: { name: "Layer model", version: "1.2", desc: "Concentric spheres for mantle and core at PREM depths, scaled to the globe's radius. Facts per layer for the information panel (upper mantle text now links its slow flow to convection)." },
+  layers: { name: "Layer model", version: "2.0", desc: "Two ways of dividing the Earth: by what it is made of (crust 0–35, upper mantle 35–660, lower mantle 660–2,891, outer core, inner core) and by how it behaves (lithosphere 0–100, asthenosphere 100–250, mesosphere 250–2,891, outer core, inner core; km). On the centre cut each layer is a flat filled ring 40 km behind the cut, so thin layers show. Shells: concentric spheres for mantle and core at PREM depths, scaled to the globe's radius. Facts per layer for the information panel (upper mantle text now links its slow flow to convection)." },
   waves:  { name: "Seismic wave model", version: "1.0", desc: "Wave paths traced through wave speeds rounded from PREM (crust and the low-speed zone smoothed out): each path bends with the speed change and refracts with Snell's law at 400 km, 670 km, the core–mantle boundary and the inner-core boundary; S-waves stop at the liquid outer core. Shadow zones are drawn at the measured edges (USGS: 104°–140°), not the model's. The animation runs 30 real minutes in 15 seconds." },
   conv:   { name: "Convection model", version: "1.0", desc: "Schematic mantle convection on the centre cut: six loops between 3,730 km and 6,090 km from the centre (core–mantle boundary 3,480 km; base of the plates about 6,271 km), turning in alternate directions, so rising rock (ridges) and sinking rock (trenches) alternate every 60°. Plates drawn as arrows 220 km above the surface from ridge to trench; a sinking slab from each trench to 1,500 km deep. Rock parcels go once round a loop in 12 seconds (in reality hundreds of millions of years)." },
-  dims:   { name: "Depth label model", version: "1.0", desc: "Esri DimensionAnalysis lines from the surface to each layer boundary at true depth, on a radius 90° from the cut's anchor (to the right of the view), spaced 650 km apart. Layer names are on-screen buttons pinned to each layer's middle depth, fanned around the left half of the cut, shown while the camera is within 25° of the cut's view." },
+  dims:   { name: "Depth label model", version: "1.1", desc: "Boundaries follow the chosen way of dividing the Earth (hidden when both are shown). Esri DimensionAnalysis lines from the surface to each layer boundary at true depth, on a radius 90° from the cut's anchor (to the right of the view), spaced 650 km apart. Layer names are on-screen buttons pinned to each layer's middle depth, fanned around the left half of the cut, shown while the camera is within 25° of the cut's view." },
   slice:  { name: "Slice model", version: "1.5", desc: "Esri SliceAnalysis plane under the view centre at a chosen depth, heading and tilt. Starts cut through the centre, tilt 0° (facing a camera looking straight down). While any cut is on, the see-through ground is switched off and a solid imagery sphere (Esri World Imagery, NASA Blue Marble as a fallback) is sliced with the layers, so the countries show on the uncut part and only the cut face shows the layers (viewer can turn this off)." },
   quakes: { name: "Earthquake depth model", version: "1.0", desc: "USGS depths placed below the surface: height = −depth × 1000 × stretch." }
 };
@@ -397,15 +405,52 @@ const LAYERS = [
     thick: "A ball with a radius of about 1,220 km",
     how: "In 1936 Inge Lehmann found P-waves bouncing off a boundary deep inside the core, and P-waves speed up there, showing the inner core is solid." }
 ];
-const byId = Object.fromEntries(LAYERS.map(l => [l.id, l]));
+// The same Earth divided by how the rock behaves (strong or weak, solid or liquid) instead of what it is made of.
+const MECH_ONLY = [
+  { id: "lithosphere", name: "Lithosphere", top: 0, bottom: 100, color: "#7a5236", mesh: false, fan: 330, fanR: 30, state: "Solid and rigid",
+    text: "The rigid outer shell of the Earth: the crust plus the top, coolest part of the mantle. It is broken into the tectonic plates, which move as solid slabs.",
+    made: "The crust (granite on continents, basalt under the oceans) and the top of the mantle (peridotite).",
+    temp: "From surface temperature to about 1,300 °C at its base",
+    density: "about 2.7–3.3 g/cm³",
+    thick: "Only a few kilometres at mid-ocean ridges, about 140 km under the oldest ocean floor, and about 40–280 km under continents. This model uses 100 km.",
+    how: "Earthquake waves travel fast through it, then slow down below it. The rigid layer above that slow zone is the lithosphere." },
+  { id: "asthenosphere", name: "Asthenosphere", top: 100, bottom: 250, color: "#ff8f3f", mesh: true, fan: 300, fanR: 60, state: "Solid, but weak and slowly flowing",
+    text: "Hot, soft rock below the plates. It is still solid, but weak enough to flow a few centimetres a year, and a tiny amount may be molten in places. The plates move over it.",
+    made: "Mantle rock (peridotite), very close to its melting point.",
+    temp: "About 1,300 °C at its top",
+    density: "about 3.4 g/cm³",
+    thick: "About 100–250 km down in this model. Its depth varies from place to place, and some scientists extend it deeper.",
+    how: "Earthquake waves slow down between about 100 and 250 km (the 'low-velocity zone'), a sign that the rock is hot, soft and slightly molten in places." },
+  { id: "mesosphere", name: "Mesosphere", top: 250, bottom: 2891, color: "#b9614f", mesh: true, fan: 255, fanR: 105, state: "Solid",
+    text: "The rest of the mantle, down to the core (not the same as the mesosphere in the atmosphere). The pressure makes the rock stronger than in the asthenosphere, but over millions of years it still flows slowly. It includes the transition zone (410–660 km), where minerals are squeezed into denser forms.",
+    made: "Mantle rock, changing into denser minerals with depth.",
+    temp: "About 1,700 °C near the top, about 3,500 °C at its base",
+    density: "about 3.5–5.6 g/cm³",
+    thick: "About 2,640 km",
+    how: "Earthquake waves speed up steadily with depth, with sudden jumps at about 410 km and 660 km where the minerals change." }
+];
+const MECH = [...MECH_ONLY, LAYERS.find(l => l.id === "outerCore"), LAYERS.find(l => l.id === "innerCore")];
+const ALL_LAYERS = [...LAYERS, ...MECH_ONLY];
+const byId = Object.fromEntries(ALL_LAYERS.map(l => [l.id, l]));
+let scheme = "made"; // "made", "behaves" or "both"
+let dimAnchor = null;  // the centre cut's anchor { longitude, latitude, heading }, or null when there is no centre cut
+const schemeLayers = () => scheme === "behaves" ? MECH : LAYERS;           // the main list (and the left half when both)
+const listFor = (id) => scheme === "behaves" || (scheme === "both" && MECH_ONLY.some(l => l.id === id)) ? MECH : LAYERS;
+const peeled = {};                                                         // layers the viewer has unticked
 
-// layer list (buttons open the info panel; checkboxes show or hide the 3D shell)
-$("layerList").innerHTML = LAYERS.map(l => `<li>
-  <span class="cbox">${l.mesh ? `<input type="checkbox" data-layer="${l.id}" checked aria-label="Show ${l.name}" />` : ""}</span>
+// layer list (buttons open the info panel; checkboxes peel a layer away)
+const layerRow = (l) => `<li>
+  <span class="cbox"><input type="checkbox" data-layer="${l.id}" ${peeled[l.id] ? "" : "checked"} aria-label="Show ${l.name}" /></span>
   <span class="sw" style="background:${l.color}"></span>
-  <button class="lname" data-info="${l.id}" aria-pressed="false" aria-controls="info">${l.name}<span class="d">${km(l.top)}–${km(l.bottom)} km</span></button>
-</li>`).join("");
-$("layerTable").innerHTML = LAYERS.map(l => `<tr><th scope="row">${l.name}</th><td>${km(l.top)}–${km(l.bottom)}</td><td>${l.state}</td><td>${l.temp}</td></tr>`).join("");
+  <button class="lname" data-info="${l.id}" aria-pressed="${selectedId === l.id}" aria-controls="info">${l.name}<span class="d">${km(l.top)}–${km(l.bottom)} km</span></button>
+</li>`;
+function renderLayerList() {
+  $("layerList").innerHTML = scheme === "both"
+    ? `<li class="grp">Made of · left half</li>${LAYERS.map(layerRow).join("")}<li class="grp">Behaves · right half</li>${MECH_ONLY.map(layerRow).join("")}`
+    : schemeLayers().map(layerRow).join("");
+}
+const tableRows = (list) => list.map(l => `<tr><th scope="row">${l.name}</th><td>${km(l.top)}–${km(l.bottom)}</td><td>${l.state}</td><td>${l.temp}</td></tr>`).join("");
+$("layerTable").innerHTML = `<tr><th colspan="4" scope="colgroup">Divided by what it's made of</th></tr>${tableRows(LAYERS)}<tr><th colspan="4" scope="colgroup">Divided by how it behaves</th></tr>${tableRows(MECH)}`;
 
 // ================= Info panel (works before the 3D view loads) =================
 let selectedId = null;
@@ -419,8 +464,8 @@ function showInfo(id, { focus = false } = {}) {
   $("infoText").textContent = l.text;
   $("infoFacts").innerHTML = `<dt>Thickness</dt><dd>${l.thick}</dd><dt>Made of</dt><dd>${l.made}</dd><dt>Temperature</dt><dd>${l.temp}</dd><dt>Density</dt><dd>${l.density} <span class="sub">(water is 1)</span></dd>`;
   $("infoHow").innerHTML = `<b>How we know:</b> ${l.how}`;
-  const i = LAYERS.indexOf(l);
-  $("infoUp").disabled = i === 0; $("infoDown").disabled = i === LAYERS.length - 1;
+  const list = listFor(id), i = list.indexOf(l);
+  $("infoUp").disabled = i <= 0; $("infoDown").disabled = i === list.length - 1;
   document.querySelectorAll("button.lname").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.info === id)));
   $("conv").hidden = true; $("waves").hidden = true;
   $("info").hidden = false;
@@ -432,15 +477,17 @@ function hideInfo() {
   document.querySelectorAll("button.lname").forEach(b => b.setAttribute("aria-pressed", "false"));
   onSelect(null);
 }
-document.querySelectorAll("button.lname").forEach(b => b.addEventListener("click", () => {
+renderLayerList();
+$("layerList").addEventListener("click", (e) => {
+  const b = e.target.closest("button.lname"); if (!b) return;
   if (selectedId === b.dataset.info) hideInfo(); else showInfo(b.dataset.info, { focus: true });
-}));
+});
 $("infoClose").addEventListener("click", () => {
   const prev = selectedId; hideInfo();
   document.querySelector(`button.lname[data-info="${prev}"]`)?.focus();
 });
-$("infoUp").addEventListener("click", () => { const i = LAYERS.findIndex(l => l.id === selectedId); if (i > 0) showInfo(LAYERS[i - 1].id, { focus: true }); });
-$("infoDown").addEventListener("click", () => { const i = LAYERS.findIndex(l => l.id === selectedId); if (i < LAYERS.length - 1) showInfo(LAYERS[i + 1].id, { focus: true }); });
+$("infoUp").addEventListener("click", () => { const list = listFor(selectedId), i = list.findIndex(l => l.id === selectedId); if (i > 0) showInfo(list[i - 1].id, { focus: true }); });
+$("infoDown").addEventListener("click", () => { const list = listFor(selectedId), i = list.findIndex(l => l.id === selectedId); if (i < list.length - 1) showInfo(list[i + 1].id, { focus: true }); });
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape" || document.querySelector("dialog[open]")) return;
   if (!$("info").hidden) $("infoClose").click(); else if (!$("conv").hidden) $("convClose").click(); else if (!$("waves").hidden) $("wavesClose").click();
@@ -452,7 +499,7 @@ $("btnAboutClose").addEventListener("click", () => about.close());
 
 // ================= SDK =================
 if (typeof $arcgis === "undefined") { setStatus("The 3D globe could not load. The layer list still works."); throw new Error("ArcGIS Maps SDK not available"); }
-const [ArcGISMap, GraphicsLayer, FeatureLayer, Graphic, Mesh, MeshComponent, MeshMaterial, MeshTexture, MeshLocalVertexSpace,
+const [ArcGISMap, GraphicsLayer, FeatureLayer, Graphic, Mesh, MeshComponent, MeshMaterial, MeshMaterialMetallicRoughness, MeshTexture, MeshLocalVertexSpace,
        Point, SliceAnalysis, SlicePlane, DimensionAnalysis, LengthDimension, reactiveUtils] = await $arcgis.import([
   "@arcgis/core/Map.js",
   "@arcgis/core/layers/GraphicsLayer.js",
@@ -461,6 +508,7 @@ const [ArcGISMap, GraphicsLayer, FeatureLayer, Graphic, Mesh, MeshComponent, Mes
   "@arcgis/core/geometry/Mesh.js",
   "@arcgis/core/geometry/support/MeshComponent.js",
   "@arcgis/core/geometry/support/MeshMaterial.js",
+  "@arcgis/core/geometry/support/MeshMaterialMetallicRoughness.js",
   "@arcgis/core/geometry/support/MeshTexture.js",
   "@arcgis/core/geometry/support/MeshLocalVertexSpace.js",
   "@arcgis/core/geometry/Point.js",
@@ -550,7 +598,7 @@ function imageryGlobe(radiusM, material, segLon = 180, segLat = 90) {
 }
 const layersLayer = new GraphicsLayer({ title: "Earth's layers", elevationInfo: { mode: "absolute-height" } });
 const shell = {};
-for (const l of LAYERS.filter(x => x.mesh)) {
+for (const l of ALL_LAYERS.filter(x => x.mesh)) {
   const g = new Graphic({ geometry: sphereMesh((R_TRUE_KM - l.top) * SCALE * 1000, l.color),
     symbol: { type: "mesh-3d", symbolLayers: [{ type: "fill" }] }, attributes: { id: l.id } });
   shell[l.id] = g; layersLayer.add(g);
@@ -582,16 +630,38 @@ let surfaceImagery = "none";
 map.add(layersLayer);
 const shellView = await view.whenLayerView(layersLayer);
 let highlight = null;
+// shells show for the layers of the chosen division (both: what it's made of), unless peeled away
+function applyShells() {
+  const ids = new Set((scheme === "behaves" ? MECH : LAYERS).map(l => l.id));
+  const capsOn = !!dimAnchor; // the filled cut face replaces the hollow shells
+  for (const [id, g] of Object.entries(shell)) g.visible = !capsOn && ids.has(id) && !peeled[id];
+}
+applyShells();
+// Flat filled rings on the cut face, so thin layers (like the 100 km lithosphere) show as solid bands.
+// They sit 40 km behind the cut, so the lines drawn exactly on the cut (convection, waves) stay in front of them.
+const capsLayer = new GraphicsLayer({ title: "Cut face", elevationInfo: { mode: "absolute-height" } });
+map.add(capsLayer);
+const capsView = await view.whenLayerView(capsLayer);
+try { const h = view.highlights?.getItemAt(0); if (h) { h.fillOpacity = 0.08; h.haloOpacity = 1; } } catch (e) { console.warn(e); } // outline, not a grey wash
+let capHighlight = null;
 onSelect = (id) => {
   setPadding();
-  highlight?.remove(); highlight = null;
+  highlight?.remove(); highlight = null; capHighlight?.remove(); capHighlight = null;
   if (id && shell[id]) highlight = shellView.highlight(shell[id]);
+  if (id) { const caps = capsLayer.graphics.filter(g => g.attributes.id === id).toArray(); if (caps.length) capHighlight = capsView.highlight(caps); }
   document.querySelectorAll('.lbl').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.info === id)));
 };
 
 document.getElementById("layerList").addEventListener("change", (e) => {
-  const id = e.target.dataset.layer; if (id && shell[id]) shell[id].visible = e.target.checked;
+  const id = e.target.dataset.layer; if (!id) return;
+  peeled[id] = !e.target.checked; applyShells(); drawCaps();
 });
+document.querySelectorAll('input[name="scheme"]').forEach(r => r.addEventListener("change", () => {
+  scheme = document.querySelector('input[name="scheme"]:checked').value;
+  renderLayerList(); applyShells(); drawCaps(); drawDims(); drawLabels();
+  setStatus(scheme === "made" ? "Layers divided by what they are made of." : scheme === "behaves" ? "Layers divided by how the rock behaves: rigid lithosphere, weak asthenosphere, and so on."
+    : "Left half: divided by what it's made of. Right half: divided by how it behaves.");
+}));
 const go = $("groundOpacity");
 // While the Earth is cut, the see-through ground is switched off and the imagery sphere is shown instead:
 // the cut removes it in front of the plane, so the countries stay on the uncut part and the cut face shows the layers.
@@ -617,17 +687,51 @@ function quarterRound(anchor, bearingDeg) {
   let lon = lon2 / r; lon = ((lon + 540) % 360) - 180;
   return { longitude: lon, latitude: lat2 / r };
 }
+// A point at any angular distance from the anchor, along a bearing (quarterRound is the 90° case).
+function fromAnchor(anchor, bearingDeg, distDeg) {
+  const r = Math.PI / 180, lat1 = anchor.latitude * r, th = bearingDeg * r, d = distDeg * r;
+  const lat2 = Math.asin(Math.sin(lat1) * Math.cos(d) + Math.cos(lat1) * Math.sin(d) * Math.cos(th));
+  const lon2 = anchor.longitude * r + Math.atan2(Math.sin(th) * Math.sin(d) * Math.cos(lat1), Math.cos(d) - Math.sin(lat1) * Math.sin(lat2));
+  let lon = lon2 / r; lon = ((lon + 540) % 360) - 180;
+  return { longitude: lon, latitude: lat2 / r };
+}
+const CAP_OFFSET_KM = -40; // behind the cut
+function capPt(th, rKm) { // th: angle on the cut from screen-up; rKm: true distance from the centre
+  const rs = Math.max(rKm * SCALE, Math.abs(CAP_OFFSET_KM) + 1);
+  const dist = Math.acos(CAP_OFFSET_KM / rs) * 180 / Math.PI;
+  const q = fromAnchor(dimAnchor, dimAnchor.heading + th, dist);
+  return [q.longitude, q.latitude, -(R_SCENE_KM - rs) * 1000];
+}
+function capMesh(th0, th1, rIn, rOut, color) {
+  const n = Math.max(8, Math.round(Math.abs(th1 - th0) / 2)), pos = [], faces = [];
+  for (let i = 0; i <= n; i++) { const th = th0 + (th1 - th0) * i / n; pos.push(...capPt(th, rOut), ...capPt(th, rIn)); }
+  for (let i = 0; i < n; i++) { const a = 2 * i; faces.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
+  return new Mesh({ spatialReference: { wkid: 4326 }, vertexAttributes: { position: new Float64Array(pos) },
+    components: [new MeshComponent({ faces: new Uint32Array(faces), shading: "flat",
+      material: new MeshMaterialMetallicRoughness({ color: [0, 0, 0], emissiveColor: color, metallic: 0, roughness: 1, doubleSided: true }) })] });
+}
+function drawCaps() {
+  capsLayer.removeAll();
+  applyShells();
+  if (!dimAnchor) return;
+  const halves = scheme === "both" ? [[LAYERS, 180, 360], [MECH, 0, 180]] : [[schemeLayers(), 0, 360]];
+  for (const [list, a, b] of halves) for (const l of list) {
+    if (peeled[l.id]) continue;
+    capsLayer.add(new Graphic({ geometry: capMesh(a, b, R_TRUE_KM - l.bottom, R_TRUE_KM - l.top, l.color),
+      symbol: { type: "mesh-3d", symbolLayers: [{ type: "fill" }] }, attributes: { id: l.id } }));
+  }
+  if (selectedId) onSelect(selectedId);
+}
 let mode = "layers"; // "layers" (names and depth dimensions) or "conv" (convection and plates)
 const dims = new DimensionAnalysis({
   style: { type: "simple", color: [255, 255, 255, 0.9], lineSize: 1.5, fontSize: 11, textColor: [4, 18, 31, 1], textBackgroundColor: [125, 211, 252, 0.92] }
 });
 view.analyses.add(dims);
-let dimAnchor = null; // { longitude, latitude, heading }
 function drawDims() {
   dims.dimensions.removeAll();
-  if (!dimAnchor || !$("showDims").checked || mode !== "layers") return;
+  if (!dimAnchor || !$("showDims").checked || mode !== "layers" || scheme === "both") return;
   const p = quarterRound(dimAnchor, dimAnchor.heading + 90); // to the right of the view
-  const depths = [35, 660, 2891, 5150, 6371];
+  const depths = scheme === "behaves" ? [100, 250, 2891, 5150, 6371] : [35, 660, 2891, 5150, 6371];
   depths.forEach((d, i) => {
     dims.dimensions.add(new LengthDimension({
       measureType: "direct",
@@ -640,16 +744,18 @@ function drawDims() {
 }
 // Layer names: HTML buttons placed with view.toScreen() at each layer's middle depth, on the radius to the left.
 const overlay = $("labelsOverlay");
-overlay.innerHTML = LAYERS.map(l => `<button class="lbl" data-info="${l.id}" aria-pressed="false" style="--c:${l.color}">${l.name} <span class="ld">${km(l.top)}–${km(l.bottom)} km</span></button>`).join("");
+overlay.innerHTML = ALL_LAYERS.map(l => `<button class="lbl" data-info="${l.id}" aria-pressed="false" style="--c:${l.color}">${l.name} <span class="ld">${km(l.top)}–${km(l.bottom)} km</span></button>`).join("");
 overlay.querySelectorAll(".lbl").forEach(b => b.addEventListener("click", () => showInfo(b.dataset.info, { focus: true })));
 let labelPts = null;
 function drawLabels() {
   labelPts = null;
   if (dimAnchor && $("showLabels").checked && mode === "layers") {
-    labelPts = Object.fromEntries(LAYERS.map(l => {
-      // each name on its own radius (fanned around the left half of the cut) so they don't overlap
-      const q = quarterRound(dimAnchor, dimAnchor.heading + l.fan);
-      const mid = l.id === "crust" ? -350 : (l.top + l.bottom) / 2; // the crust is too thin to hold a label: put it just outside
+    // each name on its own radius (fanned around the left half of the cut) so they don't overlap;
+    // with both divisions, the behaviour layers are fanned round the right half instead
+    const shown = scheme === "both" ? [...LAYERS.map(l => [l, l.fan]), ...MECH_ONLY.map(l => [l, l.fanR])] : schemeLayers().map(l => [l, l.fan]);
+    labelPts = Object.fromEntries(shown.map(([l, fan]) => {
+      const q = quarterRound(dimAnchor, dimAnchor.heading + fan);
+      const mid = l.id === "crust" || l.id === "lithosphere" ? -350 : (l.top + l.bottom) / 2; // too thin to hold a label: put it just outside
       return [l.id, pointAt(q.longitude, q.latitude, -mid * SCALE * 1000)];
     }));
   }
@@ -772,7 +878,7 @@ function applyGuidedSlice() {
   // depth labels only belong on the centre cut facing the camera
   const centred = Number(sd.value) >= 6350 && Number(st.value) === 0;
   dimAnchor = centred ? sliceAnchor : null;
-  drawDims(); drawLabels(); drawConvection(); drawWaves();
+  drawCaps(); drawDims(); drawLabels(); drawConvection(); drawWaves();
 }
 function cutThroughCentre() {
   sliceAnchor = centreAnchor();
@@ -787,7 +893,7 @@ for (const [el, out, fmt] of [[sd, "sliceDepthVal", v => km(Number(v))], [sh, "s
 let placeAbort = null;
 $("btnPlace").addEventListener("click", async () => {
   btnSlice.setAttribute("aria-pressed", "false");
-  dimAnchor = null; drawDims(); drawLabels(); drawConvection(); drawWaves();
+  dimAnchor = null; drawCaps(); drawDims(); drawLabels(); drawConvection(); drawWaves();
   placeAbort?.abort(); placeAbort = new AbortController();
   sliceView.active = true;
   try { sliceView.interactive = true; } catch (e) { console.warn(e); }
@@ -801,7 +907,7 @@ $("btnSliceOff").addEventListener("click", () => {
   sliceView.active = false;
   if (slice.clear) slice.clear(); else slice.shape = null;
   btnSlice.setAttribute("aria-pressed", "false");
-  dimAnchor = null; drawDims(); drawLabels(); drawConvection(); drawWaves();
+  dimAnchor = null; drawCaps(); drawDims(); drawLabels(); drawConvection(); drawWaves();
   setCut(false);
   setStatus("Cut removed. The depth labels show again when you cut through the centre.");
 });
@@ -823,7 +929,7 @@ reactiveUtils.watch(() => slice.shape, (s) => {
 const convLayer = new GraphicsLayer({ title: "Convection", elevationInfo: { mode: "absolute-height" } });
 const parcelLayer = new GraphicsLayer({ title: "Moving rock", elevationInfo: { mode: "absolute-height" } });
 map.addMany([convLayer, parcelLayer]);
-slice.excludedLayers.addMany([convLayer, parcelLayer]); // they lie exactly on the cut, so the cut must not hide them
+slice.excludedLayers.addMany([convLayer, parcelLayer, capsLayer]); // they lie exactly on the cut, so the cut must not hide them
 const CONV = { n: 6, rIn: 3730, rOut: 6090, cmb: 3480, half: 24, q: 0.45, loopSeconds: 12, parcels: 5, slabDepth: 1500, plateR: 6371 + 220 };
 function cutPt(th, rKm) {
   const q = quarterRound(dimAnchor, dimAnchor.heading + th);
@@ -1055,7 +1161,7 @@ function setMode(m) {
   $("btnWhy").hidden = !PANELS[m]; if (PANELS[m]) $("btnWhy").textContent = PANELS[m].why;
   if (m !== "layers" && !dimAnchor) cutThroughCentre(); // these models are drawn on the centre cut
   if (m === "waves") setStatus("Working out the wave paths…");
-  drawDims(); drawLabels(); drawConvection(); drawWaves();
+  drawCaps(); drawDims(); drawLabels(); drawConvection(); drawWaves();
   if (PANELS[m]) showPanel(m); else hidePanels();
   if (m === "conv") setStatus("Showing how the mantle and plates move. Select \"Why do the plates move?\" for the explanation.");
   else if (m === "waves") { setStatus("Showing earthquake waves. Select \"Start an earthquake\" to watch them travel."); if (!reduceMotion) startQuake(); }
@@ -1067,7 +1173,7 @@ $("modeWaves").addEventListener("click", () => setMode("waves"));
 
 // ---------- Selecting on the globe ----------
 view.on("click", async (evt) => {
-  const hit = await view.hitTest(evt, { include: [layersLayer] });
+  const hit = await view.hitTest(evt, { include: [capsLayer, layersLayer] });
   const g = hit.results.find(r => r.graphic?.attributes?.id)?.graphic;
   if (g) showInfo(g.attributes.id);
 });
