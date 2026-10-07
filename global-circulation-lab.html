@@ -20,18 +20,33 @@
     --hadley: #ff922b;
     --ferrel: #51cf66;
     --polar: #74c0fc;
+    --low: #1971c2;      /* L badges: white text on this is 5.0:1 */
+    --low-soft: #4dabf7;
+    --high: #a65a12;     /* H badges: white text on this is 5.2:1 */
+    --high-soft: #e0a458;
+    --glass: rgba(12, 17, 34, 0.86);
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; font-size: 15px; line-height: 1.45; }
   .skip { position: absolute; left: -9999px; top: 0; background: var(--focus); color: #000; padding: 8px 12px; z-index: 100; }
   .skip:focus { left: 8px; top: 8px; }
-  .app { display: grid; grid-template-columns: 360px 1fr; height: 100%; }
-  aside { background: var(--panel); border-right: 1px solid var(--border); overflow-y: auto; padding: 14px 16px 90px; }
-  main { position: relative; min-height: 0; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+  /* layout: controls | (globe over diagram dock) */
+  .app { display: grid; grid-template-columns: 320px minmax(0, 1fr); height: 100%; }
+  aside { background: var(--panel); border-right: 1px solid var(--border); overflow-y: auto; padding: 14px 16px 40px; }
+  main { display: grid; grid-template-rows: minmax(0, 1fr) auto; min-height: 0; min-width: 0; }
+  .globe-wrap { position: relative; min-height: 0; overflow: hidden; }
   arcgis-scene { display: block; width: 100%; height: 100%; }
+  .dock { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 10px; padding: 10px;
+    background: var(--panel); border-top: 1px solid var(--border); max-height: 45vh; overflow: auto; }
+  .card { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; min-width: 0; }
+  .card h2 { margin: 0 0 6px; }
+  .hint { font-size: .78rem; font-weight: 400; color: var(--muted); }
+
   h1 { font-size: 1.25rem; margin: 0 0 2px; }
-  h2 { font-size: 1rem; margin: 20px 0 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  h2 { font-size: 1rem; margin: 18px 0 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   h3 { font-size: .9rem; margin: 12px 0 4px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   p { margin: 6px 0; }
   .sub { color: var(--muted); font-size: .88rem; }
@@ -48,8 +63,9 @@
   input[type=checkbox], input[type=radio] { width: 18px; height: 18px; accent-color: var(--accent); flex: none; }
   .swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; border: 1px solid #0006; flex: none; vertical-align: -2px; }
   button { font: inherit; background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
-    border-radius: 6px; padding: 7px 10px; cursor: pointer; margin: 4px 4px 4px 0; }
+    border-radius: 6px; padding: 7px 10px; cursor: pointer; margin: 4px 4px 4px 0; min-height: 32px; }
   button:hover { border-color: var(--accent); }
+  button[aria-pressed="true"] { background: #23406b; border-color: var(--accent); }
   :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
   table { width: 100%; border-collapse: collapse; font-size: .82rem; margin-top: 6px; }
   caption { text-align: left; color: var(--muted); font-size: .8rem; padding-bottom: 4px; }
@@ -57,7 +73,8 @@
   th { color: var(--muted); font-weight: 600; }
   tbody th { color: var(--text); }
   tr.hit td, tr.hit th { background: #234a73; }
-  .note { font-size: .82rem; color: var(--warn); }
+  #zoneTable th { width: 38%; }
+  #zoneTable .zbtn { margin: 0 0 2px; padding: 4px 6px; text-align: left; display: inline-flex; gap: 6px; align-items: center; font-size: .82rem; }
   .readout { font-size: .85rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; }
   .readout p { margin: 3px 0; }
   .monthline { font-weight: 600; color: var(--accent); }
@@ -66,25 +83,71 @@
   .lab { border: 1px dashed #ffd43b88; border-radius: 6px; padding: 4px 8px; font-size: .8rem; color: #ffe8a3; margin: 6px 0 0; }
   .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: end; }
   .row label { display: block; }
-  svg.section { width: 100%; height: auto; background: #0e1630; border: 1px solid var(--border); border-radius: 8px; display: block; }
-  svg.section text { fill: var(--muted); font-size: 9px; font-family: inherit; }
-  svg.section text.hl { fill: #0b0f1e; font-size: 8px; font-weight: 700; }
-  ol.steps { margin: 8px 0; padding-left: 20px; font-size: .88rem; }
-  ol.steps li { margin: 4px 0; }
+
+  /* pressure badges (also used in text) */
+  .pb { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; color: #fff; font-weight: 800;
+    font-size: .85rem; border: 2px solid #fff; flex: none; }
+  .pb.low { background: var(--low); }
+  .pb.high { background: var(--high); }
+
+  /* overlays on the globe */
+  .glass { background: var(--glass); border: 1px solid #ffffff2e; border-radius: 10px; backdrop-filter: blur(4px); }
+  .legend { position: absolute; right: 64px; top: 10px; padding: 8px 10px; font-size: .82rem; max-width: 300px; z-index: 5; }
+  .legend .lrow { display: flex; align-items: center; gap: 8px; margin: 3px 0; }
+  .legend .cellbtns { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+  .legend .cellbtns button { padding: 3px 8px; font-size: .78rem; margin: 0; min-height: 28px; display: inline-flex; align-items: center; gap: 6px; }
+  .info { position: absolute; right: 10px; bottom: 78px; width: min(400px, calc(100% - 20px)); padding: 10px 12px; z-index: 6; }
+  .info h2 { margin: 0 0 4px; font-size: 1rem; }
+  .info p { font-size: .88rem; margin: 4px 0; }
   .credit { position: absolute; right: 10px; bottom: 30px; background: #000c; color: #fff; border: 1px solid #ffffff40;
     border-radius: 6px; padding: 5px 9px; font-size: .75rem; line-height: 1.3; z-index: 5; text-align: right; }
+
+  /* diagrams */
+  svg.diagram { width: 100%; height: auto; display: block; background: #0e1630; border: 1px solid var(--border); border-radius: 8px; }
+  #section { max-height: 31vh; }
+  svg.diagram text { fill: var(--muted); font-size: 9px; font-family: inherit; }
+  #section text { font-size: 12px; }
+  #section .cell { cursor: pointer; }
+  #section .cell .loop { stroke: none; }
+  #section .cell text.cname { font-weight: 700; font-size: 13px; }
+  #section .zone { cursor: pointer; }
+  #section .zone text.letter { fill: #fff; font-weight: 800; font-size: 14px; }
+  #section .zone text.word { font-size: 10.5px; font-weight: 600; }
+  #section .dim { opacity: .22; }
+  #section .dimsoft { opacity: .5; }
+  #section .hi .loop { fill-opacity: .38; }
+  #section .zone.hi circle { stroke: var(--focus); stroke-width: 3; }
+  #section .cell:focus-visible, #section .zone:focus-visible { outline: none; }
+  #section .cell:focus-visible .loop { stroke: var(--focus); stroke-width: 2; }
+  #section .zone:focus-visible circle { stroke: var(--focus); stroke-width: 3; }
+  #sunChart { max-height: 128px; }
+  #sunChart.hi { border-color: var(--focus); box-shadow: 0 0 0 2px var(--focus); }
+  .steps { list-style: none; padding: 0; margin: 6px 0 2px; display: grid; gap: 3px; }
+  .steps button { width: 100%; text-align: left; margin: 0; padding: 4px 8px; font-size: .86rem; min-height: 30px; display: flex; gap: 8px; align-items: baseline; }
+  .steps .n { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--panel-2);
+    border: 1px solid var(--accent); font-size: .75rem; font-weight: 700; flex: none; }
+  .keyline { font-size: .8rem; color: var(--muted); margin: 4px 0 0; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; }
+
   dialog { background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 10px; max-width: 620px; width: calc(100% - 32px); }
   dialog::backdrop { background: #000a; }
-  @media (max-width: 760px) {
-    .app { grid-template-columns: 1fr; grid-template-rows: 55% 45%; }
-    aside { order: 2; border-right: 0; border-top: 1px solid var(--border); padding-bottom: 24px; }
-    main { order: 1; }
+
+  @media (max-width: 1180px) { .dock { grid-template-columns: 1fr; max-height: none; overflow: visible; } main { grid-template-rows: minmax(420px, 62vh) auto; overflow-y: auto; } #section { max-height: none; } }
+  @media (max-width: 860px) {
+    .app { grid-template-columns: 1fr; grid-template-rows: auto auto; height: auto; }
+    main { order: 1; grid-template-rows: auto auto; overflow: visible; }
+    /* phones: the legend and the information card sit below the globe instead of over it */
+    .globe-wrap { display: flex; flex-direction: column; overflow: visible; }
+    arcgis-scene { height: 60vh; }
+    .legend, .info { position: static; width: auto; max-width: none; margin: 8px 10px 0; }
+    .credit { top: calc(60vh - 64px); bottom: auto; }
+    aside { order: 2; border-right: 0; border-top: 1px solid var(--border); overflow: visible; }
   }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
 <body>
 <a class="skip" href="#controls">Skip to controls</a>
+<a class="skip" href="#dock">Skip to the diagrams</a>
 <div class="app">
   <aside id="controls" aria-label="Controls and information">
     <h1>Global Circulation Lab</h1>
@@ -96,35 +159,22 @@
     <label class="stack" for="month">Month: <strong id="monthVal">January</strong>
       <input id="month" type="range" min="1" max="12" step="1" value="1" />
     </label>
-    <label class="stack" for="region">Main curtain, cross-section and zone table
+    <button id="btnYear" aria-pressed="false">Play the year</button>
+    <label class="stack" for="region">Region (the cells are drawn over this region)
       <select id="region"></select>
     </label>
     <p class="monthline" id="monthSummary" aria-live="polite"></p>
 
-    <h2>Why does the air move? <span class="badge" id="v-sun"></span></h2>
-    <svg id="sunChart" class="section" viewBox="0 0 320 120" role="img" aria-labelledby="sunTitle sunDesc">
-      <title id="sunTitle">How strong the midday sunlight is at each latitude</title>
-      <desc id="sunDesc"></desc>
-    </svg>
-    <ol class="steps">
-      <li><strong>The Sun heats the Earth unevenly.</strong> Where the midday Sun is high, its energy is packed onto a small area, so the ground and air get hot. Near the poles the same energy is spread over a much bigger area.</li>
-      <li><strong>Hot air rises.</strong> This leaves <strong>low pressure (L)</strong> at the ground. The rising air cools, clouds form and it rains. This is the rain belt.</li>
-      <li><strong>High up, the air spreads out toward the poles.</strong> It cools and sinks at about 30°. Sinking air makes <strong>high pressure (H)</strong> and dry weather.</li>
-      <li><strong>At the ground, air flows from high pressure to low pressure.</strong> This flow is the wind.</li>
-      <li><strong>The spinning Earth bends the winds</strong> (the Coriolis effect): to the right in the northern half of the world, to the left in the southern half. That is why the trade winds blow from the north-east and south-east, not straight from the north and south.</li>
-    </ol>
-    <p class="sub">The rain belt follows the overhead Sun north and south through the year, a month or so behind it.</p>
-    <label><input type="checkbox" id="showSun" /> Sunlight strength on the globe</label>
-    <label><input type="checkbox" id="showKey" checked /> Equator, tropics, polar circles and main meridians</label>
-
-    <h2>Cell model <span class="badge" id="v-cells"></span></h2>
-    <p class="sub">A simplified, hand-drawn model. Real circulation changes from day to day and from place to place.</p>
+    <h2>Show on the globe <span class="badge" id="v-cells"></span></h2>
+    <p class="sub">A simplified model. Real circulation changes from day to day and from place to place.</p>
     <fieldset>
-      <legend>Show</legend>
+      <legend>Layers</legend>
       <label><input type="checkbox" id="showCells" checked /> Cells and air flow arrows</label>
-      <label><input type="checkbox" id="showBelts" checked /> Pressure belts on the ground (L = low, H = high)</label>
+      <label><input type="checkbox" id="showParcels" checked /> Moving air (white blobs)</label>
+      <label><input type="checkbox" id="showBelts" checked /> High and low pressure (H and L)</label>
       <label><input type="checkbox" id="showLabels" checked /> Labels</label>
-      <label><input type="checkbox" id="showParcels" checked /> Moving air (white blobs that follow the loops)</label>
+      <label><input type="checkbox" id="showSun" /> Sunlight strength</label>
+      <label><input type="checkbox" id="showKey" checked /> Equator, tropics, polar circles and main meridians</label>
     </fieldset>
     <fieldset>
       <legend>Height stretch (the real atmosphere is too thin to see)</legend>
@@ -134,20 +184,14 @@
     </fieldset>
     <button id="btnPause" aria-pressed="false">Pause movement</button>
 
-    <h3>Cross-section</h3>
-    <svg id="section" class="section" viewBox="0 0 320 200" role="img" aria-labelledby="sectionTitle sectionDesc">
-      <title id="sectionTitle">Cross-section of the atmosphere from south to north</title>
-      <desc id="sectionDesc"></desc>
-    </svg>
-    <p class="sub"><span class="swatch" style="background:var(--hadley)"></span> Hadley
-      &nbsp;<span class="swatch" style="background:var(--ferrel)"></span> Ferrel
-      &nbsp;<span class="swatch" style="background:var(--polar)"></span> Polar
-      &nbsp;· Bars below the ground: <span class="swatch" style="background:#4dabf7"></span> wet
-      <span class="swatch" style="background:#e0a458"></span> dry. L = low pressure, H = high pressure.</p>
+    <h2>Camera</h2>
+    <button id="btnGlobe">Whole globe</button>
+    <button id="btnTropics">Close-up of the tropical cells</button>
 
+    <h2>Zones this month</h2>
     <table>
-      <caption>Zones this month, from north to south (model)</caption>
-      <thead><tr><th scope="col">Zone</th><th scope="col">Air and rain</th><th scope="col">Surface wind <span class="badge" id="v-surf"></span></th><th scope="col">Typical land cover</th></tr></thead>
+      <caption>From north to south, for the selected region (model). Select a zone to highlight it. Surface winds: <span class="badge" id="v-surf"></span></caption>
+      <thead><tr><th scope="col">Zone</th><th scope="col">What happens there</th></tr></thead>
       <tbody id="zoneTable"></tbody>
     </table>
 
@@ -178,7 +222,7 @@
     <p class="layerstat" id="stat-land" aria-live="polite"></p>
 
     <h2>Check a place</h2>
-    <p class="sub">Select any point on the globe, or type a latitude and longitude, to compare what the model expects with the real data.</p>
+    <p class="sub">Select a point on the globe, or type a latitude and longitude, to compare what the model expects with the real data.</p>
     <div class="row">
       <label for="inLat">Latitude<br /><input id="inLat" type="number" min="-90" max="90" step="0.1" value="15" /></label>
       <label for="inLon">Longitude<br /><input id="inLon" type="number" min="-180" max="180" step="0.1" value="20" /></label>
@@ -186,21 +230,58 @@
     </div>
     <div class="readout" id="placeReadout" aria-live="polite"><p>No place selected yet.</p></div>
 
-    <h2>Camera</h2>
-    <button id="btnGlobe">Whole globe</button>
-    <button id="btnTropics">Close-up of the tropical cells</button>
-
     <h2>About</h2>
     <button id="btnAbout">About and versions</button>
   </aside>
 
-  <main id="main" aria-label="3D globe showing the circulation cells on a north–south curtain over the selected region, with moving air, pressure belts and the Equator, tropics and polar circles. The cross-section diagram and zone table in the controls panel give the same information.">
-    <arcgis-scene id="scene" viewing-mode="global">
-      <arcgis-zoom slot="top-right"></arcgis-zoom>
-      <arcgis-navigation-toggle slot="top-right"></arcgis-navigation-toggle>
-      <arcgis-compass slot="top-right"></arcgis-compass>
-    </arcgis-scene>
-    <div class="credit">Created by Jason Sawle<br />© Esri 2026</div>
+  <main id="main">
+    <div class="globe-wrap" role="region" aria-label="3D globe. It shows the circulation cells over the selected region, moving air, and bands of high (H) and low (L) pressure. The diagrams below the globe give the same information and can be used with the keyboard.">
+      <arcgis-scene id="scene" viewing-mode="global">
+        <arcgis-zoom slot="top-right"></arcgis-zoom>
+        <arcgis-navigation-toggle slot="top-right"></arcgis-navigation-toggle>
+        <arcgis-compass slot="top-right"></arcgis-compass>
+      </arcgis-scene>
+      <div class="legend glass" id="legend">
+        <div class="lrow"><span class="pb low" aria-hidden="true">L</span><span><strong>Low pressure</strong>: air rising, clouds, rain</span></div>
+        <div class="lrow"><span class="pb high" aria-hidden="true">H</span><span><strong>High pressure</strong>: air sinking, dry</span></div>
+        <div class="cellbtns" role="group" aria-label="Highlight a type of cell">
+          <button class="cellbtn" data-kind="hadley" aria-pressed="false"><span class="swatch" style="background:var(--hadley)"></span>Hadley</button>
+          <button class="cellbtn" data-kind="ferrel" aria-pressed="false"><span class="swatch" style="background:var(--ferrel)"></span>Ferrel</button>
+          <button class="cellbtn" data-kind="polar" aria-pressed="false"><span class="swatch" style="background:var(--polar)"></span>Polar</button>
+        </div>
+      </div>
+      <div class="info glass" id="infoCard" hidden>
+        <h2 id="infoTitle"></h2>
+        <div id="infoText"></div>
+        <button id="infoFly">Show me on the globe</button>
+        <button id="infoNext" hidden>Next step</button>
+        <button id="infoClear">Clear</button>
+      </div>
+      <p class="sr-only" id="selAnnounce" aria-live="polite"></p>
+      <div class="credit">Created by Jason Sawle<br />© Esri 2026</div>
+    </div>
+
+    <section class="dock" id="dock" aria-label="Diagrams">
+      <div class="card">
+        <h2 id="sectionTitle">Cross-section, south to north <span class="hint">Select a cell or an H or L to highlight it on the globe</span></h2>
+        <svg id="section" class="diagram" viewBox="0 0 640 262" role="group" aria-labelledby="sectionTitle" aria-describedby="sectionDesc"></svg>
+        <p class="sr-only" id="sectionDesc"></p>
+        <p class="keyline"><span><span class="swatch" style="background:var(--hadley)"></span> Hadley</span>
+          <span><span class="swatch" style="background:var(--ferrel)"></span> Ferrel</span>
+          <span><span class="swatch" style="background:var(--polar)"></span> Polar</span>
+          <span>Dashed line: top of the weather layer</span>
+          <span>Yellow line: where the midday Sun is overhead</span></p>
+      </div>
+      <div class="card">
+        <h2>Why does the air move? <span class="badge" id="v-sun"></span></h2>
+        <svg id="sunChart" class="diagram" viewBox="0 0 320 120" role="img" aria-labelledby="sunTitle sunDesc">
+          <title id="sunTitle">How strong the midday sunlight is at each latitude</title>
+          <desc id="sunDesc"></desc>
+        </svg>
+        <ol class="steps" id="steps"></ol>
+        <p class="sub">Select a step to see it on the globe and in the cross-section.</p>
+      </div>
+    </section>
   </main>
 </div>
 
@@ -227,7 +308,7 @@
 <script type="module">
 // ================= Versions (single source of truth) =================
 // Bump a model's number whenever its maths or data handling changes; bump the app version on every release.
-const APP_VERSION = "0.5.0";
+const APP_VERSION = "0.6.0";
 const MODELS = {
   sun: { name: "Sunlight model", version: "1.0",
     desc: "Latitude where the Sun is overhead at midday = 23.44° × sin(2π(day − 80)/365), using the 15th of each month. Midday sunlight strength = sine of the midday Sun's height (100% when overhead). Midday only: it ignores day length and the atmosphere, so it understates summer sunlight near the poles." },
@@ -412,49 +493,50 @@ function zoneAt(lat, b) {
   return "polar";
 }
 
-// ================= 2D cross-section (works without the 3D view) =================
+// ================= 2D cross-section (works without the 3D view); cells and H/L badges are selectable =================
 function drawSection(b, monthName, region) {
-  const W = 320, L = 22, R = W - 12, G = 150;
+  const W = 640, L = 44, R = W - 16, G = 190;
   const x = (lat) => L + (lat + 90) / 180 * (R - L);
-  const y = (h) => G - h / 17 * 125;
-  let s = `<title id="sectionTitle">Cross-section of the atmosphere from south to north</title><desc id="sectionDesc"></desc><defs>` +
-    Object.entries(COL).map(([k, c]) => `<marker id="ah-${k}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="${c}"/></marker>`).join("") + `</defs>`;
-  // tropopause
+  const y = (h) => G - h / 17 * 165;
+  const d = sunLat(state.month);
+  let s = `<defs>` + Object.entries(COL).map(([k, c]) => `<marker id="ah-${k}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="${c}"/></marker>`).join("") + `</defs>`;
   let tp = "";
   for (let lat = -90; lat <= 90; lat += 3) tp += `${lat === -90 ? "M" : "L"}${x(lat).toFixed(1)},${y(tropo(lat)).toFixed(1)} `;
-  s += `<path d="${tp}" fill="none" stroke="#8892b0" stroke-dasharray="3 3" stroke-width="1"/>`;
-  s += `<text x="${x(0) + 4}" y="${y(16) - 4}">top of the weather layer</text>`;
-  // wet / dry bars
-  const bar = (c, half, fill) => `<rect x="${x(c - half)}" y="${G + 3}" width="${x(c + half) - x(c - half)}" height="8" fill="${fill}" rx="2"/>`;
-  s += bar(b.itcz, 6, "#4dabf7") + bar(b.sthN, 6, "#e0a458") + bar(b.sthS, 6, "#e0a458") + bar(b.pfN, 5, "#4dabf7") + bar(b.pfS, 5, "#4dabf7");
-  // pressure letters on the bars, plus the polar highs
-  const hl = (lat, t) => `<text class="hl" x="${x(lat)}" y="${G + 10}" text-anchor="middle">${t}</text>`;
-  s += hl(b.itcz, "L") + hl(b.pfN, "L") + hl(b.pfS, "L") + hl(b.sthN, "H") + hl(b.sthS, "H");
-  s += `<rect x="${x(84)}" y="${G + 3}" width="${x(90) - x(84)}" height="8" fill="#e0a458" rx="2"/>` + hl(87, "H");
-  s += `<rect x="${x(-90)}" y="${G + 3}" width="${x(-84) - x(-90)}" height="8" fill="#e0a458" rx="2"/>` + hl(-87, "H");
-  // ground
-  s += `<line x1="${L}" y1="${G}" x2="${R}" y2="${G}" stroke="#c9b18a" stroke-width="2"/>`;
-  // cells
+  s += `<path d="${tp}" fill="none" stroke="#8892b0" stroke-dasharray="4 4" stroke-width="1"/>`;
+  s += `<line x1="${x(d)}" y1="20" x2="${x(d)}" y2="${G}" stroke="#ffd43b" stroke-dasharray="3 3" stroke-width="1.5"/>`;
+  s += `<text x="${x(d)}" y="14" text-anchor="middle" style="fill:#ffe066">Sun overhead</text>`;
+  s += `<line x1="${L}" y1="${G}" x2="${R}" y2="${G}" stroke="#c9b18a" stroke-width="2.5"/>`;
   for (const cell of cellList(b)) {
     const f = cellPath(cell);
-    for (const seg of SEGS) {
+    let loop = "";
+    for (let i = 0; i <= 48; i++) { const p = f(i / 48 * 2 * Math.PI); loop += `${i ? "L" : "M"}${x(p.lat).toFixed(1)},${y(p.h).toFixed(1)} `; }
+    const hemi = cell.r + cell.s > 0 ? "northern" : "southern";
+    s += `<g class="cell" data-kind="${cell.kind}" tabindex="0" role="button" aria-pressed="false" aria-label="${cell.name} cell, ${hemi} half of the world. Select to highlight ${cell.name} cells on the globe.">`;
+    s += `<path class="loop" d="${loop}Z" fill="${COL[cell.kind]}" fill-opacity=".14"/>`;
+    SEGS.forEach((seg, k) => {
       const pts = segPoints(f, seg, 12, 0.12);
-      s += `<path d="${pts.map((p, i) => `${i ? "L" : "M"}${x(p.lat).toFixed(1)},${y(p.h).toFixed(1)}`).join(" ")}" fill="none" stroke="${COL[cell.kind]}" stroke-width="1.8" marker-end="url(#ah-${cell.kind})"/>`;
-    }
+      s += `<path class="seg" data-seg="${k}" d="${pts.map((p, i) => `${i ? "L" : "M"}${x(p.lat).toFixed(1)},${y(p.h).toFixed(1)}`).join(" ")}" fill="none" stroke="${COL[cell.kind]}" stroke-width="2.6" marker-end="url(#ah-${cell.kind})"/>`;
+    });
+    s += `<text class="cname" x="${x(f.centre.lat)}" y="${y(f.centre.h) + 4}" text-anchor="middle" style="fill:${COL[cell.kind]}">${cell.name}</text></g>`;
   }
-  // axis labels
-  for (const lat of [-60, -30, 0, 30, 60]) {
-    s += `<line x1="${x(lat)}" y1="${G + 12}" x2="${x(lat)}" y2="${G + 16}" stroke="#8892b0"/>`;
-    s += `<text x="${x(lat)}" y="${G + 26}" text-anchor="middle">${lat === 0 ? "Equator" : fmtLat(lat)}</text>`;
-  }
-  s += `<text x="${L}" y="${G + 40}">South</text><text x="${R}" y="${G + 40}" text-anchor="end">North</text>`;
-  s += `<text x="${x(b.itcz)}" y="14" text-anchor="middle" style="fill:#4dabf7">rain belt</text>`;
-  const svg = $("section");
-  svg.innerHTML = s;
-  svg.querySelector("desc").textContent =
+  const badge = (zone, lat, t, word) => {
+    const low = t === "L";
+    s += `<g class="zone" data-zone="${zone}" tabindex="0" role="button" aria-pressed="false" aria-label="${low ? "Low" : "High"} pressure near ${fmtLat(lat)}, ${word.toLowerCase()}. Select to highlight it on the globe.">`;
+    s += `<circle cx="${x(lat)}" cy="${G + 17}" r="12" fill="${low ? "var(--low)" : "var(--high)"}" stroke="#fff" stroke-width="2"/>`;
+    s += `<text class="letter" x="${x(lat)}" y="${G + 22}" text-anchor="middle">${t}</text>`;
+    s += `<text class="word" x="${x(lat)}" y="${G + 43}" text-anchor="middle" style="fill:${low ? "#9fd3ff" : "#f2c48d"}">${word}</text></g>`;
+  };
+  badge("polar", -85, "H", "Dry"); badge("pf", b.pfS, "L", "Stormy"); badge("sth", b.sthS, "H", "Dry");
+  badge("itcz", b.itcz, "L", "Rainy"); badge("sth", b.sthN, "H", "Dry"); badge("pf", b.pfN, "L", "Stormy"); badge("polar", 85, "H", "Dry");
+  for (const lat of [-60, -30, 0, 30, 60]) s += `<text x="${x(lat)}" y="${G + 64}" text-anchor="middle">${lat === 0 ? "Equator" : fmtLat(lat)}</text>`;
+  s += `<text x="${L - 30}" y="${G + 64}">South</text><text x="${R}" y="${G + 64}" text-anchor="end">North</text>`;
+  $("section").innerHTML = s;
+  $("sectionTitle").firstChild.textContent = `Cross-section, south to north: ${region.label}, ${monthName} `;
+  $("sectionDesc").textContent =
     `${monthName}, ${region.label}. Air rises with heavy rain near ${fmtLat(b.itcz)}, making low pressure. ` +
     `It sinks, giving high pressure and dry conditions, near ${fmtLat(b.sthN)} and ${fmtLat(b.sthS)}. ` +
-    `It rises again with storms and low pressure near ${fmtLat(b.pfN)} and ${fmtLat(b.pfS)}, and sinks over both poles, making high pressure.`;
+    `It rises again with storms and low pressure near ${fmtLat(b.pfN)} and ${fmtLat(b.pfS)}, and sinks over both poles, making high pressure. ` +
+    `The midday Sun is overhead at ${fmtLat(d)}. Each cell and each H or L can be selected to highlight it on the globe.`;
 }
 
 function fillTable(b) {
@@ -477,14 +559,139 @@ function fillTable(b) {
     let wind = windName(mid, b) + ".";
     if (k === "trades" && i < 5 && b.itcz <= -MONSOON_MIN) wind += " South of the equator they turn and blow from the north-west (monsoon winds).";
     if (k === "trades" && i > 5 && b.itcz >= MONSOON_MIN) wind += " North of the equator they turn and blow from the south-west (monsoon winds).";
-    return `<tr data-zone="${k}" data-row="${i}"><th scope="row">${z.name}<br><span class="sub">${lat}</span></th><td>${z.air} ${z.rain}</td><td>${wind}</td><td>${z.land}</td></tr>`;
+    const p = PRESSURE[k] ? `<span class="pb ${PRESSURE[k] === "L" ? "low" : "high"}" aria-hidden="true">${PRESSURE[k]}</span> ` : "";
+    return `<tr data-zone="${k}" data-row="${i}"><th scope="row"><button class="zbtn" data-zone="${k}" aria-pressed="false">${p}${z.name}</button><br><span class="sub">${lat}</span></th><td>${z.air} ${z.rain}<br><strong>Wind:</strong> ${wind}<br><strong>Land cover:</strong> ${z.land}</td></tr>`;
   }).join("");
+}
+
+// ================= Selection: diagrams, steps, table and globe all highlight the same thing =================
+const PRESSURE = { itcz: "L", pf: "L", sth: "H", polar: "H" };
+const CELL_INFO = {
+  hadley: { title: "Hadley cells", lat: (b) => (b.itcz + b.sthN) / 2,
+    text: "From the rain belt to about 30°. Warm, moist air rises at the rain belt (L), flows toward the poles high up, sinks at about 30° (H) and flows back along the ground as the trade winds. The Sun's heating drives these cells directly." },
+  ferrel: { title: "Ferrel cells", lat: (b) => (b.sthN + b.pfN) / 2,
+    text: "From about 30° to 60°. Air flows toward the poles along the ground (the westerlies), rises at the polar front (L) and sinks again at about 30° (H). The cells on either side turn the Ferrel cell, a bit like a gear between two others." },
+  polar: { title: "Polar cells", lat: (b) => (b.pfN + 90) / 2,
+    text: "From about 60° to the poles. Very cold air sinks over the pole (H), flows out along the ground as the polar easterlies, and rises where it meets milder air at the polar front (L)." }
+};
+const ZONE_TEXT = {
+  itcz: "Strong sunshine heats the ground. Warm, moist air rises, cools and forms tall clouds, so it rains heavily, often with thunderstorms every day.",
+  sth: "Air that rose at the rain belt sinks here. Sinking air warms and dries out, so clouds rarely form. Most of the world's hot deserts lie under these highs.",
+  pf: "Cold polar air meets milder air from the westerlies. The milder air is pushed upward, giving cloud, rain and storms. The UK is close to the northern polar front, which is one reason its weather changes so often.",
+  polar: "Very cold, heavy air sinks over the poles. Very little snow or rain falls, so the poles are cold deserts.",
+  trades: "Surface winds that blow from the subtropical highs toward the rain belt. The spinning Earth bends them, so they blow from the north-east north of the rain belt and from the south-east south of it.",
+  westerlies: "Surface winds that blow from the subtropical highs toward the polar fronts. The spinning Earth bends them, so they blow mostly from the west. They bring rain from passing storms in every season."
+};
+function cellSel(kind) {
+  const b = belts(state.region, state.month), c = CELL_INFO[kind];
+  return { type: "cell", id: kind, cells: [kind], title: c.title, text: c.text, flyLat: c.lat(b) };
+}
+function zoneSel(key) {
+  const b = belts(state.region, state.month), z = ZONES[key];
+  const where = { itcz: `near ${fmtLat(b.itcz)}`, sth: `near ${fmtLat(b.sthN)} and ${fmtLat(b.sthS)}`, pf: `near ${fmtLat(b.pfN)} and ${fmtLat(b.pfS)}`,
+    polar: "over both poles", trades: "between the subtropical highs and the rain belt", westerlies: "between the subtropical highs and the polar fronts" }[key];
+  const flyLat = { itcz: b.itcz, sth: b.sthN, pf: b.pfN, polar: 80, trades: (b.sthN + b.itcz) / 2, westerlies: (b.sthN + b.pfN) / 2 }[key];
+  const p = PRESSURE[key];
+  const sel = { type: "zone", id: key, flyLat, text: `${ZONE_TEXT[key]} In ${MONTHS[state.month - 1]} it is ${where} (${state.region.label}).`,
+    title: p ? `${p === "L" ? "Low" : "High"} pressure (${p}): ${z.name.toLowerCase()}` : z.name };
+  if (p) sel.zones = [key];
+  else Object.assign(sel, { cells: [key === "trades" ? "hadley" : "ferrel"], segs: [0], winds: true });
+  return sel;
+}
+const STEPS = [
+  { title: "The Sun heats the Earth unevenly", make: (b) => ({ sun: true, flyLat: null,
+    text: `Where the midday Sun is high, its energy is packed onto a small area, so the ground and air get hot. Near the poles the same energy is spread over a much bigger area. In ${MONTHS[state.month - 1]} the midday Sun is overhead at ${fmtLat(sunLat(state.month))}. The rain belt follows it north and south through the year, a month or so behind.` }) },
+  { title: "Hot air rises: low pressure (L)", make: (b) => ({ zones: ["itcz"], cells: ["hadley"], segs: [1], flyLat: b.itcz,
+    text: `Hot air rises, leaving low pressure (L) at the ground. The rising air cools, clouds form and it rains. This is the rain belt, near ${fmtLat(b.itcz)} this month.` }) },
+  { title: "Air sinks at about 30°: high pressure (H)", make: (b) => ({ zones: ["sth"], cells: ["hadley"], segs: [2, 3], flyLat: b.sthN,
+    text: `High up, the air spreads out toward the poles. It cools and sinks at about 30° (near ${fmtLat(b.sthN)} and ${fmtLat(b.sthS)} this month). Sinking air makes high pressure (H) and dry weather.` }) },
+  { title: "Wind blows from H to L", make: (b) => ({ zones: ["itcz", "sth", "pf"], cells: "all", segs: [0], winds: true, flyLat: b.itcz,
+    text: "At the ground, air flows from high pressure to low pressure. This flow is the wind. The trade winds blow from the subtropical highs to the rain belt; the westerlies blow from the subtropical highs to the polar fronts." }) },
+  { title: "The spinning Earth bends the winds", make: (b) => ({ winds: true, cells: "all", segs: [0], flyLat: b.itcz,
+    text: "As the Earth spins, winds are bent to the right in the northern half of the world and to the left in the southern half (the Coriolis effect). That is why the trade winds blow from the north-east and south-east, not straight from the north and south." }) }
+];
+function stepSel(n) {
+  const b = belts(state.region, state.month);
+  return Object.assign({ type: "step", id: n, title: `Step ${n} of ${STEPS.length}: ${STEPS[n - 1].title}` }, STEPS[n - 1].make(b));
+}
+$("steps").innerHTML = STEPS.map((st, i) =>
+  `<li><button class="stepbtn" data-step="${i + 1}" aria-pressed="false"><span class="n" aria-hidden="true">${i + 1}</span><span>${st.title}</span></button></li>`).join("");
+
+const matchCell = (kind) => { const c = state.sel?.cells; return c === "all" || (Array.isArray(c) && c.includes(kind)); };
+const matchSeg = (k) => { const sg = state.sel?.segs; return !sg || sg.includes(k); };
+const matchZone = (z) => !!state.sel?.zones?.includes(z);
+// how a cell segment should look: "normal", "hi", "soft" (something else is selected) or "dim"
+function segLook(kind, k) {
+  const sel = state.sel;
+  if (!sel) return "normal";
+  if (!sel.cells) return "soft";
+  if (!matchCell(kind)) return "dim";
+  return matchSeg(k) ? "hi" : "dim";
+}
+function zoneLook(z) {
+  const sel = state.sel;
+  if (!sel || !sel.zones) return sel && sel.cells ? "soft" : "normal";
+  return matchZone(z) ? "hi" : "dim";
+}
+function applySelection2D() {
+  const sel = state.sel;
+  document.querySelectorAll("#section .cell").forEach(g => {
+    const kind = g.dataset.kind;
+    const looks = [...g.querySelectorAll(".seg")].map(p => segLook(kind, Number(p.dataset.seg)));
+    g.querySelectorAll(".seg").forEach((p, i) => p.classList.toggle("dim", looks[i] === "dim"));
+    g.classList.toggle("dim", looks.every(l => l === "dim"));
+    g.classList.toggle("dimsoft", looks.every(l => l === "soft"));
+    g.classList.toggle("hi", looks.some(l => l === "hi"));
+    g.setAttribute("aria-pressed", String(sel?.type === "cell" && sel.id === kind));
+  });
+  document.querySelectorAll("#section .zone").forEach(g => {
+    const look = zoneLook(g.dataset.zone);
+    g.classList.toggle("hi", look === "hi"); g.classList.toggle("dim", look === "dim"); g.classList.toggle("dimsoft", look === "soft");
+    g.setAttribute("aria-pressed", String(sel?.type === "zone" && sel.id === g.dataset.zone));
+  });
+  document.querySelectorAll("#zoneTable tr").forEach(tr => {
+    const z = tr.dataset.zone;
+    const on = !!sel && (sel.type === "zone" ? sel.id === z : matchZone(z));
+    tr.classList.toggle("hit", on);
+    tr.querySelector(".zbtn")?.setAttribute("aria-pressed", String(sel?.type === "zone" && sel.id === z));
+  });
+  document.querySelectorAll(".cellbtn").forEach(bt => bt.setAttribute("aria-pressed", String(sel?.type === "cell" && sel.id === bt.dataset.kind)));
+  document.querySelectorAll(".stepbtn").forEach(bt => bt.setAttribute("aria-pressed", String(sel?.type === "step" && sel.id === Number(bt.dataset.step))));
+  $("sunChart").classList.toggle("hi", !!sel?.sun);
+}
+function showInfo() {
+  const sel = state.sel, card = $("infoCard");
+  if (!sel) { card.hidden = true; $("selAnnounce").textContent = "Selection cleared."; return; }
+  $("infoTitle").textContent = sel.title;
+  $("infoText").innerHTML = `<p>${sel.text}</p>`;
+  $("infoNext").hidden = sel.type !== "step" || sel.id >= STEPS.length;
+  card.hidden = false;
+  $("selAnnounce").textContent = `Highlighted on the globe and in the cross-section: ${sel.title}. ${sel.text}`;
+}
+let redraw3D = () => {};       // replaced once the 3D view is ready
+let flyTo = () => {};          // replaced once the 3D view is ready
+const selKey = (s) => s ? `${s.type}:${s.id}` : "";
+function select(sel, { toggle = true } = {}) {
+  if (toggle && sel && selKey(sel) === selKey(state.sel)) sel = null;
+  state.sel = sel;
+  if (sel?.sun) $("showSun").checked = true;
+  applySelection2D();
+  showInfo();
+  redraw3D();
+}
+// keep the selection's text and positions up to date when the month or region changes
+function refreshSel() {
+  const s = state.sel;
+  if (!s) return;
+  state.sel = s.type === "cell" ? cellSel(s.id) : s.type === "zone" ? zoneSel(s.id) : stepSel(s.id);
+  showInfo();
 }
 
 // ================= State =================
 const state = {
   month: 1,
   regionKey: "africa",
+  sel: null,
   get region() { return REGIONS[this.regionKey]; },
   get exag() { return Number(document.querySelector('input[name="exag"]:checked').value); },
   paused: reduceMotion
@@ -499,13 +706,45 @@ function update2D() {
   drawSunChart(b, MONTHS[state.month - 1]);
   drawSection(b, MONTHS[state.month - 1], state.region);
   fillTable(b);
+  refreshSel();
+  applySelection2D();
   return b;
 }
 update2D();
 
+// ---- 2D interaction (works with or without the globe) ----
+function activate(target) {
+  const cell = target.closest("#section .cell, .cellbtn"), zone = target.closest("#section .zone, .zbtn"), step = target.closest(".stepbtn");
+  if (cell) { select(cellSel(cell.dataset.kind)); return true; }
+  if (zone) { select(zoneSel(zone.dataset.zone)); return true; }
+  if (step) { select(stepSel(Number(step.dataset.step))); return true; }
+  return false;
+}
+document.addEventListener("click", (e) => { if (e.target.closest("#section, .cellbtn, .zbtn, .stepbtn")) activate(e.target); });
+$("section").addEventListener("keydown", (e) => {
+  if ((e.key === "Enter" || e.key === " ") && activate(e.target)) e.preventDefault();
+});
+$("infoClear").addEventListener("click", () => select(null));
+$("infoFly").addEventListener("click", () => flyTo(state.sel));
+$("infoNext").addEventListener("click", () => { if (state.sel?.type === "step") select(stepSel(state.sel.id + 1)); });
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && state.sel && !document.querySelector("dialog[open]")) select(null);
+});
+// play the year: steps the month slider; stops when the slider is used directly
+let yearTimer = null;
+function stopYear() { clearInterval(yearTimer); yearTimer = null; $("btnYear").setAttribute("aria-pressed", "false"); $("btnYear").textContent = "Play the year"; }
+$("btnYear").addEventListener("click", () => {
+  if (yearTimer) { stopYear(); return; }
+  $("btnYear").setAttribute("aria-pressed", "true"); $("btnYear").textContent = "Stop";
+  yearTimer = setInterval(() => {
+    const m = $("month"); m.value = String(Number(m.value) % 12 + 1); m.dispatchEvent(new Event("input"));
+  }, 1500);
+});
+["pointerdown", "keydown"].forEach(ev => $("month").addEventListener(ev, () => { if (yearTimer) stopYear(); }));
+
 // ================= SDK =================
 if (typeof $arcgis === "undefined") {
-  setStatus("The 3D globe could not load. The sunlight chart, cross-section and zone table still work.");
+  setStatus("The 3D globe could not load. The diagrams and the zone table still work.");
   $("month").addEventListener("input", (e) => { state.month = Number(e.target.value); update2D(); });
   $("region").addEventListener("change", (e) => { state.regionKey = e.target.value; update2D(); });
   throw new Error("ArcGIS Maps SDK not available");
@@ -618,8 +857,8 @@ map.addMany([sunLayer, keyLayer, beltLayer, cellLayer, labelLayer, parcelLayer])
 
 // ---- 3D cell drawing ----
 const pt3 = (lon, lat, hKm) => new Point({ longitude: lon, latitude: lat, z: hKm * 1000 * state.exag, spatialReference: { wkid: 4326 } });
-function arrowSymbol(color) {
-  return { type: "line-3d", symbolLayers: [{ type: "line", size: 4, material: { color },
+function arrowSymbol(color, size = 4) {
+  return { type: "line-3d", symbolLayers: [{ type: "line", size, material: { color },
     marker: { type: "style", style: "arrow", placement: "end", color } }] };
 }
 function textSymbol(text, color = "#ffffff", size = 11) {
@@ -638,17 +877,43 @@ function parcelSymbol(size, color) {
   return { type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "sphere" },
     width: size * state.exag, height: size * state.exag, depth: size * state.exag, material: { color } }] };
 }
+// High and low pressure: blue = low (L), brown = high (H), the same colours as the badges in the diagram and legend
+const LOW_RGB = [25, 113, 194], HIGH_RGB = [166, 90, 18];
+const hexA = (hex, a) => [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16), a];
+function pressureBadge(t, hi = false) {
+  const low = t === "L";
+  return { type: "point-3d", symbolLayers: [
+    { type: "icon", resource: { primitive: "circle" }, size: hi ? 34 : 26, material: { color: low ? LOW_RGB : HIGH_RGB },
+      outline: { color: hi ? [255, 212, 59, 1] : [255, 255, 255, 1], size: hi ? 3 : 2 } },
+    { type: "text", text: t, size: hi ? 17 : 13, material: { color: [255, 255, 255, 1] }, font: { weight: "bold" },
+      horizontalAlignment: "center", verticalAlignment: "middle" }] };
+}
+// pressure bands on the ground, all round the globe: [zone, belt key, half-width in degrees, letter]
+const BANDS = [["itcz", "itcz", 4, "L"], ["sth", "sthN", 5, "H"], ["sth", "sthS", 5, "H"], ["pf", "pfN", 3.5, "L"], ["pf", "pfS", 3.5, "L"]];
+function bandSymbol(t, look) {
+  const a = { hi: 0.62, normal: 0.34, soft: 0.22, dim: 0.1 }[look];
+  return { type: "polygon-3d", symbolLayers: [{ type: "fill", material: { color: [...(t === "L" ? LOW_RGB : HIGH_RGB), a] },
+    outline: look === "hi" ? { color: [255, 212, 59, 1], size: 2 } : { color: [0, 0, 0, 0], size: 0 } }] };
+}
+
 function draw3D(b) {
   const lon = state.region.lon;   // the curtain sits over the selected region only
   cellLayer.removeAll(); labelLayer.removeAll(); beltLayer.removeAll(); parcelLayer.removeAll(); parcels = [];
+  // ---- cells: highlighted, normal or faded, depending on what is selected ----
   for (const cell of cellList(b)) {
     const f = cellPath(cell);
-    for (const seg of SEGS) {
+    const looks = SEGS.map((_, k) => segLook(cell.kind, k));
+    SEGS.forEach((seg, k) => {
       const pts = segPoints(f, seg).map(p => [lon, p.lat, p.h * 1000 * state.exag]);
-      cellLayer.add(new Graphic({ geometry: new Polyline({ paths: [pts], hasZ: true, spatialReference: { wkid: 4326 } }),
-        symbol: arrowSymbol(COL[cell.kind]) }));
-    }
-    labelLayer.add(new Graphic({ geometry: pt3(lon, f.centre.lat, f.centre.h), symbol: textSymbol(cell.name, COL[cell.kind], 12) }));
+      const geometry = new Polyline({ paths: [pts], hasZ: true, spatialReference: { wkid: 4326 } });
+      const look = looks[k], attributes = { kind: cell.kind };
+      if (look === "hi") cellLayer.add(new Graphic({ geometry, attributes, symbol: lineSym(hexA(COL[cell.kind], 0.35), 16) }));   // glow
+      const sym = look === "hi" ? arrowSymbol(COL[cell.kind], 7) : look === "normal" ? arrowSymbol(COL[cell.kind], 4)
+        : look === "soft" ? arrowSymbol(hexA(COL[cell.kind], 0.55), 3) : arrowSymbol(hexA(COL[cell.kind], 0.18), 2);
+      cellLayer.add(new Graphic({ geometry, attributes, symbol: sym }));
+    });
+    if (looks.every(l => l === "dim")) continue;   // no label or moving air on faded cells
+    labelLayer.add(new Graphic({ geometry: pt3(lon, f.centre.lat, f.centre.h), symbol: textSymbol(cell.name, COL[cell.kind], looks.includes("hi") ? 15 : 12) }));
     for (let j = 0; j < PARCEL.heads; j++) {
       const off = j * 2 * Math.PI / PARCEL.heads;
       const head = new Graphic({ symbol: parcelSymbol(PARCEL.size, "#ffffff") });
@@ -660,29 +925,44 @@ function draw3D(b) {
     }
   }
   placeParcels();
-  // belts on the ground, all round the globe (their latitude changes with longitude)
-  const beltLine = (key, color, width) => {
-    const path = []; for (let x = -180; x <= 180; x += 2) path.push([x, beltsAt(x, state.month)[key]]);
-    beltLayer.add(new Graphic({ geometry: geoLine(path), symbol: lineSym(color, width) }));
-  };
-  beltLine("itcz", "#4dabf7", 5);
-  beltLine("sthN", "#e0a458", 4); beltLine("sthS", "#e0a458", 4);
-  beltLine("pfN", "#b197fc", 3); beltLine("pfS", "#b197fc", 3);
-  // belt labels just above the curtain
+  // ---- pressure bands all round the globe (their latitude changes with longitude) ----
+  for (const [zone, key, w, t] of BANDS) {
+    const symbol = bandSymbol(t, zoneLook(zone));
+    for (const [w0, e0] of [[-180, 0], [0, 180]]) {            // two halves, so no ring spans the whole globe
+      const ring = [];
+      for (let x = w0; x <= e0; x += 5) ring.push([x, beltsAt(x, state.month)[key] - w]);
+      for (let x = e0; x >= w0; x -= 5) ring.push([x, beltsAt(x, state.month)[key] + w]);
+      ring.push(ring[0]);
+      beltLayer.add(new Graphic({ geometry: new Polygon({ rings: [ring], spatialReference: { wkid: 4326 } }), attributes: { zone }, symbol }));
+    }
+  }
+  for (const sgn of [1, -1]) {                                   // polar highs: caps over both poles
+    const symbol = bandSymbol("H", zoneLook("polar"));
+    for (const [w0, e0] of [[-180, 0], [0, 180]]) {
+      const ring = [];
+      for (let x = w0; x <= e0; x += 10) ring.push([x, sgn * 82]);
+      for (let x = e0; x >= w0; x -= 10) ring.push([x, sgn * 89.9]);
+      ring.push(ring[0]);
+      beltLayer.add(new Graphic({ geometry: new Polygon({ rings: [ring], spatialReference: { wkid: 4326 } }), attributes: { zone: "polar" }, symbol }));
+    }
+  }
+  // ---- H and L badges: beside the curtain, and every 90° round the globe so one is always in view ----
+  for (let k = 0; k < 4; k++) {
+    const x = wrapLon(lon - 12 + 90 * k), bb = beltsAt(x, state.month);
+    const put = (zone, lat, t) => beltLayer.add(new Graphic({ geometry: geoPoint(x, lat), attributes: { zone },
+      symbol: pressureBadge(t, zoneLook(zone) === "hi") }));
+    put("itcz", bb.itcz, "L"); put("pf", bb.pfN, "L"); put("pf", bb.pfS, "L"); put("sth", bb.sthN, "H"); put("sth", bb.sthS, "H");
+    if (k === 0) { put("polar", 85, "H"); put("polar", -85, "H"); }
+  }
+  // ---- labels above the curtain ----
   const top = (lat) => tropo(lat) * 0.85 + 2.5;
-  labelLayer.add(new Graphic({ geometry: pt3(lon, b.itcz, top(b.itcz)), symbol: textSymbol("L · Rising air · heavy rain", "#9fd3ff") }));
-  labelLayer.add(new Graphic({ geometry: pt3(lon, b.sthN, top(b.sthN)), symbol: textSymbol("H · Sinking air · dry", "#f2c48d") }));
-  labelLayer.add(new Graphic({ geometry: pt3(lon, b.sthS, top(b.sthS)), symbol: textSymbol("H · Sinking air · dry", "#f2c48d") }));
-  labelLayer.add(new Graphic({ geometry: pt3(lon, b.pfN, top(b.pfN)), symbol: textSymbol("L · Rising air · storms", "#d0bfff") }));
-  labelLayer.add(new Graphic({ geometry: pt3(lon, b.pfS, top(b.pfS)), symbol: textSymbol("L · Rising air · storms", "#d0bfff") }));
-  // big H and L letters on the ground just west of the curtain
-  const lx = wrapLon(lon - 12);
-  const letter = (lat, t, color) => beltLayer.add(new Graphic({ geometry: geoPoint(lx, lat), symbol: textSymbol(t, color, 22) }));
-  letter(b.itcz, "L", "#74c0fc"); letter(b.pfN, "L", "#b197fc"); letter(b.pfS, "L", "#b197fc");
-  letter(b.sthN, "H", "#ffc078"); letter(b.sthS, "H", "#ffc078"); letter(84, "H", "#ffc078"); letter(-84, "H", "#ffc078");
+  const lab = (lat, t, c) => labelLayer.add(new Graphic({ geometry: pt3(lon, lat, top(lat)), symbol: textSymbol(t, c) }));
+  lab(b.itcz, "Low pressure · rising air · heavy rain", "#9fd3ff");
+  lab(b.sthN, "High pressure · sinking air · dry", "#f2c48d"); lab(b.sthS, "High pressure · sinking air · dry", "#f2c48d");
+  lab(b.pfN, "Low pressure · rising air · storms", "#9fd3ff"); lab(b.pfS, "Low pressure · rising air · storms", "#9fd3ff");
   // surface wind names on the ground east of the curtain (no arrows: the zone table gives the directions)
-  const wx = wrapLon(lon + 28);
-  const name = (lat, t) => labelLayer.add(new Graphic({ geometry: pt3(wx, lat, 0.3), symbol: textSymbol(t, "#ffffff", 11) }));
+  const wx = wrapLon(lon + 28), big = !!state.sel?.winds;
+  const name = (lat, t) => labelLayer.add(new Graphic({ geometry: pt3(wx, lat, 0.3), symbol: textSymbol(t, big ? "#ffe066" : "#ffffff", big ? 15 : 11) }));
   const nt = (b.itcz + b.sthN) / 2, st = (b.itcz + b.sthS) / 2;
   name(nt, windFrom(surfaceWind(nt, b) || { u: -1, v: -1 }) === "north-east" ? "North-east trade winds" : "Trade winds");
   name(st, windFrom(surfaceWind(st, b) || { u: -1, v: 1 }) === "south-east" ? "South-east trade winds" : "Trade winds");
@@ -785,12 +1065,15 @@ function globeView(animate = true) {
   return view.goTo({ position: new Point({ longitude: wrapLon(state.region.lon + 75), latitude: 8, z: 17000000, spatialReference: { wkid: 4326 } }), heading: 0, tilt: 0 },
     { animate: animate && !reduceMotion });
 }
-function tropicsView() {
-  // side-on close-up of the tropical cells: centred just east of the curtain, looking west at it
-  // (the SDK limits tilt at this height; tested headless with @arcgis/core 5.1.26)
-  const b = belts(state.region, state.month);
-  return view.goTo({ center: [wrapLon(state.region.lon + 6), b.itcz], zoom: 4.3, heading: 270, tilt: 75 }, { animate: !reduceMotion });
+// side-on close-up: centred just east of the curtain, looking west at it
+// (the SDK limits tilt at this height; tested headless with @arcgis/core 5.1.26)
+function closeUp(lat) {
+  return view.goTo({ center: [wrapLon(state.region.lon + 6), Math.max(-80, Math.min(80, lat))], zoom: 4.3, heading: 270, tilt: 75 }, { animate: !reduceMotion })
+    .catch(e => console.warn("Camera move interrupted:", e));
 }
+function tropicsView() { return closeUp(belts(state.region, state.month).itcz); }
+redraw3D = () => draw3D(belts(state.region, state.month));
+flyTo = (sel) => { if (!sel) return; if (sel.flyLat == null) globeView().catch(() => {}); else closeUp(sel.flyLat); };
 
 // ================= Check a place =================
 async function identifyNumber(layer, point, timeExtent) {
@@ -869,7 +1152,16 @@ $("btnCheck").addEventListener("click", () => {
   }
   checkPlace(new Point({ longitude: lon, latitude: lat, spatialReference: { wkid: 4326 } }));
 });
-view.on("click", (evt) => { if (evt.mapPoint) checkPlace(evt.mapPoint); });
+view.on("click", async (evt) => {
+  let a = null;
+  try {
+    const hit = await view.hitTest(evt, { include: [cellLayer, beltLayer] });
+    a = hit.results.map(r => r.graphic?.attributes).find(at => at && (at.kind || at.zone)) || null;
+  } catch (e) { console.warn("hitTest failed", e); }
+  if (a?.kind) { select(cellSel(a.kind), { toggle: false }); return; }
+  if (a?.zone) select(zoneSel(a.zone), { toggle: false });
+  if (evt.mapPoint) checkPlace(evt.mapPoint);
+});
 $("btnGlobe").addEventListener("click", () => globeView());
 $("btnTropics").addEventListener("click", tropicsView);
 const about = $("about");
