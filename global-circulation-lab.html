@@ -1,0 +1,675 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Global Circulation Lab</title>
+<!-- ArcGIS Maps SDK for JavaScript 5.1 (core + components) -->
+<script type="module" src="https://js.arcgis.com/5.1/"></script>
+<style>
+  :root {
+    --bg: #0b0f1e;
+    --panel: #121a30;
+    --panel-2: #1a2440;
+    --text: #f1f3f8;
+    --muted: #b8c0d6;
+    --accent: #7cc4ff;
+    --border: #2c3a60;
+    --focus: #ffd43b;
+    --warn: #ffb4a2;
+    --hadley: #ff922b;
+    --ferrel: #51cf66;
+    --polar: #74c0fc;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; font-size: 15px; line-height: 1.45; }
+  .skip { position: absolute; left: -9999px; top: 0; background: var(--focus); color: #000; padding: 8px 12px; z-index: 100; }
+  .skip:focus { left: 8px; top: 8px; }
+  .app { display: grid; grid-template-columns: 360px 1fr; height: 100%; }
+  aside { background: var(--panel); border-right: 1px solid var(--border); overflow-y: auto; padding: 14px 16px 90px; }
+  main { position: relative; min-height: 0; }
+  arcgis-scene { display: block; width: 100%; height: 100%; }
+  h1 { font-size: 1.25rem; margin: 0 0 2px; }
+  h2 { font-size: 1rem; margin: 20px 0 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  h3 { font-size: .9rem; margin: 12px 0 4px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  p { margin: 6px 0; }
+  .sub { color: var(--muted); font-size: .88rem; }
+  .badge { font-size: .72rem; font-weight: 600; background: var(--panel-2); border: 1px solid var(--border);
+    color: var(--accent); border-radius: 999px; padding: 1px 8px; }
+  fieldset { border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; margin: 8px 0; }
+  legend { padding: 0 4px; color: var(--muted); font-size: .85rem; }
+  label { display: flex; align-items: center; gap: 8px; margin: 5px 0; cursor: pointer; }
+  label.stack { display: block; }
+  select, input[type=number] { font: inherit; background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
+    border-radius: 6px; padding: 5px 6px; }
+  input[type=number] { width: 6.5em; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  input[type=checkbox], input[type=radio] { width: 18px; height: 18px; accent-color: var(--accent); flex: none; }
+  .swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; border: 1px solid #0006; flex: none; vertical-align: -2px; }
+  button { font: inherit; background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
+    border-radius: 6px; padding: 7px 10px; cursor: pointer; margin: 4px 4px 4px 0; }
+  button:hover { border-color: var(--accent); }
+  :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  table { width: 100%; border-collapse: collapse; font-size: .82rem; margin-top: 6px; }
+  caption { text-align: left; color: var(--muted); font-size: .8rem; padding-bottom: 4px; }
+  th, td { text-align: left; padding: 5px 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; }
+  tbody th { color: var(--text); }
+  tr.hit td, tr.hit th { background: #234a73; }
+  .note { font-size: .82rem; color: var(--warn); }
+  .readout { font-size: .85rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; }
+  .readout p { margin: 3px 0; }
+  .monthline { font-weight: 600; color: var(--accent); }
+  #status { min-height: 1.4em; font-size: .85rem; color: var(--accent); }
+  .layerstat { font-size: .8rem; color: var(--warn); min-height: 1em; }
+  .lab { border: 1px dashed #ffd43b88; border-radius: 6px; padding: 4px 8px; font-size: .8rem; color: #ffe8a3; margin: 6px 0 0; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: end; }
+  .row label { display: block; }
+  svg.section { width: 100%; height: auto; background: #0e1630; border: 1px solid var(--border); border-radius: 8px; display: block; }
+  svg.section text { fill: var(--muted); font-size: 9px; font-family: inherit; }
+  .credit { position: absolute; right: 10px; bottom: 30px; background: #000c; color: #fff; border: 1px solid #ffffff40;
+    border-radius: 6px; padding: 5px 9px; font-size: .75rem; line-height: 1.3; z-index: 5; text-align: right; }
+  dialog { background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 10px; max-width: 620px; width: calc(100% - 32px); }
+  dialog::backdrop { background: #000a; }
+  @media (max-width: 760px) {
+    .app { grid-template-columns: 1fr; grid-template-rows: 55% 45%; }
+    aside { order: 2; border-right: 0; border-top: 1px solid var(--border); padding-bottom: 24px; }
+    main { order: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<a class="skip" href="#controls">Skip to controls</a>
+<div class="app">
+  <aside id="controls" aria-label="Controls and information">
+    <h1>Global Circulation Lab</h1>
+    <p class="sub">How rising and sinking air in the Hadley, Ferrel and polar cells shapes rainfall and land cover, and how the belts move through the year.</p>
+    <p class="lab">Lab version <span id="appVersion"></span> — experimental, for testing what ArcGIS 3D can do.</p>
+    <div id="status" role="status" aria-live="polite">Loading the globe…</div>
+
+    <h2>Month and region</h2>
+    <label class="stack" for="month">Month: <strong id="monthVal">January</strong>
+      <input id="month" type="range" min="1" max="12" step="1" value="1" />
+    </label>
+    <label class="stack" for="region">Region shown on the curtain
+      <select id="region"></select>
+    </label>
+    <p class="monthline" id="monthSummary" aria-live="polite"></p>
+
+    <h2>Cell model <span class="badge" id="v-cells"></span></h2>
+    <p class="sub">A simplified, hand-drawn model. Real circulation changes from day to day and from place to place.</p>
+    <fieldset>
+      <legend>Show</legend>
+      <label><input type="checkbox" id="showCells" checked /> Cells and air flow arrows</label>
+      <label><input type="checkbox" id="showBelts" checked /> Pressure belts on the ground</label>
+      <label><input type="checkbox" id="showLabels" checked /> Labels</label>
+      <label><input type="checkbox" id="showParcels" checked /> Moving air parcels</label>
+    </fieldset>
+    <fieldset>
+      <legend>Height stretch (the real atmosphere is too thin to see)</legend>
+      <label><input type="radio" name="exag" value="20" /> ×20</label>
+      <label><input type="radio" name="exag" value="40" checked /> ×40</label>
+      <label><input type="radio" name="exag" value="80" /> ×80</label>
+    </fieldset>
+    <button id="btnPause" aria-pressed="false">Pause movement</button>
+
+    <h3>Cross-section</h3>
+    <svg id="section" class="section" viewBox="0 0 320 200" role="img" aria-labelledby="sectionTitle sectionDesc">
+      <title id="sectionTitle">Cross-section of the atmosphere from south to north</title>
+      <desc id="sectionDesc"></desc>
+    </svg>
+    <p class="sub"><span class="swatch" style="background:var(--hadley)"></span> Hadley
+      &nbsp;<span class="swatch" style="background:var(--ferrel)"></span> Ferrel
+      &nbsp;<span class="swatch" style="background:var(--polar)"></span> Polar
+      &nbsp;· Bars below the ground: <span class="swatch" style="background:#4dabf7"></span> wet
+      <span class="swatch" style="background:#e0a458"></span> dry</p>
+
+    <table>
+      <caption>Zones this month, from north to south (model)</caption>
+      <thead><tr><th scope="col">Zone</th><th scope="col">Air and rain</th><th scope="col">Typical land cover</th></tr></thead>
+      <tbody id="zoneTable"></tbody>
+    </table>
+
+    <h2>Real data</h2>
+    <h3>Wind <span class="badge" id="v-wind"></span></h3>
+    <fieldset>
+      <legend>Average wind for the month (ERA5, 2005–2024)</legend>
+      <label><input type="radio" name="wind" value="off" checked /> Off</label>
+      <label><input type="radio" name="wind" value="surface" /> Near the surface (trade winds, westerlies)</label>
+      <label><input type="radio" name="wind" value="upper" /> High up, about 12 km (raised to match the stretch)</label>
+    </fieldset>
+    <p class="layerstat" id="stat-wind" aria-live="polite"></p>
+
+    <h3>Rainfall <span class="badge" id="v-rain"></span></h3>
+    <fieldset>
+      <legend>Rainfall layer</legend>
+      <label><input type="radio" name="rain" value="off" /> Off</label>
+      <label><input type="radio" name="rain" value="annual" checked /> Average year (ERA5, 1981–2010)</label>
+      <label><input type="radio" name="rain" value="monthly" /> Selected month in one year (NASA IMERG, needs ArcGIS sign-in)</label>
+    </fieldset>
+    <label class="stack" for="rainYear">Year for monthly rainfall
+      <select id="rainYear"></select>
+    </label>
+    <p class="layerstat" id="stat-rain" aria-live="polite"></p>
+
+    <h3>Land cover <span class="badge" id="v-land"></span></h3>
+    <label><input type="checkbox" id="showLand" /> Land cover from satellite (10 m)</label>
+    <p class="layerstat" id="stat-land" aria-live="polite"></p>
+
+    <h2>Check a place</h2>
+    <p class="sub">Select any point on the globe, or type a latitude and longitude, to compare what the model expects with the real data.</p>
+    <div class="row">
+      <label for="inLat">Latitude<br /><input id="inLat" type="number" min="-90" max="90" step="0.1" value="15" /></label>
+      <label for="inLon">Longitude<br /><input id="inLon" type="number" min="-180" max="180" step="0.1" value="20" /></label>
+      <button id="btnCheck">Check</button>
+    </div>
+    <div class="readout" id="placeReadout" aria-live="polite"><p>No place selected yet.</p></div>
+
+    <h2>Camera</h2>
+    <button id="btnGlobe">Whole globe</button>
+    <button id="btnTropics">Tropics close-up</button>
+
+    <h2>About</h2>
+    <button id="btnAbout">About and versions</button>
+  </aside>
+
+  <main id="main" aria-label="3D globe showing the circulation cells on a north–south curtain. The cross-section diagram and zone table in the controls panel give the same information.">
+    <arcgis-scene id="scene" viewing-mode="global">
+      <arcgis-zoom slot="top-right"></arcgis-zoom>
+      <arcgis-navigation-toggle slot="top-right"></arcgis-navigation-toggle>
+      <arcgis-compass slot="top-right"></arcgis-compass>
+    </arcgis-scene>
+    <div class="credit">Created by Jason Sawle<br />© Esri 2026</div>
+  </main>
+</div>
+
+<dialog id="about" aria-labelledby="aboutTitle">
+  <h2 id="aboutTitle">About Global Circulation Lab</h2>
+  <p>An experiment in using ArcGIS 3D to show the global circulation cells, with real wind, rainfall and land cover data to compare against.</p>
+  <table>
+    <caption>Versions</caption>
+    <thead><tr><th scope="col">Part</th><th scope="col">Version</th><th scope="col">What it does</th></tr></thead>
+    <tbody id="versionTable"></tbody>
+  </table>
+  <h3>Data sources</h3>
+  <ul class="sub">
+    <li>Wind: Global Average Wind Speeds by Month and Altitude — ERA5 reanalysis, Copernicus Climate Change Service / ECMWF, published by Esri.</li>
+    <li>Average rainfall: Average Global Precipitation — generated using Copernicus Climate Change Service information (ERA5, 1981–2010).</li>
+    <li>Monthly rainfall: NASA GPM IMERG (Huffman et al.), Esri Living Atlas — subscriber content.</li>
+    <li>Land cover: Sentinel-2 10 m Land Use/Land Cover — Esri and Impact Observatory (CC BY 4.0).</li>
+    <li>Basemap and elevation: Esri.</li>
+  </ul>
+  <button id="btnAboutClose">Close</button>
+</dialog>
+
+<script type="module">
+// ================= Versions (single source of truth) =================
+const APP_VERSION = "0.1.0";
+const MODELS = {
+  cells: { name: "Cell model", version: "1.0",
+    desc: "Three cells per hemisphere drawn on a north–south curtain. Rain belt (ITCZ) latitude = regional mean + amplitude × cos(2π(month − 7.5)/12). Subtropical highs move half as far, polar fronts a quarter as far. Cell tops follow a simple tropopause curve (16 km at the equator, 8 km at the poles) times the height stretch." },
+  wind: { name: "Wind layer", version: "1.0",
+    desc: "ERA5 monthly averages 2005–2024. Surface = 1000 hPa at 10 m. Upper = 175 hPa, raised to 12.5 km × height stretch so it sits at the top of the cells." },
+  rain: { name: "Rainfall layers", version: "1.0",
+    desc: "Average year: ERA5 1981–2010 contour polygons (public). Monthly: IMERG for the chosen year and month (sign-in needed)." },
+  land: { name: "Land cover layer", version: "1.0",
+    desc: "Sentinel-2 10 m land cover for 2024; classes read from the pixel value." }
+};
+document.getElementById("appVersion").textContent = "v" + APP_VERSION;
+for (const k of Object.keys(MODELS)) document.getElementById("v-" + k).textContent = MODELS[k].name + " v" + MODELS[k].version;
+document.getElementById("versionTable").innerHTML =
+  `<tr><td>App</td><td>${APP_VERSION}</td><td>Whole app</td></tr>` +
+  Object.values(MODELS).map(m => `<tr><td>${m.name}</td><td>${m.version}</td><td>${m.desc}</td></tr>`).join("");
+
+// ================= Settings =================
+const OAUTH_APP_ID = ""; // optional: an ArcGIS OAuth client ID, so school/Esri SSO accounts can sign in for IMERG
+const WIND_URL = "https://tiledimageservices.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/Global_Average_Wind_Speeds_Month_Altitude/ImageServer";
+const RAIN_ANNUAL_URL = "https://services.arcgis.com/jIL9msH9OI208GCb/arcgis/rest/services/Average_Annual_Precipitation/FeatureServer/0";
+const IMERG_URL = "https://earthobs3.arcgis.com/arcgis/rest/services/Precipitation_IMERG/ImageServer";
+const LAND_URL = "https://ic.imagery1.arcgis.com/arcgis/rest/services/Sentinel2_10m_LandCover/ImageServer";
+const LAND_YEAR = 2024;
+const LAND_CLASSES = { 1: "Water", 2: "Trees", 4: "Flooded vegetation", 5: "Crops", 7: "Built area",
+  8: "Bare ground", 9: "Snow and ice", 10: "Clouds (no data)", 11: "Rangeland (grass, savanna, shrubs)" };
+
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const REGIONS = {
+  africa:   { label: "Africa (20° E)",                  lon: 20,   mean: 2,  amp: 12 },
+  americas: { label: "South America (60° W)",           lon: -60,  mean: -1, amp: 10 },
+  asia:     { label: "East Asia and Australia (130° E)", lon: 130, mean: 4,  amp: 16 },
+  pacific:  { label: "Central Pacific Ocean (150° W)",  lon: -150, mean: 6,  amp: 4 }
+};
+const COL = { hadley: "#ff922b", ferrel: "#51cf66", polar: "#74c0fc" };
+const ZONES = {
+  itcz:       { name: "Rain belt (ITCZ)",     air: "Warm, moist air rises. Low pressure.", rain: "Heavy rain, often daily thunderstorms.", land: "Tropical rainforest" },
+  trades:     { name: "Trade winds",          air: "Surface winds blow toward the rain belt.", rain: "Wet season when the rain belt is close, dry season when it moves away.", land: "Savanna and seasonal forest" },
+  sth:        { name: "Subtropical high",     air: "Dry air sinks and warms. High pressure.", rain: "Very little rain.", land: "Hot desert" },
+  westerlies: { name: "Westerlies",           air: "Surface winds blow toward the poles, mostly from the west.", rain: "Rain from passing storms in every season.", land: "Temperate forest and grassland" },
+  pf:         { name: "Polar front",          air: "Cold polar air meets milder air, which rises. Low pressure.", rain: "Frequent storms, rain and snow.", land: "Boreal (northern) forest" },
+  polar:      { name: "Polar high",           air: "Very cold, dry air sinks. High pressure.", rain: "Very little snow or rain (polar desert).", land: "Tundra and ice" }
+};
+
+const $ = (id) => document.getElementById(id);
+const setStatus = (msg) => { $("status").textContent = msg; };
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fmtLat = (v) => { const a = Math.round(Math.abs(v)); return a === 0 ? "0°" : `${a}° ${v > 0 ? "N" : "S"}`; };
+const fmtLon = (v) => { const a = Math.round(Math.abs(v)); return a === 0 ? "0°" : `${a}° ${v > 0 ? "E" : "W"}`; };
+
+// fill selects
+$("region").innerHTML = Object.entries(REGIONS).map(([k, r]) => `<option value="${k}">${r.label}</option>`).join("");
+for (let y = 2024; y >= 2001; y--) $("rainYear").insertAdjacentHTML("beforeend", `<option ${y === 2019 ? "selected" : ""}>${y}</option>`);
+
+// ================= Cell model (pure maths, no SDK) =================
+function belts(region, month) {
+  const d = region.amp * Math.cos(2 * Math.PI * (month - 7.5) / 12);
+  return { itcz: region.mean + d, sthN: 30 + d / 2, sthS: -30 + d / 2, pfN: 60 + d / 4, pfS: -60 + d / 4 };
+}
+// r = latitude where air rises, s = latitude where air sinks
+function cellList(b) {
+  return [
+    { id: "hadleyN", name: "Hadley", kind: "hadley", r: b.itcz, s: b.sthN },
+    { id: "hadleyS", name: "Hadley", kind: "hadley", r: b.itcz, s: b.sthS },
+    { id: "ferrelN", name: "Ferrel", kind: "ferrel", r: b.pfN,  s: b.sthN },
+    { id: "ferrelS", name: "Ferrel", kind: "ferrel", r: b.pfS,  s: b.sthS },
+    { id: "polarN",  name: "Polar",  kind: "polar",  r: b.pfN,  s: 90 },
+    { id: "polarS",  name: "Polar",  kind: "polar",  r: b.pfS,  s: -90 }
+  ];
+}
+const tropo = (lat) => { const c = Math.cos(lat * Math.PI / 180); return 8 + 8 * c * c; }; // km
+const sg = (x, q) => Math.sign(x) * Math.pow(Math.abs(x), q);
+// Loop path in (lat, height km). t=0 bottom middle; flows along the ground from s to r, up at r, across the top to s, down at s.
+function cellPath(cell) {
+  const c = (cell.r + cell.s) / 2, w = ((cell.s - cell.r) / 2) * 0.86;
+  const hb = 1.2, ht = 0.85 * tropo(c), hc = (hb + ht) / 2, hh = (ht - hb) / 2;
+  const f = (t) => ({ lat: c - w * sg(Math.sin(t), 0.45), h: hc - hh * sg(Math.cos(t), 0.45) });
+  f.centre = { lat: c, h: hc };
+  return f;
+}
+const SEGS = [[-Math.PI / 4, Math.PI / 4], [Math.PI / 4, 3 * Math.PI / 4], [3 * Math.PI / 4, 5 * Math.PI / 4], [5 * Math.PI / 4, 7 * Math.PI / 4]];
+function segPoints(f, [a, b], n = 16, gap = 0.1) {
+  const pts = [];
+  for (let i = 0; i <= n; i++) pts.push(f(a + gap + (b - a - 2 * gap) * i / n));
+  return pts;
+}
+function zoneAt(lat, b) {
+  const near = (x, y, tol) => Math.abs(x - y) <= tol;
+  if (near(lat, b.itcz, 6)) return "itcz";
+  if (near(lat, b.sthN, 6) || near(lat, b.sthS, 6)) return "sth";
+  if (near(lat, b.pfN, 5) || near(lat, b.pfS, 5)) return "pf";
+  if ((lat > b.itcz && lat < b.sthN) || (lat < b.itcz && lat > b.sthS)) return "trades";
+  if ((lat > b.sthN && lat < b.pfN) || (lat < b.sthS && lat > b.pfS)) return "westerlies";
+  return "polar";
+}
+
+// ================= 2D cross-section (works without the 3D view) =================
+function drawSection(b, monthName, region) {
+  const W = 320, L = 22, R = W - 12, G = 150;
+  const x = (lat) => L + (lat + 90) / 180 * (R - L);
+  const y = (h) => G - h / 17 * 125;
+  let s = `<title id="sectionTitle">Cross-section of the atmosphere from south to north</title><desc id="sectionDesc"></desc><defs>` +
+    Object.entries(COL).map(([k, c]) => `<marker id="ah-${k}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="${c}"/></marker>`).join("") + `</defs>`;
+  // tropopause
+  let tp = "";
+  for (let lat = -90; lat <= 90; lat += 3) tp += `${lat === -90 ? "M" : "L"}${x(lat).toFixed(1)},${y(tropo(lat)).toFixed(1)} `;
+  s += `<path d="${tp}" fill="none" stroke="#8892b0" stroke-dasharray="3 3" stroke-width="1"/>`;
+  s += `<text x="${x(0) + 4}" y="${y(16) - 4}">top of the weather layer</text>`;
+  // wet / dry bars
+  const bar = (c, half, fill) => `<rect x="${x(c - half)}" y="${G + 3}" width="${x(c + half) - x(c - half)}" height="8" fill="${fill}" rx="2"/>`;
+  s += bar(b.itcz, 6, "#4dabf7") + bar(b.sthN, 6, "#e0a458") + bar(b.sthS, 6, "#e0a458") + bar(b.pfN, 5, "#4dabf7") + bar(b.pfS, 5, "#4dabf7");
+  // ground
+  s += `<line x1="${L}" y1="${G}" x2="${R}" y2="${G}" stroke="#c9b18a" stroke-width="2"/>`;
+  // cells
+  for (const cell of cellList(b)) {
+    const f = cellPath(cell);
+    for (const seg of SEGS) {
+      const pts = segPoints(f, seg, 12, 0.12);
+      s += `<path d="${pts.map((p, i) => `${i ? "L" : "M"}${x(p.lat).toFixed(1)},${y(p.h).toFixed(1)}`).join(" ")}" fill="none" stroke="${COL[cell.kind]}" stroke-width="1.8" marker-end="url(#ah-${cell.kind})"/>`;
+    }
+  }
+  // axis labels
+  for (const lat of [-60, -30, 0, 30, 60]) {
+    s += `<line x1="${x(lat)}" y1="${G + 12}" x2="${x(lat)}" y2="${G + 16}" stroke="#8892b0"/>`;
+    s += `<text x="${x(lat)}" y="${G + 26}" text-anchor="middle">${lat === 0 ? "Equator" : fmtLat(lat)}</text>`;
+  }
+  s += `<text x="${L}" y="${G + 40}">South</text><text x="${R}" y="${G + 40}" text-anchor="end">North</text>`;
+  s += `<text x="${x(b.itcz)}" y="14" text-anchor="middle" style="fill:#4dabf7">rain belt</text>`;
+  const svg = $("section");
+  svg.innerHTML = s;
+  svg.querySelector("desc").textContent =
+    `${monthName}, ${region.label}. Air rises with heavy rain near ${fmtLat(b.itcz)}. ` +
+    `It sinks, giving dry conditions, near ${fmtLat(b.sthN)} and ${fmtLat(b.sthS)}. ` +
+    `It rises again with storms near ${fmtLat(b.pfN)} and ${fmtLat(b.pfS)}, and sinks over both poles.`;
+}
+
+function fillTable(b) {
+  const rows = [
+    ["polar", `${fmtLat(b.pfN + 5)} – 90° N`],
+    ["pf", `about ${fmtLat(b.pfN)}`],
+    ["westerlies", `${fmtLat(b.pfN - 5)} – ${fmtLat(b.sthN + 6)}`],
+    ["sth", `about ${fmtLat(b.sthN)}`],
+    ["trades", `${fmtLat(b.sthN - 6)} – ${fmtLat(b.itcz + 6)}`],
+    ["itcz", `about ${fmtLat(b.itcz)}`],
+    ["trades", `${fmtLat(b.itcz - 6)} – ${fmtLat(b.sthS + 6)}`],
+    ["sth", `about ${fmtLat(b.sthS)}`],
+    ["westerlies", `${fmtLat(b.sthS - 6)} – ${fmtLat(b.pfS + 5)}`],
+    ["pf", `about ${fmtLat(b.pfS)}`],
+    ["polar", `${fmtLat(b.pfS - 5)} – 90° S`]
+  ];
+  $("zoneTable").innerHTML = rows.map(([k, lat], i) => {
+    const z = ZONES[k];
+    return `<tr data-zone="${k}" data-row="${i}"><th scope="row">${z.name}<br><span class="sub">${lat}</span></th><td>${z.air} ${z.rain}</td><td>${z.land}</td></tr>`;
+  }).join("");
+}
+
+// ================= State =================
+const state = {
+  month: 1,
+  regionKey: "africa",
+  get region() { return REGIONS[this.regionKey]; },
+  get exag() { return Number(document.querySelector('input[name="exag"]:checked').value); },
+  paused: reduceMotion
+};
+if (state.paused) { $("btnPause").setAttribute("aria-pressed", "true"); $("btnPause").textContent = "Play movement"; }
+
+// Draw the 2D parts straight away so they work even if the 3D view fails
+function update2D() {
+  const b = belts(state.region, state.month);
+  $("monthVal").textContent = MONTHS[state.month - 1];
+  $("monthSummary").textContent = `${MONTHS[state.month - 1]}: rain belt near ${fmtLat(b.itcz)}, dry belts near ${fmtLat(b.sthN)} and ${fmtLat(b.sthS)}.`;
+  drawSection(b, MONTHS[state.month - 1], state.region);
+  fillTable(b);
+  return b;
+}
+update2D();
+
+// ================= SDK =================
+if (typeof $arcgis === "undefined") {
+  setStatus("The 3D globe could not load. The cross-section and zone table still work.");
+  throw new Error("ArcGIS Maps SDK not available");
+}
+const [ArcGISMap, GraphicsLayer, FeatureLayer, ImageryLayer, ImageryTileLayer, DimensionalDefinition,
+       Graphic, Point, Polyline, TimeExtent, OAuthInfo, esriId] = await $arcgis.import([
+  "@arcgis/core/Map.js",
+  "@arcgis/core/layers/GraphicsLayer.js",
+  "@arcgis/core/layers/FeatureLayer.js",
+  "@arcgis/core/layers/ImageryLayer.js",
+  "@arcgis/core/layers/ImageryTileLayer.js",
+  "@arcgis/core/layers/support/DimensionalDefinition.js",
+  "@arcgis/core/Graphic.js",
+  "@arcgis/core/geometry/Point.js",
+  "@arcgis/core/geometry/Polyline.js",
+  "@arcgis/core/time/TimeExtent.js",
+  "@arcgis/core/identity/OAuthInfo.js",
+  "@arcgis/core/identity/IdentityManager.js"
+]);
+if (OAUTH_APP_ID) esriId.registerOAuthInfos([new OAuthInfo({ appId: OAUTH_APP_ID, popup: false })]);
+
+const map = new ArcGISMap({ basemap: "satellite", ground: "world-elevation" });
+const sceneEl = $("scene");
+sceneEl.map = map;
+await sceneEl.viewOnReady();
+const view = sceneEl.view;
+view.popupEnabled = false;
+try {
+  view.environment.background = { type: "color", color: [8, 10, 22, 1] };
+  view.environment.starsEnabled = true;
+  view.environment.atmosphereEnabled = true;
+} catch (e) { console.warn("Environment settings not applied:", e); }
+
+// graphics layers (added after data layers so they draw on top)
+const beltLayer = new GraphicsLayer({ title: "Pressure belts", elevationInfo: { mode: "on-the-ground" } });
+const cellLayer = new GraphicsLayer({ title: "Cells", elevationInfo: { mode: "absolute-height" } });
+const labelLayer = new GraphicsLayer({ title: "Labels", elevationInfo: { mode: "absolute-height" } });
+const parcelLayer = new GraphicsLayer({ title: "Air parcels", elevationInfo: { mode: "absolute-height" } });
+
+// ---- data layers ----
+function watchLoad(layer, statId, failMsg) {
+  layer.when(() => { $(statId).textContent = ""; },
+    (err) => { console.error(err); $(statId).textContent = `${failMsg} (${err?.message || "unknown error"})`; });
+}
+const rainAnnual = new FeatureLayer({ url: RAIN_ANNUAL_URL, title: "Average rainfall (ERA5 1981–2010)", opacity: 0.55, popupEnabled: false });
+watchLoad(rainAnnual, "stat-rain", "Average rainfall could not load.");
+map.add(rainAnnual);
+
+let rainMonthly = null, windLayer = null, landLayer = null, landIdLayer = null;
+
+function imergTime() {
+  const y = Number($("rainYear").value), m = state.month;
+  return new TimeExtent({ start: new Date(Date.UTC(y, m - 1, 1)), end: new Date(Date.UTC(y, m, 1) - 1) });
+}
+function ensureRainMonthly() {
+  if (rainMonthly) return rainMonthly;
+  rainMonthly = new ImageryLayer({ url: IMERG_URL, title: "Monthly rainfall (IMERG)", opacity: 0.7, useViewTime: false, timeExtent: imergTime(), popupEnabled: false });
+  watchLoad(rainMonthly, "stat-rain", "Monthly rainfall needs an ArcGIS sign-in and did not load.");
+  map.add(rainMonthly, map.layers.indexOf(rainAnnual) + 1);
+  return rainMonthly;
+}
+function setRain() {
+  const mode = document.querySelector('input[name="rain"]:checked').value;
+  rainAnnual.visible = mode === "annual";
+  if (mode === "monthly") { ensureRainMonthly().visible = true; rainMonthly.timeExtent = imergTime(); }
+  else if (rainMonthly) rainMonthly.visible = false;
+  $("rainYear").disabled = mode !== "monthly";
+}
+
+function flowRenderer(speed) {
+  return { type: "flow", trailLength: 20, flowSpeed: speed, trailWidth: 2,
+    visualVariables: [{ type: "color", field: "Magnitude", stops: [
+      { value: 0, color: [0, 100, 255, 1], label: "0 m/s" }, { value: 3, color: [0, 200, 255, 1] },
+      { value: 7, color: [0, 220, 130, 1] }, { value: 15, color: [80, 255, 70, 1] },
+      { value: 25, color: [200, 255, 40, 1] }, { value: 40, color: [255, 255, 0, 1], label: ">40 m/s" } ] }] };
+}
+const windDef = (pressure) => [
+  new DimensionalDefinition({ variableName: "Vector-MagDir", dimensionName: "StdPressure", values: [pressure], isSlice: true }),
+  new DimensionalDefinition({ variableName: "Vector-MagDir", dimensionName: "StdTime", values: [state.month], isSlice: true })
+];
+function setWind() {
+  const mode = document.querySelector('input[name="wind"]:checked').value;
+  if (mode === "off") { if (windLayer) windLayer.visible = false; return; }
+  if (!windLayer) {
+    windLayer = new ImageryTileLayer({ url: WIND_URL, title: "Average wind (ERA5)", renderer: flowRenderer(state.paused ? 0 : 3) });
+    watchLoad(windLayer, "stat-wind", "Wind could not load.");
+    map.add(windLayer, map.layers.indexOf(beltLayer));
+  }
+  const upper = mode === "upper";
+  windLayer.multidimensionalDefinition = windDef(upper ? 17500 : 100000);
+  windLayer.elevationInfo = { mode: "absolute-height", offset: upper ? 12500 * state.exag : 10 };
+  windLayer.visible = true;
+}
+
+function setLand() {
+  const on = $("showLand").checked;
+  if (on && !landLayer) {
+    landLayer = new ImageryLayer({ url: LAND_URL, title: "Land cover (Sentinel-2 10 m)", useViewTime: false,
+      timeExtent: new TimeExtent({ start: new Date(Date.UTC(LAND_YEAR, 0, 1)), end: new Date(Date.UTC(LAND_YEAR, 11, 31)) }), popupEnabled: false });
+    watchLoad(landLayer, "stat-land", "Land cover could not load.");
+    map.add(landLayer, 0);
+  }
+  if (landLayer) landLayer.visible = on;
+}
+
+map.addMany([beltLayer, cellLayer, labelLayer, parcelLayer]);
+
+// ---- 3D cell drawing ----
+const pt3 = (lon, lat, hKm) => new Point({ longitude: lon, latitude: lat, z: hKm * 1000 * state.exag, spatialReference: { wkid: 4326 } });
+function arrowSymbol(color) {
+  return { type: "line-3d", symbolLayers: [{ type: "line", size: 3, material: { color },
+    marker: { type: "style", style: "arrow", placement: "end", color } }] };
+}
+function textSymbol(text, color = "#ffffff", size = 11) {
+  return { type: "point-3d", symbolLayers: [{ type: "text", text, size, material: { color },
+    halo: { color: [0, 0, 0, 0.85], size: 1.5 } }] };
+}
+let parcels = [];
+function draw3D(b) {
+  const lon = state.region.lon;
+  cellLayer.removeAll(); labelLayer.removeAll(); beltLayer.removeAll(); parcelLayer.removeAll(); parcels = [];
+  const cells = cellList(b);
+  for (const cell of cells) {
+    const f = cellPath(cell);
+    for (const seg of SEGS) {
+      const pts = segPoints(f, seg).map(p => [lon, p.lat, p.h * 1000 * state.exag]);
+      cellLayer.add(new Graphic({ geometry: new Polyline({ paths: [pts], hasZ: true, spatialReference: { wkid: 4326 } }), symbol: arrowSymbol(COL[cell.kind]) }));
+    }
+    labelLayer.add(new Graphic({ geometry: pt3(lon, f.centre.lat, f.centre.h), symbol: textSymbol(cell.name, COL[cell.kind], 12) }));
+    for (let k = 0; k < 4; k++) {
+      const g = new Graphic({ symbol: { type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "sphere" },
+        width: 1500 * state.exag, height: 1500 * state.exag, depth: 1500 * state.exag, material: { color: "#ffffff" } }] } });
+      parcels.push({ g, f, k });
+      parcelLayer.add(g);
+    }
+  }
+  placeParcels();
+  // belts on the ground, across 70° of longitude around the curtain
+  const beltLine = (lat, color, width) => {
+    const path = []; for (let x = lon - 35; x <= lon + 35; x += 1) path.push([x, lat]);
+    beltLayer.add(new Graphic({ geometry: new Polyline({ paths: [path], spatialReference: { wkid: 4326 } }),
+      symbol: { type: "line-3d", symbolLayers: [{ type: "line", size: width, material: { color } }] } }));
+  };
+  beltLine(b.itcz, "#4dabf7", 5);
+  beltLine(b.sthN, "#e0a458", 4); beltLine(b.sthS, "#e0a458", 4);
+  beltLine(b.pfN, "#b197fc", 3); beltLine(b.pfS, "#b197fc", 3);
+  // belt labels just above the cells
+  const top = (lat) => tropo(lat) * 0.85 + 2.5;
+  labelLayer.add(new Graphic({ geometry: pt3(lon, b.itcz, top(b.itcz)), symbol: textSymbol("Rising air · heavy rain", "#9fd3ff") }));
+  labelLayer.add(new Graphic({ geometry: pt3(lon, b.sthN, top(b.sthN)), symbol: textSymbol("Sinking air · dry", "#f2c48d") }));
+  labelLayer.add(new Graphic({ geometry: pt3(lon, b.sthS, top(b.sthS)), symbol: textSymbol("Sinking air · dry", "#f2c48d") }));
+  labelLayer.add(new Graphic({ geometry: pt3(lon, b.pfN, top(b.pfN)), symbol: textSymbol("Rising air · storms", "#d0bfff") }));
+  labelLayer.add(new Graphic({ geometry: pt3(lon, b.pfS, top(b.pfS)), symbol: textSymbol("Rising air · storms", "#d0bfff") }));
+  applyVisibility();
+}
+let phase = 0;
+function placeParcels() {
+  const lon = state.region.lon;
+  for (const p of parcels) {
+    const q = p.f(phase + p.k * Math.PI / 2);
+    p.g.geometry = pt3(lon, q.lat, q.h);
+  }
+}
+let last = 0;
+function tick(ts) {
+  if (ts - last > 100) {
+    if (!state.paused && $("showParcels").checked && parcels.length) {
+      phase += ((ts - last) / 1000) * (2 * Math.PI / 14);
+      placeParcels();
+    }
+    last = ts;
+  }
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+
+function applyVisibility() {
+  cellLayer.visible = $("showCells").checked;
+  beltLayer.visible = $("showBelts").checked;
+  labelLayer.visible = $("showLabels").checked;
+  parcelLayer.visible = $("showParcels").checked;
+}
+
+// ================= Update everything =================
+function updateAll() {
+  const b = update2D();
+  draw3D(b);
+  if (windLayer && windLayer.visible) setWind();
+  if (rainMonthly && rainMonthly.visible) rainMonthly.timeExtent = imergTime();
+}
+
+// ================= Camera =================
+function globeView(animate = true) {
+  return view.goTo({ position: { longitude: state.region.lon + 75, latitude: 8, z: 17000000 }, heading: 0, tilt: 0 },
+    { animate: animate && !reduceMotion });
+}
+function tropicsView() {
+  return view.goTo({ center: [state.region.lon, 5], zoom: 3.2, heading: 270, tilt: 70 }, { animate: !reduceMotion });
+}
+
+// ================= Check a place =================
+async function identifyNumber(layer, point, timeExtent) {
+  try {
+    await layer.load();
+    const res = await layer.identify({ geometry: point, timeExtent });
+    const v = res?.value;
+    if (v == null || /nodata/i.test(String(v))) return null;
+    const n = parseFloat(String(v).split(/[\s,;]+/)[0]);
+    return Number.isFinite(n) ? n : null;
+  } catch (e) { console.warn("identify failed", e); return null; }
+}
+async function checkPlace(point) {
+  const lat = point.latitude, lon = point.longitude;
+  const b = belts(state.region, state.month);
+  const zk = zoneAt(lat, b), z = ZONES[zk];
+  document.querySelectorAll("#zoneTable tr").forEach(r => r.classList.remove("hit"));
+  const rows = [...document.querySelectorAll(`#zoneTable tr[data-zone="${zk}"]`)];
+  const row = rows.length > 1 ? rows[lat >= b.itcz ? 0 : 1] : rows[0];
+  row?.classList.add("hit");
+  const out = $("placeReadout");
+  const lines = [
+    `<p><strong>${fmtLat(lat)}, ${fmtLon(lon)}</strong> · ${MONTHS[state.month - 1]} · using the ${state.region.label} model</p>`,
+    `<p><strong>Model:</strong> ${z.name}. ${z.air} ${z.rain} Typical land cover: ${z.land}.</p>`
+  ];
+  out.innerHTML = lines.join("") + `<p class="sub">Checking the real data…</p>`;
+  const data = [];
+  try {
+    const r = await rainAnnual.queryFeatures({ geometry: point, spatialRelationship: "intersects", outFields: ["PrecipMin", "PrecipMax"], returnGeometry: false });
+    const a = r.features[0]?.attributes;
+    data.push(a ? `<p><strong>Average monthly rainfall (ERA5 1981–2010):</strong> ${a.PrecipMin}–${a.PrecipMax} <span class="sub">(units to confirm)</span></p>`
+                : `<p><strong>Average rainfall:</strong> no value here.</p>`);
+  } catch (e) { data.push(`<p><strong>Average rainfall:</strong> could not be read.</p>`); }
+  if (rainMonthly && rainMonthly.loaded) {
+    const v = await identifyNumber(rainMonthly, point, imergTime());
+    data.push(`<p><strong>Rainfall in ${MONTHS[state.month - 1]} ${$("rainYear").value} (IMERG):</strong> ${v == null ? "no value" : Math.round(v) + " mm"}</p>`);
+  }
+  if (windLayer && windLayer.loaded && windLayer.visible) {
+    try {
+      const res = await windLayer.identify(point, { multidimensionalDefinition: windLayer.multidimensionalDefinition });
+      const v = res?.value;
+      if (v && v.length) data.push(`<p><strong>Average wind (ERA5):</strong> ${Number(v[0]).toFixed(1)} m/s, direction value ${Math.round(Number(v[1]))}° <span class="sub">(direction convention to confirm)</span></p>`);
+    } catch (e) { console.warn(e); }
+  }
+  {
+    landIdLayer = landLayer || landIdLayer || new ImageryLayer({ url: LAND_URL });
+    const lc = await identifyNumber(landIdLayer, point,
+      new TimeExtent({ start: new Date(Date.UTC(LAND_YEAR, 0, 1)), end: new Date(Date.UTC(LAND_YEAR, 11, 31)) }));
+    data.push(`<p><strong>Land cover ${LAND_YEAR}:</strong> ${lc == null ? "no value (could be ocean or not loaded)" : (LAND_CLASSES[lc] || "class " + lc)}</p>`);
+  }
+  out.innerHTML = lines.join("") + data.join("");
+}
+
+// ================= Wire up controls =================
+$("month").addEventListener("input", (e) => { state.month = Number(e.target.value); updateAll(); });
+$("region").addEventListener("change", (e) => { state.regionKey = e.target.value; updateAll(); globeView(); $("inLon").value = state.region.lon; });
+document.querySelectorAll('input[name="exag"]').forEach(r => r.addEventListener("change", updateAll));
+["showCells", "showBelts", "showLabels", "showParcels"].forEach(id => $(id).addEventListener("change", applyVisibility));
+$("btnPause").addEventListener("click", () => {
+  state.paused = !state.paused;
+  $("btnPause").setAttribute("aria-pressed", String(state.paused));
+  $("btnPause").textContent = state.paused ? "Play movement" : "Pause movement";
+  if (windLayer) { try { windLayer.renderer = flowRenderer(state.paused ? 0 : 3); } catch (e) { console.warn(e); } }
+});
+document.querySelectorAll('input[name="wind"]').forEach(r => r.addEventListener("change", setWind));
+document.querySelectorAll('input[name="rain"]').forEach(r => r.addEventListener("change", setRain));
+$("rainYear").addEventListener("change", () => { if (rainMonthly) rainMonthly.timeExtent = imergTime(); });
+$("showLand").addEventListener("change", setLand);
+$("btnCheck").addEventListener("click", () => {
+  const lat = Number($("inLat").value), lon = Number($("inLon").value);
+  if (!Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) {
+    $("placeReadout").innerHTML = "<p>Please enter a latitude from −90 to 90 and a longitude from −180 to 180.</p>"; return;
+  }
+  checkPlace(new Point({ longitude: lon, latitude: lat, spatialReference: { wkid: 4326 } }));
+});
+view.on("click", (evt) => { if (evt.mapPoint) checkPlace(evt.mapPoint); });
+$("btnGlobe").addEventListener("click", () => globeView());
+$("btnTropics").addEventListener("click", tropicsView);
+const about = $("about");
+$("btnAbout").addEventListener("click", () => about.showModal());
+$("btnAboutClose").addEventListener("click", () => about.close());
+
+// ================= Start =================
+setRain();
+draw3D(belts(state.region, state.month));
+await globeView(false);
+setStatus("Ready. Move the month slider to see the belts shift.");
+</script>
+</body>
+</html>
