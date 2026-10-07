@@ -17,7 +17,7 @@
 import { startIceAgeApp } from "./ice-age-engine.js";
 
 /* Key Stage 3 page. Story steps, map-key layers and teacher notes are set here; the engine does the rest.
-   App 1.2 (first release of this page). Bump "Story (KS3)" when the step text changes. */
+   App 1.3 (1.2 first release; 1.3 wider Europe view). Bump "Story (KS3)" when the step text changes. */
 const steps = [
   { t: 80, title: "Ice returns to the north", cam: "europe",
     html: `<p>80,000 years ago Britain was in the middle of the last <b>glacial period</b>, a long cold spell. In Britain it is called the <b>Devensian</b>. Ice caps sat over the mountains of Scandinavia, and the sea was about 30 m lower than today.</p>
@@ -82,8 +82,8 @@ startIceAgeApp({
   levelLabel: "Key Stage 3",
   title: "Ice Age Britain",
   lede: "80,000 years of ice and sea in 3D: the ice sheets over Britain and Scandinavia, and the flooding of Doggerland.",
-  appVersion: "1.2", appDate: "October 2026",
-  appNote: "First release of the Key Stage 3 page, built on the shared Ice Age engine (same data and models as Ice Age Britain and Europe 1.1); adds Check a place and the dry North Sea floor count.",
+  appVersion: "1.3", appDate: "October 2026",
+  appNote: "First release of the Key Stage 3 page, built on the shared Ice Age engine (same data and models as Ice Age Britain and Europe 1.1); adds Check a place and the dry North Sea floor count. 1.3: wider Europe view (the opening camera) for the whole-Europe steps.",
   storyModel: ["Story (KS3)", "1.0", "13 steps written for Key Stage 3; ice core and then-and-now boxes"],
   legendLayers: ["britExtent", "llr", "britLakes", "moraines", "drumlins", "eskers", "meltwater"],
   steps, teacherHtml
