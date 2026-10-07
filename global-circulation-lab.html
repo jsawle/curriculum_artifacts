@@ -229,7 +229,7 @@
 <script type="module">
 // ================= Versions (single source of truth) =================
 // Bump a model's number whenever its maths or data handling changes; bump the app version on every release.
-const APP_VERSION = "0.4.0";
+const APP_VERSION = "0.4.1";
 const MODELS = {
   sun: { name: "Sunlight model", version: "1.0",
     desc: "Latitude where the Sun is overhead at midday = 23.44° × sin(2π(day − 80)/365), using the 15th of each month. Midday sunlight strength = sine of the midday Sun's height (100% when overhead). Midday only: it ignores day length and the atmosphere, so it understates summer sunlight near the poles." },
@@ -813,7 +813,7 @@ function updateAll() {
 
 // ================= Camera =================
 function globeView(animate = true) {
-  return view.goTo({ position: { longitude: wrapLon(state.region.lon + 90), latitude: 8, z: 17000000 }, heading: 0, tilt: 0 },
+  return view.goTo({ position: new Point({ longitude: wrapLon(state.region.lon + 90), latitude: 8, z: 17000000, spatialReference: { wkid: 4326 } }), heading: 0, tilt: 0 },
     { animate: animate && !reduceMotion });
 }
 function tropicsView() {

@@ -102,8 +102,8 @@
     <label class="stack" for="sliceHeading">Cut heading: <span id="sliceHeadingVal">0</span>°
       <input id="sliceHeading" type="range" min="0" max="359" step="1" value="0" />
     </label>
-    <label class="stack" for="sliceTilt">Cut tilt: <span id="sliceTiltVal">90</span>°
-      <input id="sliceTilt" type="range" min="0" max="90" step="1" value="90" />
+    <label class="stack" for="sliceTilt">Cut tilt: <span id="sliceTiltVal">0</span>° <span class="sub">(0° faces you, 90° is edge-on)</span>
+      <input id="sliceTilt" type="range" min="0" max="90" step="1" value="0" />
     </label>
     <label><input id="excludeQuakes" type="checkbox" /> Keep earthquakes visible (don't cut them)</label>
     <p class="sub">Lab readout of the current cut plane:</p>
@@ -166,10 +166,10 @@
 <script type="module">
 // ---------- Versions (single source of truth) ----------
 // Bump a model's number whenever its maths or data handling changes, and bump the app version on every release.
-const APP_VERSION = "0.1.1";
+const APP_VERSION = "0.1.2";
 const MODELS = {
   layers: { name: "Layer model", version: "1.0", desc: "Concentric spheres for mantle and core at PREM depths, scaled to the globe's radius." },
-  slice:  { name: "Slice model", version: "1.0", desc: "Esri SliceAnalysis plane placed under the view centre at a chosen depth, heading and tilt." },
+  slice:  { name: "Slice model", version: "1.1", desc: "Esri SliceAnalysis plane placed under the view centre at a chosen depth, heading and tilt. Default tilt 0°, which faces a camera looking straight down." },
   quakes: { name: "Earthquake depth model", version: "1.0", desc: "USGS depths placed below the surface: height = −depth × 1000 × stretch." }
 };
 document.getElementById("appVersion").textContent = "v" + APP_VERSION;
@@ -246,7 +246,10 @@ try {
   view.environment.lighting = { type: "virtual" }; // light from the camera so cut faces are lit
 } catch (e) { console.warn("Environment settings not applied:", e); }
 
-const START_CAMERA = { position: { longitude: -175, latitude: -20, z: 22000000 }, heading: 0, tilt: 0 };
+// Camera positions must be real Point objects: SDK 5.1 rejects a plain {longitude, latitude, z} object in goTo().
+const camAt = (longitude, latitude, z, heading, tilt) =>
+  ({ position: new Point({ longitude, latitude, z, spatialReference: { wkid: 4326 } }), heading, tilt });
+const START_CAMERA = camAt(-175, -20, 22000000, 0, 0);
 await view.goTo(START_CAMERA, { animate: false });
 
 // ---------- Layer model: concentric mesh spheres ----------
@@ -451,7 +454,7 @@ document.getElementById("underground").addEventListener("change", (e) => {
 });
 document.getElementById("btnHome").addEventListener("click", () => view.goTo(START_CAMERA, { animate: !reduceMotion }));
 document.getElementById("btnTonga").addEventListener("click", () => view.goTo(
-  { position: { longitude: -168, latitude: -24, z: 4500000 }, heading: 270, tilt: 55 }, { animate: !reduceMotion }));
+  camAt(-168, -24, 4500000, 270, 55), { animate: !reduceMotion }));
 
 const about = document.getElementById("about");
 document.getElementById("btnAbout").addEventListener("click", () => about.showModal());
