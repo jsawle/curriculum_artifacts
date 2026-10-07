@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+<title>Ice Age Britain · GCSE and A level</title>
+<meta name="description" content="GCSE and A level: the last glacial cycle in Britain and Europe in 3D. Ice extent and thickness, stadials and interstadials, evidence, glacial landforms, relict landscapes and the drowning of Doggerland." />
+<script type="module" src="https://js.arcgis.com/5.1/"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="ice-age-engine.css" />
+</head>
+<body>
+<div id="app"></div>
+<script type="module">
+import { startIceAgeApp } from "./ice-age-engine.js";
+
+/* GCSE and A level page. Story steps, map-key layers and teacher notes are set here; the engine does the rest.
+   App 1.2 (first release of this page). Bump "Story (GCSE and A level)" when the step text changes. */
+const S = {
+  aqaG: "AQA GCSE · Glacial landscapes in the UK",
+  aqaGc: "AQA GCSE · Quaternary climate change evidence",
+  edxG: "Edexcel GCSE A · Glaciated upland landscapes (option)",
+  edxGc: "Edexcel GCSE A · Quaternary climate change evidence",
+  edxA1: "Edexcel A level · 2A.1 chronology and causes of glaciation",
+  edxA2: "Edexcel A level · 2A.2 Pleistocene ice extent and relict landscapes",
+  aqaA: "AQA A level · Glacial systems and landscapes (option)"
+};
+const steps = [
+  { t: 80, title: "The last glacial cycle begins", cam: "europe", spec: [S.edxA1, S.aqaA],
+    html: `<p>The last glacial period is the <b>Devensian</b> in Britain and the <b>Weichselian</b> in northern Europe. It is part of the <b>Quaternary</b> period (the last 2.6 million years), in which ice sheets have grown and melted many times. 80,000 years ago, ice caps sat over the Scandinavian mountains and sea level was about 30 m lower than today.</p>
+<p class="note">Ice outlines this far back rest on few dates. They are hypotheses, not maps.</p>` },
+  { t: 60, title: "MIS 4: a cold stage, 71,000 to 57,000 years ago", cam: "europe", spec: [S.edxA1],
+    html: `<p>In <b>Marine Isotope Stage 4</b> the ice grew again. In the reconstruction used here (Gowan et al. 2021), ice spreads from Scandinavia across the North Sea towards Scotland about 60,000 years ago, and sea level is about 85 m lower: water evaporated from the oceans was stored on land as ice.</p>
+<div class="alevel"><span class="k">A level: a contested reconstruction</span>Batchelor et al. (2019) found that the southern and western edges of the Eurasian ice sheet reached further at the Last Glacial Maximum than in MIS 4, while its eastern edge reached further in MIS 4. They also found that the Eurasian ice sheet was larger in MIS 6 (about 190,000 to 130,000 years ago) than at any time in the last glacial cycle.</div>` },
+  { t: 40, title: "MIS 3: stadials and interstadials", cam: "europe", spec: [S.aqaGc, S.edxGc, S.edxA1],
+    html: `<p>From about 57,000 to 29,000 years ago the climate switched suddenly and repeatedly. Warm <b>interstadials</b> lasted centuries to a few thousand years, separated by cold <b>stadials</b>. Scientists number them as Greenland Interstadials (GI) and Greenland Stadials (GS); they are the spikes on the orange line in the chart.</p>
+<div class="howknow"><span class="k">How do we know? Ice cores</span><b>δ¹⁸O</b> ("delta-O-18") compares heavy oxygen-18 with ordinary oxygen-16 in the ice. Water molecules containing oxygen-18 fall out of air masses sooner as they cool, so colder air brings Greenland snow with less oxygen-18: <b>lower δ¹⁸O means colder</b>. The chart's orange line is δ¹⁸O from the GISP2 core.</div>
+<p>Other evidence: <b>pollen</b> preserved in lake and bog sediments shows which plants grew; <b>tree rings</b> give yearly detail, but continuous tree-ring records only reach back to around the end of the last glacial period.</p>
+<div class="alevel"><span class="k">A level: ocean cores</span>In ocean sediment cores, δ¹⁸O in the shells of foraminifera mostly records global ice volume, and reads the other way: <b>higher means more ice</b> (and lower sea level), because ice sheets lock up the lighter oxygen-16. The Marine Isotope Stage numbers come from these cores.</div>` },
+  { t: 30, title: "The Dimlington Stadial begins", cam: "europe", spec: [S.edxA1],
+    html: `<p>The main cold phase of the last glaciation in Britain is the <b>Dimlington Stadial</b>, about 31,000 to 14,700 years ago, named after cliffs on the Holderness coast of Yorkshire. Ice builds up over Scotland, Ireland and Scandinavia.</p>` },
+  { t: 25, title: "Two ice sheets meet", cam: "northsea", spec: [S.edxA2, S.aqaA],
+    html: `<p>The <b>British–Irish</b> and <b>Scandinavian</b> ice sheets joined across the northern North Sea. In the outlines used here they are joined from 27,500 to 20,000 years ago. Clark et al. (2022) date the North Sea ice advance to between 30,000 and 25,000 years ago, and its retreat to before 23,000 years ago.</p>
+<p>With ice blocking the north, the lake model fills a proglacial lake in the southern North Sea. Murton &amp; Murton (2012) review evidence for lakes like this in several glaciations; how big this one was is debated.</p>` },
+  { t: 20, title: "Maximum extent of ice cover across the UK", cam: "britain", layers: { britExtent: true }, seeThrough: true, spec: [S.aqaG, S.edxA2],
+    html: `<p>Around 20,000 years ago sea level was about <b>120 m lower</b> than today, and the floor of the North Sea, <b>Doggerland</b>, was dry land joining Britain to Europe.</p>
+<p>The orange area is the furthest the British–Irish Ice Sheet reached, mapped from landforms (BRITICE). This furthest extent is <b>time-transgressive</b>: different sectors reached their limits at different times. In Lincolnshire, North Sea ice reached its furthest about 19,500 years ago (Clark et al. 2022).</p>
+<div class="alevel"><span class="k">A level: evidence for ice sheet extent</span>The extent is reconstructed from landforms and sediments: end moraines, till, erratics, and the direction of drumlins and other streamlined landforms. The BRITICE-CHRONO project dated the retreat using radiocarbon, cosmogenic nuclide exposure and luminescence dating. Offshore, the limits come from moraines and sediments mapped on the sea floor.</div>
+<p class="note">The ice is see-through in this step so the BRITICE extent shows beneath it. Use <b>Check a place</b> to test places against the model.</p>` },
+  { t: 16, title: "Retreat: depositional landforms", cam: "northEngland", layers: { moraines: true, drumlins: true, eskers: true, meltwater: true }, seeThrough: true, spec: [S.aqaG, S.aqaA, S.edxA2],
+    html: `<p>As the climate warmed, the ice thinned and its margins pulled back. The landforms left behind record how it moved and melted:</p>
+<ul><li><b>Drumlins</b> (lilac) formed under moving ice; their long axes show the direction of ice flow.</li>
+<li><b>Moraines</b> (orange) mark positions where the ice margin stood still or readvanced.</li>
+<li><b>Eskers</b> (green) and <b>meltwater channels</b> (cyan) are fluvioglacial: made by meltwater flowing in, under or beside the ice.</li></ul>
+<p>Zoom and tilt to compare drumlin directions across northern England and southern Scotland.</p>` },
+  { t: 14, title: "The Windermere Interstadial", cam: "britain", spec: [S.edxA1],
+    html: `<p>About <b>14,700 years ago</b> the climate warmed suddenly. In Greenland this is <b>Greenland Interstadial 1</b> (14,692 to 12,896 years before AD 2000); on the continent it is called the <b>Bølling–Allerød</b>.</p>
+<p>The ice kept shrinking. Scientists are not sure whether small ice caps survived on the Scottish Highlands through this warm phase.</p>
+<div class="alevel"><span class="k">A level: causes</span>The specification names Milankovitch cycles, solar output, atmospheric gases and volcanic eruptions as causes of climate change. This app shows the effects, not the causes: the orbital changes that ended the glaciation are not modelled.</div>` },
+  { t: 12.5, title: "The Loch Lomond Stadial: corrie glaciers", cam: "highlands", layers: { llr: true, cirques: true, britLakes: true }, seeThrough: true, spec: [S.edxG, S.aqaA, S.edxA1],
+    html: `<p>About <b>12,900 years ago</b> the cold returned suddenly (<b>Greenland Stadial 1</b>, the <b>Younger Dryas</b>) for about 1,200 years. An ice cap and valley glaciers grew in the Scottish Highlands: the pink area is the mapped <b>Loch Lomond Readvance</b>. Elsewhere in upland Britain, including the Lake District and Snowdonia, small glaciers formed in <b>corries</b> (cirques, mauve lines).</p>
+<p>In the Baltic, ice and land dammed the <b>Baltic Ice Lake</b>. When the ice edge melted back past Mount Billingen in Sweden, about 11,700 years ago, the lake drained: its level fell about 25 m and about 7,800 km³ of water flowed out (Jakobsson et al. 2007).</p>` },
+  { t: 11.7, title: "The Holocene begins", cam: "europe", spec: [S.edxA1],
+    html: `<p>About <b>11,700 years ago</b> the climate warmed for good, and the last ice caps in Britain melted away. Britain was still joined to the continent by Doggerland.</p>` },
+  { t: 11, title: "Doggerland floods", cam: "dogger", play: { to: 8, speed: 0.25, label: "▶ Play the flood" }, spec: [S.edxA2],
+    html: `<p>In the North Sea, sea level rose from about <b>50 m</b> below today 11,000 years ago to about <b>15 m</b> below by 8,000 years ago (Hijma et al. 2025). Peat layers from the sea floor show two spells of especially fast rise, peaking about 10,300 and 8,300 years ago. This is <b>eustatic</b> rise from melting ice sheets; the model leaves out <b>isostatic</b> change (land sinking or rebounding), which varies from place to place.</p>
+<p>One model finds a big loss of land between 10,500 and 10,000 years ago, at the same time as changes in culture and practices on Early Mesolithic sites in the Netherlands and north-west Germany (Hoebe et al. 2024). Press <b>Play the flood</b> and watch the dry North Sea floor figure.</p>` },
+  { t: 8, title: "An island, then the sea", cam: "dogger", play: { to: 7, speed: 0.12 }, spec: [S.edxA2],
+    html: `<p>About <b>8,150 years ago</b> the Storegga landslide off Norway sent a tsunami across the North Sea. Around 8,000 years ago, models show <b>Dogger Bank</b> as an island (Clark et al. 2022); by about 7,500 years ago it was under the sea.</p>
+<div class="howknow"><span class="k">Then and now</span>Global sea-level rise peaked at nearly <b>9 mm a year</b> around 10,300 years ago (Hijma et al. 2025). From 2006 to 2018 it averaged <b>3.7 mm a year</b>, up from 1.3 mm a year in 1901–1971 and 1.9 mm a year in 1971–2006 (IPCC AR6, 2021).</div>
+<p class="note">The flood uses today's sea floor and one sea level for the whole North Sea, so the island may last a little longer or shorter than it did.</p>` },
+  { t: 0, title: "Relict landscapes: lowland Britain", cam: "northEngland", layers: { moraines: true, drumlins: true, eskers: true, meltwater: true }, spec: [S.aqaG, S.edxA2, S.aqaA],
+    html: `<p>Sea level reached about today's level and Britain became an island. The glacial landforms now sit in a temperate climate with no ice: a <b>relict landscape</b>. Rivers, slopes and people have modified them since, but the drumlin fields, moraines, eskers and meltwater channels are still mapped across Britain and Ireland.</p>
+<p>Shap granite boulders from Cumbria, carried by ice across the Pennines, are found as far as the Yorkshire coast: <b>erratics</b> that trace the ice's path.</p>` },
+  { t: 0, title: "Glaciated uplands today", cam: "lakeDistrict", layers: { cirques: true, cragTails: true, erratics: true, streamlined: true }, spec: [S.edxG, S.aqaG, S.aqaA],
+    html: `<p>The Lake District shows the erosional landforms of glaciated uplands: <b>corries</b> (cirques, mauve), with <b>arêtes</b> and <b>pyramidal peaks</b> between them; <b>U-shaped valleys</b>, <b>hanging valleys</b> and <b>ribbon lakes</b> such as Windermere. <b>Glacially streamlined bedrock</b> (grey) and <b>crag and tails</b> (amber) show the direction the ice moved. Edinburgh's Castle Rock and Royal Mile are a classic crag and tail.</p>
+<p><b>Erratic pathways</b> (green) link boulders to the rock they came from.</p>
+<p>To see the processes that make these landforms (plucking, abrasion, freeze-thaw, deposition), try <a href="yosemite-valley.html" target="_blank" rel="noopener">How Yosemite Valley was made</a>, <a href="yosemite-3d.html" target="_blank" rel="noopener">Yosemite Valley in 3D: filled with ice</a> or <a href="landforms-globe.html" target="_blank" rel="noopener">Landforms Uncovered</a>.</p>` }
+];
+
+const teacherHtml = `<details open><summary>Using it in class</summary>
+  <ul>
+    <li>14 steps in time order, each tagged with the specification content it touches. The timeline and chart also work on their own for any time in the last 80,000 years.</li>
+    <li>Purple <b>A level</b> boxes add depth that GCSE students can skip; orange boxes cover evidence ("How do we know?") and the then-and-now sea-level comparison.</li>
+    <li><b>Check a place</b> reports ice thickness, sea or lake depth, or height above the sea of that time, for a place picked from the list or clicked on the map. It can be used for fieldwork sites, case-study locations or the school's own area.</li>
+    <li>The links <code>?step=6</code> (any step number) and <code>?t=20</code> (thousands of years ago) open the page at a step or time, for setting tasks.</li>
+  </ul>
+</details>
+<details><summary>Specification links</summary>
+  <ul>
+    <li><b>AQA GCSE, Glacial landscapes in the UK:</b> "Maximum extent of ice cover across the UK during the last ice age" (step 6); landforms of erosion and deposition, including erratics, drumlins and moraines (steps 7, 13, 14).</li>
+    <li><b>AQA GCSE, climate change:</b> "Evidence for climate change from the beginning of the Quaternary period" (step 3 and the chart).</li>
+    <li><b>Edexcel GCSE A, glaciated upland landscapes (option):</b> erosional and depositional landforms including corries, "crag and tail and drumlins" (steps 9, 14).</li>
+    <li><b>Edexcel GCSE A, climate change evidence:</b> Quaternary evidence from "ice cores, pollen records, tree rings" (step 3).</li>
+    <li><b>Edexcel A level 2A.1:</b> the chronology of glacial and interglacial periods (stadials, interstadials) and the named causes (step 8 notes that causes are not modelled).</li>
+    <li><b>Edexcel A level 2A.2:</b> "evidence for Pleistocene ice sheet extent" and "relict landscapes" (steps 5, 6, 11–14).</li>
+    <li><b>AQA A level, Glacial systems and landscapes (option):</b> Pleistocene glaciated areas; fluvioglacial landforms such as meltwater channels and eskers (steps 7, 13). Kames and outwash plains are not mapped in the layers used here.</li>
+  </ul>
+</details>
+<details><summary>What this page does not cover</summary>
+  <ul>
+    <li>Glacial processes as they happen (the Yosemite apps and Landforms Uncovered show these); periglacial landscapes (Edexcel A level 2A.3); glacier mass balance and systems.</li>
+    <li>Glaciations before 80,000 years ago, such as the Anglian (about 450,000 years ago), when ice reached further south in England than in the Devensian.</li>
+    <li>The causes of glacial–interglacial change, which are described in words only.</li>
+  </ul>
+</details>`;
+
+startIceAgeApp({
+  levelLabel: "GCSE and A level",
+  title: "Ice Age Britain and Europe",
+  lede: "The last glacial cycle in 3D: ice extent and thickness, stadials and interstadials, glacial landforms, and the drowning of Doggerland.",
+  appVersion: "1.2", appDate: "October 2026",
+  appNote: "First release of the GCSE and A level page, built on the shared Ice Age engine (same data and models as Ice Age Britain and Europe 1.1); adds specification tags, A level boxes, landform steps, Check a place and the dry North Sea floor count.",
+  storyModel: ["Story (GCSE and A level)", "1.0", "14 steps with specification tags, A level extension boxes, evidence boxes and two relict-landscape steps"],
+  legendLayers: ["britExtent", "llr", "britLakes", "moraines", "drumlins", "eskers", "meltwater", "cirques", "cragTails", "erratics", "streamlined"],
+  steps, teacherHtml
+});
+</script>
+</body>
+</html>
