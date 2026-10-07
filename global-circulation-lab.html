@@ -36,13 +36,23 @@
   /* layout: controls | (globe over diagram dock) */
   .app { display: grid; grid-template-columns: 320px minmax(0, 1fr); height: 100%; }
   aside { background: var(--panel); border-right: 1px solid var(--border); overflow-y: auto; padding: 14px 16px 40px; }
-  main { display: grid; grid-template-rows: minmax(0, 1fr) auto; min-height: 0; min-width: 0; }
-  .globe-wrap { position: relative; min-height: 0; overflow: hidden; }
+  main { position: relative; min-height: 0; min-width: 0; }
+  .globe-wrap { position: absolute; inset: 0; overflow: hidden; }
   arcgis-scene { display: block; width: 100%; height: 100%; }
-  .dock { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 10px; padding: 10px;
-    background: var(--panel); border-top: 1px solid var(--border); max-height: 45vh; overflow: auto; }
-  .card { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; min-width: 0; }
-  .card h2 { margin: 0 0 6px; }
+  /* floating diagram panel over the bottom of the globe; the credit box keeps the bottom-right corner */
+  .dock { position: absolute; left: 10px; right: 176px; bottom: 28px; z-index: 6; padding: 6px 8px 8px; max-height: calc(100% - 140px); overflow: auto; }
+  .dockbar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; padding: 0 2px 6px; }
+  .dockbar .mlabel { margin: 0; white-space: nowrap; }
+  .dockbar input[type=range] { flex: 1 1 160px; width: auto; min-width: 120px; }
+  .dockbar select { max-width: 220px; }
+  .dockbar .grp { display: inline-flex; align-items: center; gap: 8px; }
+  .dockbar button { margin: 0; }
+  .card .monthline { margin: 0 0 3px; font-size: .8rem; }
+  .dockbar #btnDock { margin-left: auto; }
+  .dockbody { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 8px; }
+  .dock.collapsed .dockbody { display: none; }
+  .card { background: #0b0f1ee6; border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; min-width: 0; }
+  .card h2 { margin: 0 0 4px; font-size: .92rem; }
   .hint { font-size: .78rem; font-weight: 400; color: var(--muted); }
 
   h1 { font-size: 1.25rem; margin: 0 0 2px; }
@@ -96,7 +106,7 @@
   .legend .lrow { display: flex; align-items: center; gap: 8px; margin: 3px 0; }
   .legend .cellbtns { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
   .legend .cellbtns button { padding: 3px 8px; font-size: .78rem; margin: 0; min-height: 28px; display: inline-flex; align-items: center; gap: 6px; }
-  .info { position: absolute; right: 10px; bottom: 78px; width: min(400px, calc(100% - 20px)); padding: 10px 12px; z-index: 6; }
+  .info { position: absolute; right: 10px; bottom: calc(var(--dock-h, 280px) + 40px); width: min(400px, calc(100% - 20px)); padding: 10px 12px; z-index: 6; }
   .info h2 { margin: 0 0 4px; font-size: 1rem; }
   .info p { font-size: .88rem; margin: 4px 0; }
   .credit { position: absolute; right: 10px; bottom: 30px; background: #000c; color: #fff; border: 1px solid #ffffff40;
@@ -104,7 +114,7 @@
 
   /* diagrams */
   svg.diagram { width: 100%; height: auto; display: block; background: #0e1630; border: 1px solid var(--border); border-radius: 8px; }
-  #section { max-height: 31vh; }
+  #section { max-height: 175px; }
   svg.diagram text { fill: var(--muted); font-size: 9px; font-family: inherit; }
   #section text { font-size: 12px; }
   #section .cell { cursor: pointer; }
@@ -120,34 +130,44 @@
   #section .cell:focus-visible, #section .zone:focus-visible { outline: none; }
   #section .cell:focus-visible .loop { stroke: var(--focus); stroke-width: 2; }
   #section .zone:focus-visible circle { stroke: var(--focus); stroke-width: 3; }
-  #sunChart { max-height: 128px; }
+  #sunChart { max-height: 78px; }
   #sunChart.hi { border-color: var(--focus); box-shadow: 0 0 0 2px var(--focus); }
-  .steps { list-style: none; padding: 0; margin: 6px 0 2px; display: grid; gap: 3px; }
-  .steps button { width: 100%; text-align: left; margin: 0; padding: 4px 8px; font-size: .86rem; min-height: 30px; display: flex; gap: 8px; align-items: baseline; }
+  .steps { list-style: none; padding: 0; margin: 6px 0 0; display: flex; flex-wrap: wrap; gap: 4px; }
+  .steps li { flex: 1 1 150px; }
+  .steps button { width: 100%; text-align: left; margin: 0; padding: 3px 8px; font-size: .8rem; min-height: 30px; white-space: nowrap; display: flex; gap: 8px; align-items: baseline; }
   .steps .n { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--panel-2);
     border: 1px solid var(--accent); font-size: .75rem; font-weight: 700; flex: none; }
-  .keyline { font-size: .8rem; color: var(--muted); margin: 4px 0 0; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; }
+  .keyline { font-size: .74rem; color: var(--muted); margin: 3px 0 0; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; }
 
   dialog { background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 10px; max-width: 620px; width: calc(100% - 32px); }
   dialog::backdrop { background: #000a; }
 
-  @media (max-width: 1180px) { .dock { grid-template-columns: 1fr; max-height: none; overflow: visible; } main { grid-template-rows: minmax(420px, 62vh) auto; overflow-y: auto; } #section { max-height: none; } }
+  @media (max-width: 1180px) {
+    .dock { right: 10px; }
+    .info { right: auto; left: 10px; }
+    .steps li { flex: 1 1 112px; }
+    .steps button { font-size: .76rem; padding: 3px 6px; white-space: normal; }
+    .card .monthline, .keyline { font-size: .72rem; }
+    .credit { bottom: calc(var(--dock-h, 280px) + 36px); }
+  }
   @media (max-width: 860px) {
     .app { grid-template-columns: 1fr; grid-template-rows: auto auto; height: auto; }
-    main { order: 1; grid-template-rows: auto auto; overflow: visible; }
-    /* phones: the legend and the information card sit below the globe instead of over it */
-    .globe-wrap { display: flex; flex-direction: column; overflow: visible; }
-    arcgis-scene { height: 60vh; }
-    .legend, .info { position: static; width: auto; max-width: none; margin: 8px 10px 0; }
-    .credit { top: calc(60vh - 64px); bottom: auto; }
+    main { order: 1; }
     aside { order: 2; border-right: 0; border-top: 1px solid var(--border); overflow: visible; }
+    /* phones: everything stacks under the globe instead of floating over it */
+    .globe-wrap { position: relative; inset: auto; display: flex; flex-direction: column; overflow: visible; }
+    arcgis-scene { height: 60vh; }
+    .legend, .info, .dock { position: static; width: auto; max-width: none; max-height: none; margin: 8px 10px 0; }
+    .dockbody { grid-template-columns: 1fr; }
+    .credit { top: calc(60vh - 64px); bottom: auto; }
+    #section { max-height: none; }
   }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
 <body>
 <a class="skip" href="#controls">Skip to controls</a>
-<a class="skip" href="#dock">Skip to the diagrams</a>
+<a class="skip" href="#month">Skip to the month and the diagrams</a>
 <div class="app">
   <aside id="controls" aria-label="Controls and information">
     <h1>Global Circulation Lab</h1>
@@ -155,15 +175,7 @@
     <p class="lab">Lab version <span id="appVersion"></span> — experimental, for testing what ArcGIS 3D can do.</p>
     <div id="status" role="status" aria-live="polite">Loading the globe…</div>
 
-    <h2>Month and region</h2>
-    <label class="stack" for="month">Month: <strong id="monthVal">January</strong>
-      <input id="month" type="range" min="1" max="12" step="1" value="1" />
-    </label>
-    <button id="btnYear" aria-pressed="false">Play the year</button>
-    <label class="stack" for="region">Region (the cells are drawn over this region)
-      <select id="region"></select>
-    </label>
-    <p class="monthline" id="monthSummary" aria-live="polite"></p>
+    <p class="sub">The month and region controls are on the diagram panel over the globe.</p>
 
     <h2>Show on the globe <span class="badge" id="v-cells"></span></h2>
     <p class="sub">A simplified model. Real circulation changes from day to day and from place to place.</p>
@@ -258,30 +270,36 @@
         <button id="infoClear">Clear</button>
       </div>
       <p class="sr-only" id="selAnnounce" aria-live="polite"></p>
-      <div class="credit">Created by Jason Sawle<br />© Esri 2026</div>
+      <section class="dock glass" id="dock" aria-label="Month, region and diagrams">
+        <div class="dockbar">
+          <label for="month" class="mlabel">Month: <strong id="monthVal">January</strong></label>
+          <input id="month" type="range" min="1" max="12" step="1" value="1" aria-describedby="monthSummary" />
+          <button id="btnYear" aria-pressed="false">Play the year</button>
+          <span class="grp"><label for="region" class="mlabel">Region</label>
+          <select id="region"></select></span>
+          <button id="btnDock" aria-expanded="true" aria-controls="dockBody">Hide diagrams</button>
+        </div>
+        <div class="dockbody" id="dockBody">
+          <div class="card">
+            <h2 id="sectionTitle">Cross-section, south to north <span class="hint">Select a cell, H or L</span></h2>
+            <p class="monthline" id="monthSummary" aria-live="polite"></p>
+            <svg id="section" class="diagram" viewBox="0 0 640 200" role="group" aria-labelledby="sectionTitle" aria-describedby="sectionDesc"></svg>
+            <p class="sr-only" id="sectionDesc"></p>
+            <p class="keyline"><span>Dashed line: top of the weather layer</span><span>Yellow line: where the midday Sun is overhead</span></p>
+          </div>
+          <div class="card">
+            <h2>Why does the air move? <span class="badge" id="v-sun"></span> <span class="hint">Select a step</span></h2>
+            <svg id="sunChart" class="diagram" viewBox="0 0 320 120" role="img" aria-labelledby="sunTitle sunDesc">
+              <title id="sunTitle">How strong the midday sunlight is at each latitude</title>
+              <desc id="sunDesc"></desc>
+            </svg>
+            <ol class="steps" id="steps"></ol>
+          </div>
+        </div>
+      </section>
+      <div class="credit">Created by Jason Sawle</div>
     </div>
 
-    <section class="dock" id="dock" aria-label="Diagrams">
-      <div class="card">
-        <h2 id="sectionTitle">Cross-section, south to north <span class="hint">Select a cell or an H or L to highlight it on the globe</span></h2>
-        <svg id="section" class="diagram" viewBox="0 0 640 262" role="group" aria-labelledby="sectionTitle" aria-describedby="sectionDesc"></svg>
-        <p class="sr-only" id="sectionDesc"></p>
-        <p class="keyline"><span><span class="swatch" style="background:var(--hadley)"></span> Hadley</span>
-          <span><span class="swatch" style="background:var(--ferrel)"></span> Ferrel</span>
-          <span><span class="swatch" style="background:var(--polar)"></span> Polar</span>
-          <span>Dashed line: top of the weather layer</span>
-          <span>Yellow line: where the midday Sun is overhead</span></p>
-      </div>
-      <div class="card">
-        <h2>Why does the air move? <span class="badge" id="v-sun"></span></h2>
-        <svg id="sunChart" class="diagram" viewBox="0 0 320 120" role="img" aria-labelledby="sunTitle sunDesc">
-          <title id="sunTitle">How strong the midday sunlight is at each latitude</title>
-          <desc id="sunDesc"></desc>
-        </svg>
-        <ol class="steps" id="steps"></ol>
-        <p class="sub">Select a step to see it on the globe and in the cross-section.</p>
-      </div>
-    </section>
   </main>
 </div>
 
@@ -308,7 +326,7 @@
 <script type="module">
 // ================= Versions (single source of truth) =================
 // Bump a model's number whenever its maths or data handling changes; bump the app version on every release.
-const APP_VERSION = "0.6.0";
+const APP_VERSION = "0.7.0";
 const MODELS = {
   sun: { name: "Sunlight model", version: "1.0",
     desc: "Latitude where the Sun is overhead at midday = 23.44° × sin(2π(day − 80)/365), using the 15th of each month. Midday sunlight strength = sine of the midday Sun's height (100% when overhead). Midday only: it ignores day length and the atmosphere, so it understates summer sunlight near the poles." },
@@ -495,9 +513,9 @@ function zoneAt(lat, b) {
 
 // ================= 2D cross-section (works without the 3D view); cells and H/L badges are selectable =================
 function drawSection(b, monthName, region) {
-  const W = 640, L = 44, R = W - 16, G = 190;
+  const W = 640, L = 44, R = W - 16, G = 140;
   const x = (lat) => L + (lat + 90) / 180 * (R - L);
-  const y = (h) => G - h / 17 * 165;
+  const y = (h) => G - h / 17 * 118;
   const d = sunLat(state.month);
   let s = `<defs>` + Object.entries(COL).map(([k, c]) => `<marker id="ah-${k}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="${c}"/></marker>`).join("") + `</defs>`;
   let tp = "";
@@ -522,16 +540,16 @@ function drawSection(b, monthName, region) {
   const badge = (zone, lat, t, word) => {
     const low = t === "L";
     s += `<g class="zone" data-zone="${zone}" tabindex="0" role="button" aria-pressed="false" aria-label="${low ? "Low" : "High"} pressure near ${fmtLat(lat)}, ${word.toLowerCase()}. Select to highlight it on the globe.">`;
-    s += `<circle cx="${x(lat)}" cy="${G + 17}" r="12" fill="${low ? "var(--low)" : "var(--high)"}" stroke="#fff" stroke-width="2"/>`;
-    s += `<text class="letter" x="${x(lat)}" y="${G + 22}" text-anchor="middle">${t}</text>`;
-    s += `<text class="word" x="${x(lat)}" y="${G + 43}" text-anchor="middle" style="fill:${low ? "#9fd3ff" : "#f2c48d"}">${word}</text></g>`;
+    s += `<circle cx="${x(lat)}" cy="${G + 15}" r="11" fill="${low ? "var(--low)" : "var(--high)"}" stroke="#fff" stroke-width="2"/>`;
+    s += `<text class="letter" x="${x(lat)}" y="${G + 20}" text-anchor="middle">${t}</text>`;
+    s += `<text class="word" x="${x(lat)}" y="${G + 38}" text-anchor="middle" style="fill:${low ? "#9fd3ff" : "#f2c48d"}">${word}</text></g>`;
   };
   badge("polar", -85, "H", "Dry"); badge("pf", b.pfS, "L", "Stormy"); badge("sth", b.sthS, "H", "Dry");
   badge("itcz", b.itcz, "L", "Rainy"); badge("sth", b.sthN, "H", "Dry"); badge("pf", b.pfN, "L", "Stormy"); badge("polar", 85, "H", "Dry");
-  for (const lat of [-60, -30, 0, 30, 60]) s += `<text x="${x(lat)}" y="${G + 64}" text-anchor="middle">${lat === 0 ? "Equator" : fmtLat(lat)}</text>`;
-  s += `<text x="${L - 30}" y="${G + 64}">South</text><text x="${R}" y="${G + 64}" text-anchor="end">North</text>`;
+  for (const lat of [-60, -30, 0, 30, 60]) s += `<text x="${x(lat)}" y="${G + 55}" text-anchor="middle">${lat === 0 ? "Equator" : fmtLat(lat)}</text>`;
+  s += `<text x="${L - 30}" y="${G + 55}">South</text><text x="${R}" y="${G + 55}" text-anchor="end">North</text>`;
   $("section").innerHTML = s;
-  $("sectionTitle").firstChild.textContent = `Cross-section, south to north: ${region.label}, ${monthName} `;
+  $("sectionTitle").firstChild.textContent = "Cross-section, south to north ";
   $("sectionDesc").textContent =
     `${monthName}, ${region.label}. Air rises with heavy rain near ${fmtLat(b.itcz)}, making low pressure. ` +
     `It sinks, giving high pressure and dry conditions, near ${fmtLat(b.sthN)} and ${fmtLat(b.sthS)}. ` +
@@ -599,15 +617,15 @@ function zoneSel(key) {
   return sel;
 }
 const STEPS = [
-  { title: "The Sun heats the Earth unevenly", make: (b) => ({ sun: true, flyLat: null,
+  { title: "The Sun heats the Earth unevenly", short: "Sun heats unevenly", make: (b) => ({ sun: true, flyLat: null,
     text: `Where the midday Sun is high, its energy is packed onto a small area, so the ground and air get hot. Near the poles the same energy is spread over a much bigger area. In ${MONTHS[state.month - 1]} the midday Sun is overhead at ${fmtLat(sunLat(state.month))}. The rain belt follows it north and south through the year, a month or so behind.` }) },
-  { title: "Hot air rises: low pressure (L)", make: (b) => ({ zones: ["itcz"], cells: ["hadley"], segs: [1], flyLat: b.itcz,
+  { title: "Hot air rises: low pressure (L)", short: "Hot air rises (L)", make: (b) => ({ zones: ["itcz"], cells: ["hadley"], segs: [1], flyLat: b.itcz,
     text: `Hot air rises, leaving low pressure (L) at the ground. The rising air cools, clouds form and it rains. This is the rain belt, near ${fmtLat(b.itcz)} this month.` }) },
-  { title: "Air sinks at about 30°: high pressure (H)", make: (b) => ({ zones: ["sth"], cells: ["hadley"], segs: [2, 3], flyLat: b.sthN,
+  { title: "Air sinks at about 30°: high pressure (H)", short: "Air sinks at 30° (H)", make: (b) => ({ zones: ["sth"], cells: ["hadley"], segs: [2, 3], flyLat: b.sthN,
     text: `High up, the air spreads out toward the poles. It cools and sinks at about 30° (near ${fmtLat(b.sthN)} and ${fmtLat(b.sthS)} this month). Sinking air makes high pressure (H) and dry weather.` }) },
-  { title: "Wind blows from H to L", make: (b) => ({ zones: ["itcz", "sth", "pf"], cells: "all", segs: [0], winds: true, flyLat: b.itcz,
+  { title: "Wind blows from H to L", short: "Wind blows H to L", make: (b) => ({ zones: ["itcz", "sth", "pf"], cells: "all", segs: [0], winds: true, flyLat: b.itcz,
     text: "At the ground, air flows from high pressure to low pressure. This flow is the wind. The trade winds blow from the subtropical highs to the rain belt; the westerlies blow from the subtropical highs to the polar fronts." }) },
-  { title: "The spinning Earth bends the winds", make: (b) => ({ winds: true, cells: "all", segs: [0], flyLat: b.itcz,
+  { title: "The spinning Earth bends the winds", short: "Spinning Earth bends winds", make: (b) => ({ winds: true, cells: "all", segs: [0], flyLat: b.itcz,
     text: "As the Earth spins, winds are bent to the right in the northern half of the world and to the left in the southern half (the Coriolis effect). That is why the trade winds blow from the north-east and south-east, not straight from the north and south." }) }
 ];
 function stepSel(n) {
@@ -615,7 +633,7 @@ function stepSel(n) {
   return Object.assign({ type: "step", id: n, title: `Step ${n} of ${STEPS.length}: ${STEPS[n - 1].title}` }, STEPS[n - 1].make(b));
 }
 $("steps").innerHTML = STEPS.map((st, i) =>
-  `<li><button class="stepbtn" data-step="${i + 1}" aria-pressed="false"><span class="n" aria-hidden="true">${i + 1}</span><span>${st.title}</span></button></li>`).join("");
+  `<li><button class="stepbtn" data-step="${i + 1}" aria-pressed="false"><span class="n" aria-hidden="true">${i + 1}</span><span>${st.short}</span></button></li>`).join("");
 
 const matchCell = (kind) => { const c = state.sel?.cells; return c === "all" || (Array.isArray(c) && c.includes(kind)); };
 const matchSeg = (k) => { const sg = state.sel?.segs; return !sg || sg.includes(k); };
@@ -730,6 +748,13 @@ $("infoNext").addEventListener("click", () => { if (state.sel?.type === "step") 
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && state.sel && !document.querySelector("dialog[open]")) select(null);
 });
+// diagram panel: hide/show, and publish its height so the info card can sit just above it
+$("btnDock").addEventListener("click", () => {
+  const collapsed = $("dock").classList.toggle("collapsed");
+  $("btnDock").setAttribute("aria-expanded", String(!collapsed));
+  $("btnDock").textContent = collapsed ? "Show diagrams" : "Hide diagrams";
+});
+new ResizeObserver(() => document.documentElement.style.setProperty("--dock-h", $("dock").offsetHeight + "px")).observe($("dock"));
 // play the year: steps the month slider; stops when the slider is used directly
 let yearTimer = null;
 function stopYear() { clearInterval(yearTimer); yearTimer = null; $("btnYear").setAttribute("aria-pressed", "false"); $("btnYear").textContent = "Play the year"; }
