@@ -21,22 +21,40 @@
   #tag b { display: block; font-size: 15px; margin-bottom: 4px; }
   .key { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
   .key i { width: 22px; height: 6px; border-radius: 3px; display: inline-block; }
-  #bar { position: absolute; left: 12px; right: 12px; bottom: 12px; display: grid; grid-template-columns: auto auto 1fr auto auto; gap: 4px 14px; align-items: center; padding: 8px 14px; z-index: 5; }
+  /* the SDK's attribution strip is 16 px tall at the bottom of the view: the bar, credit and panels sit above it */
+  #bar { position: absolute; left: 12px; right: 12px; bottom: 24px; display: grid; grid-template-columns: auto auto 1fr auto auto; gap: 4px 14px; align-items: center; padding: 8px 14px; z-index: 5; }
   button { font: inherit; font-weight: 700; border-radius: 12px; padding: 9px 16px; cursor: pointer; border: 1px solid var(--edge); background: var(--chip); color: var(--ink); }
   button.primary { background: linear-gradient(135deg, #2563eb, #0e7490); border-color: transparent; color: #fff; }
   button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
   #tLabel { font-weight: 800; white-space: nowrap; min-width: 150px; }
   #tSub { grid-column: 1 / 6; font-size: 12px; color: var(--muted); }
-  input[type=range] { width: 100%; accent-color: var(--accent); }
+  input[type=range] { width: 100%; accent-color: var(--accent); height: 28px; margin: 0; }
   select { padding: 6px 8px; border-radius: 10px; border: 1px solid var(--edge); background: var(--panel); color: var(--ink); font: inherit; }
   label.s { font-size: 12px; color: var(--muted); display: grid; gap: 2px; }
-  #info { position: absolute; right: 60px; top: 12px; z-index: 6; width: 340px; padding: 10px 14px; font-size: 12.5px; max-height: calc(100% - 150px); overflow: auto; }
-  #info summary { cursor: pointer; font-weight: 700; }
-  #credit { position: absolute; right: 12px; bottom: calc(var(--barh, 88px) + 20px); z-index: 6;   /* --barh: the time bar's height, set from the script, so the credit sits just above it */ padding: 6px 12px; font-size: 11.5px; line-height: 1.35; color: #fff; text-align: right; }
+  #info { position: absolute; right: 60px; top: 12px; z-index: 6; width: min(340px, calc(100% - 444px)); padding: 10px 14px; font-size: 12.5px; max-height: calc(100% - var(--barh, 88px) - 98px); overflow: auto; }
+  #info summary { cursor: pointer; font-weight: 700; padding: 3px 0; }
+  #credit { position: absolute; right: 12px; bottom: calc(var(--barh, 88px) + 32px); z-index: 6;   /* --barh: the time bar's height, set from the script, so the credit sits just above it */ padding: 6px 12px; font-size: 11.5px; line-height: 1.35; color: #fff; text-align: right; }
   #credit b { color: #fff; font-weight: 600; }
   .mv { font-size: 11px; color: var(--muted); font-weight: 500; white-space: nowrap; }
   table { width: 100%; border-collapse: collapse; font-size: 12px; } caption { text-align: left; color: var(--muted); padding-bottom: 4px; } td, th { text-align: left; padding: 3px 4px 3px 0; border-bottom: 1px solid var(--rule); vertical-align: top; } th { color: var(--muted); }
-  @media (max-width: 760px) { #info { display: none; } #bar { grid-template-columns: auto 1fr auto; } #tag { max-width: calc(100% - 70px); } }
+  @media (max-height: 520px) { #credit { right: 60px; } }   /* short screens: stay left of the zoom and compass buttons */
+  #aboutBtn, #aboutDlg #info summary { display: none; }
+  #aboutDlg { background: var(--panel); color: var(--ink); border: 1px solid var(--edge); border-radius: 14px; width: calc(100% - 24px); max-width: 560px; max-height: calc(100% - 24px); padding: 10px 14px; font-size: 12.5px; }
+  #aboutDlg::backdrop { background: rgba(2, 6, 16, .6); }
+  #aboutDlg .dh { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-weight: 700; }
+  #aboutDlg #info { position: static; display: block; width: auto; max-height: none; padding: 0; background: none; border: 0; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  /* phones: the bar wraps (time and play, then the slider, then the two menus); About opens as a dialog from the key */
+  @media (max-width: 760px) {
+    #info { display: none; }
+    #tag { max-width: calc(100% - 70px); }
+    #aboutBtn { display: inline-block; margin-top: 8px; padding: 4px 10px; font-size: 12.5px; border-radius: 10px; }
+    #bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 8px 10px; }
+    #tLabel { flex: 1 1 0; min-width: 0; white-space: normal; }
+    #t { flex: 1 1 100%; }
+    #bar label.s { flex: 1 1 110px; min-width: 0; }
+    #bar label.s select { width: 100%; }
+    #tSub { flex: 1 1 100%; }
+  }
 </style>
 </head>
 <body>
@@ -46,7 +64,9 @@
 <div id="tag" class="glass"><b>Rivers lab: more rivers, flowing arrows</b>
   <div class="key"><i style="background:#00d7ff;box-shadow:0 0 0 1.5px #00234a"></i>Measured flow (USGS): wider = more water <span class="mv" data-mv="Rivers"></span></div>
   <div class="key"><i style="background:repeating-linear-gradient(90deg,#afb9c6 0 6px,transparent 6px 10px);height:3px"></i>No flow gauge: direction only (grey dashed, grey arrows)</div>
+  <button id="aboutBtn" aria-haspopup="dialog">About this lab · <span id="ver2"></span></button>
 </div>
+<dialog id="aboutDlg" aria-labelledby="aboutDlgTitle"><div class="dh"><span id="aboutDlgTitle">About this lab · <span id="ver3"></span></span><button id="aboutClose" aria-label="Close">✕</button></div></dialog>
 <details id="info" class="glass"><summary>About this lab · <span id="ver"></span></summary>
   <p>19 rivers from NHDPlus, drawn upstream to downstream. Where a USGS gauge on the same river measured the flow (and the river is a similar size there), the line is cyan and widens with the flow, and the arrows speed up as the river rises above its usual flow.</p>
   <p>Where no gauge fits, such as the North Toe through Spruce Pine, the upper Broad River through Chimney Rock (the Rocky Broad), the Cane and the Green, the river is grey and its arrows move at a steady speed: it shows which way the water went, not how much.</p>
@@ -66,13 +86,17 @@
 <script type="module">
 /* Lab version and per-model versions below (single source of truth);
    bump a model's number whenever its maths or data handling changes, and bump the lab version on every release. */
-const LAB_VERSION = "0.7", LAB_DATE = "7 October 2026";
+const LAB_VERSION = "0.8", LAB_DATE = "7 October 2026";
 const MODELS = [
   ["Rivers", "0.3", "data/helene-rivers.json (same as the app), from a wider box (83.8°W–81.2°W, 34.85°N–36.5°N) so rivers reach a lake or confluence (French Broad to Knoxville, Tuckasegee to Fontana Lake, Watauga past Elizabethton); rivers stop where they enter a reservoir outside the core area. 19 rivers (adds South Toe, Ivy, Hominy Creek, Tuckasegee with gauges; North Toe, Cane, Doe, Green and the ungauged parts of other rivers for direction only); small rivers from stream order 3. Width = 1 + 0.9 × √(flow / 1,000 cfs) px, up to 12 px, where a gauge on the same river is within 3× of the stretch's NHDPlus mean annual flow; otherwise grey, 2 px"],
   ["3D chevrons", "0.2", "Arms about 10 px on screen (0.1–1.5 km, × arrow size), 2 px lines, one every 3 km, 40 m above the terrain. Speed = 0.5 + 2.4 × log10(1 + flow ÷ mean annual flow) km per second of animation; direction-only rivers 1 km/s"]
 ];
 const $ = (id) => document.getElementById(id);
-$("ver").textContent = "v" + LAB_VERSION;
+["ver", "ver2", "ver3"].forEach(id => { $(id).textContent = "v" + LAB_VERSION; });
+// phones: the About panel opens in a dialog (the same panel is moved in, and back out when the dialog closes)
+$("aboutBtn").onclick = () => { $("aboutDlg").append($("info")); $("info").open = true; $("aboutDlg").showModal(); };
+$("aboutClose").onclick = () => $("aboutDlg").close();
+$("aboutDlg").addEventListener("close", () => { document.body.insertBefore($("info"), $("credit")); $("info").open = false; $("aboutBtn").focus(); });
 $("verTable").innerHTML = `<caption>Versions of the lab page and its models</caption><thead><tr><th scope="col">Part</th><th scope="col">Version</th><th scope="col">How it works</th></tr></thead><tbody><tr><td>Lab page</td><td>${LAB_VERSION}</td><td>${LAB_DATE}</td></tr>` + MODELS.map(m => `<tr><td>${m[0]}</td><td>${m[1]}</td><td>${m[2]}</td></tr>`).join("") + `</tbody>`;
 document.querySelectorAll("[data-mv]").forEach(el => { const m = MODELS.find(x => x[0] === el.dataset.mv); el.textContent = m ? "model " + m[1] : ""; });
 if (window.ResizeObserver) new ResizeObserver(() => document.documentElement.style.setProperty("--barh", $("bar").offsetHeight + "px")).observe($("bar"));

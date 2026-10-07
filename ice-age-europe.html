@@ -36,7 +36,8 @@
   select { padding: 6px 8px; border-radius: 10px; border: 1px solid var(--glass-edge); background: var(--panel); color: var(--ink); font: inherit; font-size: 13px; }
 
   /* story card */
-  #card { position: absolute; left: 16px; top: 16px; bottom: 16px; width: 384px; display: flex; flex-direction: column; padding: 16px 18px 12px; z-index: 6; }
+  /* the SDK draws its attribution in a 16 px strip along the bottom of the view; the card, time bar and credit sit above it */
+  #card { position: absolute; left: 16px; top: 16px; bottom: 24px; width: 384px; display: flex; flex-direction: column; padding: 16px 18px 12px; z-index: 6; }
   .brand { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); }
   .brand .kicker { text-transform: uppercase; letter-spacing: .12em; font-weight: 700; color: var(--accent); }
   .brand .sp { flex: 1; }
@@ -63,7 +64,7 @@
   #nowBox dt { color: var(--muted); }
   #nowBox dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
   .mv { font-size: 10.5px; font-weight: 600; color: var(--muted); border: 1px solid var(--rule); border-radius: 999px; padding: 0 6px; margin-left: 4px; white-space: nowrap; text-transform: none; letter-spacing: 0; }
-  #mapDescBox summary { font-size: 13px; color: var(--muted); cursor: pointer; }
+  #mapDescBox summary { font-size: 13px; color: var(--muted); cursor: pointer; padding: 3px 0; }
   #mapDesc { font-size: 14px; margin: 6px 0 0; }
   .cfoot { flex: none; padding-top: 10px; border-top: 1px solid var(--rule); }
   .actions { display: flex; gap: 8px; }
@@ -71,19 +72,19 @@
   #status { font-size: 12px; color: var(--muted); margin-top: 6px; min-height: 1.2em; }
 
   /* time bar with climate chart */
-  #timebar { position: absolute; left: 416px; right: 16px; bottom: 16px; padding: 10px 16px 8px; z-index: 4; }
+  #timebar { position: absolute; left: 416px; right: 16px; bottom: 24px; padding: 10px 16px 8px; z-index: 4; }
   .trow { display: grid; grid-template-columns: auto 1fr auto auto; gap: 4px 12px; align-items: center; }
   #tLabel { font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 15px; min-width: 190px; }
   #tStage { font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   #chart { display: block; width: 100%; height: 92px; cursor: crosshair; margin-top: 4px; touch-action: none; }
-  #tSlider { width: 100%; accent-color: var(--accent); height: 20px; margin: 0; }
+  #tSlider { width: 100%; accent-color: var(--accent); height: 24px; margin: 0; }
   .ckey { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11.5px; color: var(--muted); margin-top: 2px; }
   .ckey i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: 3px; margin-right: 5px; }
 
   /* --tbh is the time bar's height, set from the page script, so the credit always sits just above the time bar */
-  #credit { position: absolute; right: 16px; bottom: calc(var(--tbh, 202px) + 26px); z-index: 4; padding: 6px 12px; border-radius: 12px; font-size: 11.5px; line-height: 1.35; color: #fff; text-align: right; }
+  #credit { position: absolute; right: 16px; bottom: calc(var(--tbh, 202px) + 34px); z-index: 4; padding: 6px 12px; border-radius: 12px; font-size: 11.5px; line-height: 1.35; color: #fff; text-align: right; }
   #credit b { color: #fff; font-weight: 600; }
-  #legend { position: absolute; right: 16px; top: 16px; padding: 10px 12px; font-size: 12.5px; width: 270px; z-index: 4; border-radius: 14px; max-height: calc(100% - var(--tbh, 202px) - 96px); overflow-y: auto; }
+  #legend { position: absolute; right: 60px; top: 16px; padding: 10px 12px; font-size: 12.5px; width: 270px; z-index: 4; border-radius: 14px; max-height: calc(100% - var(--tbh, 202px) - 104px); overflow-y: auto; }   /* right: 60px keeps it clear of the zoom and compass buttons */
   #legend .t { width: 100%; display: flex; justify-content: space-between; align-items: center; border: 0; background: none; padding: 0 0 4px; font-weight: 700; font-size: 13px; color: var(--ink); }
   #legend .t::after { content: "▾"; color: var(--muted); }
   #legend.collapsed .t::after { content: "▸"; }
@@ -125,16 +126,30 @@
     #exag { left: calc(50% + 176px); }
     #legend { width: 240px; }
   }
-  @media (max-width: 1220px) { #exag .mv { display: none; } }   /* no room beside the map key; the version is in About and versions */
+  /* narrower screens: the Heights buttons sit at the left of the map instead of the centre, and below 1010 px the map key moves down under them */
+  @media (min-width: 761px) and (max-width: 1410px) { #exag { left: 416px; transform: none; } }
+  @media (min-width: 761px) and (max-width: 1280px), (min-width: 761px) and (max-width: 1410px) and (max-height: 780px) { #exag { left: 368px; } }
+  @media (min-width: 761px) and (max-width: 1010px) { #legend { top: 64px; max-height: calc(100% - var(--tbh, 202px) - 152px); } }
+  /* phones, top to bottom: Heights buttons, map key, map (credit at its bottom right), time bar, card, attribution strip.
+     The card gives up height on short screens so the time bar never reaches the buttons. The map's zoom buttons are hidden
+     (pinch and drag work), as in the Helene app. */
   @media (max-width: 760px) {
-    #card { left: 8px; right: 8px; width: auto; top: auto; bottom: 8px; height: 46%; }
-    #timebar { left: 8px; right: 8px; bottom: calc(46% + 16px); padding: 8px 10px; }
-    #chart { height: 60px; }
-    #legend { right: 8px; top: 8px; width: 220px; max-height: 40%; }
+    #app { --cardh: max(190px, min(46%, calc(100% - var(--tbh, 230px) - 138px))); }
+    .brand .kicker, .lede { display: none; }
+    #card h1 { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); }
+    #tLabel { min-width: 0; font-size: 14px; }
+    #card { left: 8px; right: 8px; width: auto; top: auto; bottom: 24px; height: var(--cardh); }
+    #timebar { left: 8px; right: 8px; bottom: calc(var(--cardh) + 32px); padding: 8px 10px; }
+    #chart { height: 48px; }
+    #legend { left: 8px; right: auto; top: 56px; width: 220px; max-height: calc(100% - var(--cardh) - 88px); z-index: 5; }   /* open, it drops down over the time bar like a menu */
+    #legend.collapsed { width: auto; }
     #exag { left: 8px; top: 8px; transform: none; font-size: 11.5px; }
-    #credit { right: 8px; bottom: calc(46% + 24px + var(--tbh, 230px)); z-index: 3; font-size: 10.5px; }
+    #exag .mv { display: none; }
+    #credit { right: 8px; bottom: calc(var(--cardh) + 40px + var(--tbh, 230px)); z-index: 3; font-size: 10.5px; }
+    arcgis-zoom, arcgis-navigation-toggle, arcgis-compass { display: none; }
     #loading { left: 50%; }
   }
+  @media (max-width: 480px) { .trow { grid-template-columns: 1fr auto auto; } #tStage { grid-row: 2; grid-column: 1 / -1; } }
 </style>
 </head>
 <body>
@@ -377,6 +392,9 @@ const CH = [
 ];
 
 // ---------- SDK ----------
+// Map key toggle: set up before the SDK loads, so small screens start with the key closed even if the 3D view is slow or fails
+$("legendTitle").onclick = () => { const c = $("legend").classList.toggle("collapsed"); $("legendTitle").setAttribute("aria-expanded", String(!c)); };
+if (innerWidth <= 1280 || innerHeight <= 780) { $("legend").classList.add("collapsed"); $("legendTitle").setAttribute("aria-expanded", "false"); }
 const [Graphic, GraphicsLayer, FeatureLayer, TileLayer, ElevationLayer, BaseElevationLayer, Mesh, MeshComponent, MediaLayer, ImageElement, ExtentAndRotationGeoreference, Extent] = await $arcgis.import([
   "@arcgis/core/Graphic.js", "@arcgis/core/layers/GraphicsLayer.js", "@arcgis/core/layers/FeatureLayer.js", "@arcgis/core/layers/TileLayer.js",
   "@arcgis/core/layers/ElevationLayer.js", "@arcgis/core/layers/BaseElevationLayer.js",
@@ -389,8 +407,8 @@ await sceneEl.viewOnReady();
 const view = sceneEl.view, map = sceneEl.map;
 view.environment.atmosphereEnabled = true;
 function setPadding() {
-  if (innerWidth <= 760) view.padding = { top: 60, bottom: Math.round(innerHeight * 0.62), left: 0, right: 0 };
-  else view.padding = { left: $("card").getBoundingClientRect().right + 10, bottom: innerHeight - $("timebar").getBoundingClientRect().top + 10, top: 20, right: 300 };
+  if (innerWidth <= 760) view.padding = { top: 60, bottom: Math.round(innerHeight - $("timebar").getBoundingClientRect().top + 10), left: 0, right: 0 };
+  else view.padding = { left: $("card").getBoundingClientRect().right + 10, bottom: innerHeight - $("timebar").getBoundingClientRect().top + 10, top: 20, right: 340 };
 }
 setPadding(); addEventListener("resize", setPadding);
 
@@ -798,8 +816,6 @@ addEventListener("keydown", (e) => {
   if (e.key === "PageUp") { e.preventDefault(); $("backBtn").click(); }
 });
 document.querySelectorAll("#legend button.k").forEach(b => b.onclick = () => { vis[b.dataset.l] = !vis[b.dataset.l]; applyVis(); $("mapDesc").textContent = describe(); });
-$("legendTitle").onclick = () => { const c = $("legend").classList.toggle("collapsed"); $("legendTitle").setAttribute("aria-expanded", String(!c)); };
-if (innerWidth <= 1280 || innerHeight <= 780) { $("legend").classList.add("collapsed"); $("legendTitle").setAttribute("aria-expanded", "false"); }
 document.querySelectorAll("#exag button").forEach(b => b.onclick = () => { EXAG = +b.dataset.x; setGround(); document.querySelectorAll("#exag button").forEach(x => x.setAttribute("aria-pressed", String(x === b))); redraw(true); });
 $("teachBtn").onclick = () => $("teachDlg").showModal();
 $("teachClose").onclick = () => $("teachDlg").close();
