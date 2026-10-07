@@ -5,10 +5,10 @@
 
 export const SHARED_MODELS = [
   ["Ice outlines", "1.0", "Gowan et al. 2021 Eurasian margins every 2.5 ka, 0–80 ka (DATED-1 based 25–10 ka); between outlines the edge moves by blending each outline's signed distance to its edge, thickness blended in a straight line and tapered near the moving edge (1.5 × flat-bed Nye profile)"],
-  ["Ice thickness", "1.0", "Perfectly plastic ice (Nye) built outwards from the margin over RTopo-2 bed, Gowan's basal shear stress domains (15–195 kPa), flotation thickness at marine margins, no isostatic sinking; 0.16° × 0.08° grid"],
+  ["Ice thickness", "1.1", "Perfectly plastic ice (Nye) built outwards from the margin over RTopo-2 bed, Gowan's basal shear stress domains (15–195 kPa), flotation thickness at marine margins, no isostatic sinking; 0.16° × 0.08° grid. 1.1: the 3D ice is cut along a smoothed ice edge (marching squares on the blended edge distance after two 3 × 3 box blurs) and tapers to the bed there, instead of stepping cell by cell; display only, readouts use the unsmoothed ice"],
   ["Sea level", "1.0", "North Sea −50 m at 11 ka and −15 m at 8 ka (Hijma et al. 2025), straight lines to 0 m today; Spratt & Lisiecki 2016 stack (1 ka steps) from 13 ka back; straight line 11–13 ka; one value for the whole map"],
-  ["Sea surface", "1.0", "Water where the bed is below sea level and joined to the open sea (priority flood), widened 2 cells so the 3D ground draws the shoreline; today's land below sea level (polders) kept dry"],
-  ["Lakes", "1.0", "Priority flood with the ice as a barrier; lakes over 2,000 km² touching the ice, and any lake over 25,000 km², filled to their overflow level; no isostatic sinking"],
+  ["Sea surface", "1.1", "Water where the bed is below sea level and joined to the open sea (priority flood), widened 2 cells so the 3D ground draws the shoreline; today's land below sea level (polders) kept dry. 1.1: the widening may run under the ice edge, so no gap shows at ice fronts"],
+  ["Lakes", "1.1", "Priority flood with the ice as a barrier; lakes over 2,000 km² touching the ice, and any lake over 25,000 km², filled to their overflow level; no isostatic sinking. 1.1: the lake surface may run one cell under the ice edge, so no gap shows against the ice"],
   ["Terrain", "1.0", "Esri TopoBathy 3D × 1, 5, 10 or 20; ground colour is an RTopo-2 height tint (a drawing, not past vegetation)"],
   ["Climate chart", "1.0", "GISP2 δ¹⁸O 0–80 ka; stage bands: Dimlington 31–14.7 ka, Windermere 14.692–12.896 ka, Loch Lomond 12.896–11.703 ka (GICC05), MIS boundaries 71, 57, 29, 14 ka (LR04)"],
   ["BRITICE layers", "1.1", "Live University of Sheffield BRITICE v2 services (OGL v2) and Loch Lomond Readvance layer; landforms drawn below 1:5,000,000. 1.1: adds cirques, crag and tails, erratic pathways and streamlined bedrock (pages choose which to offer)"],
@@ -299,7 +299,7 @@ export async function startIceAgeApp(cfg) {
   const seaLevelAt = (t) => { if (t <= SL[0][0]) return SL[0][1]; for (let k = 1; k < SL.length; k++) if (t <= SL[k][0]) { const [a, va] = SL[k - 1], [b, vb] = SL[k]; return va + (vb - va) * (t - a) / (b - a); } return SL[SL.length - 1][1]; };
 
   // ice between outlines: blend signed distance to each outline's edge; taper thickness near the moving edge
-  const Hcur = new Float32Array(N), iceMask = new Uint8Array(N);
+  const Hcur = new Float32Array(N), iceMask = new Uint8Array(N), fcur = new Float32Array(N);   // fcur: blended signed distance to the ice edge (km, + inside)
   const dxRow = new Float32Array(H); for (let j = 0; j < H; j++) dxRow[j] = dlon * 111.32 * Math.cos((lat0 + j * dlat) * Math.PI / 180);
   const DY = dlat * 111.32;
   const sdfCache = new Map();
@@ -334,6 +334,7 @@ export async function startIceAgeApp(cfg) {
     let area = 0, vmax = 0;
     for (let c = 0; c < N; c++) {
       const s = (1 - w) * sa[c] + w * sb[c];
+      fcur[c] = s;
       if (s <= 0 || (sa[c] <= 0 && sb[c] <= 0)) { Hcur[c] = 0; iceMask[c] = 0; continue; }
       let h = ((1 - w) * iceStack[a + c] + w * iceStack[b + c]) * ICE_UNIT;
       const cap = 1.5 * Math.sqrt(2 * tau[c] * 1000 * s * 1000 / RHO_G);
@@ -435,21 +436,79 @@ export async function startIceAgeApp(cfg) {
   }
   const ICE_THIN = [245, 248, 250], ICE_THICK = [160, 192, 216];
   let seeThrough = false;
+  // Ice mesh, cut along a smoothed ice edge with marching squares. The edge runs where a lightly blurred copy of the blended
+  // signed distance (fsm, km) is zero, placed between grid points by linear interpolation, and the ice surface comes down to the bed
+  // there. Near the edge the surface follows the same perfectly plastic taper as the thickness model. Display only: the readouts,
+  // the lake and sea models and Check a place still use the unsmoothed ice. Replaces the 1.0 mesh, which stepped cell by cell.
+  const fsm = new Float32Array(N), ftmp = new Float32Array(N), Hd = new Float32Array(N), insd = new Uint8Array(N);
+  const edgeH = new Int32Array(N), edgeV = new Int32Array(N);
+  const SMOOTH_PASSES = 2;   // passes of a 3 x 3 box blur (about 1 cell, 5–9 km)
+  function smoothEdgeField() {
+    fsm.set(fcur);
+    for (let pass = 0; pass < SMOOTH_PASSES; pass++) {
+      for (let j = 0; j < H; j++) { const o = j * W;
+        for (let i = 0; i < W; i++) { const l = i > 0 ? i - 1 : i, r = i < W - 1 ? i + 1 : i; ftmp[o + i] = (fsm[o + l] + fsm[o + i] + fsm[o + r]) / 3; } }
+      for (let j = 0; j < H; j++) { const d = j > 0 ? j - 1 : j, u = j < H - 1 ? j + 1 : j;
+        for (let i = 0; i < W; i++) fsm[j * W + i] = (ftmp[d * W + i] + ftmp[j * W + i] + ftmp[u * W + i]) / 3; }
+    }
+    for (let c = 0; c < N; c++) {
+      if (fsm[c] <= 0) { insd[c] = 0; Hd[c] = 0; continue; }
+      insd[c] = 1;
+      const cap = 1.5 * Math.sqrt(2 * Math.max(tau[c], 15) * 1000 * fsm[c] * 1000 / RHO_G);
+      Hd[c] = iceMask[c] ? Math.min(Hcur[c], cap) : Math.min(cap, 300);
+    }
+  }
   function buildIce() {
-    const on = dilate(iceMask, 1, () => true);
-    for (let c = 0; c < N; c++) zbuf[c] = on[c] ? bed[c] + Hcur[c] : NaN;
+    smoothEdgeField();
     const a = seeThrough ? 140 : 255;
-    iceG.geometry = gridMesh((c, col, o) => { const f = Math.min(1, Hcur[c] / 2500); for (let k = 0; k < 3; k++) col[o + k] = Math.round(ICE_THIN[k] + (ICE_THICK[k] - ICE_THIN[k]) * f); col[o + 3] = iceMask[c] ? a : Math.round(a * 0.5); });
+    let n = 0;
+    for (let c = 0; c < N; c++) vidx[c] = insd[c] ? n++ : -1;
+    const nGrid = n, ex = [], ey = [], ez = [];
+    edgeH.fill(-1); edgeV.fill(-1);
+    const edge = (p, q) => {   // vertex where the edge crosses the segment between grid points p < q (q = p + 1 or p + W)
+      const map = q === p + 1 ? edgeH : edgeV;
+      if (map[p] >= 0) return map[p];
+      const t = Math.min(1, Math.max(0, fsm[p] / (fsm[p] - fsm[q])));
+      const jp = (p / W) | 0, ip = p - jp * W, jq = (q / W) | 0, iq = q - jq * W;
+      ex.push(lon0 + (ip + (iq - ip) * t) * dlon); ey.push(lat0 + (jp + (jq - jp) * t) * dlat); ez.push((bed[p] + (bed[q] - bed[p]) * t) * EXAG);
+      return (map[p] = n++);
+    };
+    const seg = (p, q) => p < q ? edge(p, q) : edge(q, p);
+    const faces = [], sq = [0, 0, 0, 0], ins = [false, false, false, false], poly = [];
+    for (let j = 0; j < H - 1; j++) for (let i = 0; i < W - 1; i++) {
+      sq[0] = j * W + i; sq[1] = sq[0] + 1; sq[3] = sq[0] + W; sq[2] = sq[3] + 1;   // corners in order round the square
+      let cnt = 0; for (let k = 0; k < 4; k++) { ins[k] = insd[sq[k]] === 1; if (ins[k]) cnt++; }
+      if (!cnt) continue;
+      if (cnt === 4) { const p0 = vidx[sq[0]], p1 = vidx[sq[1]], p2 = vidx[sq[2]], p3 = vidx[sq[3]]; faces.push(p0, p1, p2, p0, p2, p3); continue; }
+      if (cnt === 2 && ins[0] === ins[2] && fsm[sq[0]] + fsm[sq[1]] + fsm[sq[2]] + fsm[sq[3]] <= 0) {   // saddle: two separate ice corners
+        for (let k = 0; k < 4; k++) if (ins[k]) faces.push(seg(sq[(k + 3) % 4], sq[k]), vidx[sq[k]], seg(sq[k], sq[(k + 1) % 4]));
+        continue;
+      }
+      poly.length = 0;   // corners inside the ice plus edge crossings, in order round the square: a convex polygon, fanned into triangles
+      for (let k = 0; k < 4; k++) { const k1 = (k + 1) & 3;
+        if (ins[k]) poly.push(vidx[sq[k]]);
+        if (ins[k] !== ins[k1]) poly.push(seg(sq[k], sq[k1])); }
+      for (let k = 1; k < poly.length - 1; k++) faces.push(poly[0], poly[k], poly[k + 1]);
+    }
+    if (!faces.length || n < 3) { iceG.geometry = null; return; }
+    const pos = new Float64Array(n * 3), col = new Uint8Array(n * 4);
+    for (let c = 0; c < N; c++) { const m = vidx[c]; if (m < 0) continue; const j = (c / W) | 0, i = c - j * W;
+      pos[m * 3] = lon0 + i * dlon; pos[m * 3 + 1] = lat0 + j * dlat; pos[m * 3 + 2] = (bed[c] + Hd[c]) * EXAG;
+      const f = Math.min(1, Hd[c] / 2500); for (let k = 0; k < 3; k++) col[m * 4 + k] = Math.round(ICE_THIN[k] + (ICE_THICK[k] - ICE_THIN[k]) * f); col[m * 4 + 3] = a; }
+    for (let e = 0; e < ex.length; e++) { const m = nGrid + e;
+      pos[m * 3] = ex[e]; pos[m * 3 + 1] = ey[e]; pos[m * 3 + 2] = ez[e];
+      col[m * 4] = ICE_THIN[0]; col[m * 4 + 1] = ICE_THIN[1]; col[m * 4 + 2] = ICE_THIN[2]; col[m * 4 + 3] = a; }
+    iceG.geometry = new Mesh({ spatialReference: { wkid: 4326 }, vertexAttributes: { position: pos, color: col }, components: [new MeshComponent({ faces: new Uint32Array(faces), material: { doubleSided: true } })] });
   }
   function buildSea(S) {
     const src = new Uint8Array(N); for (let c = 0; c < N; c++) src[c] = water[c] === 1 ? 1 : 0;
-    const on = dilate(src, 2, (c) => !iceMask[c] && water[c] !== 2 && !(land[c] && bed[c] < 0));
+    const on = dilate(src, 2, (c) => water[c] !== 2 && !(land[c] && bed[c] < 0));   // may run under the ice edge, so no gap opens at the ice front
     for (let c = 0; c < N; c++) zbuf[c] = on[c] ? S : NaN;
     seaG.geometry = gridMesh((c, col, o) => { const d = Math.min(1, Math.max(0, (S - bed[c]) / 300)); col[o] = Math.round(70 - 40 * d); col[o + 1] = Math.round(140 - 70 * d); col[o + 2] = Math.round(190 - 60 * d); col[o + 3] = 235; });
   }
   function buildLakes() {
     const src = new Uint8Array(N); for (let c = 0; c < N; c++) src[c] = water[c] === 2 ? 1 : 0;
-    const on = dilate(src, 1, (c) => !iceMask[c] && water[c] !== 1);
+    const on = dilate(src, 1, (c) => water[c] !== 1);   // may run under the ice edge
     for (let c = 0; c < N; c++) {
       if (!on[c]) { zbuf[c] = NaN; continue; }
       if (src[c]) { zbuf[c] = lvl[c]; continue; }
