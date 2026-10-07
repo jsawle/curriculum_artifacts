@@ -68,6 +68,9 @@
   .row label { display: block; }
   svg.section { width: 100%; height: auto; background: #0e1630; border: 1px solid var(--border); border-radius: 8px; display: block; }
   svg.section text { fill: var(--muted); font-size: 9px; font-family: inherit; }
+  svg.section text.hl { fill: #0b0f1e; font-size: 8px; font-weight: 700; }
+  ol.steps { margin: 8px 0; padding-left: 20px; font-size: .88rem; }
+  ol.steps li { margin: 4px 0; }
   .credit { position: absolute; right: 10px; bottom: 30px; background: #000c; color: #fff; border: 1px solid #ffffff40;
     border-radius: 6px; padding: 5px 9px; font-size: .75rem; line-height: 1.3; z-index: 5; text-align: right; }
   dialog { background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 10px; max-width: 620px; width: calc(100% - 32px); }
@@ -98,12 +101,28 @@
     </label>
     <p class="monthline" id="monthSummary" aria-live="polite"></p>
 
+    <h2>Why does the air move? <span class="badge" id="v-sun"></span></h2>
+    <svg id="sunChart" class="section" viewBox="0 0 320 120" role="img" aria-labelledby="sunTitle sunDesc">
+      <title id="sunTitle">How strong the midday sunlight is at each latitude</title>
+      <desc id="sunDesc"></desc>
+    </svg>
+    <ol class="steps">
+      <li><strong>The Sun heats the Earth unevenly.</strong> Where the midday Sun is high, its energy is packed onto a small area, so the ground and air get hot. Near the poles the same energy is spread over a much bigger area.</li>
+      <li><strong>Hot air rises.</strong> This leaves <strong>low pressure (L)</strong> at the ground. The rising air cools, clouds form and it rains. This is the rain belt.</li>
+      <li><strong>High up, the air spreads out toward the poles.</strong> It cools and sinks at about 30°. Sinking air makes <strong>high pressure (H)</strong> and dry weather.</li>
+      <li><strong>At the ground, air flows from high pressure to low pressure.</strong> This flow is the wind.</li>
+      <li><strong>The spinning Earth bends the winds</strong> (the Coriolis effect): to the right in the northern half of the world, to the left in the southern half. That is why the trade winds blow from the north-east and south-east, not straight from the north and south.</li>
+    </ol>
+    <p class="sub">The rain belt follows the overhead Sun north and south through the year, a month or so behind it.</p>
+    <label><input type="checkbox" id="showSun" /> Sunlight strength on the globe</label>
+
     <h2>Cell model <span class="badge" id="v-cells"></span></h2>
     <p class="sub">A simplified, hand-drawn model. Real circulation changes from day to day and from place to place.</p>
     <fieldset>
       <legend>Show</legend>
       <label><input type="checkbox" id="showCells" checked /> Cells and air flow arrows</label>
-      <label><input type="checkbox" id="showBelts" checked /> Pressure belts on the ground</label>
+      <label><input type="checkbox" id="showBelts" checked /> Pressure belts on the ground (L = low, H = high)</label>
+      <label><input type="checkbox" id="showSurf" checked /> Surface winds on the ground <span class="badge" id="v-surf"></span></label>
       <label><input type="checkbox" id="showLabels" checked /> Labels</label>
       <label><input type="checkbox" id="showParcels" checked /> Moving air parcels</label>
     </fieldset>
@@ -124,11 +143,11 @@
       &nbsp;<span class="swatch" style="background:var(--ferrel)"></span> Ferrel
       &nbsp;<span class="swatch" style="background:var(--polar)"></span> Polar
       &nbsp;· Bars below the ground: <span class="swatch" style="background:#4dabf7"></span> wet
-      <span class="swatch" style="background:#e0a458"></span> dry</p>
+      <span class="swatch" style="background:#e0a458"></span> dry. L = low pressure, H = high pressure.</p>
 
     <table>
       <caption>Zones this month, from north to south (model)</caption>
-      <thead><tr><th scope="col">Zone</th><th scope="col">Air and rain</th><th scope="col">Typical land cover</th></tr></thead>
+      <thead><tr><th scope="col">Zone</th><th scope="col">Air and rain</th><th scope="col">Surface wind</th><th scope="col">Typical land cover</th></tr></thead>
       <tbody id="zoneTable"></tbody>
     </table>
 
@@ -199,6 +218,7 @@
     <li>Average rainfall: Average Global Precipitation — generated using Copernicus Climate Change Service information (ERA5, 1981–2010).</li>
     <li>Monthly rainfall: NASA GPM IMERG (Huffman et al.), Esri Living Atlas — subscriber content.</li>
     <li>Land cover: Sentinel-2 10 m Land Use/Land Cover — Esri and Impact Observatory (CC BY 4.0).</li>
+    <li>Cells, surface winds and sunlight: simplified models written for this app (see the versions table), not measured data.</li>
     <li>Basemap and elevation: Esri.</li>
   </ul>
   <button id="btnAboutClose">Close</button>
@@ -206,8 +226,12 @@
 
 <script type="module">
 // ================= Versions (single source of truth) =================
-const APP_VERSION = "0.1.0";
+const APP_VERSION = "0.2.0";
 const MODELS = {
+  sun: { name: "Sunlight model", version: "1.0",
+    desc: "Latitude where the Sun is overhead at midday = 23.44° × sin(2π(day − 80)/365), using the 15th of each month. Midday sunlight strength = sine of the midday Sun's height (100% when overhead). Midday only: it ignores day length and the atmosphere, so it understates summer sunlight near the poles." },
+  surf: { name: "Surface wind model", version: "1.0",
+    desc: "Arrows show which way the model air moves at the ground: toward the rain belt between the two subtropical highs, and toward the polar fronts elsewhere. They bend right in the north and left in the south (Coriolis); the bend fades to nothing within 4° of the equator. Winds that cross the equator turn the other way (monsoon winds) only when the rain belt is at least 8° from it; otherwise they stay easterly. Calm within 2.5° of the rain belt and the subtropical highs, and changeable within 2° of the polar fronts. Shows direction only: arrow length is not wind speed." },
   cells: { name: "Cell model", version: "1.0",
     desc: "Three cells per hemisphere drawn on a north–south curtain. Rain belt (ITCZ) latitude = regional mean + amplitude × cos(2π(month − 7.5)/12). Subtropical highs move half as far, polar fronts a quarter as far. Cell tops follow a simple tropopause curve (16 km at the equator, 8 km at the poles) times the height stretch." },
   wind: { name: "Wind layer", version: "1.0",
@@ -243,9 +267,9 @@ const REGIONS = {
 const COL = { hadley: "#ff922b", ferrel: "#51cf66", polar: "#74c0fc" };
 const ZONES = {
   itcz:       { name: "Rain belt (ITCZ)",     air: "Warm, moist air rises. Low pressure.", rain: "Heavy rain, often daily thunderstorms.", land: "Tropical rainforest" },
-  trades:     { name: "Trade winds",          air: "Surface winds blow toward the rain belt.", rain: "Wet season when the rain belt is close, dry season when it moves away.", land: "Savanna and seasonal forest" },
+  trades:     { name: "Trade winds",          air: "Surface winds blow from the high toward the rain belt.", rain: "Wet season when the rain belt is close, dry season when it moves away.", land: "Savanna and seasonal forest" },
   sth:        { name: "Subtropical high",     air: "Dry air sinks and warms. High pressure.", rain: "Very little rain.", land: "Hot desert" },
-  westerlies: { name: "Westerlies",           air: "Surface winds blow toward the poles, mostly from the west.", rain: "Rain from passing storms in every season.", land: "Temperate forest and grassland" },
+  westerlies: { name: "Westerlies",           air: "Surface winds blow from the high toward the polar front.", rain: "Rain from passing storms in every season.", land: "Temperate forest and grassland" },
   pf:         { name: "Polar front",          air: "Cold polar air meets milder air, which rises. Low pressure.", rain: "Frequent storms, rain and snow.", land: "Boreal (northern) forest" },
   polar:      { name: "Polar high",           air: "Very cold, dry air sinks. High pressure.", rain: "Very little snow or rain (polar desert).", land: "Tundra and ice" }
 };
@@ -292,6 +316,77 @@ function segPoints(f, [a, b], n = 16, gap = 0.1) {
   for (let i = 0; i <= n; i++) pts.push(f(a + gap + (b - a - 2 * gap) * i / n));
   return pts;
 }
+// ================= Sunlight model =================
+const DOY_MID = [15, 46, 74, 105, 135, 166, 196, 227, 258, 288, 319, 349];
+const sunLat = (month) => 23.44 * Math.sin(2 * Math.PI * (DOY_MID[month - 1] - 80) / 365);
+const noonHeight = (lat, d) => 90 - Math.abs(lat - d);                       // degrees above the horizon
+const sunStrength = (lat, d) => Math.max(0, Math.sin(noonHeight(lat, d) * Math.PI / 180)) * 100; // %
+
+// ================= Surface wind model =================
+const MONSOON_MIN = 8; // rain belt must be at least this far from the equator for winds crossing it to turn
+// Returns { u, v } (east, north; unit-ish) or null where the model wind is calm or changeable.
+function surfaceWind(lat, b) {
+  if ([b.itcz, b.sthN, b.sthS].some(c => Math.abs(lat - c) < 2.5)) return null;
+  const target = (lat > b.sthS && lat < b.sthN) ? b.itcz : (lat >= b.sthN ? b.pfN : b.pfS);
+  if (Math.abs(lat - target) < 2) return null;
+  const v = Math.sign(target - lat) * (target === b.itcz ? 0.55 : 0.4);
+  // Air crossing the equator toward a rain belt that is close to it keeps blowing from the east
+  const crossing = (lat > 0 && lat < b.itcz) || (lat < 0 && lat > b.itcz);
+  if (crossing && Math.abs(b.itcz) < MONSOON_MIN) return { u: -0.6, v };
+  const f = Math.max(-1, Math.min(1, lat / 4));   // Coriolis bend: right in N (+), left in S (−), none at the equator
+  return { u: Math.sign(v) * f * 0.85, v };
+}
+const COMPASS = ["north", "north-east", "east", "south-east", "south", "south-west", "west", "north-west"];
+// Name of the direction the wind blows FROM
+function windFrom(w) {
+  const toward = Math.atan2(w.u, w.v) * 180 / Math.PI;
+  return COMPASS[Math.round((((toward + 180) % 360) + 360) % 360 / 45) % 8];
+}
+function windName(lat, b) {
+  const w = surfaceWind(lat, b);
+  if (!w) {
+    if (Math.abs(lat - b.itcz) < 2.5) return "Light and changeable (the doldrums)";
+    if (Math.abs(lat - b.sthN) < 2.5 || Math.abs(lat - b.sthS) < 2.5) return "Light, as the air sinks (the horse latitudes)";
+    return "Changeable and stormy";
+  }
+  const from = windFrom(w);
+  let kind = "";
+  if (lat > b.sthS && lat < b.sthN) kind = w.u > 0.1 ? " (monsoon winds)" : " (trade winds)";
+  else if (Math.abs(lat) < Math.abs(lat >= 0 ? b.pfN : b.pfS)) kind = " (westerlies)";
+  else kind = " (polar easterlies)";
+  return `From the ${from}${kind}`;
+}
+
+function drawSunChart(b, monthName) {
+  const W = 320, L = 22, R = W - 12, T = 16, B = 90;
+  const x = (lat) => L + (lat + 90) / 180 * (R - L);
+  const y = (p) => B - p / 100 * (B - T);
+  const d = sunLat(state.month);
+  let line = "";
+  for (let lat = -90; lat <= 90; lat += 1) line += `${lat === -90 ? "M" : "L"}${x(lat).toFixed(1)},${y(sunStrength(lat, d)).toFixed(1)} `;
+  let s = `<title id="sunTitle">How strong the midday sunlight is at each latitude</title><desc id="sunDesc"></desc>`;
+  s += `<path d="${line} L${x(90)},${B} L${x(-90)},${B} Z" fill="#ffd43b33" stroke="none"/>`;
+  s += `<path d="${line}" fill="none" stroke="#ffd43b" stroke-width="2"/>`;
+  s += `<line x1="${L}" y1="${B}" x2="${R}" y2="${B}" stroke="#8892b0"/>`;
+  s += `<line x1="${L}" y1="${T}" x2="${R}" y2="${T}" stroke="#8892b0" stroke-dasharray="1 3"/>`;
+  s += `<text x="${L + 2}" y="${T - 3}">100%</text><text x="${L - 3}" y="${B}" text-anchor="end">0</text>`;
+  s += `<line x1="${x(d)}" y1="${T - 4}" x2="${x(d)}" y2="${B}" stroke="#ffd43b" stroke-dasharray="3 2"/>`;
+  s += `<text x="${x(d)}" y="${T - 6}" text-anchor="middle" style="fill:#ffe066">Sun overhead</text>`;
+  s += `<line x1="${x(b.itcz)}" y1="${T + 10}" x2="${x(b.itcz)}" y2="${B}" stroke="#4dabf7" stroke-width="1.5"/>`;
+  s += `<text x="${x(b.itcz) + (b.itcz > d ? 3 : -3)}" y="${B - 4}" text-anchor="${b.itcz > d ? "start" : "end"}" style="fill:#4dabf7">rain belt</text>`;
+  for (const lat of [-60, -30, 0, 30, 60]) {
+    s += `<line x1="${x(lat)}" y1="${B}" x2="${x(lat)}" y2="${B + 4}" stroke="#8892b0"/>`;
+    s += `<text x="${x(lat)}" y="${B + 14}" text-anchor="middle">${lat === 0 ? "Equator" : fmtLat(lat)}</text>`;
+  }
+  s += `<text x="${L}" y="${B + 27}">South</text><text x="${R}" y="${B + 27}" text-anchor="end">North</text>`;
+  const svg = $("sunChart");
+  svg.innerHTML = s;
+  const dark = d < -1 ? ` There is no midday Sun north of about ${fmtLat(90 + d)}.` : d > 1 ? ` There is no midday Sun south of about ${fmtLat(d - 90)}.` : "";
+  svg.querySelector("desc").textContent =
+    `${monthName}: the midday Sun is overhead at ${fmtLat(d)}, where sunlight is strongest. It gets weaker toward both poles.${dark} ` +
+    `The model rain belt is at ${fmtLat(b.itcz)}.`;
+}
+
 function zoneAt(lat, b) {
   const near = (x, y, tol) => Math.abs(x - y) <= tol;
   if (near(lat, b.itcz, 6)) return "itcz";
@@ -317,6 +412,11 @@ function drawSection(b, monthName, region) {
   // wet / dry bars
   const bar = (c, half, fill) => `<rect x="${x(c - half)}" y="${G + 3}" width="${x(c + half) - x(c - half)}" height="8" fill="${fill}" rx="2"/>`;
   s += bar(b.itcz, 6, "#4dabf7") + bar(b.sthN, 6, "#e0a458") + bar(b.sthS, 6, "#e0a458") + bar(b.pfN, 5, "#4dabf7") + bar(b.pfS, 5, "#4dabf7");
+  // pressure letters on the bars, plus the polar highs
+  const hl = (lat, t) => `<text class="hl" x="${x(lat)}" y="${G + 10}" text-anchor="middle">${t}</text>`;
+  s += hl(b.itcz, "L") + hl(b.pfN, "L") + hl(b.pfS, "L") + hl(b.sthN, "H") + hl(b.sthS, "H");
+  s += `<rect x="${x(84)}" y="${G + 3}" width="${x(90) - x(84)}" height="8" fill="#e0a458" rx="2"/>` + hl(87, "H");
+  s += `<rect x="${x(-90)}" y="${G + 3}" width="${x(-84) - x(-90)}" height="8" fill="#e0a458" rx="2"/>` + hl(-87, "H");
   // ground
   s += `<line x1="${L}" y1="${G}" x2="${R}" y2="${G}" stroke="#c9b18a" stroke-width="2"/>`;
   // cells
@@ -337,28 +437,32 @@ function drawSection(b, monthName, region) {
   const svg = $("section");
   svg.innerHTML = s;
   svg.querySelector("desc").textContent =
-    `${monthName}, ${region.label}. Air rises with heavy rain near ${fmtLat(b.itcz)}. ` +
-    `It sinks, giving dry conditions, near ${fmtLat(b.sthN)} and ${fmtLat(b.sthS)}. ` +
-    `It rises again with storms near ${fmtLat(b.pfN)} and ${fmtLat(b.pfS)}, and sinks over both poles.`;
+    `${monthName}, ${region.label}. Air rises with heavy rain near ${fmtLat(b.itcz)}, making low pressure. ` +
+    `It sinks, giving high pressure and dry conditions, near ${fmtLat(b.sthN)} and ${fmtLat(b.sthS)}. ` +
+    `It rises again with storms and low pressure near ${fmtLat(b.pfN)} and ${fmtLat(b.pfS)}, and sinks over both poles, making high pressure.`;
 }
 
 function fillTable(b) {
+  // [zone, latitude text, representative latitude for the wind]
   const rows = [
-    ["polar", `${fmtLat(b.pfN + 5)} – 90° N`],
-    ["pf", `about ${fmtLat(b.pfN)}`],
-    ["westerlies", `${fmtLat(b.pfN - 5)} – ${fmtLat(b.sthN + 6)}`],
-    ["sth", `about ${fmtLat(b.sthN)}`],
-    ["trades", `${fmtLat(b.sthN - 6)} – ${fmtLat(b.itcz + 6)}`],
-    ["itcz", `about ${fmtLat(b.itcz)}`],
-    ["trades", `${fmtLat(b.itcz - 6)} – ${fmtLat(b.sthS + 6)}`],
-    ["sth", `about ${fmtLat(b.sthS)}`],
-    ["westerlies", `${fmtLat(b.sthS - 6)} – ${fmtLat(b.pfS + 5)}`],
-    ["pf", `about ${fmtLat(b.pfS)}`],
-    ["polar", `${fmtLat(b.pfS - 5)} – 90° S`]
+    ["polar", `${fmtLat(b.pfN + 5)} – 90° N`, (b.pfN + 90) / 2],
+    ["pf", `about ${fmtLat(b.pfN)}`, b.pfN],
+    ["westerlies", `${fmtLat(b.pfN - 5)} – ${fmtLat(b.sthN + 6)}`, (b.pfN + b.sthN) / 2],
+    ["sth", `about ${fmtLat(b.sthN)}`, b.sthN],
+    ["trades", `${fmtLat(b.sthN - 6)} – ${fmtLat(b.itcz + 6)}`, (b.sthN + b.itcz) / 2],
+    ["itcz", `about ${fmtLat(b.itcz)}`, b.itcz],
+    ["trades", `${fmtLat(b.itcz - 6)} – ${fmtLat(b.sthS + 6)}`, (b.sthS + b.itcz) / 2],
+    ["sth", `about ${fmtLat(b.sthS)}`, b.sthS],
+    ["westerlies", `${fmtLat(b.sthS - 6)} – ${fmtLat(b.pfS + 5)}`, (b.pfS + b.sthS) / 2],
+    ["pf", `about ${fmtLat(b.pfS)}`, b.pfS],
+    ["polar", `${fmtLat(b.pfS - 5)} – 90° S`, (b.pfS - 90) / 2]
   ];
-  $("zoneTable").innerHTML = rows.map(([k, lat], i) => {
+  $("zoneTable").innerHTML = rows.map(([k, lat, mid], i) => {
     const z = ZONES[k];
-    return `<tr data-zone="${k}" data-row="${i}"><th scope="row">${z.name}<br><span class="sub">${lat}</span></th><td>${z.air} ${z.rain}</td><td>${z.land}</td></tr>`;
+    let wind = windName(mid, b) + ".";
+    if (k === "trades" && i < 5 && b.itcz <= -MONSOON_MIN) wind += " South of the equator they turn and blow from the north-west (monsoon winds).";
+    if (k === "trades" && i > 5 && b.itcz >= MONSOON_MIN) wind += " North of the equator they turn and blow from the south-west (monsoon winds).";
+    return `<tr data-zone="${k}" data-row="${i}"><th scope="row">${z.name}<br><span class="sub">${lat}</span></th><td>${z.air} ${z.rain}</td><td>${wind}</td><td>${z.land}</td></tr>`;
   }).join("");
 }
 
@@ -377,6 +481,7 @@ function update2D() {
   const b = belts(state.region, state.month);
   $("monthVal").textContent = MONTHS[state.month - 1];
   $("monthSummary").textContent = `${MONTHS[state.month - 1]}: rain belt near ${fmtLat(b.itcz)}, dry belts near ${fmtLat(b.sthN)} and ${fmtLat(b.sthS)}.`;
+  drawSunChart(b, MONTHS[state.month - 1]);
   drawSection(b, MONTHS[state.month - 1], state.region);
   fillTable(b);
   return b;
@@ -385,11 +490,13 @@ update2D();
 
 // ================= SDK =================
 if (typeof $arcgis === "undefined") {
-  setStatus("The 3D globe could not load. The cross-section and zone table still work.");
+  setStatus("The 3D globe could not load. The sunlight chart, cross-section and zone table still work.");
+  $("month").addEventListener("input", (e) => { state.month = Number(e.target.value); update2D(); });
+  $("region").addEventListener("change", (e) => { state.regionKey = e.target.value; update2D(); });
   throw new Error("ArcGIS Maps SDK not available");
 }
 const [ArcGISMap, GraphicsLayer, FeatureLayer, ImageryLayer, ImageryTileLayer, DimensionalDefinition,
-       Graphic, Point, Polyline, TimeExtent, OAuthInfo, esriId] = await $arcgis.import([
+       Graphic, Point, Polyline, TimeExtent, OAuthInfo, esriId, Polygon] = await $arcgis.import([
   "@arcgis/core/Map.js",
   "@arcgis/core/layers/GraphicsLayer.js",
   "@arcgis/core/layers/FeatureLayer.js",
@@ -401,7 +508,8 @@ const [ArcGISMap, GraphicsLayer, FeatureLayer, ImageryLayer, ImageryTileLayer, D
   "@arcgis/core/geometry/Polyline.js",
   "@arcgis/core/time/TimeExtent.js",
   "@arcgis/core/identity/OAuthInfo.js",
-  "@arcgis/core/identity/IdentityManager.js"
+  "@arcgis/core/identity/IdentityManager.js",
+  "@arcgis/core/geometry/Polygon.js"
 ]);
 if (OAUTH_APP_ID) esriId.registerOAuthInfos([new OAuthInfo({ appId: OAUTH_APP_ID, popup: false })]);
 
@@ -418,6 +526,8 @@ try {
 } catch (e) { console.warn("Environment settings not applied:", e); }
 
 // graphics layers (added after data layers so they draw on top)
+const sunLayer = new GraphicsLayer({ title: "Sunlight strength", elevationInfo: { mode: "on-the-ground" } });
+const surfLayer = new GraphicsLayer({ title: "Surface winds (model)", elevationInfo: { mode: "on-the-ground" } });
 const beltLayer = new GraphicsLayer({ title: "Pressure belts", elevationInfo: { mode: "on-the-ground" } });
 const cellLayer = new GraphicsLayer({ title: "Cells", elevationInfo: { mode: "absolute-height" } });
 const labelLayer = new GraphicsLayer({ title: "Labels", elevationInfo: { mode: "absolute-height" } });
@@ -489,7 +599,7 @@ function setLand() {
   if (landLayer) landLayer.visible = on;
 }
 
-map.addMany([beltLayer, cellLayer, labelLayer, parcelLayer]);
+map.addMany([sunLayer, surfLayer, beltLayer, cellLayer, labelLayer, parcelLayer]);
 
 // ---- 3D cell drawing ----
 const pt3 = (lon, lat, hKm) => new Point({ longitude: lon, latitude: lat, z: hKm * 1000 * state.exag, spatialReference: { wkid: 4326 } });
@@ -532,12 +642,76 @@ function draw3D(b) {
   beltLine(b.pfN, "#b197fc", 3); beltLine(b.pfS, "#b197fc", 3);
   // belt labels just above the cells
   const top = (lat) => tropo(lat) * 0.85 + 2.5;
-  labelLayer.add(new Graphic({ geometry: pt3(lon, b.itcz, top(b.itcz)), symbol: textSymbol("Rising air · heavy rain", "#9fd3ff") }));
-  labelLayer.add(new Graphic({ geometry: pt3(lon, b.sthN, top(b.sthN)), symbol: textSymbol("Sinking air · dry", "#f2c48d") }));
-  labelLayer.add(new Graphic({ geometry: pt3(lon, b.sthS, top(b.sthS)), symbol: textSymbol("Sinking air · dry", "#f2c48d") }));
-  labelLayer.add(new Graphic({ geometry: pt3(lon, b.pfN, top(b.pfN)), symbol: textSymbol("Rising air · storms", "#d0bfff") }));
-  labelLayer.add(new Graphic({ geometry: pt3(lon, b.pfS, top(b.pfS)), symbol: textSymbol("Rising air · storms", "#d0bfff") }));
+  labelLayer.add(new Graphic({ geometry: pt3(lon, b.itcz, top(b.itcz)), symbol: textSymbol("L · Rising air · heavy rain", "#9fd3ff") }));
+  labelLayer.add(new Graphic({ geometry: pt3(lon, b.sthN, top(b.sthN)), symbol: textSymbol("H · Sinking air · dry", "#f2c48d") }));
+  labelLayer.add(new Graphic({ geometry: pt3(lon, b.sthS, top(b.sthS)), symbol: textSymbol("H · Sinking air · dry", "#f2c48d") }));
+  labelLayer.add(new Graphic({ geometry: pt3(lon, b.pfN, top(b.pfN)), symbol: textSymbol("L · Rising air · storms", "#d0bfff") }));
+  labelLayer.add(new Graphic({ geometry: pt3(lon, b.pfS, top(b.pfS)), symbol: textSymbol("L · Rising air · storms", "#d0bfff") }));
+  // big H and L letters on the ground, either side of the curtain
+  const letter = (lat, t, color) => {
+    for (const dx of [-22, 22]) beltLayer.add(new Graphic({
+      geometry: new Point({ longitude: lon + dx, latitude: lat, spatialReference: { wkid: 4326 } }),
+      symbol: textSymbol(t, color, 22) }));
+  };
+  letter(b.itcz, "L", "#74c0fc"); letter(b.pfN, "L", "#b197fc"); letter(b.pfS, "L", "#b197fc");
+  letter(b.sthN, "H", "#ffc078"); letter(b.sthS, "H", "#ffc078"); letter(84, "H", "#ffc078"); letter(-84, "H", "#ffc078");
+  drawSurfaceWinds(b, lon);
+  drawSun(lon);
   applyVisibility();
+}
+
+// ---- surface wind arrows (model) ----
+function drawSurfaceWinds(b, lon) {
+  surfLayer.removeAll();
+  const sym = { type: "line-3d", symbolLayers: [{ type: "line", size: 2, material: { color: [255, 255, 255, 0.95] } }] };
+  const LEN = 3.4, HEAD = 0.38 * LEN, ANG = 28 * Math.PI / 180;
+  for (let lat = -77.5; lat <= 77.5; lat += 5) {
+    const w = surfaceWind(lat, b);
+    if (!w) continue;
+    const n = Math.hypot(w.u, w.v), ue = w.u / n, vn = w.v / n;  // unit direction (east, north)
+    const k = 1 / Math.cos(lat * Math.PI / 180);                   // degrees of longitude per degree east
+    for (let x0 = lon - 30; x0 <= lon + 30; x0 += 10) {
+      const sx = x0 - ue * LEN / 2 * k, sy = lat - vn * LEN / 2;
+      const ex = x0 + ue * LEN / 2 * k, ey = lat + vn * LEN / 2;
+      const head = (a) => {
+        const c = Math.cos(Math.PI - a), s = Math.sin(Math.PI - a);   // rotate the direction back by 180° ± a
+        const hu = ue * c - vn * s, hv = ue * s + vn * c;
+        return [[ex, ey], [ex + hu * HEAD * k, ey + hv * HEAD]];
+      };
+      surfLayer.add(new Graphic({ geometry: new Polyline({ paths: [[[sx, sy], [ex, ey]], head(ANG), head(-ANG)], spatialReference: { wkid: 4326 } }), symbol: sym }));
+    }
+  }
+  // wind belt names, east of the curtain
+  const name = (lat, t) => surfLayer.add(new Graphic({
+    geometry: new Point({ longitude: lon + 36, latitude: lat, spatialReference: { wkid: 4326 } }),
+    symbol: textSymbol(t, "#ffffff", 11) }));
+  const nt = (b.itcz + b.sthN) / 2, st = (b.itcz + b.sthS) / 2;
+  name(nt, windFrom(surfaceWind(nt, b) || { u: -1, v: -1 }) === "north-east" ? "North-east trade winds" : "Trade winds");
+  name(st, windFrom(surfaceWind(st, b) || { u: -1, v: 1 }) === "south-east" ? "South-east trade winds" : "Trade winds");
+  name((b.sthN + b.pfN) / 2, "Westerlies"); name((b.sthS + b.pfS) / 2, "Westerlies");
+  name((b.pfN + 90) / 2, "Polar easterlies"); name((b.pfS - 90) / 2, "Polar easterlies");
+  name(b.itcz, "Doldrums (calm)");
+}
+
+// ---- sunlight strength bands (model) ----
+function drawSun(lon) {
+  sunLayer.removeAll();
+  const d = sunLat(state.month);
+  const ramp = (p) => { const t = p / 100; return [Math.round(30 + 225 * t), Math.round(40 + 172 * t), Math.round(90 - 31 * t), 0.5]; };
+  for (let lat = -90; lat < 90; lat += 5) {
+    const p = sunStrength(lat + 2.5, d);
+    const ring = [];
+    for (let x = lon - 35; x <= lon + 35; x += 5) ring.push([x, lat]);
+    for (let x = lon + 35; x >= lon - 35; x -= 5) ring.push([x, Math.min(lat + 5, 89.9)]);
+    ring.push([lon - 35, lat]);
+    sunLayer.add(new Graphic({ geometry: new Polygon({ rings: [ring], spatialReference: { wkid: 4326 } }),
+      symbol: { type: "polygon-3d", symbolLayers: [{ type: "fill", material: { color: ramp(p) } }] } }));
+  }
+  const path = []; for (let x = lon - 35; x <= lon + 35; x += 1) path.push([x, d]);
+  sunLayer.add(new Graphic({ geometry: new Polyline({ paths: [path], spatialReference: { wkid: 4326 } }),
+    symbol: { type: "line-3d", symbolLayers: [{ type: "line", size: 3, material: { color: "#ffe066" } }] } }));
+  sunLayer.add(new Graphic({ geometry: new Point({ longitude: lon - 36, latitude: d, spatialReference: { wkid: 4326 } }),
+    symbol: textSymbol("Sun overhead at midday", "#ffe066", 11) }));
 }
 let phase = 0;
 function placeParcels() {
@@ -565,6 +739,8 @@ function applyVisibility() {
   beltLayer.visible = $("showBelts").checked;
   labelLayer.visible = $("showLabels").checked;
   parcelLayer.visible = $("showParcels").checked;
+  surfLayer.visible = $("showSurf").checked;
+  sunLayer.visible = $("showSun").checked;
 }
 
 // ================= Update everything =================
@@ -606,7 +782,10 @@ async function checkPlace(point) {
   const out = $("placeReadout");
   const lines = [
     `<p><strong>${fmtLat(lat)}, ${fmtLon(lon)}</strong> · ${MONTHS[state.month - 1]} · using the ${state.region.label} model</p>`,
-    `<p><strong>Model:</strong> ${z.name}. ${z.air} ${z.rain} Typical land cover: ${z.land}.</p>`
+    `<p><strong>Model:</strong> ${z.name}. ${z.air} ${z.rain} Typical land cover: ${z.land}.</p>`,
+    `<p><strong>Model surface wind:</strong> ${windName(lat, b)}.</p>`,
+    (() => { const d = sunLat(state.month), h = noonHeight(lat, d);
+      return `<p><strong>Midday Sun:</strong> ${h > 0 ? `${Math.round(h)}° above the horizon, ${Math.round(sunStrength(lat, d))}% as strong as an overhead Sun` : "below the horizon all day (polar night)"}.</p>`; })()
   ];
   out.innerHTML = lines.join("") + `<p class="sub">Checking the real data…</p>`;
   const data = [];
@@ -640,7 +819,7 @@ async function checkPlace(point) {
 $("month").addEventListener("input", (e) => { state.month = Number(e.target.value); updateAll(); });
 $("region").addEventListener("change", (e) => { state.regionKey = e.target.value; updateAll(); globeView(); $("inLon").value = state.region.lon; });
 document.querySelectorAll('input[name="exag"]').forEach(r => r.addEventListener("change", updateAll));
-["showCells", "showBelts", "showLabels", "showParcels"].forEach(id => $(id).addEventListener("change", applyVisibility));
+["showCells", "showBelts", "showLabels", "showParcels", "showSurf", "showSun"].forEach(id => $(id).addEventListener("change", applyVisibility));
 $("btnPause").addEventListener("click", () => {
   state.paused = !state.paused;
   $("btnPause").setAttribute("aria-pressed", String(state.paused));
