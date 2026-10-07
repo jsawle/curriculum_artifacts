@@ -107,7 +107,7 @@
       <div class="pv"><canvas id="plan" width="264" height="220" aria-label="Plan view of the model showing the camera position"></canvas><span class="badge" data-model="plan"></span></div>
     </div>
     <div id="hint" class="chip">Heights ×1.5. <span id="attrib"></span> <span class="badge" data-model="terrain"></span></div>
-    <div class="credit">Created by Jason Sawle<br>© Esri 2026</div>
+    <div class="credit">Created by Jason Sawle</div>
     <svg id="north" viewBox="0 0 44 44" aria-label="North arrow"><circle cx="22" cy="22" r="20" fill="rgba(243,244,240,.88)" stroke="#5C6866"/><g id="northG"><path d="M22 5 L27 22 L22 19 L17 22 Z" fill="#22302F"/><text x="22" y="36" text-anchor="middle" font-size="11" fill="#22302F">N</text></g></svg>
   </div>
 </div>
@@ -120,7 +120,7 @@
       <thead><tr><th scope="col">Part</th><th scope="col">Version</th><th scope="col">What it does</th></tr></thead>
       <tbody id="versionRows"></tbody>
     </table>
-    <p>Created by Jason Sawle. © Esri 2026.</p>
+    <p>Created by Jason Sawle.</p>
     <button type="button" class="close">Close</button>
   </div>
 </dialog>
@@ -128,7 +128,7 @@
 <script>
 // ---------- versions: single source of truth for the app and model version numbers ----------
 // Bump a model's version whenever its maths or data handling changes. Bump APP_VERSION on every release.
-const APP_VERSION="1.0.0";
+const APP_VERSION="1.0.1";
 const MODELS={
   terrain:{name:'Terrain model',version:'1.0',desc:'Builds the 3D terrain from Esri World Elevation (Terrain3D) tiles at zoom 13, or Mapzen Terrarium if Esri is unavailable, with heights ×1.5 and Esri World Imagery draped on top (slope and height colours if the imagery fails).'},
   fill:{name:'Ice and lake fill model',version:'1.0',desc:'Raises an ice or lake surface at each stage’s level and slope, keeps it to cells connected to El Capitan Meadow and west limit, and colours it by depth.'},

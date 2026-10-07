@@ -97,7 +97,7 @@
     <div id="status">Loading the globe…</div>
     <div class="tools"><button id="recenter">⌖ Recenter</button><button id="overhead">↓ Overhead</button><button id="rotate">↻ Rotate</button></div>
     <div class="attrib">Imagery: Esri, Maxar, Earthstar Geographics. Elevation: Esri World Elevation. Heights are not exaggerated.</div>
-    <div class="credit">Created by Jason Sawle<br>© Esri 2026</div>
+    <div class="credit">Created by Jason Sawle</div>
   </div>
 </div>
 
@@ -109,7 +109,7 @@
       <thead><tr><th scope="col">Part</th><th scope="col">Version</th><th scope="col">What it does</th></tr></thead>
       <tbody id="versionRows"></tbody>
     </table>
-    <p>Created by Jason Sawle. © Esri 2026.</p>
+    <p>Created by Jason Sawle.</p>
     <button type="button" class="close">Close</button>
   </div>
 </dialog>
@@ -120,7 +120,7 @@
 // Bump a model's version whenever its maths or data handling changes.
 // Bump APP_VERSION on every release.
 // ======================================================================
-const APP_VERSION="1.0.0";
+const APP_VERSION="1.0.1";
 const MODELS={
  grid:{name:'Elevation grid',version:'1.0',desc:'Downloads Esri World Elevation (Terrain3D) tiles at zoom 13 for the place and samples every 4th cell into a height grid that the ice, lake and label models use.'},
  glacier:{name:'Glacier model',version:'1.0',desc:'Measures distance up the valley from the glacier snout across the elevation grid and adds an ice thickness of √(2τd/ρg) to the valley-floor profile, then grows the ice out from the snout.'},

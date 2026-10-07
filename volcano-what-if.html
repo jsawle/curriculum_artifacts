@@ -196,7 +196,7 @@
         <caption>Version numbers for this app and each model it uses</caption>
         <thead><tr><th scope="col">Part</th><th scope="col">Version</th><th scope="col">What it is</th></tr></thead>
         <tbody>
-        <tr><td>App</td><td data-ver="app">–</td><td>0.3: a version for every model, including vent placing; credit box. 0.2: fixes from review (choices locked while the model runs, corrected facts, clearer results key, reduced motion). 0.1: first version, 8 volcanoes, 1–3 start points each, 4 kinds of lava; lava only</td></tr>
+        <tr><td>App</td><td data-ver="app">–</td><td>0.4: no © line in the credit box. 0.3: a version for every model, including vent placing; credit box. 0.2: fixes from review (choices locked while the model runs, corrected facts, clearer results key, reduced motion). 0.1: first version, 8 volcanoes, 1–3 start points each, 4 kinds of lava; lava only</td></tr>
         <tr><td>Lava path model</td><td data-ver="path">–</td><td>DOWNFLOW-style steepest descent with hollow filling (same code as the Vesuvius lava explorer), 300 flows with ±3 m random bumps</td></tr>
         <tr><td>Speed model</td><td data-ver="speed">–</td><td>0.2: sticky lava stops at 400 m, like the 200–400 m lobes at Mount St. Helens (was 1 km). Jeffreys equation per step: speed = ρ g sinθ h² / (3η), with ρ = 2,600 kg/m³, slope at least 0.5°, and viscosity η and thickness h set by the kind of lava</td></tr>
         <tr><td>People in the path</td><td data-ver="people">–</td><td>WorldPop 2020, 100 m grid, counted where 20% or more of flows went. Where the model grid is finer than 60 m, people in each 100 m square are shared by area; on coarser grids each 100 m square counts if its center is in the zone. 0.2: the coarse-grid method (0.1 missed some squares on the Mauna Loa grid)</td></tr>
@@ -223,13 +223,13 @@
       <div class="k"><span class="sw" style="background:var(--l2)"></span>Unlikely (5–20%)</div>
       <div class="k"><span class="sw" style="background:var(--l1)"></span>Very unlikely (under 5%)</div>
     </div>
-    <div id="credit">Created by Jason Sawle<br />© Esri 2026</div>
+    <div id="credit">Created by Jason Sawle</div>
   </main>
 </div>
 <script>
 // ---------- Versions (single source of truth: every [data-ver] label, the versions table and the console read from here) ----------
 // Bump a model's number whenever its maths or data handling changes, and bump the app version on every release.
-const APP_VERSION = "0.3";
+const APP_VERSION = "0.4";
 const VERSIONS = { app: APP_VERSION, path: "1.0", speed: "0.2", people: "0.2", vent: "1.0" };
 document.querySelectorAll("[data-ver]").forEach(el => { el.textContent = VERSIONS[el.dataset.ver] || "–"; });
 </script>

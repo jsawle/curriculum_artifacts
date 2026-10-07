@@ -158,7 +158,7 @@ function chromeHTML(cfg) {
       ${cfg.legendLayers.map(key).join("\n      ")}
       ${hasLandforms ? `<div class="sub">Landforms show when zoomed in to Britain or Ireland.</div>` : ""}
     </div>
-    <div id="credit" class="glass"><b>Created by Jason Sawle</b><br>© Esri 2026</div>
+    <div id="credit" class="glass"><b>Created by Jason Sawle</b></div>
     <section id="timebar" class="glass" aria-label="Timeline">
       <div class="trow">
         <div id="tLabel" aria-live="off">—</div>

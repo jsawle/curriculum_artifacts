@@ -1,6 +1,6 @@
-// Vesuvius 1944 archive: newsreels, photographs and eyewitness accounts, shared by
+// Vesuvius 1944 archive: photographs and eyewitness accounts, shared by
 // vesuvius-1944-lava.html and vesuvius-1944-eruption-3d.html.
-// Archive version 1.6. 1.6: styles load when the dialog opens (story page); "had to leave their homes" (INGV: forced to evacuate); photo caption without the unit; activities no longer refer to model settings; Naples about 14 km. 1.5: holds the eight story moments (text, evidence, questions, teacher notes) shared by the 3D and VR stories. 1.4: exposes the content as VesuviusArchive.data for the story page; US spelling. 1.3: works in the VR page (card on screen, momentAt() for the headset panel), version labels filled in automatically. 1.2: B-25 photo restored, licence confirmed as USGOV-PD. 1.1: B-25 photo removed pending licence check. Bump ARCHIVE_VERSION whenever the content or behaviour changes.
+// Archive version 1.7. 1.7: newsreels removed (British Pathé and Periscope Film both require a paid licence for online and classroom use); the newsreel task now uses the photographs; open("film") opens the photographs. 1.6: styles load when the dialog opens (story page); "had to leave their homes" (INGV: forced to evacuate); photo caption without the unit; activities no longer refer to model settings; Naples about 14 km. 1.5: holds the eight story moments (text, evidence, questions, teacher notes) shared by the 3D and VR stories. 1.4: exposes the content as VesuviusArchive.data for the story page; US spelling. 1.3: works in the VR page (card on screen, momentAt() for the headset panel), version labels filled in automatically. 1.2: B-25 photo restored, licence confirmed as USGOV-PD. 1.1: B-25 photo removed pending licence check. Bump ARCHIVE_VERSION whenever the content or behaviour changes.
 //
 // Usage: VesuviusArchive.mount({ panel: element, page: "lava" | "3d" | "vr", mapwrap: element })
 //        VesuviusArchive.atHour(h, active)   // 3D and VR pages: h = hours from 00:00, 18 March 1944
@@ -8,7 +8,7 @@
 // Any element with class "va-ver" gets the archive version written into it.
 (function () {
   "use strict";
-  const ARCHIVE_VERSION = "1.6";
+  const ARCHIVE_VERSION = "1.7";
 
   // ---------- Content ----------
   const SMU = "Melvin C. Shaffer, US Army. DeGolyer Library, Southern Methodist University (no known copyright restrictions)";
@@ -89,26 +89,16 @@
       src: "https://www.earthmagazine.org/article/benchmarks-march-17-1944-most-recent-eruption-mount-vesuvius/", srcName: "EARTH Magazine, 2016" }
   ];
 
-  const FILMS = [
-    { title: "Vesuvius Eruption (1944)", by: "British Pathé newsreel", embed: "https://www.youtube-nocookie.com/embed/A-P6qQfc5fw?rel=0",
-      page: "https://www.youtube.com/watch?v=A-P6qQfc5fw",
-      about: "Shown in British cinemas in spring 1944. Pathé’s catalog describes the eruption from the air, lava moving down the slopes, people leaving Cercola, and lava moving through the streets of San Sebastiano.",
-      watch: ["How fast does the lava front move? Does it look like a river or a moving pile of rubble?",
-              "What are people carrying as they leave? What does that tell you about how much warning they had?",
-              "This film was made for wartime audiences in Britain. Whose voices are missing?"] },
-    { title: "Eruption of Mount Vesuvius, 1944", by: "Castle Films newsreel (about 10 minutes, via Periscope Film)", embed: "https://archive.org/embed/72052fVesuviusErupts",
-      page: "https://archive.org/details/72052fVesuviusErupts",
-      about: "A longer American newsreel. It shows the eruption from Naples and close up, and the damage to US Army Air Forces bombers at Pompeii Airfield.",
-      watch: ["Pause when you see the aircraft. What is covering them, and how did it get there?",
-              "List every hazard you can see: lava, ash, falling rocks, gas. Which one does the model in this app show?"] }
-  ];
+  // Newsreels removed in 1.7: British Pathé and Periscope Film (Castle Films copy) both require a paid licence
+  // for online and classroom use. The list stays, empty, so pages that read VesuviusArchive.data.FILMS still work.
+  const FILMS = [];
 
   const ACTIVITIES = [
     { t: "Test the model against an eyewitness", b: "Dr Powers described the lava front as “20 feet high and 200 yards wide” (about 6 m and 180 m). Look at the lava on the map: is it about that wide? Now picture a wall of hot rock 6 m high, about two stories, moving down a street. What could people save, and what couldn't they?" },
     { t: "Was there time to escape?", b: "The lava moved at 50–300 m an hour and San Sebastiano is about 5 km from the crater. Work out the fastest and slowest time the lava could take to get there. Then look at the photo of the children. Why did few people die from the lava?" },
     { t: "Which hazard went furthest?", b: "Lava traveled about 5 km, and only where the ground led it downhill, toward San Sebastiano. Ash went wherever the wind blew it. It fell on Pompeii Airfield, about 7 km east of the crater, wrecking 78–88 bombers, and on towns more than 20 km away, such as Cava. About 26 people died, most when ash piled up on roofs until they collapsed. Which hazard is harder to plan for, and why?" },
     { t: "Same eruption, different views", b: "A pilot called it “a beautiful sight”. An intelligence officer called it “majestic and terrible”. Choose two eyewitnesses. How did where they were, and who they were, change what they noticed?" },
-    { t: "Read the newsreel like a historian", b: "A newsreel is a primary source, but it was edited to tell a story for cinema audiences. What did the filmmakers choose to show? What might they have left out? The people of San Sebastiano and Massa di Somma are seen but not heard." }
+    { t: "Read the photographs like a historian", b: "Most of these photographs were taken by one man, Melvin C. Shaffer, a US Army medical photographer. A photograph is a primary source, but the photographer chose what to point the camera at. What did he choose to show? What might he have left out? The people of San Sebastiano and Massa di Somma are seen but not heard." }
   ];
 
   // The eight moments of the guided story (used by vesuvius-1944-story.html and the VR story).
@@ -187,7 +177,6 @@
   .va-tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
   .va-body { padding: 16px 18px 22px; }
   .va-body h3 { font-size: 16px; margin: 0 0 4px; }
-  .va-film { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 16px; margin-bottom: 22px; }
   .va-frame { position: relative; aspect-ratio: 4 / 3; background: #000; border-radius: 8px; overflow: hidden; }
   .va-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
   .va-frame .va-load { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; border-radius: 0; background: #111; color: #fff;
@@ -228,7 +217,7 @@
   #vaCard .row2 button { padding: 4px 10px; font-size: 12.5px; }
   @media (max-width: 760px) {
     dialog.va { width: 100vw; max-width: 100vw; height: 100%; max-height: 100%; border-radius: 0; margin: 0; }
-    .va-film, .va-view { grid-template-columns: 1fr; }
+    .va-view { grid-template-columns: 1fr; }
     .va-voice { grid-template-columns: 72px minmax(0, 1fr); }
     .va-voice img { width: 72px; }
     #vaCard { width: 220px; left: 8px; bottom: 20px; }
@@ -253,17 +242,16 @@
     });
   }
 
-  let dlg, body, tabBtns, current = "film", viewing = null;
+  let dlg, body, tabBtns, current = "photos", viewing = null;
 
   function buildDialog() {
     dlg = document.createElement("dialog"); dlg.className = "va"; dlg.setAttribute("aria-labelledby", "vaTitle");
     dlg.innerHTML = `
       <div class="va-head">
-        <h2 id="vaTitle">The 1944 eruption: film, photos and eyewitnesses</h2>
+        <h2 id="vaTitle">The 1944 eruption: photos and eyewitnesses</h2>
         <button class="va-x" aria-label="Close">×</button>
         <div class="va-facts">${FACTS}</div>
         <div class="va-tabs" role="tablist">
-          <button role="tab" data-t="film">Newsreels</button>
           <button role="tab" data-t="photos">Photographs</button>
           <button role="tab" data-t="voices">Eyewitnesses</button>
           <button role="tab" data-t="tasks">Be a historian</button>
@@ -276,26 +264,14 @@
     tabBtns.forEach(b => b.onclick = () => show(b.dataset.t));
     dlg.querySelector(".va-x").onclick = close;
     dlg.addEventListener("click", e => { if (e.target === dlg) close(); });        // click on the backdrop
-    dlg.addEventListener("close", () => { body.innerHTML = ""; });                  // stops any playing film
+    dlg.addEventListener("close", () => { body.innerHTML = ""; });
   }
   function close() { dlg.close(); }
 
   function show(tab, arg) {
+    if (tab === "film") tab = "photos";
     current = tab; viewing = null;
     tabBtns.forEach(b => b.setAttribute("aria-selected", b.dataset.t === tab ? "true" : "false"));
-    if (tab === "film") body.innerHTML = FILMS.map((f, i) => `
-      <div class="va-film">
-        <div>
-          <div class="va-frame" id="vaF${i}"><button class="va-load" data-f="${i}"><span>▶</span><span>Play: ${esc(f.title)}</span><span class="va-small" style="color:#bbb">Loads from ${f.embed.includes("youtube") ? "YouTube" : "the Internet Archive"}</span></button></div>
-          <div class="va-small" style="margin-top:4px">${esc(f.by)} · <a href="${f.page}" target="_blank" rel="noopener">Open at the source ↗</a></div>
-        </div>
-        <div>
-          <h3>${esc(f.title)}</h3>
-          <p style="font-size:14px;margin:4px 0 8px">${esc(f.about)}</p>
-          <b style="font-size:14px">Watch for</b>
-          <ul>${f.watch.map(w => `<li>${esc(w)}</li>`).join("")}</ul>
-        </div>
-      </div>`).join("") + `<p class="va-small">Newsreel footage © British Pathé, embedded with the YouTube player as British Pathé allows without a license. Castle Films newsreel from the Periscope Film collection, embedded with the Internet Archive player from their public upload.</p>`;
     if (tab === "photos") {
       if (arg) return viewPhoto(arg);
       body.innerHTML = `<p style="margin:0 0 10px;font-size:14px">Most of these were taken in 1944 by Melvin C. Shaffer, a US Army medical photographer (credit: DeGolyer Library, Southern Methodist University). The B-25 photo is by the US Army Air Forces. Choose a photo to look closely.</p>
@@ -313,10 +289,6 @@
     }).join("") + `<p class="va-small" style="margin-top:12px">Quotes are short extracts, credited to their sources. Most eyewitness accounts in English come from Allied soldiers. The local people of San Sebastiano and Massa di Somma told their stories in Italian, for example in <i>Vesuvio 1944: l’ultima eruzione</i> (Pesce and Rolandi, 1994).</p>`;
     if (tab === "tasks") body.innerHTML = ACTIVITIES.map((a, i) => `<div class="va-act"><b>${i + 1}. ${esc(a.t)}</b><p>${a.b}</p></div>`).join("");
     body.querySelectorAll("[data-p]").forEach(b => b.onclick = () => { tabBtns.forEach(t => t.setAttribute("aria-selected", t.dataset.t === "photos" ? "true" : "false")); viewPhoto(b.dataset.p); });
-    body.querySelectorAll("[data-f]").forEach(b => b.onclick = () => {
-      const f = FILMS[+b.dataset.f];
-      b.parentElement.innerHTML = `<iframe src="${f.embed}${f.embed.includes("youtube") ? "&autoplay=1" : ""}" title="${esc(f.title)}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
-    });
     guardImages(body); body.scrollTop = 0; dlg.scrollTop = 0;
   }
 
@@ -340,7 +312,7 @@
     guardImages(body);
   }
 
-  function open(tab = "film", arg) {
+  function open(tab = "photos", arg) {
     ensureStyles();
     if (!dlg) buildDialog();
     show(tab, arg);
@@ -360,16 +332,15 @@
       <p class="va-q">“${esc(v.quote)}”</p>
       <div class="va-who">${esc(v.who)} · ${esc(v.when)}</div>
       <div class="btns">
-        <button data-open="film">▶ Watch the 1944 newsreels</button>
         <button data-open="voices">Eyewitnesses</button>
         <button data-open="photos">Photos</button>
         <button data-open="tasks">Be a historian</button>
       </div>
       <p class="hint" style="margin-top:8px">${page === "vr"
-        ? "Eyewitness accounts appear as the eruption plays, on screen and on the menu in the headset. Newsreels and photos open here, not in the headset."
+        ? "Eyewitness accounts appear as the eruption plays, on screen and on the menu in the headset. Photos open here, not in the headset."
         : page === "3d"
         ? "Eyewitness accounts pop up on the map as the eruption plays, at the time they were written."
-        : "Real photographs, newsreels and diaries from March 1944. Use them to check what the model gets right and what it can’t show."}</p>`;
+        : "Real photographs and diaries from March 1944. Use them to check what the model gets right and what it can’t show."}</p>`;
     panel.querySelectorAll("[data-open]").forEach(b => b.onclick = () => open(b.dataset.open));
     panel.querySelectorAll("[data-p]").forEach(b => b.onclick = () => open("photos", b.dataset.p));
     guardImages(panel);

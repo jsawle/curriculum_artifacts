@@ -73,7 +73,7 @@
   <p>Arrow speed is a drawing, not the real speed of the water. The app now uses the same rivers file.</p>
   <table id="verTable"></table>
 </details>
-<div id="credit" class="glass"><b>Created by Jason Sawle</b><br>© Esri 2026</div>
+<div id="credit" class="glass"><b>Created by Jason Sawle</b></div>
 <div id="bar" class="glass">
   <button id="play" class="primary" aria-label="Play">▶ Play</button>
   <div id="tLabel">—</div>
@@ -86,7 +86,7 @@
 <script type="module">
 /* Lab version and per-model versions below (single source of truth);
    bump a model's number whenever its maths or data handling changes, and bump the lab version on every release. */
-const LAB_VERSION = "0.8", LAB_DATE = "7 October 2026";
+const LAB_VERSION = "0.9", LAB_DATE = "7 October 2026";
 const MODELS = [
   ["Rivers", "0.3", "data/helene-rivers.json (same as the app), from a wider box (83.8°W–81.2°W, 34.85°N–36.5°N) so rivers reach a lake or confluence (French Broad to Knoxville, Tuckasegee to Fontana Lake, Watauga past Elizabethton); rivers stop where they enter a reservoir outside the core area. 19 rivers (adds South Toe, Ivy, Hominy Creek, Tuckasegee with gauges; North Toe, Cane, Doe, Green and the ungauged parts of other rivers for direction only); small rivers from stream order 3. Width = 1 + 0.9 × √(flow / 1,000 cfs) px, up to 12 px, where a gauge on the same river is within 3× of the stretch's NHDPlus mean annual flow; otherwise grey, 2 px"],
   ["3D chevrons", "0.2", "Arms about 10 px on screen (0.1–1.5 km, × arrow size), 2 px lines, one every 3 km, 40 m above the terrain. Speed = 0.5 + 2.4 × log10(1 + flow ÷ mean annual flow) km per second of animation; direction-only rivers 1 km/s"]
