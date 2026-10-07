@@ -40,7 +40,8 @@ const LAYER_DEFS = {
 const LANDFORM_KEYS = ["moraines", "eskers", "meltwater", "drumlins", "cirques", "cragTails", "erratics", "streamlined"];
 
 const CAM = {
-  europe: { center: [8, 57.5], zoom: 4.4, tilt: 42, heading: 0 },
+  // the opening camera (over 6° E, 38° N, 2,600 km up, looking north): keeps all of Britain, the North Sea and Scandinavia in view
+  europe: { position: { type: "point", x: 6, y: 38, z: 2600000, spatialReference: { wkid: 4326 } }, heading: 0, tilt: 35 },
   scand: { center: [14, 61], zoom: 4.8, tilt: 45, heading: 0 },
   northsea: { center: [3, 57], zoom: 5.1, tilt: 50, heading: 0 },
   britain: { center: [-3.5, 55], zoom: 5.5, tilt: 45, heading: 0 },

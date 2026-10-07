@@ -277,7 +277,7 @@
 <script type="module">
 /* Ice Age Britain and Europe. App version and per-model versions below;
    bump a model's number when its maths or data handling changes, and the app version on every release. */
-const APP_VERSION = "1.1";
+const APP_VERSION = "1.2";
 const APP_DATE = "7 October 2026";
 const MODELS = [
   ["Ice outlines", "1.0", "Gowan et al. 2021 Eurasian margins every 2.5 ka, 0–80 ka (DATED-1 based 25–10 ka); between outlines the edge moves by blending each outline's signed distance to its edge, thickness blended in a straight line and tapered near the moving edge (1.5 × flat-bed Nye profile)"],
@@ -327,7 +327,8 @@ const OUTLINE_BASIS = { 0: "today's glaciers", 2.5: "today's glaciers", 5: "toda
 
 // ---------- steps, in time order ----------
 const CAM = {
-  europe: { center: [8, 57.5], zoom: 4.4, tilt: 42, heading: 0 },
+  // the opening camera (over 6° E, 38° N, 2,600 km up, looking north): keeps all of Britain, the North Sea and Scandinavia in view
+  europe: { position: { type: "point", x: 6, y: 38, z: 2600000, spatialReference: { wkid: 4326 } }, heading: 0, tilt: 35 },
   scand: { center: [14, 61], zoom: 4.8, tilt: 45, heading: 0 },
   northsea: { center: [3, 57], zoom: 5.1, tilt: 50, heading: 0 },
   britain: { center: [-3.5, 55], zoom: 5.5, tilt: 45, heading: 0 },
