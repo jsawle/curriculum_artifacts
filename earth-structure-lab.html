@@ -136,10 +136,11 @@
       <section class="sec" aria-labelledby="hLayers">
         <h2 id="hLayers">Layers <span class="mv" id="v-layers"></span></h2>
         <ul class="layers" id="layerList"></ul>
-        <label class="stack" for="groundOpacity">Surface: <span id="groundOpacityVal">40</span>% visible
+        <label class="stack" for="groundOpacity">Surface: <span id="groundOpacityVal">40% visible</span>
           <input id="groundOpacity" type="range" min="0" max="100" step="5" value="40" aria-describedby="crustHint" />
         </label>
-        <p class="sub" id="crustHint">Lower this to see through the surface. Untick a layer to peel it away.</p>
+        <label class="row"><input type="checkbox" id="hideSurface" checked /> Hide the surface while the Earth is cut</label>
+        <p class="sub" id="crustHint">Lower the slider to see through the surface. Untick a layer to peel it away.</p>
       </section>
 
       <section class="sec" aria-labelledby="hDims">
@@ -247,11 +248,11 @@
 <script type="module">
 // ================= Versions (single source of truth) =================
 // Bump a model's number whenever its maths or data handling changes, and bump the app version on every release.
-const APP_VERSION = "0.2.0";
+const APP_VERSION = "0.2.1";
 const MODELS = {
   layers: { name: "Layer model", version: "1.1", desc: "Concentric spheres for mantle and core at PREM depths, scaled to the globe's radius. Facts per layer for the information panel." },
   dims:   { name: "Depth label model", version: "1.0", desc: "Esri DimensionAnalysis lines from the surface to each layer boundary at true depth, on a radius 90° from the cut's anchor (to the right of the view), spaced 650 km apart. Layer names are on-screen buttons pinned to each layer's middle depth, fanned around the left half of the cut, shown while the camera is within 25° of the cut's view." },
-  slice:  { name: "Slice model", version: "1.2", desc: "Esri SliceAnalysis plane under the view centre at a chosen depth, heading and tilt. Starts cut through the centre, tilt 0° (facing a camera looking straight down)." },
+  slice:  { name: "Slice model", version: "1.3", desc: "Esri SliceAnalysis plane under the view centre at a chosen depth, heading and tilt. Starts cut through the centre, tilt 0° (facing a camera looking straight down). While any cut is on, the surface (basemap and ground) is hidden unless the viewer turns that off." },
   quakes: { name: "Earthquake depth model", version: "1.0", desc: "USGS depths placed below the surface: height = −depth × 1000 × stretch." }
 };
 const $ = (id) => document.getElementById(id);
@@ -449,7 +450,18 @@ document.getElementById("layerList").addEventListener("change", (e) => {
   const id = e.target.dataset.layer; if (id && shell[id]) shell[id].visible = e.target.checked;
 });
 const go = $("groundOpacity");
-go.addEventListener("input", () => { map.ground.opacity = go.value / 100; $("groundOpacityVal").textContent = go.value; });
+// The see-through surface sits in front of the cut, so it is hidden while the Earth is cut (unless the viewer unticks that).
+let cutOn = false;
+function applySurface() {
+  const hide = cutOn && $("hideSurface").checked;
+  map.ground.opacity = hide ? 0 : go.value / 100;
+  for (const l of [...(map.basemap?.baseLayers ?? []), ...(map.basemap?.referenceLayers ?? [])]) l.visible = !hide;
+  go.disabled = hide;
+  $("groundOpacityVal").textContent = hide ? "hidden while the Earth is cut" : go.value + "% visible";
+}
+function setCut(on) { cutOn = on; applySurface(); }
+go.addEventListener("input", applySurface);
+$("hideSurface").addEventListener("change", applySurface);
 
 // ---------- Depth dimensions and layer names ----------
 // A point 90° of arc from the anchor, along a bearing: it lies on the circle where a plane through the Earth's
@@ -584,6 +596,7 @@ function applyGuidedSlice() {
   sliceView.active = true;
   try { sliceView.interactive = false; } catch (e) { console.warn(e); }
   btnSlice.setAttribute("aria-pressed", "true");
+  setCut(true);
   // depth labels only belong on the centre cut facing the camera
   const centred = Number(sd.value) >= 6350 && Number(st.value) === 0;
   dimAnchor = centred ? sliceAnchor : null;
@@ -606,6 +619,7 @@ $("btnPlace").addEventListener("click", async () => {
   placeAbort?.abort(); placeAbort = new AbortController();
   sliceView.active = true;
   try { sliceView.interactive = true; } catch (e) { console.warn(e); }
+  setCut(true);
   setStatus("Click on the globe to place a cut, then drag its handles. Press Escape to cancel.");
   try { await sliceView.place({ signal: placeAbort.signal }); setStatus("Cut placed."); }
   catch (e) { if (e.name !== "AbortError") { console.error(e); setStatus("Placing a cut did not work in this version."); } }
@@ -616,6 +630,7 @@ $("btnSliceOff").addEventListener("click", () => {
   if (slice.clear) slice.clear(); else slice.shape = null;
   btnSlice.setAttribute("aria-pressed", "false");
   dimAnchor = null; drawDims(); drawLabels();
+  setCut(false);
   setStatus("Cut removed. The depth labels show again when you cut through the centre.");
 });
 $("excludeQuakes").addEventListener("change", (e) => {
