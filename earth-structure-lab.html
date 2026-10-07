@@ -32,6 +32,7 @@
   button:hover:not(:disabled) { background: var(--chip-hover); }
   button.primary { background: linear-gradient(135deg, var(--go1), var(--go2)); border-color: transparent; color: #fff; box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45); }
   button[aria-pressed="true"]:not(.lname) { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  button[aria-pressed="true"]:not(.lname):hover:not(:disabled) { background: #a5e4ff; }
   .iconbtn { width: 36px; height: 36px; padding: 0; display: inline-grid; place-items: center; font-size: 16px; flex: none; }
   input[type=range] { width: 100%; accent-color: var(--accent); }
   input[type=checkbox], input[type=radio] { width: 18px; height: 18px; accent-color: var(--accent); flex: none; margin: 0; }
@@ -73,7 +74,17 @@
   .cfoot button { flex: 1; }
 
   /* right info panel for the selected layer */
-  #info { position: absolute; right: 64px; top: 16px; width: 340px; max-height: calc(100% - 120px); overflow-y: auto; padding: 14px 16px 12px; z-index: 6; scrollbar-width: thin; }
+  #info, #conv { position: absolute; right: 64px; top: 16px; width: 340px; max-height: calc(100% - 120px); overflow-y: auto; padding: 14px 16px 12px; z-index: 6; scrollbar-width: thin; }
+  #conv .head { display: flex; align-items: center; gap: 10px; }
+  #conv h2 { font-size: 20px; margin: 0; flex: 1; font-weight: 800; line-height: 1.2; }
+  #conv ol { padding-left: 20px; margin: 10px 0; font-size: 13.5px; }
+  #conv li { margin-bottom: 7px; }
+  #conv .how { font-size: 13.5px; border-left: 3px solid var(--rule); padding-left: 10px; margin: 8px 0 6px; }
+  #conv .src { font-size: 11.5px; color: var(--muted); margin: 8px 0 0; }
+  .key { display: grid; grid-template-columns: auto 1fr; gap: 3px 8px; font-size: 12.5px; margin: 6px 0; align-items: center; }
+  .key i { display: inline-block; width: 18px; height: 4px; border-radius: 2px; }
+  .seg { display: flex; gap: 6px; }
+  .seg button { flex: 1; font-size: 13.5px; padding: 8px 6px; }
   #info .head { display: flex; align-items: center; gap: 10px; }
   #info .head .sw { width: 22px; height: 22px; border-radius: 7px; }
   #info h2 { font-size: 20px; margin: 0; flex: 1; font-weight: 800; line-height: 1.2; }
@@ -88,7 +99,8 @@
   .navrow button { flex: 1; font-size: 13px; padding: 6px 8px; }
 
   /* layer names pinned to points on the cut (HTML, because ArcGIS hides 3D text placed below the ground) */
-  #labelsOverlay { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+  #labelsOverlay, #convOverlay { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+  span.lbl { pointer-events: none; }
   .lbl { position: absolute; transform: translate(-50%, -50%); pointer-events: auto; font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 999px;
     background: rgba(11, 18, 33, 0.8); border: 1.5px solid var(--c, #fff); color: #fff; white-space: nowrap; box-shadow: 0 4px 14px rgba(0,0,0,.4); }
   .lbl::before { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--c, #fff); margin-right: 6px; vertical-align: 0; }
@@ -106,7 +118,7 @@
   /* narrow screens: card becomes a bottom sheet, info panel sits at the top */
   @media (max-width: 820px) {
     #card { left: 8px; right: 8px; top: auto; bottom: 22px; width: auto; height: 46%; }
-    #info { left: 8px; right: 56px; top: 8px; width: auto; max-height: 40%; }
+    #info, #conv { left: 8px; right: 56px; top: 8px; width: auto; max-height: 40%; }
     #credit { bottom: calc(46% + 30px); right: 8px; }
     .lede { display: none; }
     .lbl { font-size: 11.5px; padding: 2px 7px; }
@@ -133,6 +145,15 @@
     <div id="status" role="status" aria-live="polite">Loading the globe…</div>
 
     <div class="scroll">
+      <section class="sec" aria-labelledby="hShow">
+        <h2 id="hShow">On the cut <span class="mv" id="v-conv"></span></h2>
+        <div class="seg" role="group" aria-label="What to show on the cut">
+          <button id="modeLayers" aria-pressed="true">Layers and depths</button>
+          <button id="modeConv" aria-pressed="false">How it moves</button>
+        </div>
+        <button id="btnWhy" hidden style="width:100%;margin-top:8px">Why do the plates move?</button>
+      </section>
+
       <section class="sec" aria-labelledby="hLayers">
         <h2 id="hLayers">Layers <span class="mv" id="v-layers"></span></h2>
         <ul class="layers" id="layerList"></ul>
@@ -209,6 +230,33 @@
   </aside>
 
   <div id="labelsOverlay" role="group" aria-label="Layer names on the cut" hidden></div>
+  <div id="convOverlay" role="group" aria-label="Labels for the convection model" hidden></div>
+
+  <section id="conv" class="glass" aria-labelledby="convTitle" hidden>
+    <div class="head">
+      <h2 id="convTitle" tabindex="-1">Why do the plates move?</h2>
+      <button class="iconbtn" id="convClose" aria-label="Close the explanation">✕</button>
+    </div>
+    <ol>
+      <li><b>Heat escapes from inside the Earth.</b> It comes from the core, from heat left over from when the Earth formed, and from radioactive elements in the rocks.</li>
+      <li><b>The mantle is solid rock, but it flows very slowly,</b> like extremely stiff putty, over millions of years.</li>
+      <li><b>Hot rock rises</b> because it is less dense than the cooler rock around it. Under the ocean ridges it comes close to the surface, melts a little and makes new plate.</li>
+      <li><b>Cold rock sinks.</b> Old ocean plate cools, becomes denser than the mantle below it and sinks at the trenches.</li>
+      <li><b>The plates are part of the loop.</b> The sinking edge pulls the rest of the plate after it (<i>slab pull</i>), and new plate slides away from the high ridge (<i>ridge push</i>). Plates with sinking edges move fastest, which is why many scientists think slab pull is the biggest force. The flowing mantle is the rest of the same loop, not a conveyor belt carrying the plates.</li>
+    </ol>
+    <div class="key" aria-label="Key to the colours">
+      <i style="background:#ff6b3d"></i><span>Hot rock rising</span>
+      <i style="background:#ffa94d"></i><span>Rock cooling as it moves under the plate</span>
+      <i style="background:#4dabf7"></i><span>Cooler, denser rock sinking</span>
+      <i style="background:#b197fc"></i><span>Rock moving back along the bottom of the mantle</span>
+      <i style="background:#a5d8ff;height:7px"></i><span>Sinking plate (slab)</span>
+      <i style="background:#f1f3f5"></i><span>Plate moving away from a ridge towards a trench</span>
+    </div>
+    <p class="how"><b>How fast?</b> Plates move about 2–10 cm a year, roughly as fast as fingernails grow. Here a trip round one loop takes 12 seconds; in the real mantle it takes hundreds of millions of years.</p>
+    <p class="note">This is a simplified picture. Real convection is not neat loops of equal size: sinking plates can reach the bottom of the mantle, and plumes of hot rock rise from deep down, for example under Hawaii.</p>
+    <div class="navrow"><button id="btnPause" aria-pressed="false">Pause movement</button></div>
+    <p class="src">Sources: NGSS HS-ESS2-3 and ESS2.B; Columbia University, "Driving forces of plate motions"; Pacific Northwest Seismic Network, "Plate tectonics".</p>
+  </section>
 
   <section id="info" class="glass" aria-labelledby="infoTitle" hidden>
     <div class="head">
@@ -224,7 +272,7 @@
     <p class="src">Sources: National Geographic Education; Earle, <i>Physical Geology</i>; PREM (Dziewonski &amp; Anderson, 1981). Figures are rounded; scientists' estimates vary.</p>
   </section>
 
-  <div id="credit" class="glass"><b>Created by Jason Sawle</b><br>© Esri 2026</div>
+  <div id="credit" class="glass"><b>Created by Jason Sawle</b></div>
 </div>
 
 <dialog id="about" aria-labelledby="aboutTitle">
@@ -240,6 +288,7 @@
     <li>Layer depths: Preliminary Reference Earth Model (Dziewonski &amp; Anderson, 1981), rounded. The crust uses a 35 km average (real range about 5–70 km).</li>
     <li>Temperatures and facts: National Geographic Education ("Core"); Earle, <i>Physical Geology</i>, 9.2 "The Temperature of Earth's Interior".</li>
     <li>Earthquakes: USGS real-time feed, magnitude 4.5+, past 30 days.</li>
+    <li>Convection and plate forces: NGSS HS-ESS2-3 (ESS2.A, ESS2.B); Columbia University, "Driving forces of plate motions"; plate speeds from the Pacific Northwest Seismic Network.</li>
     <li>Basemap and elevation: Esri. Imagery on the cut globe: Esri World Imagery (NASA Blue Marble if that cannot load).</li>
   </ul>
   <button id="btnAboutClose">Close</button>
@@ -248,9 +297,10 @@
 <script type="module">
 // ================= Versions (single source of truth) =================
 // Bump a model's number whenever its maths or data handling changes, and bump the app version on every release.
-const APP_VERSION = "0.3.0";
+const APP_VERSION = "0.4.0";
 const MODELS = {
-  layers: { name: "Layer model", version: "1.1", desc: "Concentric spheres for mantle and core at PREM depths, scaled to the globe's radius. Facts per layer for the information panel." },
+  layers: { name: "Layer model", version: "1.2", desc: "Concentric spheres for mantle and core at PREM depths, scaled to the globe's radius. Facts per layer for the information panel (upper mantle text now links its slow flow to convection)." },
+  conv:   { name: "Convection model", version: "1.0", desc: "Schematic mantle convection on the centre cut: six loops between 3,730 km and 6,090 km from the centre (core–mantle boundary 3,480 km; base of the plates about 6,271 km), turning in alternate directions, so rising rock (ridges) and sinking rock (trenches) alternate every 60°. Plates drawn as arrows 220 km above the surface from ridge to trench; a sinking slab from each trench to 1,500 km deep. Rock parcels go once round a loop in 12 seconds (in reality hundreds of millions of years)." },
   dims:   { name: "Depth label model", version: "1.0", desc: "Esri DimensionAnalysis lines from the surface to each layer boundary at true depth, on a radius 90° from the cut's anchor (to the right of the view), spaced 650 km apart. Layer names are on-screen buttons pinned to each layer's middle depth, fanned around the left half of the cut, shown while the camera is within 25° of the cut's view." },
   slice:  { name: "Slice model", version: "1.5", desc: "Esri SliceAnalysis plane under the view centre at a chosen depth, heading and tilt. Starts cut through the centre, tilt 0° (facing a camera looking straight down). While any cut is on, the see-through ground is switched off and a solid imagery sphere (Esri World Imagery, NASA Blue Marble as a fallback) is sliced with the layers, so the countries show on the uncut part and only the cut face shows the layers (viewer can turn this off)." },
   quakes: { name: "Earthquake depth model", version: "1.0", desc: "USGS depths placed below the surface: height = −depth × 1000 × stretch." }
@@ -280,7 +330,7 @@ const LAYERS = [
     thick: "About 5–10 km under the oceans, 30–70 km under continents. This model uses a 35 km average.",
     how: "In 1909 Andrija Mohorovičić noticed that earthquake waves speed up suddenly at a certain depth. That boundary, the base of the crust, is called the Moho." },
   { id: "upperMantle", name: "Upper mantle", top: 35, bottom: 660, color: "#f4a259", mesh: true, fan: 300, state: "Solid, but flows very slowly",
-    text: "Hot rock that is solid, but soft enough in places to creep a few centimetres a year. That slow flow helps move the plates above it.",
+    text: "Hot rock that is solid, but soft enough in places to creep a few centimetres a year. Together with the sinking plates, this slow flow is mantle convection (choose \"How it moves\").",
     made: "Rock rich in the green mineral olivine (peridotite).",
     temp: "About 1,000 °C at the top, about 1,700 °C at 250 km down",
     density: "about 3.4–4.0 g/cm³",
@@ -333,6 +383,7 @@ function showInfo(id, { focus = false } = {}) {
   const i = LAYERS.indexOf(l);
   $("infoUp").disabled = i === 0; $("infoDown").disabled = i === LAYERS.length - 1;
   document.querySelectorAll("button.lname").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.info === id)));
+  $("conv").hidden = true;
   $("info").hidden = false;
   if (focus) $("infoTitle").focus();
   onSelect(id);
@@ -351,7 +402,10 @@ $("infoClose").addEventListener("click", () => {
 });
 $("infoUp").addEventListener("click", () => { const i = LAYERS.findIndex(l => l.id === selectedId); if (i > 0) showInfo(LAYERS[i - 1].id, { focus: true }); });
 $("infoDown").addEventListener("click", () => { const i = LAYERS.findIndex(l => l.id === selectedId); if (i < LAYERS.length - 1) showInfo(LAYERS[i + 1].id, { focus: true }); });
-document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("info").hidden && !document.querySelector("dialog[open]")) $("infoClose").click(); });
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape" || document.querySelector("dialog[open]")) return;
+  if (!$("info").hidden) $("infoClose").click(); else if (!$("conv").hidden) $("convClose").click();
+});
 
 const about = $("about");
 $("btnAbout").addEventListener("click", () => about.showModal());
@@ -389,7 +443,7 @@ const view = sceneEl.view;
 view.popupEnabled = false;
 // keep the globe clear of the floating card on the left
 const setPadding = () => {
-  const infoOpen = !$("info").hidden;
+  const infoOpen = !$("info").hidden || !$("conv").hidden;
   view.padding = window.innerWidth > 820 ? { left: 400, right: infoOpen ? 400 : 0, top: 0, bottom: 0 }
                                          : { left: 0, top: 0, right: 0, bottom: Math.round(window.innerHeight * 0.46) };
 };
@@ -524,6 +578,7 @@ function quarterRound(anchor, bearingDeg) {
   let lon = lon2 / r; lon = ((lon + 540) % 360) - 180;
   return { longitude: lon, latitude: lat2 / r };
 }
+let mode = "layers"; // "layers" (names and depth dimensions) or "conv" (convection and plates)
 const dims = new DimensionAnalysis({
   style: { type: "simple", color: [255, 255, 255, 0.9], lineSize: 1.5, fontSize: 11, textColor: [4, 18, 31, 1], textBackgroundColor: [125, 211, 252, 0.92] }
 });
@@ -531,7 +586,7 @@ view.analyses.add(dims);
 let dimAnchor = null; // { longitude, latitude, heading }
 function drawDims() {
   dims.dimensions.removeAll();
-  if (!dimAnchor || !$("showDims").checked) return;
+  if (!dimAnchor || !$("showDims").checked || mode !== "layers") return;
   const p = quarterRound(dimAnchor, dimAnchor.heading + 90); // to the right of the view
   const depths = [35, 660, 2891, 5150, 6371];
   depths.forEach((d, i) => {
@@ -551,7 +606,7 @@ overlay.querySelectorAll(".lbl").forEach(b => b.addEventListener("click", () => 
 let labelPts = null;
 function drawLabels() {
   labelPts = null;
-  if (dimAnchor && $("showLabels").checked) {
+  if (dimAnchor && $("showLabels").checked && mode === "layers") {
     labelPts = Object.fromEntries(LAYERS.map(l => {
       // each name on its own radius (fanned around the left half of the cut) so they don't overlap
       const q = quarterRound(dimAnchor, dimAnchor.heading + l.fan);
@@ -566,20 +621,34 @@ const arcDeg = (a, b) => { // great-circle angle between two lon/lat points, in 
   const c = Math.sin(a.latitude * r) * Math.sin(b.latitude * r) + Math.cos(a.latitude * r) * Math.cos(b.latitude * r) * Math.cos((a.longitude - b.longitude) * r);
   return Math.acos(Math.min(1, Math.max(-1, c))) / r;
 };
+// Convection labels, placed the same way as the layer names (positions: angle on the cut from screen-up, distance from the centre in km)
+const CONV_CHIPS = [
+  { id: "ridge",  text: "Ridge · plates move apart",   c: "#ff6b3d", th: 30,  r: 6371 + 750 },
+  { id: "trench", text: "Trench · plate sinks",        c: "#4dabf7", th: 330, r: 6371 + 750 },
+  { id: "plate",  text: "Plate moves 2–10 cm a year",  c: "#f1f3f5", th: 0,   r: 6371 + 420 },
+  { id: "rise",   text: "Hot rock rises",              c: "#ff6b3d", th: 270, r: 4910 },
+  { id: "sink",   text: "Cooler, denser rock sinks",   c: "#4dabf7", th: 210, r: 4910 },
+  { id: "slab",   text: "Slab pull",                   c: "#a5d8ff", th: 318, r: 5500 },
+  { id: "heat",   text: "Heat from the core",          c: "#ffd8a8", th: 180, r: 3150 }
+];
+const convOverlay = $("convOverlay");
+convOverlay.innerHTML = CONV_CHIPS.map(c => `<span class="lbl" data-pt="${c.id}" style="--c:${c.c}">${c.text}</span>`).join("");
+let convPts = null;
 let raf = 0;
-function placeLabels() {
-  // the names only make sense while the camera still looks at the cut face-on
+function placeGroup(container, pts, key) {
+  // labels only make sense while the camera still looks at the cut face-on
   const cam = view.camera?.position;
-  const onView = labelPts && cam && arcDeg(cam, dimAnchor) < 25;
-  overlay.hidden = !onView;
+  const onView = pts && dimAnchor && cam && arcDeg(cam, dimAnchor) < 25;
+  container.hidden = !onView;
   if (!onView) return;
-  for (const b of overlay.querySelectorAll(".lbl")) {
-    const sp = view.toScreen(labelPts[b.dataset.info]);
+  for (const b of container.querySelectorAll(".lbl")) {
+    const sp = view.toScreen(pts[b.dataset[key]]);
     const ok = sp && sp.x > 0 && sp.y > 0 && sp.x < view.width && sp.y < view.height;
     b.hidden = !ok;
     if (ok) { b.style.left = sp.x + "px"; b.style.top = sp.y + "px"; }
   }
 }
+function placeLabels() { placeGroup(overlay, labelPts, "info"); placeGroup(convOverlay, convPts, "pt"); }
 reactiveUtils.watch(() => [view.camera, view.width, view.height, view.padding], () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(placeLabels); });
 $("showDims").addEventListener("change", drawDims);
 $("showLabels").addEventListener("change", drawLabels);
@@ -651,7 +720,7 @@ function applyGuidedSlice() {
   // depth labels only belong on the centre cut facing the camera
   const centred = Number(sd.value) >= 6350 && Number(st.value) === 0;
   dimAnchor = centred ? sliceAnchor : null;
-  drawDims(); drawLabels();
+  drawDims(); drawLabels(); drawConvection();
 }
 function cutThroughCentre() {
   sliceAnchor = centreAnchor();
@@ -666,7 +735,7 @@ for (const [el, out, fmt] of [[sd, "sliceDepthVal", v => km(Number(v))], [sh, "s
 let placeAbort = null;
 $("btnPlace").addEventListener("click", async () => {
   btnSlice.setAttribute("aria-pressed", "false");
-  dimAnchor = null; drawDims(); drawLabels();
+  dimAnchor = null; drawDims(); drawLabels(); drawConvection();
   placeAbort?.abort(); placeAbort = new AbortController();
   sliceView.active = true;
   try { sliceView.interactive = true; } catch (e) { console.warn(e); }
@@ -680,7 +749,7 @@ $("btnSliceOff").addEventListener("click", () => {
   sliceView.active = false;
   if (slice.clear) slice.clear(); else slice.shape = null;
   btnSlice.setAttribute("aria-pressed", "false");
-  dimAnchor = null; drawDims(); drawLabels();
+  dimAnchor = null; drawDims(); drawLabels(); drawConvection();
   setCut(false);
   setStatus("Cut removed. The depth labels show again when you cut through the centre.");
 });
@@ -694,6 +763,97 @@ reactiveUtils.watch(() => slice.shape, (s) => {
   $("sliceReadout").textContent = `lon ${p.longitude?.toFixed(2)}  lat ${p.latitude?.toFixed(2)}\nz ${km(Math.round((p.z ?? 0) / 1000))} km\n` +
     `heading ${Math.round(s.heading)}°  tilt ${Math.round(s.tilt)}°`;
 }, { initial: true });
+
+// ---------- Convection model ----------
+// Everything is drawn in the plane of the centre cut: a point is given by its angle on the cut (0° = up the screen,
+// clockwise) and its distance from the Earth's centre. quarterRound() finds the surface point at that angle; going
+// straight down from it stays in the cut plane.
+const convLayer = new GraphicsLayer({ title: "Convection", elevationInfo: { mode: "absolute-height" } });
+const parcelLayer = new GraphicsLayer({ title: "Moving rock", elevationInfo: { mode: "absolute-height" } });
+map.addMany([convLayer, parcelLayer]);
+slice.excludedLayers.addMany([convLayer, parcelLayer]); // they lie exactly on the cut, so the cut must not hide them
+const CONV = { n: 6, rIn: 3730, rOut: 6090, cmb: 3480, half: 24, q: 0.45, loopSeconds: 12, parcels: 5, slabDepth: 1500, plateR: 6371 + 220 };
+function cutPt(th, rKm) {
+  const q = quarterRound(dimAnchor, dimAnchor.heading + th);
+  return pointAt(q.longitude, q.latitude, -(R_TRUE_KM - rKm) * SCALE * 1000);
+}
+const sgp = (x) => Math.sign(x) * Math.pow(Math.abs(x), CONV.q);
+function convLoop(cell) {
+  // t = 0 at the bottom; t increasing goes along the bottom, up the rising side, across the top, down the sinking side
+  const rm = (CONV.rIn + CONV.rOut) / 2, b = (CONV.rOut - CONV.rIn) / 2;
+  return (t) => ({ th: cell.thc + cell.s * CONV.half * sgp(Math.sin(t)), r: rm - b * sgp(Math.cos(t)) });
+}
+// cells alternate direction: with these centres, rising rock (ridges) is at 30°, 150°, 270° and sinking rock (trenches) at 90°, 210°, 330°
+const convCells = () => Array.from({ length: CONV.n }, (_, k) => ({ s: k % 2 === 0 ? 1 : -1, thc: k * (360 / CONV.n) }));
+const SIDES = [[-Math.PI / 4, Math.PI / 4, "#b197fc"], [Math.PI / 4, 3 * Math.PI / 4, "#ff6b3d"], [3 * Math.PI / 4, 5 * Math.PI / 4, "#ffa94d"], [5 * Math.PI / 4, 7 * Math.PI / 4, "#4dabf7"]];
+const lineSym = (color, size, arrow = true) => ({ type: "line-3d", symbolLayers: [{ type: "line", size, material: { color }, cap: "round",
+  ...(arrow ? { marker: { type: "style", style: "arrow", placement: "end", color } } : {}) }] });
+const polyAt = (pts) => ({ type: "polyline", hasZ: true, spatialReference: { wkid: 4326 }, paths: [pts.map(p => { const g = cutPt(p.th, p.r); return [g.longitude, g.latitude, g.z]; })] });
+let parcels = [];
+function drawConvection() {
+  convLayer.removeAll(); parcelLayer.removeAll(); parcels = []; convPts = null;
+  if (mode !== "conv" || !dimAnchor) { placeLabels(); return; }
+  const add = (pts, sym) => convLayer.add(new Graphic({ geometry: polyAt(pts), symbol: sym }));
+  // heat from the core: a glowing line along the core–mantle boundary
+  add(Array.from({ length: 121 }, (_, i) => ({ th: i * 3, r: CONV.cmb + 40 })), lineSym("#ff6b3d", 3, false));
+  for (const cell of convCells()) {
+    const f = convLoop(cell);
+    for (const [a, b, color] of SIDES) add(Array.from({ length: 15 }, (_, i) => f(a + 0.1 + (b - a - 0.2) * i / 14)), lineSym(color, 3));
+    // the plate on top, moving from its ridge (rising side) to its trench (sinking side)
+    add(Array.from({ length: 21 }, (_, i) => ({ th: cell.thc + cell.s * (27 - 54 * i / 20), r: CONV.plateR })), lineSym("#f1f3f5", 4));
+    // the sinking slab at this cell's trench (one per trench: drawn from the cells turning clockwise)
+    if (cell.s === 1) {
+      const tt = cell.thc - 30;
+      add(Array.from({ length: 21 }, (_, i) => { const d = CONV.slabDepth * i / 20; return { th: tt + 1.2 - 6 * Math.pow(d / CONV.slabDepth, 0.7), r: 6371 - d }; }), lineSym("#a5d8ff", 7));
+    }
+    for (let k = 0; k < CONV.parcels; k++) {
+      const g = new Graphic({ symbol: { type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "sphere" },
+        width: 170000, height: 170000, depth: 170000, material: { color: "#ffffff" } }] } });
+      parcels.push({ g, f, k }); parcelLayer.add(g);
+    }
+  }
+  placeParcels();
+  convPts = Object.fromEntries(CONV_CHIPS.map(c => [c.id, cutPt(c.th, c.r)]));
+  placeLabels();
+}
+let convPhase = 0, convPaused = reduceMotion, lastTick = 0;
+function placeParcels() {
+  if (!dimAnchor) return;
+  for (const p of parcels) { const v = p.f(convPhase + p.k * 2 * Math.PI / CONV.parcels); p.g.geometry = cutPt(v.th, v.r); }
+}
+function tickConv(ts) {
+  if (ts - lastTick > 100) {
+    if (!convPaused && mode === "conv" && parcels.length) { convPhase += Math.min(0.5, (ts - lastTick) / 1000) * (2 * Math.PI / CONV.loopSeconds); placeParcels(); }
+    lastTick = ts;
+  }
+  requestAnimationFrame(tickConv);
+}
+requestAnimationFrame(tickConv);
+const btnPause = $("btnPause");
+function showPause() { btnPause.setAttribute("aria-pressed", String(convPaused)); btnPause.textContent = convPaused ? "Play movement" : "Pause movement"; }
+showPause();
+btnPause.addEventListener("click", () => { convPaused = !convPaused; showPause(); });
+
+function showConv({ focus = false } = {}) {
+  if (!$("info").hidden) hideInfo();
+  $("conv").hidden = false; setPadding();
+  if (focus) $("convTitle").focus();
+}
+function hideConv() { $("conv").hidden = true; setPadding(); }
+$("convClose").addEventListener("click", () => { hideConv(); (mode === "conv" ? $("btnWhy") : $("modeConv")).focus(); });
+$("btnWhy").addEventListener("click", () => showConv({ focus: true }));
+function setMode(m) {
+  mode = m;
+  $("modeLayers").setAttribute("aria-pressed", String(m === "layers"));
+  $("modeConv").setAttribute("aria-pressed", String(m === "conv"));
+  $("btnWhy").hidden = m !== "conv";
+  if (m === "conv" && !dimAnchor) cutThroughCentre(); // the convection model is drawn on the centre cut
+  drawDims(); drawLabels(); drawConvection();
+  if (m === "conv") { showConv(); setStatus("Showing how the mantle and plates move. Select \"Why do the plates move?\" for the explanation."); }
+  else { hideConv(); setStatus("Showing the layers and their depths."); }
+}
+$("modeLayers").addEventListener("click", () => setMode("layers"));
+$("modeConv").addEventListener("click", () => setMode("conv"));
 
 // ---------- Selecting on the globe ----------
 view.on("click", async (evt) => {
