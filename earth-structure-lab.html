@@ -6,157 +6,238 @@
 <title>Earth Structure Lab</title>
 <!-- ArcGIS Maps SDK for JavaScript 5.1 (core + components) -->
 <script type="module" src="https://js.arcgis.com/5.1/"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <style>
+  /* Dark "glass" theme (same family as the Helene and Ice Age apps). Text colours meet WCAG AA on the panel colour. */
   :root {
-    --bg: #0b0f1e;
-    --panel: #121a30;
-    --panel-2: #1a2440;
-    --text: #f1f3f8;
-    --muted: #b8c0d6;
-    --accent: #7cc4ff;
-    --border: #2c3a60;
-    --focus: #ffd43b;
-    --warn: #ffb4a2;
+    --bg: #0b1220; --panel: #0f172a; --glass: rgba(11, 18, 33, 0.86); --glass-edge: rgba(255, 255, 255, 0.10);
+    --ink: #eef3fa; --muted: #a8b6c9; --rule: rgba(255, 255, 255, 0.13); --chip: rgba(255, 255, 255, 0.08); --chip-hover: rgba(255, 255, 255, 0.14);
+    --accent: #7dd3fc; --accent-ink: #04121f; --go1: #2563eb; --go2: #0e7490; --warn: #fdba74;
+    --radius: 18px; --shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
   }
   * { box-sizing: border-box; }
-  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; font-size: 15px; line-height: 1.45; }
-  .skip { position: absolute; left: -9999px; top: 0; background: var(--focus); color: #000; padding: 8px 12px; z-index: 100; }
-  .skip:focus { left: 8px; top: 8px; }
-  .app { display: grid; grid-template-columns: 340px 1fr; height: 100%; }
-  aside { background: var(--panel); border-right: 1px solid var(--border); overflow-y: auto; padding: 14px 16px 90px; }
-  main { position: relative; min-height: 0; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font: 15px/1.5 Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  #app { position: relative; height: 100%; overflow: hidden; }
+  #mapwrap { position: absolute; inset: 0; }
   arcgis-scene { display: block; width: 100%; height: 100%; }
-  h1 { font-size: 1.25rem; margin: 0 0 2px; }
-  h2 { font-size: 1rem; margin: 18px 0 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  p { margin: 6px 0; }
-  .sub { color: var(--muted); font-size: .9rem; }
-  .badge { font-size: .72rem; font-weight: 600; background: var(--panel-2); border: 1px solid var(--border);
-    color: var(--accent); border-radius: 999px; padding: 1px 8px; }
-  fieldset { border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; margin: 8px 0; }
-  legend { padding: 0 4px; color: var(--muted); font-size: .85rem; }
-  label { display: flex; align-items: center; gap: 8px; margin: 6px 0; cursor: pointer; }
-  label.stack { display: block; }
+  .glass { background: var(--glass); border: 1px solid var(--glass-edge); border-radius: var(--radius); box-shadow: var(--shadow); backdrop-filter: blur(14px) saturate(1.2); -webkit-backdrop-filter: blur(14px) saturate(1.2); }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .skip { position: absolute; left: -9999px; top: 0; z-index: 20; background: var(--accent); color: var(--accent-ink); padding: 8px 12px; border-radius: 10px; font-weight: 700; }
+  .skip:focus { left: 16px; top: 16px; }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  button { font: inherit; font-weight: 600; border-radius: 12px; padding: 8px 13px; cursor: pointer; border: 1px solid var(--glass-edge); background: var(--chip); color: var(--ink); transition: background .15s; }
+  button:hover:not(:disabled) { background: var(--chip-hover); }
+  button.primary { background: linear-gradient(135deg, var(--go1), var(--go2)); border-color: transparent; color: #fff; box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45); }
+  button[aria-pressed="true"]:not(.lname) { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .iconbtn { width: 36px; height: 36px; padding: 0; display: inline-grid; place-items: center; font-size: 16px; flex: none; }
   input[type=range] { width: 100%; accent-color: var(--accent); }
-  input[type=checkbox], input[type=radio] { width: 18px; height: 18px; accent-color: var(--accent); }
-  .swatch { width: 14px; height: 14px; border-radius: 3px; border: 1px solid #0006; flex: none; }
-  button { font: inherit; background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
-    border-radius: 6px; padding: 7px 10px; cursor: pointer; margin: 4px 4px 4px 0; }
-  button:hover { border-color: var(--accent); }
-  button[aria-pressed=true] { background: #234a73; border-color: var(--accent); }
-  :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
-  table { width: 100%; border-collapse: collapse; font-size: .85rem; margin-top: 6px; }
-  caption { text-align: left; color: var(--muted); font-size: .8rem; padding-bottom: 4px; }
-  th, td { text-align: left; padding: 5px 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
-  th { color: var(--muted); font-weight: 600; }
-  tr.selected td { background: #234a73; }
-  .note { font-size: .82rem; color: var(--warn); }
-  .readout { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .78rem; color: var(--muted);
-    background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; white-space: pre-wrap; }
-  #status { min-height: 1.4em; font-size: .85rem; color: var(--accent); }
-  .lab { border: 1px dashed #ffd43b88; border-radius: 6px; padding: 4px 8px; font-size: .8rem; color: #ffe8a3; margin: 6px 0 0; }
-  .credit { position: absolute; right: 10px; bottom: 30px; background: #000c; color: #fff; border: 1px solid #ffffff40;
-    border-radius: 6px; padding: 5px 9px; font-size: .75rem; line-height: 1.3; z-index: 5; text-align: right; }
-  dialog { background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 10px; max-width: 560px; width: calc(100% - 32px); }
-  dialog::backdrop { background: #000a; }
-  @media (max-width: 760px) {
-    .app { grid-template-columns: 1fr; grid-template-rows: 55% 45%; }
-    aside { order: 2; border-right: 0; border-top: 1px solid var(--border); padding-bottom: 24px; }
-    main { order: 1; }
+  input[type=checkbox], input[type=radio] { width: 18px; height: 18px; accent-color: var(--accent); flex: none; margin: 0; }
+
+  /* left control card */
+  #card { position: absolute; left: 16px; top: 16px; bottom: 24px; width: 372px; display: flex; flex-direction: column; padding: 16px 18px 12px; z-index: 6; }
+  .brand { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); }
+  .brand .kicker { text-transform: uppercase; letter-spacing: .12em; font-weight: 700; color: var(--accent); }
+  .brand .sp { flex: 1; }
+  .labchip { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; border: 1px dashed rgba(253, 186, 116, .6); color: #ffdcb8; }
+  h1 { font-size: 22px; line-height: 1.15; margin: 6px 0 2px; font-weight: 800; letter-spacing: -0.01em; }
+  .lede { color: var(--muted); margin: 4px 0 8px; font-size: 13.5px; line-height: 1.45; }
+  #status { font-size: 12.5px; color: var(--accent); min-height: 1.3em; margin: 0 0 6px; }
+  .scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 2px 4px 8px 2px; margin-right: -6px; scrollbar-width: thin; }
+  .sec { border-top: 1px solid var(--rule); padding: 10px 0 6px; }
+  .sec h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .mv { font-size: 10.5px; font-weight: 600; color: var(--muted); border: 1px solid var(--rule); border-radius: 999px; padding: 0 6px; white-space: nowrap; text-transform: none; letter-spacing: 0; }
+  .sub { color: var(--muted); font-size: 12.5px; }
+  .note { font-size: 12.5px; color: var(--warn); }
+  label.row { display: flex; align-items: center; gap: 10px; margin: 6px 0; cursor: pointer; font-size: 14px; }
+  label.stack { display: block; font-size: 14px; margin: 6px 0; }
+  .btnrow { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 6px; }
+  /* layer list */
+  ul.layers { list-style: none; margin: 0; padding: 0; }
+  ul.layers li { display: flex; align-items: center; gap: 10px; padding: 3px 0; }
+  .sw { width: 16px; height: 16px; border-radius: 5px; flex: none; border: 1px solid rgba(0,0,0,.4); }
+  button.lname { flex: 1; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; text-align: left; background: transparent; border-color: transparent; padding: 6px 8px; border-radius: 10px; font-weight: 600; }
+  button.lname .d { font-weight: 500; font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  button.lname[aria-pressed="true"] { background: rgba(125, 211, 252, 0.16); border-color: rgba(125, 211, 252, 0.45); }
+  .cbox { width: 18px; display: grid; place-items: center; }
+  .readout { font: 12px/1.45 ui-monospace, Menlo, Consolas, monospace; color: var(--muted); background: rgba(0,0,0,.25); border: 1px solid var(--rule); border-radius: 10px; padding: 6px 8px; white-space: pre-wrap; }
+  .keyrow { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); }
+  .keyrow i { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: -1px; margin-right: 5px; }
+  details summary { cursor: pointer; font-size: 13px; color: var(--muted); padding: 3px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 4px; }
+  th, td { text-align: left; padding: 4px 6px 4px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  thead th { color: var(--muted); font-weight: 600; }
+  .cfoot { flex: none; padding-top: 10px; border-top: 1px solid var(--rule); display: flex; gap: 8px; }
+  .cfoot button { flex: 1; }
+
+  /* right info panel for the selected layer */
+  #info { position: absolute; right: 64px; top: 16px; width: 340px; max-height: calc(100% - 120px); overflow-y: auto; padding: 14px 16px 12px; z-index: 6; scrollbar-width: thin; }
+  #info .head { display: flex; align-items: center; gap: 10px; }
+  #info .head .sw { width: 22px; height: 22px; border-radius: 7px; }
+  #info h2 { font-size: 20px; margin: 0; flex: 1; font-weight: 800; line-height: 1.2; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 8px; }
+  .chip { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; background: var(--chip); border: 1px solid var(--glass-edge); font-variant-numeric: tabular-nums; }
+  #info dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; margin: 6px 0 8px; font-size: 13.5px; }
+  #info dt { color: var(--muted); }
+  #info dd { margin: 0; }
+  #info .how { font-size: 13.5px; border-left: 3px solid var(--rule); padding-left: 10px; margin: 8px 0 6px; }
+  #info .src { font-size: 11.5px; color: var(--muted); margin: 6px 0 0; }
+  .navrow { display: flex; gap: 6px; margin-top: 10px; }
+  .navrow button { flex: 1; font-size: 13px; padding: 6px 8px; }
+
+  /* layer names pinned to points on the cut (HTML, because ArcGIS hides 3D text placed below the ground) */
+  #labelsOverlay { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+  .lbl { position: absolute; transform: translate(-50%, -50%); pointer-events: auto; font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 999px;
+    background: rgba(11, 18, 33, 0.8); border: 1.5px solid var(--c, #fff); color: #fff; white-space: nowrap; box-shadow: 0 4px 14px rgba(0,0,0,.4); }
+  .lbl::before { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--c, #fff); margin-right: 6px; vertical-align: 0; }
+  .lbl .ld { font-weight: 500; font-size: 11.5px; opacity: .85; margin-left: 4px; font-variant-numeric: tabular-nums; }
+  .lbl[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  #credit { position: absolute; right: 16px; bottom: 24px; z-index: 4; padding: 6px 12px; border-radius: 12px; font-size: 11.5px; line-height: 1.35; color: #fff; text-align: right; }
+  #credit b { font-weight: 600; }
+
+  dialog { max-width: 660px; width: calc(100% - 32px); max-height: calc(100% - 48px); border: 1px solid var(--glass-edge); border-radius: var(--radius); background: var(--panel); color: var(--ink); padding: 16px 20px; box-shadow: var(--shadow); }
+  dialog::backdrop { background: rgba(2, 6, 16, .6); }
+  dialog h2 { margin: 0 0 6px; font-size: 18px; }
+  dialog h3 { font-size: 14px; margin: 14px 0 4px; }
+  dialog li { font-size: 13.5px; margin-bottom: 4px; }
+
+  /* narrow screens: card becomes a bottom sheet, info panel sits at the top */
+  @media (max-width: 820px) {
+    #card { left: 8px; right: 8px; top: auto; bottom: 22px; width: auto; height: 46%; }
+    #info { left: 8px; right: 56px; top: 8px; width: auto; max-height: 40%; }
+    #credit { bottom: calc(46% + 30px); right: 8px; }
+    .lede { display: none; }
+    .lbl { font-size: 11.5px; padding: 2px 7px; }
+    .lbl .ld { display: none; }
   }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
 <body>
-<a class="skip" href="#controls">Skip to controls</a>
-<div class="app">
-  <aside id="controls" aria-label="Controls and information">
-    <h1>Earth Structure Lab</h1>
-    <p class="sub">Look inside the Earth: peel off its layers, cut it open, and see where deep earthquakes happen.</p>
-    <p class="lab">Lab version <span id="appVersion"></span> — experimental, for testing what ArcGIS 3D can do.</p>
-    <div id="status" role="status" aria-live="polite">Loading the globe…</div>
-
-    <h2>Earth's layers <span class="badge" id="v-layers"></span></h2>
-    <label class="stack" for="groundOpacity">Crust and surface: <span id="groundOpacityVal">40</span>% visible
-      <input id="groundOpacity" type="range" min="0" max="100" step="5" value="40" aria-describedby="crustHint" />
-    </label>
-    <p class="sub" id="crustHint">Lower this to see through the crust.</p>
-    <fieldset>
-      <legend>Show or hide each layer (peel the Earth)</legend>
-      <div id="layerToggles"></div>
-    </fieldset>
-    <table aria-describedby="tableNote">
-      <caption>The layers, from the surface down (depths are approximate)</caption>
-      <thead><tr><th scope="col">Layer</th><th scope="col">Depth (km)</th><th scope="col">What it's like</th></tr></thead>
-      <tbody id="layerTable"></tbody>
-    </table>
-    <p class="sub" id="tableNote">This table shows the same information as the 3D globe. Select a layer on the globe to highlight its row.</p>
-
-    <h2>Slice the Earth <span class="badge" id="v-slice"></span></h2>
-    <button id="btnSlice" aria-pressed="false">Cut through the centre</button>
-    <button id="btnPlace">Draw your own cut</button>
-    <button id="btnSliceOff">Remove cut</button>
-    <label class="stack" for="sliceDepth">Cut depth below the point you're looking at: <span id="sliceDepthVal">6,378</span> km
-      <input id="sliceDepth" type="range" min="0" max="6378" step="25" value="6378" />
-    </label>
-    <label class="stack" for="sliceHeading">Cut heading: <span id="sliceHeadingVal">0</span>°
-      <input id="sliceHeading" type="range" min="0" max="359" step="1" value="0" />
-    </label>
-    <label class="stack" for="sliceTilt">Cut tilt: <span id="sliceTiltVal">0</span>° <span class="sub">(0° faces you, 90° is edge-on)</span>
-      <input id="sliceTilt" type="range" min="0" max="90" step="1" value="0" />
-    </label>
-    <label><input id="excludeQuakes" type="checkbox" /> Keep earthquakes visible (don't cut them)</label>
-    <p class="sub">Lab readout of the current cut plane:</p>
-    <div class="readout" id="sliceReadout" aria-live="off">No cut yet.</div>
-
-    <h2>Earthquakes at depth <span class="badge" id="v-quakes"></span></h2>
-    <label><input id="showQuakes" type="checkbox" checked /> Show earthquakes from the last 30 days (magnitude 4.5+)</label>
-    <fieldset>
-      <legend>Depth scale</legend>
-      <label><input type="radio" name="exag" value="1" checked /> True scale (matches the layers)</label>
-      <label><input type="radio" name="exag" value="3" /> Stretched ×3</label>
-      <label><input type="radio" name="exag" value="6" /> Stretched ×6</label>
-    </fieldset>
-    <p class="note" id="exagNote" hidden>Stretched depths make patterns easier to see, but earthquakes no longer sit in the right layer.</p>
-    <table>
-      <caption>Earthquake colour by depth (USGS classes)</caption>
-      <tbody>
-        <tr><td><span class="swatch" style="display:inline-block;background:#66e3ff"></span> Shallow</td><td>0–70 km</td></tr>
-        <tr><td><span class="swatch" style="display:inline-block;background:#3b82f6"></span> Intermediate</td><td>70–300 km</td></tr>
-        <tr><td><span class="swatch" style="display:inline-block;background:#a78bfa"></span> Deep</td><td>300–700 km</td></tr>
-      </tbody>
-    </table>
-
-    <h2>Camera</h2>
-    <label><input id="underground" type="checkbox" checked /> Let the camera go underground</label>
-    <button id="btnHome">Back to start view</button>
-    <button id="btnTonga">Fly to the Tonga trench</button>
-
-    <h2>About</h2>
-    <button id="btnAbout">About and versions</button>
-  </aside>
-
-  <main id="main" aria-label="3D globe of the Earth's interior. The layers table in the controls panel gives the same information as text.">
+<a class="skip" href="#card">Skip to controls</a>
+<div id="app">
+  <main id="mapwrap" aria-label="3D globe cut open to show the Earth's layers. The layer list and the information panel give the same information as text.">
     <arcgis-scene id="scene" viewing-mode="global">
       <arcgis-zoom slot="top-right"></arcgis-zoom>
       <arcgis-navigation-toggle slot="top-right"></arcgis-navigation-toggle>
       <arcgis-compass slot="top-right"></arcgis-compass>
     </arcgis-scene>
-    <div class="credit">Created by Jason Sawle<br />© Esri 2026</div>
   </main>
+
+  <aside id="card" class="glass" aria-label="Controls">
+    <div class="brand"><span class="kicker">Thinking Spatially</span><span class="sp"></span><span class="labchip">Lab <span id="appVersion"></span></span></div>
+    <h1>Inside the Earth</h1>
+    <p class="lede">The globe is cut open through its centre. Select a layer to find out what it is like, and use the cut to look at it from other angles.</p>
+    <div id="status" role="status" aria-live="polite">Loading the globe…</div>
+
+    <div class="scroll">
+      <section class="sec" aria-labelledby="hLayers">
+        <h2 id="hLayers">Layers <span class="mv" id="v-layers"></span></h2>
+        <ul class="layers" id="layerList"></ul>
+        <label class="stack" for="groundOpacity">Surface: <span id="groundOpacityVal">40</span>% visible
+          <input id="groundOpacity" type="range" min="0" max="100" step="5" value="40" aria-describedby="crustHint" />
+        </label>
+        <p class="sub" id="crustHint">Lower this to see through the surface. Untick a layer to peel it away.</p>
+      </section>
+
+      <section class="sec" aria-labelledby="hDims">
+        <h2 id="hDims">Depth labels <span class="mv" id="v-dims"></span></h2>
+        <label class="row"><input type="checkbox" id="showDims" checked /> Depth dimensions from the surface</label>
+        <label class="row"><input type="checkbox" id="showLabels" checked /> Layer names on the cut</label>
+        <p class="sub">They sit on the cut through the centre, so they show while that cut is on. Zoom in to read the labels on the short, shallow lines.</p>
+      </section>
+
+      <section class="sec" aria-labelledby="hSlice">
+        <h2 id="hSlice">Cut the Earth <span class="mv" id="v-slice"></span></h2>
+        <div class="btnrow">
+          <button id="btnSlice" class="primary" aria-pressed="false">Cut through the centre</button>
+          <button id="btnPlace">Draw your own cut</button>
+          <button id="btnSliceOff">Remove cut</button>
+        </div>
+        <p class="sub">"Cut through the centre" faces whatever you are looking at, so turn the globe and press it again to cut somewhere else.</p>
+        <details>
+          <summary>Move the cut by hand</summary>
+          <label class="stack" for="sliceDepth">Cut depth below the point you're looking at: <span id="sliceDepthVal">6,378</span> km
+            <input id="sliceDepth" type="range" min="0" max="6378" step="25" value="6378" />
+          </label>
+          <label class="stack" for="sliceHeading">Heading: <span id="sliceHeadingVal">0</span>°
+            <input id="sliceHeading" type="range" min="0" max="359" step="1" value="0" />
+          </label>
+          <label class="stack" for="sliceTilt">Tilt: <span id="sliceTiltVal">0</span>° <span class="sub">(0° faces you, 90° is edge-on)</span>
+            <input id="sliceTilt" type="range" min="0" max="90" step="1" value="0" />
+          </label>
+          <p class="sub">Lab readout of the cut plane:</p>
+          <div class="readout" id="sliceReadout">No cut yet.</div>
+        </details>
+      </section>
+
+      <section class="sec" aria-labelledby="hQuakes">
+        <h2 id="hQuakes">Earthquakes <span class="mv" id="v-quakes"></span></h2>
+        <label class="row"><input id="showQuakes" type="checkbox" checked /> Last 30 days, magnitude 4.5+</label>
+        <label class="row"><input id="excludeQuakes" type="checkbox" /> Keep earthquakes when the Earth is cut</label>
+        <fieldset style="border:1px solid var(--rule);border-radius:12px;padding:4px 10px;margin:6px 0">
+          <legend class="sub">Depth scale</legend>
+          <label class="row"><input type="radio" name="exag" value="1" checked /> True depth (matches the layers)</label>
+          <label class="row"><input type="radio" name="exag" value="3" /> Stretched ×3</label>
+          <label class="row"><input type="radio" name="exag" value="6" /> Stretched ×6</label>
+        </fieldset>
+        <p class="note" id="exagNote" hidden>Stretched depths make patterns easier to see, but the earthquakes no longer sit in the right layer.</p>
+        <div class="keyrow"><span><i style="background:#66e3ff"></i>0–70 km</span><span><i style="background:#3b82f6"></i>70–300 km</span><span><i style="background:#a78bfa"></i>300–700 km</span></div>
+      </section>
+
+      <section class="sec" aria-labelledby="hCam">
+        <h2 id="hCam">Camera</h2>
+        <label class="row"><input id="underground" type="checkbox" checked /> Let the camera go underground</label>
+        <div class="btnrow"><button id="btnHome">Start view</button><button id="btnTonga">Tonga trench</button></div>
+      </section>
+
+      <section class="sec" aria-labelledby="hTable">
+        <details>
+          <summary id="hTable">All layers as a table</summary>
+          <table>
+            <caption class="sr-only">The Earth's layers, from the surface down</caption>
+            <thead><tr><th scope="col">Layer</th><th scope="col">Depth (km)</th><th scope="col">State</th><th scope="col">Temperature</th></tr></thead>
+            <tbody id="layerTable"></tbody>
+          </table>
+        </details>
+      </section>
+    </div>
+    <div class="cfoot"><button id="btnAbout">About and versions</button></div>
+  </aside>
+
+  <div id="labelsOverlay" role="group" aria-label="Layer names on the cut" hidden></div>
+
+  <section id="info" class="glass" aria-labelledby="infoTitle" hidden>
+    <div class="head">
+      <span class="sw" id="infoSw"></span>
+      <h2 id="infoTitle" tabindex="-1"></h2>
+      <button class="iconbtn" id="infoClose" aria-label="Close layer information">✕</button>
+    </div>
+    <div class="chips" id="infoChips"></div>
+    <p id="infoText"></p>
+    <dl id="infoFacts"></dl>
+    <p class="how" id="infoHow"></p>
+    <div class="navrow"><button id="infoUp">↑ Layer above</button><button id="infoDown">Layer below ↓</button></div>
+    <p class="src">Sources: National Geographic Education; Earle, <i>Physical Geology</i>; PREM (Dziewonski &amp; Anderson, 1981). Figures are rounded; scientists' estimates vary.</p>
+  </section>
+
+  <div id="credit" class="glass"><b>Created by Jason Sawle</b><br>© Esri 2026</div>
 </div>
 
 <dialog id="about" aria-labelledby="aboutTitle">
   <h2 id="aboutTitle">About Earth Structure Lab</h2>
-  <p>An experiment in using ArcGIS 3D (global scene, transparent ground, underground navigation, mesh geometry and slice analysis) to teach the structure of the Earth.</p>
+  <p class="sub">An experiment in using ArcGIS 3D (global scene, see-through ground, underground camera, mesh shapes, slice and dimension analysis) to show the structure of the Earth.</p>
   <table>
-    <caption>Versions</caption>
+    <caption class="sr-only">Versions</caption>
     <thead><tr><th scope="col">Part</th><th scope="col">Version</th><th scope="col">What it does</th></tr></thead>
     <tbody id="versionTable"></tbody>
   </table>
-  <h3 style="font-size:.95rem">Data sources</h3>
-  <ul class="sub">
-    <li>Layer depths: Preliminary Reference Earth Model (Dziewonski &amp; Anderson, 1981), rounded. Crust uses a 35 km average (real range about 5–70 km).</li>
+  <h3>Data sources</h3>
+  <ul>
+    <li>Layer depths: Preliminary Reference Earth Model (Dziewonski &amp; Anderson, 1981), rounded. The crust uses a 35 km average (real range about 5–70 km).</li>
+    <li>Temperatures and facts: National Geographic Education ("Core"); Earle, <i>Physical Geology</i>, 9.2 "The Temperature of Earth's Interior".</li>
     <li>Earthquakes: USGS real-time feed, magnitude 4.5+, past 30 days.</li>
     <li>Basemap and elevation: Esri.</li>
   </ul>
@@ -164,58 +245,121 @@
 </dialog>
 
 <script type="module">
-// ---------- Versions (single source of truth) ----------
+// ================= Versions (single source of truth) =================
 // Bump a model's number whenever its maths or data handling changes, and bump the app version on every release.
-const APP_VERSION = "0.1.2";
+const APP_VERSION = "0.2.0";
 const MODELS = {
-  layers: { name: "Layer model", version: "1.0", desc: "Concentric spheres for mantle and core at PREM depths, scaled to the globe's radius." },
-  slice:  { name: "Slice model", version: "1.1", desc: "Esri SliceAnalysis plane placed under the view centre at a chosen depth, heading and tilt. Default tilt 0°, which faces a camera looking straight down." },
+  layers: { name: "Layer model", version: "1.1", desc: "Concentric spheres for mantle and core at PREM depths, scaled to the globe's radius. Facts per layer for the information panel." },
+  dims:   { name: "Depth label model", version: "1.0", desc: "Esri DimensionAnalysis lines from the surface to each layer boundary at true depth, on a radius 90° from the cut's anchor (to the right of the view), spaced 650 km apart. Layer names are on-screen buttons pinned to each layer's middle depth, fanned around the left half of the cut, shown while the camera is within 25° of the cut's view." },
+  slice:  { name: "Slice model", version: "1.2", desc: "Esri SliceAnalysis plane under the view centre at a chosen depth, heading and tilt. Starts cut through the centre, tilt 0° (facing a camera looking straight down)." },
   quakes: { name: "Earthquake depth model", version: "1.0", desc: "USGS depths placed below the surface: height = −depth × 1000 × stretch." }
 };
-document.getElementById("appVersion").textContent = "v" + APP_VERSION;
-for (const k of Object.keys(MODELS)) document.getElementById("v-" + k).textContent = MODELS[k].name + " v" + MODELS[k].version;
-document.getElementById("versionTable").innerHTML =
-  `<tr><td>App</td><td>${APP_VERSION}</td><td>Whole app</td></tr>` +
+const $ = (id) => document.getElementById(id);
+$("appVersion").textContent = "v" + APP_VERSION;
+for (const k of Object.keys(MODELS)) $("v-" + k).textContent = MODELS[k].name + " v" + MODELS[k].version;
+$("versionTable").innerHTML = `<tr><td>App</td><td>${APP_VERSION}</td><td>Whole app</td></tr>` +
   Object.values(MODELS).map(m => `<tr><td>${m.name}</td><td>${m.version}</td><td>${m.desc}</td></tr>`).join("");
 
-const statusEl = document.getElementById("status");
-const setStatus = (msg) => { statusEl.textContent = msg; };
+const setStatus = (msg) => { $("status").textContent = msg; };
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const km = (n) => n.toLocaleString("en-US");
 
-// ---------- Layer model data ----------
+// ================= Layer model =================
 const R_SCENE_KM = 6378.137;           // globe radius used by the global scene
 const R_TRUE_KM = 6371;                // mean Earth radius
 const SCALE = R_SCENE_KM / R_TRUE_KM;  // keeps true proportions on the scene globe
 const R_SCENE_M = R_SCENE_KM * 1000;
 
 const LAYERS = [
-  { id: "crust", name: "Crust", top: 0, bottom: 35, color: "#9c7b5b", mesh: false,
-    text: "Solid rock. Thin: about 5–10 km under oceans, up to 70 km under mountains." },
-  { id: "upperMantle", name: "Upper mantle", top: 35, bottom: 660, color: "#f4a259", mesh: true,
-    text: "Solid rock that flows very slowly. Its top, with the crust, forms the tectonic plates." },
-  { id: "lowerMantle", name: "Lower mantle", top: 660, bottom: 2891, color: "#c0504d", mesh: true,
-    text: "Solid, very hot rock under huge pressure. The thickest layer." },
-  { id: "outerCore", name: "Outer core", top: 2891, bottom: 5150, color: "#f59f00", mesh: true,
-    text: "Liquid iron and nickel. Its movement creates Earth's magnetic field." },
-  { id: "innerCore", name: "Inner core", top: 5150, bottom: 6371, color: "#fff3bf", mesh: true,
-    text: "Solid iron and nickel, about as hot as the Sun's surface (roughly 5,000–6,000 °C)." }
+  { id: "crust", name: "Crust", top: 0, bottom: 35, color: "#9c7b5b", mesh: false, fan: 330, state: "Solid",
+    text: "The thin, rocky outer skin we live on. It is broken into the tectonic plates, together with the top of the mantle.",
+    made: "Continents: light rocks such as granite. Ocean floor: dark, heavier basalt.",
+    temp: "From surface temperature to about 1,000 °C at its base",
+    density: "about 2.7–3.0 g/cm³",
+    thick: "About 5–10 km under the oceans, 30–70 km under continents. This model uses a 35 km average.",
+    how: "In 1909 Andrija Mohorovičić noticed that earthquake waves speed up suddenly at a certain depth. That boundary, the base of the crust, is called the Moho." },
+  { id: "upperMantle", name: "Upper mantle", top: 35, bottom: 660, color: "#f4a259", mesh: true, fan: 300, state: "Solid, but flows very slowly",
+    text: "Hot rock that is solid, but soft enough in places to creep a few centimetres a year. That slow flow helps move the plates above it.",
+    made: "Rock rich in the green mineral olivine (peridotite).",
+    temp: "About 1,000 °C at the top, about 1,700 °C at 250 km down",
+    density: "about 3.4–4.0 g/cm³",
+    thick: "About 625 km",
+    how: "Earthquake waves change speed at about 410 km and 660 km, where the minerals are squeezed into denser forms." },
+  { id: "lowerMantle", name: "Lower mantle", top: 660, bottom: 2891, color: "#c0504d", mesh: true, fan: 255, state: "Solid",
+    text: "The thickest layer. The pressure is so high that the rock is squeezed into dense minerals, even though it is very hot.",
+    made: "Dense minerals of magnesium, iron, silicon and oxygen.",
+    temp: "About 2,600 °C at 2,000 km, about 3,500 °C at its base",
+    density: "about 4.4–5.6 g/cm³",
+    thick: "About 2,230 km",
+    how: "Both kinds of earthquake wave (P and S) travel through it, which shows it is solid." },
+  { id: "outerCore", name: "Outer core", top: 2891, bottom: 5150, color: "#f59f00", mesh: true, fan: 320, state: "Liquid",
+    text: "A churning ocean of liquid metal. Its movement creates and sustains Earth's magnetic field, which protects us from the solar wind.",
+    made: "Iron and nickel, with some lighter elements such as sulfur.",
+    temp: "About 4,500–5,500 °C",
+    density: "about 9.9–12.2 g/cm³",
+    thick: "About 2,260 km",
+    how: "S-waves cannot travel through liquid. They stop at the outer core, leaving an S-wave 'shadow zone' on the far side of the Earth from an earthquake." },
+  { id: "innerCore", name: "Inner core", top: 5150, bottom: 6371, color: "#fff3bf", mesh: true, fan: 180, state: "Solid",
+    text: "A ball of solid metal at the centre. It is as hot as the surface of the Sun, but the enormous pressure stops the iron from melting.",
+    made: "Iron and nickel.",
+    temp: "About 5,200 °C",
+    density: "about 12.8–13.1 g/cm³",
+    thick: "A ball with a radius of about 1,220 km",
+    how: "In 1936 Inge Lehmann found P-waves bouncing off a boundary deep inside the core, and P-waves speed up there, showing the inner core is solid." }
 ];
+const byId = Object.fromEntries(LAYERS.map(l => [l.id, l]));
 
-// Build the text table and toggles (text equivalent of the 3D view)
-const tbody = document.getElementById("layerTable");
-tbody.innerHTML = LAYERS.map(l =>
-  `<tr id="row-${l.id}"><th scope="row"><span class="swatch" style="display:inline-block;background:${l.color}"></span> ${l.name}</th>` +
-  `<td>${l.top.toLocaleString()}–${l.bottom.toLocaleString()}</td><td>${l.text}</td></tr>`).join("");
-document.getElementById("layerToggles").innerHTML = LAYERS.filter(l => l.mesh).map(l =>
-  `<label><input type="checkbox" data-layer="${l.id}" checked /> <span class="swatch" style="background:${l.color}"></span> ${l.name}</label>`).join("");
+// layer list (buttons open the info panel; checkboxes show or hide the 3D shell)
+$("layerList").innerHTML = LAYERS.map(l => `<li>
+  <span class="cbox">${l.mesh ? `<input type="checkbox" data-layer="${l.id}" checked aria-label="Show ${l.name}" />` : ""}</span>
+  <span class="sw" style="background:${l.color}"></span>
+  <button class="lname" data-info="${l.id}" aria-pressed="false" aria-controls="info">${l.name}<span class="d">${km(l.top)}–${km(l.bottom)} km</span></button>
+</li>`).join("");
+$("layerTable").innerHTML = LAYERS.map(l => `<tr><th scope="row">${l.name}</th><td>${km(l.top)}–${km(l.bottom)}</td><td>${l.state}</td><td>${l.temp}</td></tr>`).join("");
 
-function highlightRow(id) {
-  tbody.querySelectorAll("tr").forEach(r => r.classList.toggle("selected", r.id === "row-" + id));
+// ================= Info panel (works before the 3D view loads) =================
+let selectedId = null;
+let onSelect = () => {};
+function showInfo(id, { focus = false } = {}) {
+  const l = byId[id]; if (!l) return;
+  selectedId = id;
+  $("infoSw").style.background = l.color;
+  $("infoTitle").textContent = l.name;
+  $("infoChips").innerHTML = `<span class="chip">${km(l.top)}–${km(l.bottom)} km deep</span><span class="chip">${l.state}</span>`;
+  $("infoText").textContent = l.text;
+  $("infoFacts").innerHTML = `<dt>Thickness</dt><dd>${l.thick}</dd><dt>Made of</dt><dd>${l.made}</dd><dt>Temperature</dt><dd>${l.temp}</dd><dt>Density</dt><dd>${l.density} <span class="sub">(water is 1)</span></dd>`;
+  $("infoHow").innerHTML = `<b>How we know:</b> ${l.how}`;
+  const i = LAYERS.indexOf(l);
+  $("infoUp").disabled = i === 0; $("infoDown").disabled = i === LAYERS.length - 1;
+  document.querySelectorAll("button.lname").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.info === id)));
+  $("info").hidden = false;
+  if (focus) $("infoTitle").focus();
+  onSelect(id);
 }
+function hideInfo() {
+  $("info").hidden = true; selectedId = null;
+  document.querySelectorAll("button.lname").forEach(b => b.setAttribute("aria-pressed", "false"));
+  onSelect(null);
+}
+document.querySelectorAll("button.lname").forEach(b => b.addEventListener("click", () => {
+  if (selectedId === b.dataset.info) hideInfo(); else showInfo(b.dataset.info, { focus: true });
+}));
+$("infoClose").addEventListener("click", () => {
+  const prev = selectedId; hideInfo();
+  document.querySelector(`button.lname[data-info="${prev}"]`)?.focus();
+});
+$("infoUp").addEventListener("click", () => { const i = LAYERS.findIndex(l => l.id === selectedId); if (i > 0) showInfo(LAYERS[i - 1].id, { focus: true }); });
+$("infoDown").addEventListener("click", () => { const i = LAYERS.findIndex(l => l.id === selectedId); if (i < LAYERS.length - 1) showInfo(LAYERS[i + 1].id, { focus: true }); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("info").hidden && !document.querySelector("dialog[open]")) $("infoClose").click(); });
 
-// ---------- Load SDK modules ----------
-const [ArcGISMap, GraphicsLayer, FeatureLayer, Graphic, Mesh, MeshComponent, MeshMaterial,
-       MeshLocalVertexSpace, Point, SliceAnalysis, SlicePlane, reactiveUtils] = await $arcgis.import([
+const about = $("about");
+$("btnAbout").addEventListener("click", () => about.showModal());
+$("btnAboutClose").addEventListener("click", () => about.close());
+
+// ================= SDK =================
+if (typeof $arcgis === "undefined") { setStatus("The 3D globe could not load. The layer list still works."); throw new Error("ArcGIS Maps SDK not available"); }
+const [ArcGISMap, GraphicsLayer, FeatureLayer, Graphic, Mesh, MeshComponent, MeshMaterial, MeshLocalVertexSpace,
+       Point, SliceAnalysis, SlicePlane, DimensionAnalysis, LengthDimension, reactiveUtils] = await $arcgis.import([
   "@arcgis/core/Map.js",
   "@arcgis/core/layers/GraphicsLayer.js",
   "@arcgis/core/layers/FeatureLayer.js",
@@ -227,6 +371,8 @@ const [ArcGISMap, GraphicsLayer, FeatureLayer, Graphic, Mesh, MeshComponent, Mes
   "@arcgis/core/geometry/Point.js",
   "@arcgis/core/analysis/SliceAnalysis.js",
   "@arcgis/core/analysis/SlicePlane.js",
+  "@arcgis/core/analysis/DimensionAnalysis.js",
+  "@arcgis/core/analysis/LengthDimension.js",
   "@arcgis/core/core/reactiveUtils.js"
 ]);
 
@@ -234,25 +380,31 @@ const map = new ArcGISMap({ basemap: "satellite", ground: "world-elevation" });
 map.ground.opacity = 0.4;
 map.ground.navigationConstraint = { type: "none" };
 
-const sceneEl = document.getElementById("scene");
+const sceneEl = $("scene");
 sceneEl.map = map;
 await sceneEl.viewOnReady();
 const view = sceneEl.view;
-
+view.popupEnabled = false;
+// keep the globe clear of the floating card on the left
+const setPadding = () => {
+  const infoOpen = !$("info").hidden;
+  view.padding = window.innerWidth > 820 ? { left: 400, right: infoOpen ? 400 : 0, top: 0, bottom: 0 }
+                                         : { left: 0, top: 0, right: 0, bottom: Math.round(window.innerHeight * 0.46) };
+};
+setPadding(); window.addEventListener("resize", setPadding);
 try {
   view.environment.background = { type: "color", color: [8, 10, 22, 1] };
   view.environment.starsEnabled = true;
   view.environment.atmosphereEnabled = true;
-  view.environment.lighting = { type: "virtual" }; // light from the camera so cut faces are lit
 } catch (e) { console.warn("Environment settings not applied:", e); }
 
 // Camera positions must be real Point objects: SDK 5.1 rejects a plain {longitude, latitude, z} object in goTo().
-const camAt = (longitude, latitude, z, heading, tilt) =>
-  ({ position: new Point({ longitude, latitude, z, spatialReference: { wkid: 4326 } }), heading, tilt });
+const pointAt = (longitude, latitude, z = 0) => new Point({ longitude, latitude, z, spatialReference: { wkid: 4326 } });
+const camAt = (longitude, latitude, z, heading, tilt) => ({ position: pointAt(longitude, latitude, z), heading, tilt });
 const START_CAMERA = camAt(-175, -20, 22000000, 0, 0);
 await view.goTo(START_CAMERA, { animate: false });
 
-// ---------- Layer model: concentric mesh spheres ----------
+// ---------- 3D shells ----------
 function sphereMesh(radiusM, color, segLon = 72, segLat = 36) {
   const pos = [], nrm = [], faces = [];
   for (let i = 0; i <= segLat; i++) {
@@ -260,8 +412,7 @@ function sphereMesh(radiusM, color, segLon = 72, segLat = 36) {
     for (let j = 0; j <= segLon; j++) {
       const ph = (j * 2 * Math.PI) / segLon;
       const x = st * Math.cos(ph), y = st * Math.sin(ph), z = ct;
-      // local ENU frame anchored on the surface at 0°,0°; shift down by the globe radius so the
-      // sphere is centred on the Earth's centre
+      // local east-north-up frame anchored on the surface at 0°,0°, shifted down by the globe radius
       pos.push(radiusM * x, radiusM * y, radiusM * z - R_SCENE_M);
       nrm.push(x, y, z);
     }
@@ -274,48 +425,106 @@ function sphereMesh(radiusM, color, segLon = 72, segLat = 36) {
     spatialReference: { wkid: 4326 },
     vertexSpace: new MeshLocalVertexSpace({ origin: [0, 0, 0] }),
     vertexAttributes: { position: new Float64Array(pos), normal: new Float32Array(nrm) },
-    components: [new MeshComponent({
-      faces: new Uint32Array(faces),
-      shading: "smooth",
-      material: new MeshMaterial({ color, doubleSided: true })
-    })]
+    components: [new MeshComponent({ faces: new Uint32Array(faces), shading: "smooth", material: new MeshMaterial({ color, doubleSided: true }) })]
   });
 }
-
 const layersLayer = new GraphicsLayer({ title: "Earth's layers", elevationInfo: { mode: "absolute-height" } });
-const layerGraphics = {};
+const shell = {};
 for (const l of LAYERS.filter(x => x.mesh)) {
-  const radiusM = (R_TRUE_KM - l.top) * SCALE * 1000;
-  const g = new Graphic({
-    geometry: sphereMesh(radiusM, l.color),
-    symbol: { type: "mesh-3d", symbolLayers: [{ type: "fill" }] },
-    attributes: { id: l.id, name: l.name, depth: `${l.top.toLocaleString()}–${l.bottom.toLocaleString()} km`, text: l.text },
-    popupTemplate: { title: "{name}", content: "<b>Depth:</b> {depth}<br>{text}" }
-  });
-  layerGraphics[l.id] = g;
-  layersLayer.add(g);
+  const g = new Graphic({ geometry: sphereMesh((R_TRUE_KM - l.top) * SCALE * 1000, l.color),
+    symbol: { type: "mesh-3d", symbolLayers: [{ type: "fill" }] }, attributes: { id: l.id } });
+  shell[l.id] = g; layersLayer.add(g);
 }
 map.add(layersLayer);
+const shellView = await view.whenLayerView(layersLayer);
+let highlight = null;
+onSelect = (id) => {
+  setPadding();
+  highlight?.remove(); highlight = null;
+  if (id && shell[id]) highlight = shellView.highlight(shell[id]);
+  document.querySelectorAll('.lbl').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.info === id)));
+};
 
-document.getElementById("layerToggles").addEventListener("change", (e) => {
-  const id = e.target.dataset.layer;
-  if (id && layerGraphics[id]) layerGraphics[id].visible = e.target.checked;
+document.getElementById("layerList").addEventListener("change", (e) => {
+  const id = e.target.dataset.layer; if (id && shell[id]) shell[id].visible = e.target.checked;
 });
-const go = document.getElementById("groundOpacity");
-go.addEventListener("input", () => {
-  map.ground.opacity = go.value / 100;
-  document.getElementById("groundOpacityVal").textContent = go.value;
-});
+const go = $("groundOpacity");
+go.addEventListener("input", () => { map.ground.opacity = go.value / 100; $("groundOpacityVal").textContent = go.value; });
 
-// ---------- Earthquake depth model ----------
+// ---------- Depth dimensions and layer names ----------
+// A point 90° of arc from the anchor, along a bearing: it lies on the circle where a plane through the Earth's
+// centre, facing the anchor, meets the surface, so a radius from it lies in the centre cut.
+function quarterRound(anchor, bearingDeg) {
+  const r = Math.PI / 180, lat1 = anchor.latitude * r, th = bearingDeg * r;
+  const lat2 = Math.asin(Math.cos(lat1) * Math.cos(th));
+  const lon2 = anchor.longitude * r + Math.atan2(Math.sin(th) * Math.cos(lat1), -Math.sin(lat1) * Math.sin(lat2));
+  let lon = lon2 / r; lon = ((lon + 540) % 360) - 180;
+  return { longitude: lon, latitude: lat2 / r };
+}
+const dims = new DimensionAnalysis({
+  style: { type: "simple", color: [255, 255, 255, 0.9], lineSize: 1.5, fontSize: 11, textColor: [4, 18, 31, 1], textBackgroundColor: [125, 211, 252, 0.92] }
+});
+view.analyses.add(dims);
+let dimAnchor = null; // { longitude, latitude, heading }
+function drawDims() {
+  dims.dimensions.removeAll();
+  if (!dimAnchor || !$("showDims").checked) return;
+  const p = quarterRound(dimAnchor, dimAnchor.heading + 90); // to the right of the view
+  const depths = [35, 660, 2891, 5150, 6371];
+  depths.forEach((d, i) => {
+    dims.dimensions.add(new LengthDimension({
+      measureType: "direct",
+      startPoint: pointAt(p.longitude, p.latitude, 0),
+      endPoint: pointAt(p.longitude, p.latitude, -d * 1000), // true depth, so the label reads the real number
+      offset: 250000 + i * 650000,
+      orientation: 0
+    }));
+  });
+}
+// Layer names: HTML buttons placed with view.toScreen() at each layer's middle depth, on the radius to the left.
+const overlay = $("labelsOverlay");
+overlay.innerHTML = LAYERS.map(l => `<button class="lbl" data-info="${l.id}" aria-pressed="false" style="--c:${l.color}">${l.name} <span class="ld">${km(l.top)}–${km(l.bottom)} km</span></button>`).join("");
+overlay.querySelectorAll(".lbl").forEach(b => b.addEventListener("click", () => showInfo(b.dataset.info, { focus: true })));
+let labelPts = null;
+function drawLabels() {
+  labelPts = null;
+  if (dimAnchor && $("showLabels").checked) {
+    labelPts = Object.fromEntries(LAYERS.map(l => {
+      // each name on its own radius (fanned around the left half of the cut) so they don't overlap
+      const q = quarterRound(dimAnchor, dimAnchor.heading + l.fan);
+      const mid = l.id === "crust" ? -350 : (l.top + l.bottom) / 2; // the crust is too thin to hold a label: put it just outside
+      return [l.id, pointAt(q.longitude, q.latitude, -mid * SCALE * 1000)];
+    }));
+  }
+  placeLabels();
+}
+const arcDeg = (a, b) => { // great-circle angle between two lon/lat points, in degrees
+  const r = Math.PI / 180;
+  const c = Math.sin(a.latitude * r) * Math.sin(b.latitude * r) + Math.cos(a.latitude * r) * Math.cos(b.latitude * r) * Math.cos((a.longitude - b.longitude) * r);
+  return Math.acos(Math.min(1, Math.max(-1, c))) / r;
+};
+let raf = 0;
+function placeLabels() {
+  // the names only make sense while the camera still looks at the cut face-on
+  const cam = view.camera?.position;
+  const onView = labelPts && cam && arcDeg(cam, dimAnchor) < 25;
+  overlay.hidden = !onView;
+  if (!onView) return;
+  for (const b of overlay.querySelectorAll(".lbl")) {
+    const sp = view.toScreen(labelPts[b.dataset.info]);
+    const ok = sp && sp.x > 0 && sp.y > 0 && sp.x < view.width && sp.y < view.height;
+    b.hidden = !ok;
+    if (ok) { b.style.left = sp.x + "px"; b.style.top = sp.y + "px"; }
+  }
+}
+reactiveUtils.watch(() => [view.camera, view.width, view.height, view.padding], () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(placeLabels); });
+$("showDims").addEventListener("change", drawDims);
+$("showLabels").addEventListener("change", drawLabels);
+
+// ---------- Earthquakes ----------
 const USGS_URL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_month.geojson";
 let quakeLayer = null;
-const quakeElevation = (stretch) => ({
-  mode: "absolute-height",
-  featureExpressionInfo: { expression: `-$feature.depth * 1000 * ${stretch}` },
-  unit: "meters"
-});
-
+const quakeElevation = (stretch) => ({ mode: "absolute-height", featureExpressionInfo: { expression: `-$feature.depth * 1000 * ${stretch}` }, unit: "meters" });
 async function loadQuakes() {
   try {
     const res = await fetch(USGS_URL);
@@ -326,139 +535,116 @@ async function loadQuakes() {
       attributes: { ObjectID: i + 1, mag: f.properties.mag, depth: f.geometry.coordinates[2], place: f.properties.place, time: f.properties.time }
     }));
     quakeLayer = new FeatureLayer({
-      title: "Earthquakes (USGS, M4.5+, 30 days)",
-      source: graphics,
-      objectIdField: "ObjectID",
-      geometryType: "point",
+      title: "Earthquakes (USGS, M4.5+, 30 days)", source: graphics, objectIdField: "ObjectID", geometryType: "point",
       spatialReference: { wkid: 4326 },
-      fields: [
-        { name: "ObjectID", type: "oid" },
-        { name: "mag", type: "double", alias: "Magnitude" },
-        { name: "depth", type: "double", alias: "Depth (km)" },
-        { name: "place", type: "string", alias: "Place" },
-        { name: "time", type: "date", alias: "Time" }
-      ],
+      fields: [{ name: "ObjectID", type: "oid" }, { name: "mag", type: "double", alias: "Magnitude" }, { name: "depth", type: "double", alias: "Depth (km)" },
+               { name: "place", type: "string", alias: "Place" }, { name: "time", type: "date", alias: "Time" }],
       elevationInfo: quakeElevation(1),
-      renderer: {
-        type: "simple",
+      renderer: { type: "simple",
         symbol: { type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "sphere" }, material: { color: "#ffffff" } }] },
         visualVariables: [
           { type: "size", field: "mag", axis: "all", stops: [{ value: 4.5, size: 45000 }, { value: 8, size: 220000 }] },
-          { type: "color", field: "depth", stops: [
-            { value: 35, color: "#66e3ff" }, { value: 70, color: "#66e3ff" },
-            { value: 300, color: "#3b82f6" }, { value: 650, color: "#a78bfa" } ] }
-        ]
-      },
-      popupTemplate: {
-        title: "Magnitude {mag} earthquake",
-        content: "{place}<br><b>Depth:</b> {depth} km<br><b>Time:</b> {time}",
-        fieldInfos: [{ fieldName: "time", format: { dateFormat: "short-date-short-time" } },
-                     { fieldName: "depth", format: { places: 0 } }]
-      }
+          { type: "color", field: "depth", stops: [{ value: 35, color: "#66e3ff" }, { value: 70, color: "#66e3ff" }, { value: 300, color: "#3b82f6" }, { value: 650, color: "#a78bfa" }] }
+        ] },
+      popupEnabled: true,
+      popupTemplate: { title: "Magnitude {mag} earthquake", content: "{place}<br><b>Depth:</b> {depth} km<br><b>Time:</b> {time}",
+        fieldInfos: [{ fieldName: "time", format: { dateFormat: "short-date-short-time" } }, { fieldName: "depth", format: { places: 0 } }] }
     });
     map.add(quakeLayer);
+    if ($("excludeQuakes").checked) slice.excludedLayers.add(quakeLayer);
     const deep = gj.features.filter(f => f.geometry.coordinates[2] >= 300).length;
-    setStatus(`Ready. ${gj.features.length} earthquakes loaded, ${deep} of them deeper than 300 km.`);
-  } catch (e) {
-    console.error(e);
-    setStatus("Ready, but earthquakes could not be loaded from USGS.");
-  }
+    return `${gj.features.length} earthquakes loaded, ${deep} deeper than 300 km.`;
+  } catch (e) { console.error(e); return "Earthquakes could not be loaded from USGS."; }
 }
-await loadQuakes();
-
-document.getElementById("showQuakes").addEventListener("change", (e) => { if (quakeLayer) quakeLayer.visible = e.target.checked; });
+$("showQuakes").addEventListener("change", (e) => { if (quakeLayer) quakeLayer.visible = e.target.checked; });
 document.querySelectorAll('input[name="exag"]').forEach(r => r.addEventListener("change", () => {
   const s = Number(document.querySelector('input[name="exag"]:checked').value);
   if (quakeLayer) quakeLayer.elevationInfo = quakeElevation(s);
-  document.getElementById("exagNote").hidden = s === 1;
+  $("exagNote").hidden = s === 1;
 }));
 
-// ---------- Slice model ----------
-const PLANE_SIZE = 26000000; // large enough to cover the whole globe
+// ---------- Slice ----------
+const PLANE_SIZE = 120000000; // far wider than the globe, so the plane's outline stays off-screen
 const slice = new SliceAnalysis({ tiltEnabled: true });
 view.analyses.add(slice);
 const sliceView = await view.whenAnalysisView(slice);
-try { sliceView.interactive = true; } catch (e) { /* not available in this version */ }
-
-const sd = document.getElementById("sliceDepth"), sh = document.getElementById("sliceHeading"), st = document.getElementById("sliceTilt");
-const btnSlice = document.getElementById("btnSlice");
-let sliceAnchor = null; // lon/lat the guided cut sits under
-
-function centreLonLat() {
+try { sliceView.interactive = false; } catch (e) { console.warn(e); } // no drag handles on the guided cut
+const sd = $("sliceDepth"), sh = $("sliceHeading"), st = $("sliceTilt"), btnSlice = $("btnSlice");
+let sliceAnchor = null;
+function centreAnchor() {
   const c = view.center || view.camera.position;
-  return { longitude: c.longitude, latitude: c.latitude };
+  return { longitude: c.longitude, latitude: c.latitude, heading: view.camera.heading || 0 };
 }
 function applyGuidedSlice() {
-  if (!sliceAnchor) sliceAnchor = centreLonLat();
+  if (!sliceAnchor) sliceAnchor = centreAnchor();
   slice.shape = new SlicePlane({
-    position: new Point({ longitude: sliceAnchor.longitude, latitude: sliceAnchor.latitude, z: -Number(sd.value) * 1000, spatialReference: { wkid: 4326 } }),
-    heading: Number(sh.value),
-    tilt: Number(st.value),
-    width: PLANE_SIZE,
-    height: PLANE_SIZE
+    position: pointAt(sliceAnchor.longitude, sliceAnchor.latitude, -Number(sd.value) * 1000),
+    heading: Number(sh.value), tilt: Number(st.value), width: PLANE_SIZE, height: PLANE_SIZE
   });
   sliceView.active = true;
+  try { sliceView.interactive = false; } catch (e) { console.warn(e); }
   btnSlice.setAttribute("aria-pressed", "true");
+  // depth labels only belong on the centre cut facing the camera
+  const centred = Number(sd.value) >= 6350 && Number(st.value) === 0;
+  dimAnchor = centred ? sliceAnchor : null;
+  drawDims(); drawLabels();
 }
-btnSlice.addEventListener("click", () => {
-  sliceAnchor = centreLonLat();
+function cutThroughCentre() {
+  sliceAnchor = centreAnchor();
+  sd.value = 6378; st.value = 0; sh.value = Math.round(sliceAnchor.heading) % 360;
+  $("sliceDepthVal").textContent = km(6378); $("sliceTiltVal").textContent = "0"; $("sliceHeadingVal").textContent = sh.value;
   applyGuidedSlice();
-  setStatus("Cut placed under the centre of your view. Use the sliders to move it.");
-});
-for (const [el, out, fmt] of [[sd, "sliceDepthVal", v => Number(v).toLocaleString()], [sh, "sliceHeadingVal", v => v], [st, "sliceTiltVal", v => v]]) {
-  el.addEventListener("input", () => {
-    document.getElementById(out).textContent = fmt(el.value);
-    if (btnSlice.getAttribute("aria-pressed") === "true") applyGuidedSlice();
-  });
+}
+btnSlice.addEventListener("click", () => { cutThroughCentre(); setStatus("Cut through the centre, facing your view."); });
+for (const [el, out, fmt] of [[sd, "sliceDepthVal", v => km(Number(v))], [sh, "sliceHeadingVal", v => v], [st, "sliceTiltVal", v => v]]) {
+  el.addEventListener("input", () => { $(out).textContent = fmt(el.value); if (btnSlice.getAttribute("aria-pressed") === "true") applyGuidedSlice(); });
 }
 let placeAbort = null;
-document.getElementById("btnPlace").addEventListener("click", async () => {
+$("btnPlace").addEventListener("click", async () => {
   btnSlice.setAttribute("aria-pressed", "false");
-  placeAbort?.abort();
-  placeAbort = new AbortController();
+  dimAnchor = null; drawDims(); drawLabels();
+  placeAbort?.abort(); placeAbort = new AbortController();
   sliceView.active = true;
+  try { sliceView.interactive = true; } catch (e) { console.warn(e); }
   setStatus("Click on the globe to place a cut, then drag its handles. Press Escape to cancel.");
   try { await sliceView.place({ signal: placeAbort.signal }); setStatus("Cut placed."); }
   catch (e) { if (e.name !== "AbortError") { console.error(e); setStatus("Placing a cut did not work in this version."); } }
 });
-document.getElementById("btnSliceOff").addEventListener("click", () => {
+$("btnSliceOff").addEventListener("click", () => {
   placeAbort?.abort();
   sliceView.active = false;
   if (slice.clear) slice.clear(); else slice.shape = null;
   btnSlice.setAttribute("aria-pressed", "false");
-  setStatus("Cut removed.");
+  dimAnchor = null; drawDims(); drawLabels();
+  setStatus("Cut removed. The depth labels show again when you cut through the centre.");
 });
-document.getElementById("excludeQuakes").addEventListener("change", (e) => {
+$("excludeQuakes").addEventListener("change", (e) => {
   if (!quakeLayer) return;
   if (e.target.checked) slice.excludedLayers.add(quakeLayer); else slice.excludedLayers.remove(quakeLayer);
 });
-const readout = document.getElementById("sliceReadout");
 reactiveUtils.watch(() => slice.shape, (s) => {
-  if (!s || !s.position) { readout.textContent = "No cut yet."; return; }
+  if (!s || !s.position) { $("sliceReadout").textContent = "No cut yet."; return; }
   const p = s.position;
-  readout.textContent =
-    `lon ${p.longitude?.toFixed(2)}  lat ${p.latitude?.toFixed(2)}\n` +
-    `z ${Math.round((p.z ?? 0) / 1000).toLocaleString()} km\n` +
-    `heading ${Math.round(s.heading)}°  tilt ${Math.round(s.tilt)}°\n` +
-    `size ${Math.round(s.width / 1000).toLocaleString()} × ${Math.round(s.height / 1000).toLocaleString()} km`;
+  $("sliceReadout").textContent = `lon ${p.longitude?.toFixed(2)}  lat ${p.latitude?.toFixed(2)}\nz ${km(Math.round((p.z ?? 0) / 1000))} km\n` +
+    `heading ${Math.round(s.heading)}°  tilt ${Math.round(s.tilt)}°`;
 }, { initial: true });
 
-// ---------- Interaction & camera ----------
+// ---------- Selecting on the globe ----------
 view.on("click", async (evt) => {
   const hit = await view.hitTest(evt, { include: [layersLayer] });
-  const g = hit.results.find(r => r.graphic)?.graphic;
-  if (g) highlightRow(g.attributes.id);
+  const g = hit.results.find(r => r.graphic?.attributes?.id)?.graphic;
+  if (g) showInfo(g.attributes.id);
 });
-document.getElementById("underground").addEventListener("change", (e) => {
-  map.ground.navigationConstraint = { type: e.target.checked ? "none" : "stay-above" };
-});
-document.getElementById("btnHome").addEventListener("click", () => view.goTo(START_CAMERA, { animate: !reduceMotion }));
-document.getElementById("btnTonga").addEventListener("click", () => view.goTo(
-  camAt(-168, -24, 4500000, 270, 55), { animate: !reduceMotion }));
 
-const about = document.getElementById("about");
-document.getElementById("btnAbout").addEventListener("click", () => about.showModal());
-document.getElementById("btnAboutClose").addEventListener("click", () => about.close());
+// ---------- Camera ----------
+$("underground").addEventListener("change", (e) => { map.ground.navigationConstraint = { type: e.target.checked ? "none" : "stay-above" }; });
+$("btnHome").addEventListener("click", async () => { await view.goTo(START_CAMERA, { animate: !reduceMotion }); cutThroughCentre(); });
+$("btnTonga").addEventListener("click", () => view.goTo(camAt(-168, -24, 4500000, 270, 55), { animate: !reduceMotion }));
+
+// ---------- Start: open the Earth straight away ----------
+cutThroughCentre();
+setStatus("Ready. Loading earthquakes…");
+setStatus("Ready. " + await loadQuakes());
 </script>
 </body>
 </html>
