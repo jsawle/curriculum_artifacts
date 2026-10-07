@@ -122,11 +122,9 @@
     <fieldset>
       <legend>Show</legend>
       <label><input type="checkbox" id="showCells" checked /> Cells and air flow arrows</label>
-      <label><input type="checkbox" id="allRound" checked /> Cells on the opposite side of the Earth too</label>
       <label><input type="checkbox" id="showBelts" checked /> Pressure belts on the ground (L = low, H = high)</label>
-      <label><input type="checkbox" id="showSurf" checked /> Surface winds on the ground <span class="badge" id="v-surf"></span></label>
       <label><input type="checkbox" id="showLabels" checked /> Labels</label>
-      <label><input type="checkbox" id="showParcels" checked /> Moving air parcels</label>
+      <label><input type="checkbox" id="showParcels" checked /> Moving air (white blobs that follow the loops)</label>
     </fieldset>
     <fieldset>
       <legend>Height stretch (the real atmosphere is too thin to see)</legend>
@@ -149,7 +147,7 @@
 
     <table>
       <caption>Zones this month, from north to south (model)</caption>
-      <thead><tr><th scope="col">Zone</th><th scope="col">Air and rain</th><th scope="col">Surface wind</th><th scope="col">Typical land cover</th></tr></thead>
+      <thead><tr><th scope="col">Zone</th><th scope="col">Air and rain</th><th scope="col">Surface wind <span class="badge" id="v-surf"></span></th><th scope="col">Typical land cover</th></tr></thead>
       <tbody id="zoneTable"></tbody>
     </table>
 
@@ -190,13 +188,13 @@
 
     <h2>Camera</h2>
     <button id="btnGlobe">Whole globe</button>
-    <button id="btnTropics">Tropics close-up</button>
+    <button id="btnTropics">Close-up of the tropical cells</button>
 
     <h2>About</h2>
     <button id="btnAbout">About and versions</button>
   </aside>
 
-  <main id="main" aria-label="3D globe showing the circulation cells on a north–south curtain and on the opposite side of the Earth, with pressure belts, surface winds and the Equator, tropics and polar circles. The cross-section diagram and zone table in the controls panel give the same information.">
+  <main id="main" aria-label="3D globe showing the circulation cells on a north–south curtain over the selected region, with moving air, pressure belts and the Equator, tropics and polar circles. The cross-section diagram and zone table in the controls panel give the same information.">
     <arcgis-scene id="scene" viewing-mode="global">
       <arcgis-zoom slot="top-right"></arcgis-zoom>
       <arcgis-navigation-toggle slot="top-right"></arcgis-navigation-toggle>
@@ -229,14 +227,14 @@
 <script type="module">
 // ================= Versions (single source of truth) =================
 // Bump a model's number whenever its maths or data handling changes; bump the app version on every release.
-const APP_VERSION = "0.4.1";
+const APP_VERSION = "0.5.0";
 const MODELS = {
   sun: { name: "Sunlight model", version: "1.0",
     desc: "Latitude where the Sun is overhead at midday = 23.44° × sin(2π(day − 80)/365), using the 15th of each month. Midday sunlight strength = sine of the midday Sun's height (100% when overhead). Midday only: it ignores day length and the atmosphere, so it understates summer sunlight near the poles." },
   surf: { name: "Surface wind model", version: "1.1",
-    desc: "Arrows show which way the model air moves at the ground: toward the rain belt between the two subtropical highs, and toward the polar fronts elsewhere. They bend right in the north and left in the south (Coriolis); the bend fades to nothing within 4° of the equator. Winds that cross the equator turn the other way (monsoon winds) only when the rain belt is at least 8° from it; otherwise they stay easterly. Calm within 2.5° of the rain belt and the subtropical highs, and changeable within 2° of the polar fronts. Uses the belt positions for each longitude, all round the globe. Shows direction only: arrow length is not wind speed." },
+    desc: "Gives the surface wind direction in the zone table and Check a place (no arrows are drawn on the globe). The model air at the ground moves toward the rain belt between the two subtropical highs, and toward the polar fronts elsewhere. Winds bend right in the north and left in the south (Coriolis); the bend fades to nothing within 4° of the equator. Winds that cross the equator turn the other way (monsoon winds) only when the rain belt is at least 8° from it; otherwise they stay easterly. Calm within 2.5° of the rain belt and the subtropical highs, and changeable within 2° of the polar fronts. Uses the belt positions for the longitude being checked. Direction only, not speed." },
   cells: { name: "Cell model", version: "1.1",
-    desc: "Three cells per hemisphere, drawn on one north–south great circle: a curtain at the chosen region and, if switched on, one on the opposite side of the Earth (180° away), each using the belt positions for its own longitude. Belt positions change with longitude: between the four regions, the regional mean and amplitude are interpolated in a straight line. Rain belt (ITCZ) latitude = regional mean + amplitude × cos(2π(month − 7.5)/12). Subtropical highs move half as far, polar fronts a quarter as far. Cell tops follow a simple tropopause curve (16 km at the equator, 8 km at the poles) times the height stretch." },
+    desc: "Three cells per hemisphere, drawn on one north–south curtain over the chosen region. Belt positions change with longitude: between the four regions, the regional mean and amplitude are interpolated in a straight line. Rain belt (ITCZ) latitude = regional mean + amplitude × cos(2π(month − 7.5)/12). Subtropical highs move half as far, polar fronts a quarter as far. Cell tops follow a simple tropopause curve (16 km at the equator, 8 km at the poles) times the height stretch." },
   wind: { name: "Wind layer", version: "1.0",
     desc: "ERA5 monthly averages 2005–2024. Surface = 1000 hPa at 10 m. Upper = 175 hPa, raised to 12.5 km × height stretch so it sits at the top of the cells." },
   rain: { name: "Rainfall layers", version: "1.0",
@@ -545,7 +543,6 @@ try {
 // graphics layers (added after data layers so they draw on top)
 const sunLayer = new GraphicsLayer({ title: "Sunlight strength", elevationInfo: { mode: "on-the-ground" } });
 const keyLayer = new GraphicsLayer({ title: "Equator, tropics, polar circles and main meridians", elevationInfo: { mode: "on-the-ground" } });
-const surfLayer = new GraphicsLayer({ title: "Surface winds (model)", elevationInfo: { mode: "on-the-ground" } });
 const beltLayer = new GraphicsLayer({ title: "Pressure belts", elevationInfo: { mode: "on-the-ground" } });
 const cellLayer = new GraphicsLayer({ title: "Cells", elevationInfo: { mode: "absolute-height" } });
 const labelLayer = new GraphicsLayer({ title: "Labels", elevationInfo: { mode: "absolute-height" } });
@@ -617,12 +614,12 @@ function setLand() {
   if (landLayer) landLayer.visible = on;
 }
 
-map.addMany([sunLayer, keyLayer, surfLayer, beltLayer, cellLayer, labelLayer, parcelLayer]);
+map.addMany([sunLayer, keyLayer, beltLayer, cellLayer, labelLayer, parcelLayer]);
 
 // ---- 3D cell drawing ----
 const pt3 = (lon, lat, hKm) => new Point({ longitude: lon, latitude: lat, z: hKm * 1000 * state.exag, spatialReference: { wkid: 4326 } });
 function arrowSymbol(color) {
-  return { type: "line-3d", symbolLayers: [{ type: "line", size: 3, material: { color },
+  return { type: "line-3d", symbolLayers: [{ type: "line", size: 4, material: { color },
     marker: { type: "style", style: "arrow", placement: "end", color } }] };
 }
 function textSymbol(text, color = "#ffffff", size = 11) {
@@ -635,30 +632,33 @@ const lineSym = (color, size, dash = false) => ({ type: "line-3d", symbolLayers:
 const geoLine = (path) => new Polyline({ paths: [path], spatialReference: { wkid: 4326 } });
 const geoPoint = (lon, lat) => new Point({ longitude: lon, latitude: lat, spatialReference: { wkid: 4326 } });
 
+// Moving air: heads per cell, each with a fading trail behind it, so the loops are easy to follow
+const PARCEL = { heads: 4, trail: [0.08, 0.16], size: 7500, periodSec: 9, stepMs: 60 };
+function parcelSymbol(size, color) {
+  return { type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "sphere" },
+    width: size * state.exag, height: size * state.exag, depth: size * state.exag, material: { color } }] };
+}
 function draw3D(b) {
-  const lon = state.region.lon;   // main curtain
+  const lon = state.region.lon;   // the curtain sits over the selected region only
   cellLayer.removeAll(); labelLayer.removeAll(); beltLayer.removeAll(); parcelLayer.removeAll(); parcels = [];
-  // curtains on one great circle: the region's meridian and (optionally) the meridian opposite it,
-  // so seen side-on the cells sit on both edges of the globe and mirror each other
-  const curtains = $("allRound").checked ? [lon, wrapLon(lon + 180)] : [lon];
-  curtains.forEach((cl, k) => {
-    const bb = k === 0 ? b : beltsAt(cl, state.month);
-    for (const cell of cellList(bb)) {
-      const f = cellPath(cell);
-      for (const seg of SEGS) {
-        const pts = segPoints(f, seg).map(p => [cl, p.lat, p.h * 1000 * state.exag]);
-        cellLayer.add(new Graphic({ geometry: new Polyline({ paths: [pts], hasZ: true, spatialReference: { wkid: 4326 } }),
-          symbol: arrowSymbol(COL[cell.kind]) }));
-      }
-      labelLayer.add(new Graphic({ geometry: pt3(cl, f.centre.lat, f.centre.h), symbol: textSymbol(cell.name, COL[cell.kind], 12) }));
-      for (let j = 0; j < 4; j++) {
-        const g = new Graphic({ symbol: { type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "sphere" },
-          width: 1500 * state.exag, height: 1500 * state.exag, depth: 1500 * state.exag, material: { color: "#ffffff" } }] } });
-        parcels.push({ g, f, k: j, lon: cl });
-        parcelLayer.add(g);
-      }
+  for (const cell of cellList(b)) {
+    const f = cellPath(cell);
+    for (const seg of SEGS) {
+      const pts = segPoints(f, seg).map(p => [lon, p.lat, p.h * 1000 * state.exag]);
+      cellLayer.add(new Graphic({ geometry: new Polyline({ paths: [pts], hasZ: true, spatialReference: { wkid: 4326 } }),
+        symbol: arrowSymbol(COL[cell.kind]) }));
     }
-  });
+    labelLayer.add(new Graphic({ geometry: pt3(lon, f.centre.lat, f.centre.h), symbol: textSymbol(cell.name, COL[cell.kind], 12) }));
+    for (let j = 0; j < PARCEL.heads; j++) {
+      const off = j * 2 * Math.PI / PARCEL.heads;
+      const head = new Graphic({ symbol: parcelSymbol(PARCEL.size, "#ffffff") });
+      parcels.push({ g: head, f, off }); parcelLayer.add(head);
+      PARCEL.trail.forEach((lag, i) => {
+        const t = new Graphic({ symbol: parcelSymbol(PARCEL.size * (0.75 - 0.2 * i), [255, 255, 255, 0.55 - 0.2 * i]) });
+        parcels.push({ g: t, f, off: off - lag }); parcelLayer.add(t);
+      });
+    }
+  }
   placeParcels();
   // belts on the ground, all round the globe (their latitude changes with longitude)
   const beltLine = (key, color, width) => {
@@ -668,61 +668,29 @@ function draw3D(b) {
   beltLine("itcz", "#4dabf7", 5);
   beltLine("sthN", "#e0a458", 4); beltLine("sthS", "#e0a458", 4);
   beltLine("pfN", "#b197fc", 3); beltLine("pfS", "#b197fc", 3);
-  // belt labels just above the main curtain
+  // belt labels just above the curtain
   const top = (lat) => tropo(lat) * 0.85 + 2.5;
   labelLayer.add(new Graphic({ geometry: pt3(lon, b.itcz, top(b.itcz)), symbol: textSymbol("L · Rising air · heavy rain", "#9fd3ff") }));
   labelLayer.add(new Graphic({ geometry: pt3(lon, b.sthN, top(b.sthN)), symbol: textSymbol("H · Sinking air · dry", "#f2c48d") }));
   labelLayer.add(new Graphic({ geometry: pt3(lon, b.sthS, top(b.sthS)), symbol: textSymbol("H · Sinking air · dry", "#f2c48d") }));
   labelLayer.add(new Graphic({ geometry: pt3(lon, b.pfN, top(b.pfN)), symbol: textSymbol("L · Rising air · storms", "#d0bfff") }));
   labelLayer.add(new Graphic({ geometry: pt3(lon, b.pfS, top(b.pfS)), symbol: textSymbol("L · Rising air · storms", "#d0bfff") }));
-  // big H and L letters on the ground, every 60° of longitude, between the curtains
-  for (let k = 0; k < 6; k++) {
-    const x = wrapLon(lon + 15 + 60 * k), bb = beltsAt(x, state.month);
-    const letter = (lat, t, color) => beltLayer.add(new Graphic({ geometry: geoPoint(x, lat), symbol: textSymbol(t, color, 22) }));
-    letter(bb.itcz, "L", "#74c0fc"); letter(bb.pfN, "L", "#b197fc"); letter(bb.pfS, "L", "#b197fc");
-    letter(bb.sthN, "H", "#ffc078"); letter(bb.sthS, "H", "#ffc078");
-    if (k === 0) { letter(84, "H", "#ffc078"); letter(-84, "H", "#ffc078"); }
-  }
-  drawSurfaceWinds(b, lon);
+  // big H and L letters on the ground just west of the curtain
+  const lx = wrapLon(lon - 12);
+  const letter = (lat, t, color) => beltLayer.add(new Graphic({ geometry: geoPoint(lx, lat), symbol: textSymbol(t, color, 22) }));
+  letter(b.itcz, "L", "#74c0fc"); letter(b.pfN, "L", "#b197fc"); letter(b.pfS, "L", "#b197fc");
+  letter(b.sthN, "H", "#ffc078"); letter(b.sthS, "H", "#ffc078"); letter(84, "H", "#ffc078"); letter(-84, "H", "#ffc078");
+  // surface wind names on the ground east of the curtain (no arrows: the zone table gives the directions)
+  const wx = wrapLon(lon + 28);
+  const name = (lat, t) => labelLayer.add(new Graphic({ geometry: pt3(wx, lat, 0.3), symbol: textSymbol(t, "#ffffff", 11) }));
+  const nt = (b.itcz + b.sthN) / 2, st = (b.itcz + b.sthS) / 2;
+  name(nt, windFrom(surfaceWind(nt, b) || { u: -1, v: -1 }) === "north-east" ? "North-east trade winds" : "Trade winds");
+  name(st, windFrom(surfaceWind(st, b) || { u: -1, v: 1 }) === "south-east" ? "South-east trade winds" : "Trade winds");
+  name((b.sthN + b.pfN) / 2, "Westerlies"); name((b.sthS + b.pfS) / 2, "Westerlies");
+  name((b.pfN + 90) / 2, "Polar easterlies"); name((b.pfS - 90) / 2, "Polar easterlies");
   drawSun(lon);
   drawKeyLines(lon);
   applyVisibility();
-}
-
-// ---- surface wind arrows (model), all round the globe; one graphic per latitude row ----
-function drawSurfaceWinds(b, lon) {
-  surfLayer.removeAll();
-  const sym = lineSym([255, 255, 255, 0.95], 2);
-  const LEN = 3.4, HEAD = 0.38 * LEN, ANG = 28 * Math.PI / 180;
-  const cols = Array.from({ length: 24 }, (_, k) => wrapLon(lon + 7.5 + 15 * k));
-  const colBelts = cols.map(x => beltsAt(x, state.month));
-  for (let lat = -77.5; lat <= 77.5; lat += 5) {
-    const k = 1 / Math.cos(lat * Math.PI / 180);                   // degrees of longitude per degree east
-    const paths = [];
-    cols.forEach((x0, i) => {
-      const w = surfaceWind(lat, colBelts[i]);
-      if (!w) return;
-      const n = Math.hypot(w.u, w.v), ue = w.u / n, vn = w.v / n;  // unit direction (east, north)
-      const sx = x0 - ue * LEN / 2 * k, sy = lat - vn * LEN / 2;
-      const ex = x0 + ue * LEN / 2 * k, ey = lat + vn * LEN / 2;
-      const head = (a) => {
-        const c = Math.cos(Math.PI - a), s = Math.sin(Math.PI - a);   // rotate the direction back by 180° ± a
-        const hu = ue * c - vn * s, hv = ue * s + vn * c;
-        return [[ex, ey], [ex + hu * HEAD * k, ey + hv * HEAD]];
-      };
-      paths.push([[sx, sy], [ex, ey]], head(ANG), head(-ANG));
-    });
-    if (paths.length) surfLayer.add(new Graphic({ geometry: new Polyline({ paths, spatialReference: { wkid: 4326 } }), symbol: sym }));
-  }
-  // wind belt names, in the middle of the side-on view (halfway between the two curtains)
-  const x = wrapLon(lon + 90), bx = beltsAt(x, state.month);
-  const name = (lat, t) => surfLayer.add(new Graphic({ geometry: geoPoint(x, lat), symbol: textSymbol(t, "#ffffff", 11) }));
-  const nt = (bx.itcz + bx.sthN) / 2, st = (bx.itcz + bx.sthS) / 2;
-  name(nt, windFrom(surfaceWind(nt, bx) || { u: -1, v: -1 }) === "north-east" ? "North-east trade winds" : "Trade winds");
-  name(st, windFrom(surfaceWind(st, bx) || { u: -1, v: 1 }) === "south-east" ? "South-east trade winds" : "Trade winds");
-  name((bx.sthN + bx.pfN) / 2, "Westerlies"); name((bx.sthS + bx.pfS) / 2, "Westerlies");
-  name((bx.pfN + 90) / 2, "Polar easterlies"); name((bx.pfS - 90) / 2, "Polar easterlies");
-  name(bx.itcz, "Doldrums (calm)");
 }
 
 // ---- sunlight strength bands (model), all round the globe ----
@@ -768,23 +736,25 @@ function drawKeyLines(lon) {
     const x = wrapLon(lon + 45 + 90 * k);
     for (const [lat, t] of names) keyLayer.add(new Graphic({ geometry: geoPoint(x, lat + 1.2), symbol: textSymbol(t, "#ffffff", 10) }));
   }
-  for (const lat of [45, -45]) {
-    keyLayer.add(new Graphic({ geometry: geoPoint(0, lat), symbol: textSymbol("Prime Meridian 0°", "#ffffff", 10) }));
+  for (const lat of [12, -12]) {
+    keyLayer.add(new Graphic({ geometry: geoPoint(0, lat), symbol: textSymbol("0°", "#ffffff", 10) }));
     keyLayer.add(new Graphic({ geometry: geoPoint(180, lat), symbol: textSymbol("180°", "#ffffff", 10) }));
   }
+  keyLayer.add(new Graphic({ geometry: geoPoint(0, 52), symbol: textSymbol("Prime Meridian", "#ffffff", 10) }));
 }
 let phase = 0;
 function placeParcels() {
+  const lon = state.region.lon;
   for (const p of parcels) {
-    const q = p.f(phase + p.k * Math.PI / 2);
-    p.g.geometry = pt3(p.lon, q.lat, q.h);
+    const q = p.f(phase + p.off);
+    p.g.geometry = pt3(lon, q.lat, q.h);
   }
 }
 let last = 0;
 function tick(ts) {
-  if (ts - last > 100) {
+  if (ts - last > PARCEL.stepMs) {
     if (!state.paused && $("showParcels").checked && parcels.length) {
-      phase += ((ts - last) / 1000) * (2 * Math.PI / 14);
+      phase += ((ts - last) / 1000) * (2 * Math.PI / PARCEL.periodSec);
       placeParcels();
     }
     last = ts;
@@ -798,7 +768,6 @@ function applyVisibility() {
   beltLayer.visible = $("showBelts").checked;
   labelLayer.visible = $("showLabels").checked;
   parcelLayer.visible = $("showParcels").checked;
-  surfLayer.visible = $("showSurf").checked;
   sunLayer.visible = $("showSun").checked;
   keyLayer.visible = $("showKey").checked;
 }
@@ -813,11 +782,14 @@ function updateAll() {
 
 // ================= Camera =================
 function globeView(animate = true) {
-  return view.goTo({ position: new Point({ longitude: wrapLon(state.region.lon + 90), latitude: 8, z: 17000000, spatialReference: { wkid: 4326 } }), heading: 0, tilt: 0 },
+  return view.goTo({ position: new Point({ longitude: wrapLon(state.region.lon + 75), latitude: 8, z: 17000000, spatialReference: { wkid: 4326 } }), heading: 0, tilt: 0 },
     { animate: animate && !reduceMotion });
 }
 function tropicsView() {
-  return view.goTo({ center: [state.region.lon, 5], zoom: 3.2, heading: 270, tilt: 70 }, { animate: !reduceMotion });
+  // side-on close-up of the tropical cells: centred just east of the curtain, looking west at it
+  // (the SDK limits tilt at this height; tested headless with @arcgis/core 5.1.26)
+  const b = belts(state.region, state.month);
+  return view.goTo({ center: [wrapLon(state.region.lon + 6), b.itcz], zoom: 4.3, heading: 270, tilt: 75 }, { animate: !reduceMotion });
 }
 
 // ================= Check a place =================
@@ -879,8 +851,7 @@ async function checkPlace(point) {
 $("month").addEventListener("input", (e) => { state.month = Number(e.target.value); updateAll(); });
 $("region").addEventListener("change", (e) => { state.regionKey = e.target.value; updateAll(); globeView(); $("inLon").value = state.region.lon; });
 document.querySelectorAll('input[name="exag"]').forEach(r => r.addEventListener("change", updateAll));
-$("allRound").addEventListener("change", updateAll);
-["showCells", "showBelts", "showLabels", "showParcels", "showSurf", "showSun", "showKey"].forEach(id => $(id).addEventListener("change", applyVisibility));
+["showCells", "showBelts", "showLabels", "showParcels", "showSun", "showKey"].forEach(id => $(id).addEventListener("change", applyVisibility));
 $("btnPause").addEventListener("click", () => {
   state.paused = !state.paused;
   $("btnPause").setAttribute("aria-pressed", String(state.paused));
