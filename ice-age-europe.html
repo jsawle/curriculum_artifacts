@@ -1,0 +1,809 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+<title>Ice Age Britain and Europe</title>
+<meta name="description" content="Explore the last 80,000 years in 3D: ice sheets over Britain and Scandinavia, stadials and interstadials, glacial lakes, and the drowning of Doggerland." />
+<script type="module" src="https://js.arcgis.com/5.1/"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  /* Dark "glass" theme (same family as the Helene app). Text colours meet WCAG AA on the panel colour. */
+  :root {
+    --bg: #0b1220; --panel: #0f172a; --glass: rgba(11, 18, 33, 0.88); --glass-edge: rgba(255, 255, 255, 0.10);
+    --ink: #eef3fa; --muted: #a8b6c9; --rule: rgba(255, 255, 255, 0.13); --chip: rgba(255, 255, 255, 0.08); --chip-hover: rgba(255, 255, 255, 0.14);
+    --accent: #7dd3fc; --accent-ink: #04121f; --go1: #2563eb; --go2: #0e7490;
+    --ice: #e6f0f7; --sea: #3b82c4; --lake: #5fb4d9; --cold: #93c5fd; --warm: #fdba74; --brit: #f59e0b; --llr: #f472b6;
+    --radius: 18px; --shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font: 15px/1.5 Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  #app { position: relative; height: 100%; overflow: hidden; }
+  #mapwrap { position: absolute; inset: 0; }
+  arcgis-scene { display: block; width: 100%; height: 100%; }
+  .glass { background: var(--glass); border: 1px solid var(--glass-edge); border-radius: var(--radius); box-shadow: var(--shadow); backdrop-filter: blur(14px) saturate(1.2); -webkit-backdrop-filter: blur(14px) saturate(1.2); }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-visible, .panes:focus-visible, #chart:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  button { font: inherit; font-weight: 600; border-radius: 12px; padding: 9px 14px; cursor: pointer; border: 1px solid var(--glass-edge); background: var(--chip); color: var(--ink); transition: background .15s; }
+  button:hover:not(:disabled) { background: var(--chip-hover); }
+  button.primary { background: linear-gradient(135deg, var(--go1), var(--go2)); border-color: transparent; color: #fff; box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45); }
+  button:disabled { opacity: 0.4; cursor: default; }
+  .iconbtn { width: 40px; height: 40px; padding: 0; display: inline-grid; place-items: center; font-size: 18px; flex: none; }
+  .ghost { background: transparent; border-color: transparent; color: var(--accent); padding: 4px 8px; font-size: 12.5px; }
+  select { padding: 6px 8px; border-radius: 10px; border: 1px solid var(--glass-edge); background: var(--panel); color: var(--ink); font: inherit; font-size: 13px; }
+
+  /* story card */
+  #card { position: absolute; left: 16px; top: 16px; bottom: 16px; width: 384px; display: flex; flex-direction: column; padding: 16px 18px 12px; z-index: 6; }
+  .brand { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); }
+  .brand .kicker { text-transform: uppercase; letter-spacing: .12em; font-weight: 700; color: var(--accent); }
+  .brand .sp { flex: 1; }
+  h1 { font-size: 22px; line-height: 1.15; margin: 6px 0 2px; font-weight: 800; letter-spacing: -0.01em; }
+  .lede { color: var(--muted); margin: 4px 0 10px; font-size: 13.5px; line-height: 1.45; }
+  @media (max-height: 800px) { .lede { display: none; } }
+  .stepnav ol { list-style: none; display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; padding: 0; margin: 2px 0 10px; }
+  .stepnav button { width: 100%; height: 30px; padding: 0; border-radius: 9px; font-size: 13px; }
+  .stepnav button.done { background: rgba(125, 211, 252, 0.16); color: var(--accent); }
+  .stepnav button[aria-current="step"] { background: linear-gradient(135deg, var(--go1), var(--go2)); color: #fff; border-color: transparent; }
+  #chapter { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .stepof { font-size: 11.5px; text-transform: uppercase; letter-spacing: .1em; font-weight: 700; color: var(--muted); }
+  #chTitle { font-size: 20px; line-height: 1.2; margin: 2px 0 6px; font-weight: 800; }
+  .when { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
+  .chip { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; background: var(--chip); color: var(--ink); border: 1px solid var(--glass-edge); }
+  .chip.cold { background: rgba(147, 197, 253, 0.16); border-color: rgba(147, 197, 253, 0.45); color: #cfe3ff; }
+  .chip.warm { background: rgba(253, 186, 116, 0.16); border-color: rgba(253, 186, 116, 0.5); color: #ffdcb8; }
+  .panes { flex: 1; min-height: 0; overflow-y: auto; padding: 2px 2px 8px; scrollbar-width: thin; font-size: 15px; }
+  .panes p { margin: 0 0 10px; }
+  .panes b { color: #fff; }
+  .note { font-size: 13px; color: var(--muted); border-left: 3px solid var(--rule); padding-left: 10px; margin: 6px 0 10px; }
+  .src { font-size: 12px; color: var(--muted); }
+  #nowBox { border-radius: 14px; padding: 10px 12px; margin: 4px 0 10px; background: linear-gradient(135deg, rgba(37, 99, 235, 0.18), rgba(14, 116, 144, 0.16)); border: 1px solid rgba(125, 211, 252, 0.3); font-size: 13.5px; display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; }
+  #nowBox dt { color: var(--muted); }
+  #nowBox dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .mv { font-size: 10.5px; font-weight: 600; color: var(--muted); border: 1px solid var(--rule); border-radius: 999px; padding: 0 6px; margin-left: 4px; white-space: nowrap; }
+  #mapDescBox summary { font-size: 13px; color: var(--muted); cursor: pointer; }
+  #mapDesc { font-size: 14px; margin: 6px 0 0; }
+  .cfoot { flex: none; padding-top: 10px; border-top: 1px solid var(--rule); }
+  .actions { display: flex; gap: 8px; }
+  #goBtn { flex: 1; font-size: 15.5px; padding: 11px 16px; border-radius: 14px; }
+  #status { font-size: 12px; color: var(--muted); margin-top: 6px; min-height: 1.2em; }
+
+  /* time bar with climate chart */
+  #timebar { position: absolute; left: 416px; right: 16px; bottom: 16px; padding: 10px 16px 8px; z-index: 4; }
+  .trow { display: grid; grid-template-columns: auto 1fr auto auto; gap: 4px 12px; align-items: center; }
+  #tLabel { font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 15px; min-width: 190px; }
+  #tStage { font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #chart { display: block; width: 100%; height: 92px; cursor: crosshair; margin-top: 4px; touch-action: none; }
+  #tSlider { width: 100%; accent-color: var(--accent); height: 20px; margin: 0; }
+  .ckey { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+  .ckey i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: 3px; margin-right: 5px; }
+
+  #credit { position: absolute; right: 16px; bottom: 196px; z-index: 4; padding: 6px 12px; border-radius: 12px; font-size: 11.5px; line-height: 1.35; color: var(--muted); text-align: right; }
+  #credit b { color: var(--ink); font-weight: 600; }
+  #legend { position: absolute; right: 16px; top: 16px; padding: 10px 12px; font-size: 12.5px; width: 270px; z-index: 4; border-radius: 14px; max-height: calc(100% - 260px); overflow-y: auto; }
+  #legend .t { width: 100%; display: flex; justify-content: space-between; align-items: center; border: 0; background: none; padding: 0 0 4px; font-weight: 700; font-size: 13px; color: var(--ink); }
+  #legend .t::after { content: "▾"; color: var(--muted); }
+  #legend.collapsed .t::after { content: "▸"; }
+  #legend.collapsed > :not(.t) { display: none !important; }
+  #legend h3 { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 8px 0 2px; }
+  #legend button.k { display: flex; align-items: center; gap: 8px; width: 100%; border: 0; background: none; font: inherit; font-weight: 500; color: inherit; text-align: left; padding: 3px 4px; margin: 1px -4px; border-radius: 8px; }
+  #legend button.k:hover { background: var(--chip); }
+  #legend .tick { width: 14px; height: 14px; border: 1.5px solid var(--muted); border-radius: 4px; flex: none; display: grid; place-items: center; font-size: 11px; }
+  #legend button.k[aria-pressed="true"] .tick { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  #legend button.k[aria-pressed="true"] .tick::after { content: "✓"; }
+  #legend .sw { width: 16px; height: 12px; border-radius: 3px; flex: none; }
+  #legend .sub { color: var(--muted); font-size: 11.5px; margin: 0 0 4px 26px; }
+  #legend .band { display: flex; height: 8px; border-radius: 4px; overflow: hidden; margin: 2px 0 2px 26px; }
+  #legend .band i { flex: 1; }
+  #legend .bandlbl { display: flex; justify-content: space-between; margin: 0 0 4px 26px; color: var(--muted); font-size: 11px; }
+  #exag { position: absolute; left: calc(50% + 200px); top: 16px; transform: translateX(-50%); padding: 5px 6px 5px 14px; font-size: 13px; font-weight: 700; display: flex; gap: 4px; align-items: center; border-radius: 999px; z-index: 4; }
+  #exag button { padding: 4px 10px; border-radius: 999px; font-size: 12.5px; }
+  #exag button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  #loading { position: absolute; left: calc(50% + 200px); top: 50%; transform: translate(-50%, -50%); padding: 14px 20px; z-index: 7; font-weight: 600; }
+
+  dialog#teachDlg { max-width: 700px; width: calc(100% - 32px); max-height: calc(100% - 48px); border: 1px solid var(--glass-edge); border-radius: var(--radius); background: var(--panel); color: var(--ink); padding: 16px 20px; box-shadow: var(--shadow); }
+  dialog#teachDlg::backdrop { background: rgba(2, 6, 16, .6); }
+  dialog a { color: var(--accent); }
+  .dlghead { display: flex; justify-content: space-between; align-items: center; }
+  .dlghead h2 { margin: 0; font-size: 18px; }
+  dialog details { border-top: 1px solid var(--rule); padding: 8px 0; }
+  dialog details:last-of-type { border-bottom: 1px solid var(--rule); }
+  dialog summary { cursor: pointer; font-weight: 700; }
+  dialog li { margin-bottom: 6px; font-size: 14px; }
+  table.ver { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.ver td, table.ver th { text-align: left; padding: 4px 6px 4px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  table.ver th { font-size: 12px; color: var(--muted); font-weight: 600; }
+  table.ver td.v { font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 700; }
+
+  @media (max-width: 1280px), (max-height: 780px) {
+    #card { width: 340px; }
+    #timebar { left: 368px; }
+    #exag { left: calc(50% + 176px); }
+    #legend { width: 240px; }
+  }
+  @media (max-width: 760px) {
+    #card { left: 8px; right: 8px; width: auto; top: auto; bottom: 8px; height: 46%; }
+    #timebar { left: 8px; right: 8px; bottom: calc(46% + 16px); padding: 8px 10px; }
+    #chart { height: 60px; }
+    #legend { right: 8px; top: 8px; width: 220px; max-height: 40%; }
+    #exag { left: 8px; top: 8px; transform: none; font-size: 11.5px; }
+    #credit { right: 8px; bottom: auto; top: 50%; font-size: 10.5px; }
+    #loading { left: 50%; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <main id="mapwrap" aria-label="3D map of Britain, the North Sea and Scandinavia during the last ice age. A written description is under Describe the map, in the story card.">
+    <arcgis-scene basemap="satellite" camera-position="6, 38, 2600000" camera-heading="0" camera-tilt="35">
+      <arcgis-zoom slot="top-right"></arcgis-zoom>
+      <arcgis-navigation-toggle slot="top-right"></arcgis-navigation-toggle>
+      <arcgis-compass slot="top-right"></arcgis-compass>
+    </arcgis-scene>
+    <div id="loading" class="glass" role="status">Loading the ice sheets…</div>
+    <div id="exag" class="glass" role="group" aria-label="Height exaggeration">Heights <button data-x="1" aria-pressed="false">true</button><button data-x="5" aria-pressed="false">5×</button><button data-x="10" aria-pressed="true">10×</button><button data-x="20" aria-pressed="false">20×</button></div>
+
+    <div id="legend" class="glass" role="group" aria-labelledby="legendTitle">
+      <button class="t" id="legendTitle" aria-expanded="true">Map key</button>
+      <h3>This app's models</h3>
+      <button class="k" data-l="ice" aria-pressed="true"><span class="tick"></span>Ice sheets <span class="mv" data-mv="Ice thickness"></span></button>
+      <div class="band" aria-hidden="true"><i style="background:#f5f8fa"></i><i style="background:#dbe7f0"></i><i style="background:#c4d6e5"></i><i style="background:#a8c4da"></i></div>
+      <div class="bandlbl"><span>thin</span><span>2.5 km thick</span></div>
+      <button class="k" data-l="seeThrough" aria-pressed="false"><span class="tick"></span>See-through ice</button>
+      <button class="k" data-l="sea" aria-pressed="true"><span class="tick"></span><span class="sw" style="background:var(--sea)"></span>Sea at that time <span class="mv" data-mv="Sea level"></span></button>
+      <button class="k" data-l="lakes" aria-pressed="true"><span class="tick"></span><span class="sw" style="background:var(--lake)"></span>Lakes <span class="mv" data-mv="Lakes"></span></button>
+      <div class="sub">Modelled: water trapped by ice or land, filled to its overflow</div>
+      <button class="k" data-l="coast" aria-pressed="true"><span class="tick"></span><span class="sw" style="background:none;border-top:2px solid rgba(255,255,255,.8);height:0;margin-top:6px"></span>Today's coastline</button>
+      <button class="k" data-l="labels" aria-pressed="true"><span class="tick"></span>Place names</button>
+      <h3>BRITICE evidence (University of Sheffield)</h3>
+      <button class="k" data-l="britExtent" aria-pressed="false"><span class="tick"></span><span class="sw" style="background:rgba(245,158,11,.55)"></span>Furthest extent of the last ice sheet</button>
+      <button class="k" data-l="llr" aria-pressed="false"><span class="tick"></span><span class="sw" style="background:rgba(244,114,182,.55);border:2px solid #f472b6;box-sizing:border-box"></span>Loch Lomond Readvance ice</button>
+      <button class="k" data-l="britLakes" aria-pressed="false"><span class="tick"></span><span class="sw" style="background:rgba(56,189,248,.6);border:2px solid #0ea5e9;box-sizing:border-box"></span>Glacial lakes and ice dams</button>
+      <button class="k" data-l="moraines" aria-pressed="false"><span class="tick"></span><span class="sw" style="background:#fb923c;height:3px;margin-top:5px"></span>Moraines</button>
+      <button class="k" data-l="eskers" aria-pressed="false"><span class="tick"></span><span class="sw" style="background:#a3e635;height:3px;margin-top:5px"></span>Eskers</button>
+      <button class="k" data-l="meltwater" aria-pressed="false"><span class="tick"></span><span class="sw" style="background:#22d3ee;height:3px;margin-top:5px"></span>Meltwater channels</button>
+      <button class="k" data-l="drumlins" aria-pressed="false"><span class="tick"></span><span class="sw" style="background:#e9d5ff;height:3px;margin-top:5px"></span>Drumlins and lineations</button>
+      <div class="sub">Landforms show when zoomed in to Britain or Ireland.</div>
+    </div>
+    <div id="credit" class="glass"><b>Created by Jason Sawle</b><br>© Esri 2026</div>
+
+    <section id="timebar" class="glass" aria-label="Timeline">
+      <div class="trow">
+        <div id="tLabel" aria-live="off">—</div>
+        <div id="tStage"></div>
+        <select id="speed" aria-label="Playback speed"><option value="0.5">slow</option><option value="1.5" selected>normal</option><option value="4">fast</option></select>
+        <button id="tPlay" class="iconbtn" aria-label="Play the timeline" title="Play the timeline (space)">▶</button>
+      </div>
+      <svg id="chart" role="img" aria-labelledby="chartTitle" tabindex="-1"><title id="chartTitle">Chart of Greenland temperature (from ice cores) and sea level over the last 80,000 years. Click to jump to a time.</title></svg>
+      <input id="tSlider" type="range" min="0" max="80" step="0.1" value="60" aria-label="Time" />
+      <div class="ckey" aria-hidden="true"><span><i style="background:#fdba74"></i>Greenland temperature (ice core δ¹⁸O, warmer up)</span><span><i style="background:#60a5fa"></i>Sea level</span><span><i style="background:rgba(253,186,116,.35);height:8px"></i>Interstadial (warm)</span><span><i style="background:rgba(147,197,253,.30);height:8px"></i>Stadial (cold)</span></div>
+    </section>
+  </main>
+
+  <aside id="card" class="glass" aria-label="Story and controls">
+    <header>
+      <div class="brand"><span class="kicker">Thinking Spatially</span><span id="verTop"></span><span class="sp"></span><button id="teachBtn" class="ghost" aria-haspopup="dialog">Teacher notes and sources</button></div>
+      <h1>Ice Age Britain and Europe</h1>
+      <p class="lede">How did ice sheets, lakes and the sea reshape Britain and northern Europe over the last 80,000 years, and how did Britain become an island?</p>
+    </header>
+    <nav class="stepnav" aria-label="Steps in time order"><ol id="steps"></ol></nav>
+    <section id="chapter" aria-labelledby="chTitle">
+      <div class="stepof" id="stepOf"></div>
+      <h2 id="chTitle"></h2>
+      <div class="when" id="chWhen"></div>
+      <div class="panes" id="panes" tabindex="0">
+        <div id="story"></div>
+        <dl id="nowBox" aria-label="At the time shown">
+          <dt>Sea level</dt><dd id="nSea">—</dd>
+          <dt>Ice</dt><dd id="nIce">—</dd>
+          <dt>Ice outline</dt><dd id="nOutline">—</dd>
+          <dt>Lakes</dt><dd id="nLakes">—</dd>
+        </dl>
+        <details id="mapDescBox"><summary>Describe the map</summary><p id="mapDesc"></p></details>
+      </div>
+    </section>
+    <footer class="cfoot">
+      <div class="actions">
+        <button id="backBtn" class="iconbtn" aria-label="Previous step" title="Previous step">‹</button>
+        <button id="goBtn" class="primary">▶ Play</button>
+        <button id="nextBtn" class="iconbtn" aria-label="Next step" title="Next step">›</button>
+      </div>
+      <div id="status" role="status" aria-live="polite"></div>
+    </footer>
+    <div class="sr-only" aria-live="polite" id="liveDesc"></div>
+  </aside>
+</div>
+
+<dialog id="teachDlg" aria-labelledby="teachTitle">
+  <div class="dlghead"><h2 id="teachTitle">For teachers</h2><button id="teachClose" aria-label="Close">✕</button></div>
+  <details open><summary>What the 3D view shows</summary>
+    <ul>
+      <li><b>Ice sheets.</b> The outlines come from Gowan et al. (2021), who drew the edge of the Eurasian ice sheets every 2,500 years for the last 80,000 years. From 25,000 to 10,000 years ago they follow the DATED-1 reconstruction (Hughes et al. 2016), which is built from more than 5,000 dates. Older outlines come from other studies or are drawn between them, so they are less certain; the card says which kind each outline is. Between outlines, the app blends the ice thickness in a straight line, so the edge moves smoothly but not exactly as it did.</li>
+      <li><b>Ice thickness.</b> Worked out by this app, not measured. It uses the "perfectly plastic" ice-sheet method also used by Gowan et al.: ice spreads under its own weight, so the surface rises from the edge towards the middle at a rate set by how easily the ice slides over the ground beneath (soft sediment lets it slide, giving thinner ice; hard rock gives thicker ice). The slipperiness values are Gowan's. The method ignores the earth sinking under the weight of the ice, so heights above sea level are too high in the middle of the ice sheets.</li>
+      <li><b>Sea level.</b> One value for the whole map at each moment. For the last 11,000 years it follows North Sea measurements (Hijma et al. 2025): about 50 m below today 11,000 years ago and about 15 m below 8,000 years ago, with straight lines between and to today. Before 13,000 years ago it follows a world-wide average (Spratt & Lisiecki 2016). In reality the land rose and sank by different amounts in different places (most near the ice), so coastlines near the ice are less reliable than in the southern North Sea.</li>
+      <li><b>Lakes.</b> Worked out by this app: water fills hollows that the ice or the land blocks from draining, up to the lowest point where it could spill over. Lakes over 2,000 km² that touch the ice are drawn, plus any lake over 25,000 km² (such as the Baltic basin when it was cut off from the sea). The real lakes were shaped by the earth sinking under the ice too, so these are a guide, not a map. The BRITICE glacial lakes layer shows lakes mapped from their deposits in Britain.</li>
+      <li><b>BRITICE layers.</b> Mapped evidence of the last British–Irish Ice Sheet from the University of Sheffield's BRITICE Glacial Map, version 2 (Clark et al. 2018), shown live from ArcGIS Online. The furthest extent was not all reached at the same time.</li>
+      <li><b>Chart.</b> The orange line is oxygen isotopes (δ¹⁸O) in the GISP2 Greenland ice core: higher means warmer. Its fast jumps are the interstadials. The blue line is the app's sea level. Shaded bands mark the named warm and cold stages used in Britain.</li>
+      <li><b>Ideas some classes use</b> (pick any or none): compare the ice at 60,000 and 20,000 years ago and ask what the evidence would need to show to decide which was bigger; pause the Doggerland flood every 500 years and estimate how much land was lost; switch on moraines near your school and connect them to the ice edge.</li>
+    </ul>
+  </details>
+  <details><summary>Limitations</summary>
+    <ul>
+      <li>Ice outlines before 25,000 years ago, and especially before 45,000 years ago, are hypotheses with few dates behind them; scientists still disagree about them.</li>
+      <li>The ground and sea floor are today's. Sand and mud laid down since the ice age, and erosion, mean some parts of Doggerland flooded earlier or later than shown (Hoebe et al. 2024 found today's sea floor makes the flooding look too late in places).</li>
+      <li>No isostatic adjustment (the earth sinking under ice and rising after) in the ice, sea or lake models.</li>
+      <li>After the Baltic Ice Lake drained about 11,700 years ago, the Baltic was joined to the ocean through central Sweden for a time. That land has risen since, so the model cannot find that route: it keeps the Baltic as a lake until the sea rises over the Danish straits, later than really happened.</li>
+      <li>The grid behind the models is 0.16° by 0.08° (about 9 km), so small glaciers, valleys and lakes do not show. The ice outlines do not include the separate Alpine ice.</li>
+      <li>The time scale is "years ago"; dates from ice cores are counted from AD 2000 and radiocarbon dates from AD 1950, a 50-year difference that does not matter at this scale.</li>
+    </ul>
+  </details>
+  <details><summary>Sources</summary>
+    <ul>
+      <li><a href="https://doi.org/10.1038/s41467-021-21469-w" target="_blank" rel="noopener">Gowan et al. 2021, A new global ice sheet reconstruction for the past 80000 years (Nature Communications)</a>; margins and shear stress from <a href="https://github.com/evangowan/icesheet" target="_blank" rel="noopener">ICESHEET 2.0 (GitHub)</a></li>
+      <li><a href="https://doi.org/10.1111/bor.12142" target="_blank" rel="noopener">Hughes et al. 2016, The last Eurasian ice sheets: DATED-1 (Boreas)</a></li>
+      <li><a href="https://doi.org/10.1594/PANGAEA.856844" target="_blank" rel="noopener">RTopo-2 bed topography (Schaffer et al. 2016), CC BY 4.0</a></li>
+      <li><a href="https://doi.org/10.5194/cp-12-1079-2016" target="_blank" rel="noopener">Spratt & Lisiecki 2016, A Late Pleistocene sea level stack (Climate of the Past)</a></li>
+      <li><a href="https://www.nature.com/articles/s41586-025-08769-7" target="_blank" rel="noopener">Hijma et al. 2025, Global sea-level rise in the early Holocene revealed from North Sea peats (Nature)</a></li>
+      <li><a href="https://doi.org/10.1016/j.quaint.2024.05.006" target="_blank" rel="noopener">Hoebe et al. 2024, Early Holocene inundation of Doggerland (Quaternary International)</a></li>
+      <li><a href="https://onlinelibrary.wiley.com/doi/10.1111/bor.12594" target="_blank" rel="noopener">Clark et al. 2022, BRITICE-CHRONO reconstruction of the last British–Irish Ice Sheet (Boreas)</a></li>
+      <li><a href="https://onlinelibrary.wiley.com/doi/10.1111/bor.12273" target="_blank" rel="noopener">Clark et al. 2018, BRITICE Glacial Map version 2 (Boreas)</a>; layers from the University of Sheffield on <a href="https://shefuni.maps.arcgis.com/apps/webappviewer/index.html?id=fd78b03a74bb477c906c5d4e0ba9abaf" target="_blank" rel="noopener">ArcGIS Online</a> (Open Government Licence v2)</li>
+      <li><a href="https://www.nature.com/articles/s41467-019-11601-2" target="_blank" rel="noopener">Batchelor et al. 2019, The configuration of Northern Hemisphere ice sheets through the Quaternary</a></li>
+      <li><a href="https://ui.adsabs.harvard.edu/abs/2014QSRv..106...14R/abstract" target="_blank" rel="noopener">Rasmussen et al. 2014, Greenland stadials and interstadials (INTIMATE event stratigraphy)</a>; GI-1/GS-1 ages from <a href="https://scarf.scot/national/palaeolithic-mesolithic-panel-report/3-environment/3-1-climate-changes-in-scotland-from-the-last-glacial-maximum-c-16000-yrs-bp-to-c-6000-bp/" target="_blank" rel="noopener">ScARF</a></li>
+      <li><a href="https://www.sciencedirect.com/science/article/abs/pii/S0921818107000094" target="_blank" rel="noopener">Jakobsson et al. 2007, Reconstructing the Younger Dryas ice dammed lake in the Baltic Basin</a></li>
+      <li><a href="https://www.frontiersin.org/journals/earth-science/articles/10.3389/feart.2026.1720151/xml" target="_blank" rel="noopener">Frontiers in Earth Science 2026: Storegga tsunami and Dogger Bank submergence dates</a></li>
+      <li>GISP2 δ¹⁸O from NOAA Paleoclimatology (study 17796), as packaged in pyleoclim · Marine Isotope Stage boundaries from Lisiecki & Raymo 2005 · Natural Earth coastline · Esri TopoBathy 3D and World Imagery</li>
+    </ul>
+  </details>
+  <details id="about"><summary>About and versions</summary>
+    <table class="ver" id="verTable"></table>
+  </details>
+  <details><summary>Accessibility</summary>
+    <ul>
+      <li>The page is being built towards <b>WCAG 2.1 level AA</b>, the standard US public schools must meet under the ADA Title II web rule. It has not been independently audited.</li>
+      <li>Everything can be used with a keyboard: Tab to move, the arrow keys on the timeline, Space to play or pause, and the ‹ › buttons (or Page Up / Page Down) for steps. <b>Describe the map</b>, in the story card, gives a written description of what the 3D map shows; screen readers hear it when a step changes or the timeline stops.</li>
+      <li>Nothing moves on its own. If the device is set to reduce motion, camera moves jump instead of flying.</li>
+      <li>Colours are never the only clue: the card and the description give the same information in words.</li>
+      <li>Known gaps: the 3D map itself cannot be explored by a screen reader beyond the written description; the chart has no data table yet.</li>
+    </ul>
+  </details>
+</dialog>
+
+<script type="module">
+/* Ice Age Britain and Europe. App version and per-model versions below;
+   bump a model's number when its maths or data handling changes, and the app version on every release. */
+const APP_VERSION = "1.0";
+const APP_DATE = "6 October 2026";
+const MODELS = [
+  ["Ice outlines", "1.0", "Gowan et al. 2021 Eurasian margins every 2.5 ka, 0–80 ka (DATED-1 based 25–10 ka); between outlines the edge moves by blending each outline's signed distance to its edge, thickness blended in a straight line and tapered near the moving edge (1.5 × flat-bed Nye profile)"],
+  ["Ice thickness", "1.0", "Perfectly plastic ice (Nye) built outwards from the margin over RTopo-2 bed, Gowan's basal shear stress domains (15–195 kPa), flotation thickness at marine margins, no isostatic sinking; 0.16° × 0.08° grid"],
+  ["Sea level", "1.0", "North Sea −50 m at 11 ka and −15 m at 8 ka (Hijma et al. 2025), straight lines to 0 m today; Spratt & Lisiecki 2016 stack (1 ka steps) from 13 ka back; straight line 11–13 ka; one value for the whole map"],
+  ["Sea surface", "1.0", "Water where the bed is below sea level and joined to the open sea (priority flood), widened 2 cells so the 3D ground draws the shoreline; today's land below sea level (polders) kept dry"],
+  ["Lakes", "1.0", "Priority flood with the ice as a barrier; lakes over 2,000 km² touching the ice, and any lake over 25,000 km², filled to their overflow level; no isostatic sinking"],
+  ["Terrain", "1.0", "Esri TopoBathy 3D × 1, 5, 10 or 20; ground colour is an RTopo-2 height tint (a drawing, not past vegetation)"],
+  ["Climate chart", "1.0", "GISP2 δ¹⁸O 0–80 ka; stage bands: Dimlington 31–14.7 ka, Windermere 14.692–12.896 ka, Loch Lomond 12.896–11.703 ka (GICC05), MIS boundaries 71, 57, 29, 14 ka (LR04)"],
+  ["BRITICE layers", "1.0", "Live University of Sheffield BRITICE v2 services (OGL v2) and Loch Lomond Readvance layer; landforms drawn below 1:5,000,000"]
+];
+const $ = (id) => document.getElementById(id);
+$("verTop").textContent = "v" + APP_VERSION;
+document.title = "Ice Age Britain and Europe (v" + APP_VERSION + ")";
+$("verTable").innerHTML = `<tr><th>Part</th><th>Version</th><th>How it works</th></tr><tr><td>App</td><td class="v">${APP_VERSION}</td><td>${APP_DATE}</td></tr>` +
+  MODELS.map(([n, v, d]) => `<tr><td>${n}</td><td class="v">${v}</td><td>${d}</td></tr>`).join("");
+document.querySelectorAll("[data-mv]").forEach(el => { const m = MODELS.find(x => x[0] === el.dataset.mv); el.textContent = m ? "model " + m[1] : ""; });
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// ---------- formatting ----------
+const fmtAgo = (t) => t < 0.05 ? "Today" : `${Math.round(t * 1000 / (t < 20 ? 100 : 500)) * (t < 20 ? 100 : 500)}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " years ago";
+const ft = (m) => Math.round(m * 3.28084).toLocaleString("en-US");
+const nf = (x) => Math.round(x).toLocaleString("en-US");
+
+// ---------- named stages (sources in the teacher notes) ----------
+function stageAt(t) {
+  if (t < 11.703) return { name: "Holocene (today's warm period)", kind: "warm" };
+  if (t < 12.896) return { name: "Loch Lomond Stadial · GS-1 · Younger Dryas", kind: "cold" };
+  if (t < 14.692) return { name: "Windermere Interstadial · GI-1 · Bølling–Allerød", kind: "warm" };
+  if (t < 29) return { name: "Dimlington Stadial · Late Devensian (MIS 2)", kind: "cold" };
+  if (t < 31) return { name: "Dimlington Stadial begins · Middle Devensian (MIS 3)", kind: "cold" };
+  if (t < 57) return { name: "Middle Devensian (MIS 3): swinging stadials and interstadials", kind: "mixed" };
+  if (t < 71) return { name: "Early Devensian (MIS 4): a cold stage", kind: "cold" };
+  return { name: "Early Devensian (MIS 5)", kind: "mixed" };
+}
+// what each 2.5 ka outline is based on (from the notes in Gowan's margin files)
+const OUTLINE_BASIS = { 0: "today's glaciers", 2.5: "today's glaciers", 5: "today's glaciers", 7.5: "today's glaciers",
+  10: "DATED-1 time slice", 12.5: "between DATED-1 slices (Younger Dryas)", 15: "DATED-1 time slice", 17.5: "between DATED-1 slices",
+  20: "DATED-1 time slice", 22.5: "between DATED-1 slices", 25: "DATED-1 time slice", 27.5: "between DATED-1 slices", 30: "between DATED-1 slices",
+  32.5: "drawn by Gowan", 35: "DATED-1 range (largest)", 37.5: "drawn between outlines", 40: "DATED-1 range (smallest)", 42.5: "drawn between outlines",
+  45: "drawn by Gowan (Heinrich event 4 advance)", 47.5: "drawn between outlines", 50: "other studies (Helmens 2014)", 52.5: "drawn by Gowan",
+  55: "other studies (Ingólfsson & Landvik 2013)", 57.5: "drawn by Gowan", 60: "other studies (Ingólfsson & Landvik 2013; Helmens 2014)", 62.5: "drawn by Gowan",
+  65: "other studies (Ingólfsson & Landvik 2013)", 67.5: "drawn between outlines", 70: "other studies (Ingólfsson & Landvik 2013)", 72.5: "drawn between outlines",
+  75: "drawn by Gowan", 77.5: "drawn between outlines", 80: "DATED-1 range (smallest)" };
+
+// ---------- steps, in time order ----------
+const CAM = {
+  europe: { center: [8, 57.5], zoom: 4.4, tilt: 42, heading: 0 },
+  scand: { center: [14, 61], zoom: 4.8, tilt: 45, heading: 0 },
+  northsea: { center: [3, 57], zoom: 5.1, tilt: 50, heading: 0 },
+  britain: { center: [-3.5, 55], zoom: 5.5, tilt: 45, heading: 0 },
+  scotland: { center: [-4.7, 56.7], zoom: 6.7, tilt: 50, heading: 0 },
+  baltic: { center: [18, 58.5], zoom: 5.0, tilt: 45, heading: 0 },
+  dogger: { center: [3, 54.6], zoom: 6.0, tilt: 55, heading: 0 }
+};
+const CH = [
+  { t: 80, title: "Ice returns to the north", cam: "europe", layers: {},
+    html: `<p>The last glacial period is called the <b>Devensian</b> in Britain and the <b>Weichselian</b> in northern Europe. 80,000 years ago, ice caps sat over the mountains of Scandinavia and sea level was about 30 m lower than today.</p>
+<p class="note">Ice outlines this far back rest on few dates. They are scientists' best hypotheses, not maps.</p>` },
+  { t: 60, title: "A cold stage: 71,000 to 57,000 years ago", cam: "europe", layers: {},
+    html: `<p>In <b>Marine Isotope Stage 4</b> the ice grew again. In the reconstruction used here (Gowan et al. 2021), ice spreads from Scandinavia across the North Sea towards Scotland about 60,000 years ago, and sea level is about 85 m lower.</p>
+<p class="note">Scientists disagree about this stage. Batchelor et al. (2019) found that the southern and western edges of the European ice sheet reached further at the Last Glacial Maximum than in MIS 4, while its eastern edge reached further in MIS 4.</p>` },
+  { t: 40, title: "Swinging between cold and mild", cam: "europe", layers: {},
+    html: `<p><b>Marine Isotope Stage 3</b> (about 57,000 to 29,000 years ago) brought repeated, sudden changes. The Greenland ice core in the chart below shows warm spikes called <b>interstadials</b>, each followed by a colder <b>stadial</b>. Scientists number them as Greenland Interstadials (GI) and Stadials (GS).</p>
+<p>In this reconstruction the Scandinavian ice had almost gone by 40,000 years ago. Drag the timeline between 57,000 and 30,000 years ago to watch the ice and the Greenland record change.</p>` },
+  { t: 30, title: "The Dimlington Stadial begins", cam: "europe", layers: {},
+    html: `<p>The main cold phase of the last glaciation in Britain is the <b>Dimlington Stadial</b>, about 31,000 to 14,700 years ago, named after cliffs on the Yorkshire coast. Ice builds up over Scotland, Ireland and Scandinavia.</p>` },
+  { t: 25, title: "Two ice sheets meet", cam: "northsea", layers: {},
+    html: `<p>The <b>British–Irish</b> and <b>Scandinavian</b> ice sheets joined across the northern North Sea. In the outlines used here they are joined from 27,500 to 20,000 years ago. Clark et al. (2022) date the North Sea ice advance to between 30,000 and 25,000 years ago, and its retreat to before 23,000 years ago.</p>
+<p>With the ice blocking the north, the lake model fills a lake in the southern North Sea. Murton &amp; Murton (2012) review evidence for lakes like this in several glaciations; how big this one was is debated.</p>` },
+  { t: 20, title: "The Last Glacial Maximum", cam: "britain", layers: { britExtent: true }, seeThrough: true,
+    html: `<p>Around 20,000 years ago sea level was about <b>120 m lower</b> than today, so the floor of the North Sea, including <b>Doggerland</b>, was dry land joining Britain to Europe.</p>
+<p>The orange area is the furthest the British–Irish Ice Sheet reached, mapped from landforms (BRITICE). It did not reach all these places at the same time: in Lincolnshire, North Sea ice reached its furthest about 19,500 years ago (Clark et al. 2022).</p>
+<p class="note">Ice is see-through in this step so the BRITICE extent shows beneath it.</p>` },
+  { t: 16, title: "The ice retreats", cam: "europe", layers: {},
+    html: `<p>As the climate warmed, the ice sheets thinned and pulled back. By 15,000 years ago the North Sea was free of ice, but sea level was still about 85 m lower than today.</p>
+<p>Along the southern edge of the Scandinavian ice, meltwater was trapped between the ice and higher ground. Watch the lake model in the Baltic basin.</p>` },
+  { t: 14, title: "The Windermere Interstadial", cam: "britain", layers: {}, kind: "warm",
+    html: `<p>About <b>14,700 years ago</b> the climate warmed suddenly. In Greenland this is <b>Greenland Interstadial 1</b> (14,692 to 12,896 years before AD 2000); on the continent it is called the <b>Bølling–Allerød</b>.</p>
+<p>The ice kept shrinking. Scientists are not sure whether small ice caps survived on the Scottish Highlands through this warm phase.</p>` },
+  { t: 12.5, title: "The Loch Lomond Stadial", cam: "scotland", layers: { llr: true, britLakes: true }, seeThrough: true,
+    html: `<p>About <b>12,900 years ago</b> the cold came back suddenly (<b>Greenland Stadial 1</b>, the <b>Younger Dryas</b>). An ice cap and glaciers grew again in the Scottish Highlands; the pink area is the mapped <b>Loch Lomond Readvance</b>. It ended about 11,700 years ago.</p>
+<p>In the Baltic basin, ice and land trapped a huge lake, the <b>Baltic Ice Lake</b>. When the ice edge melted back past Mount Billingen in Sweden, about 11,700 years ago, the lake drained: its level fell about 25 m and about 7,800 km³ of water flowed out (Jakobsson et al. 2007).</p>` },
+  { t: 11.7, title: "The Holocene begins", cam: "europe", layers: {},
+    html: `<p>About <b>11,700 years ago</b> the climate warmed for good, and the last ice caps in Britain melted away. Britain was still joined to the continent by a wide plain: <b>Doggerland</b>.</p>` },
+  { t: 11, title: "Doggerland floods", cam: "dogger", layers: {}, play: { to: 8, speed: 0.25 },
+    html: `<p>In the North Sea, sea level rose from about <b>50 m</b> below today 11,000 years ago to about <b>15 m</b> below by 8,000 years ago (Hijma et al. 2025). Peat layers from the sea floor show two spells of especially fast rise, peaking about 10,300 and 8,300 years ago.</p>
+<p>One model finds a big loss of land between 10,500 and 10,000 years ago (Hoebe et al. 2024). Press <b>Play the flood</b> to watch it.</p>` },
+  { t: 8, title: "An island, then the sea", cam: "dogger", layers: {}, play: { to: 7, speed: 0.12 },
+    html: `<p>About <b>8,150 years ago</b> the Storegga landslide off Norway sent a tsunami across the North Sea. Around 8,000 years ago, models show <b>Dogger Bank</b> as an island (Clark et al. 2022); by about 7,500 years ago it was under the sea.</p>
+<p class="note">The flood here uses today's sea floor and one sea level for the whole North Sea, so the island may last a little longer or shorter than it really did.</p>` },
+  { t: 0, title: "Today", cam: "britain", layers: { moraines: true, eskers: true, meltwater: true }, kind: "warm",
+    html: `<p>Sea level reached about today's level and Britain is an island. The ice sheets left their marks in the landscape: <b>moraines</b>, <b>eskers</b>, <b>drumlins</b> and <b>meltwater channels</b>, mapped in the BRITICE layers. Zoom in to Britain or Ireland to see them.</p>` }
+];
+
+// ---------- SDK ----------
+const [Graphic, GraphicsLayer, FeatureLayer, TileLayer, ElevationLayer, BaseElevationLayer, Mesh, MeshComponent, MediaLayer, ImageElement, ExtentAndRotationGeoreference, Extent] = await $arcgis.import([
+  "@arcgis/core/Graphic.js", "@arcgis/core/layers/GraphicsLayer.js", "@arcgis/core/layers/FeatureLayer.js", "@arcgis/core/layers/TileLayer.js",
+  "@arcgis/core/layers/ElevationLayer.js", "@arcgis/core/layers/BaseElevationLayer.js",
+  "@arcgis/core/geometry/Mesh.js", "@arcgis/core/geometry/support/MeshComponent.js",
+  "@arcgis/core/layers/MediaLayer.js", "@arcgis/core/layers/support/ImageElement.js", "@arcgis/core/layers/support/ExtentAndRotationGeoreference.js",
+  "@arcgis/core/geometry/Extent.js"
+]);
+const sceneEl = document.querySelector("arcgis-scene");
+await sceneEl.viewOnReady();
+const view = sceneEl.view, map = sceneEl.map;
+view.environment.atmosphereEnabled = true;
+function setPadding() {
+  if (innerWidth <= 760) view.padding = { top: 60, bottom: Math.round(innerHeight * 0.62), left: 0, right: 0 };
+  else view.padding = { left: $("card").getBoundingClientRect().right + 10, bottom: innerHeight - $("timebar").getBoundingClientRect().top + 10, top: 20, right: 300 };
+}
+setPadding(); addEventListener("resize", setPadding);
+
+// terrain: TopoBathy (land and sea floor), exaggerated
+const TOPOBATHY_URL = "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/TopoBathy3D/ImageServer";
+const ExagElevation = BaseElevationLayer.createSubclass({
+  properties: { factor: 10 },
+  load() {
+    this._base = new ElevationLayer({ url: TOPOBATHY_URL });
+    this.addResolvingPromise(this._base.load().then(() => { this.tileInfo = this._base.tileInfo; this.spatialReference = this._base.spatialReference; this.fullExtent = this._base.fullExtent; }));
+  },
+  fetchTile(level, row, col, options) {
+    return this._base.fetchTile(level, row, col, options).then((d) => {
+      const f = this.factor, v = d.values, nd = d.noDataValue;
+      for (let i = 0; i < v.length; i++) if (v[i] !== nd) v[i] *= f;
+      return d;
+    });
+  }
+});
+let EXAG = 10;
+function setGround() {
+  map.ground.layers.removeAll();
+  map.ground.layers.add(EXAG === 1 ? new ElevationLayer({ url: TOPOBATHY_URL }) : new ExagElevation({ factor: EXAG }));
+  map.ground.navigationConstraint = { type: "none" };
+}
+setGround();
+
+// ---------- data ----------
+const DATA = "data/ice-age-europe/";
+async function gunzip(url) {
+  const r = await fetch(url); if (!r.ok) throw new Error(url + " " + r.status);
+  if (!("DecompressionStream" in window)) throw new Error("This browser cannot unpack the data (DecompressionStream missing). Please update the browser.");
+  return new Response(r.body.pipeThrough(new DecompressionStream("gzip"))).arrayBuffer();
+}
+const [meta, coast, drapeInfo, bedBuf, iceBuf, landBuf, tauBuf] = await Promise.all([
+  fetch(DATA + "meta.json").then(r => r.json()), fetch(DATA + "coast.json").then(r => r.json()), fetch(DATA + "drape.json").then(r => r.json()),
+  gunzip(DATA + "bed.i16.gz"), gunzip(DATA + "ice.u8.gz"), gunzip(DATA + "land.u8.gz"), gunzip(DATA + "tau.u8.gz")
+]).catch((e) => { $("loading").textContent = "Could not load the data: " + e.message; throw e; });
+const { lon0, lat0, dlon, dlat, W, H } = meta.grid, N = W * H;
+const bed = new Int16Array(bedBuf), iceStack = new Uint8Array(iceBuf), land = new Uint8Array(landBuf), tau = new Uint8Array(tauBuf);   // tau in kPa
+const TIMES = meta.times, NT = TIMES.length, ICE_UNIT = meta.iceUnit;
+const SL = meta.seaLevel, GIS = meta.gisp2;
+const cellArea = new Float64Array(H);   // km² per cell in each row
+for (let j = 0; j < H; j++) cellArea[j] = dlon * 111.32 * Math.cos((lat0 + j * dlat) * Math.PI / 180) * dlat * 111.32;
+const seaLevelAt = (t) => { if (t <= SL[0][0]) return SL[0][1]; for (let k = 1; k < SL.length; k++) if (t <= SL[k][0]) { const [a, va] = SL[k - 1], [b, vb] = SL[k]; return va + (vb - va) * (t - a) / (b - a); } return SL[SL.length - 1][1]; };
+
+// ice at any time between two outlines: the edge moves by blending each outline's signed distance to its edge
+// (km, positive inside the ice); thickness is blended in a straight line, then tapered near the moving edge
+// with the same perfectly plastic rule as the thickness model (capped at 1.5 x the flat-bed Nye profile).
+const Hcur = new Float32Array(N), iceMask = new Uint8Array(N);
+const dxRow = new Float32Array(H); for (let j = 0; j < H; j++) dxRow[j] = dlon * 111.32 * Math.cos((lat0 + j * dlat) * Math.PI / 180);
+const DY = dlat * 111.32;
+const sdfCache = new Map();
+function chamfer(seedMask) {   // distance (km) from each cell to the nearest seed cell, 8-neighbour two-pass
+  const d = new Float32Array(N).fill(1e9);
+  for (let c = 0; c < N; c++) if (seedMask(c)) d[c] = 0;
+  for (let j = 0; j < H; j++) { const dx = dxRow[j], dg = Math.hypot(dx, DY);
+    for (let i = 0; i < W; i++) { const c = j * W + i; let v = d[c];
+      if (i > 0 && d[c - 1] + dx < v) v = d[c - 1] + dx;
+      if (j > 0) { const u = c - W; if (d[u] + DY < v) v = d[u] + DY; if (i > 0 && d[u - 1] + dg < v) v = d[u - 1] + dg; if (i < W - 1 && d[u + 1] + dg < v) v = d[u + 1] + dg; }
+      d[c] = v; } }
+  for (let j = H - 1; j >= 0; j--) { const dx = dxRow[j], dg = Math.hypot(dx, DY);
+    for (let i = W - 1; i >= 0; i--) { const c = j * W + i; let v = d[c];
+      if (i < W - 1 && d[c + 1] + dx < v) v = d[c + 1] + dx;
+      if (j < H - 1) { const u = c + W; if (d[u] + DY < v) v = d[u] + DY; if (i < W - 1 && d[u + 1] + dg < v) v = d[u + 1] + dg; if (i > 0 && d[u - 1] + dg < v) v = d[u - 1] + dg; }
+      d[c] = v; } }
+  return d;
+}
+function sdfOf(k) {
+  if (sdfCache.has(k)) return sdfCache.get(k);
+  const o = k * N, inIce = (c) => iceStack[o + c] > 0;
+  const dOut = chamfer((c) => inIce(c)), dIn = chamfer((c) => !inIce(c)), s = new Float32Array(N);
+  for (let c = 0; c < N; c++) s[c] = inIce(c) ? dIn[c] : -dOut[c];
+  sdfCache.set(k, s); return s;
+}
+const RHO_G = 917 * 9.81;
+function iceAt(t) {
+  t = Math.max(0, Math.min(TIMES[NT - 1], t));
+  let k = 0; while (k < NT - 2 && TIMES[k + 1] < t) k++;
+  const w = (t - TIMES[k]) / (TIMES[k + 1] - TIMES[k]), a = k * N, b = (k + 1) * N;
+  const sa = sdfOf(k), sb = sdfOf(k + 1);
+  let area = 0, vmax = 0;
+  for (let c = 0; c < N; c++) {
+    const s = (1 - w) * sa[c] + w * sb[c];
+    if (s <= 0 || (sa[c] <= 0 && sb[c] <= 0)) { Hcur[c] = 0; iceMask[c] = 0; continue; }
+    let h = ((1 - w) * iceStack[a + c] + w * iceStack[b + c]) * ICE_UNIT;
+    const cap = 1.5 * Math.sqrt(2 * tau[c] * 1000 * s * 1000 / RHO_G);
+    if (h > cap) h = cap;
+    if (h < ICE_UNIT) h = ICE_UNIT;
+    Hcur[c] = h; iceMask[c] = 1; area += cellArea[(c / W) | 0]; if (h > vmax) vmax = h;
+  }
+  return { area, vmax, k, w };
+}
+
+// priority flood: water level each cell would reach with the ice as a barrier and the sea at level S
+const lvl = new Float32Array(N), closed = new Uint8Array(N), hk = new Float32Array(N), hi = new Int32Array(N);
+function flood(S) {
+  let n = 0;
+  const push = (c, key) => { let k = n++; hk[k] = key; hi[k] = c; while (k > 0) { const p = (k - 1) >> 1; if (hk[p] <= hk[k]) break; const tk = hk[p]; hk[p] = hk[k]; hk[k] = tk; const ti = hi[p]; hi[p] = hi[k]; hi[k] = ti; k = p; } };
+  lvl.fill(Infinity); closed.fill(0);
+  for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
+    if (j !== 0 && j !== H - 1 && i !== 0 && i !== W - 1) continue;
+    const c = j * W + i; if (iceMask[c]) continue;
+    closed[c] = 1; lvl[c] = Math.max(bed[c], S); push(c, lvl[c]);
+  }
+  while (n > 0) {
+    const c = hi[0], L = hk[0]; n--; hk[0] = hk[n]; hi[0] = hi[n];
+    let k = 0; for (;;) { const l = 2 * k + 1, r = l + 1; let m = k; if (l < n && hk[l] < hk[m]) m = l; if (r < n && hk[r] < hk[m]) m = r; if (m === k) break; const tk = hk[m]; hk[m] = hk[k]; hk[k] = tk; const ti = hi[m]; hi[m] = hi[k]; hi[k] = ti; k = m; }
+    const j = (c / W) | 0, i = c - j * W;
+    for (let dj = -1; dj <= 1; dj++) { const jj = j + dj; if (jj < 0 || jj >= H) continue;
+      for (let di = -1; di <= 1; di++) { const ii = i + di; if (ii < 0 || ii >= W || (!di && !dj)) continue;
+        const q = jj * W + ii; if (closed[q] || iceMask[q]) continue;
+        closed[q] = 1; lvl[q] = Math.max(bed[q], L); push(q, lvl[q]); } }
+  }
+}
+// classify water: 1 = sea, 2 = kept lake
+const water = new Uint8Array(N), comp = new Int32Array(N), queue = new Int32Array(N);
+let lakeStats = { n: 0, area: 0, dammed: 0, biggest: null };
+function classifyWater(S) {
+  water.fill(0); comp.fill(0);
+  for (let c = 0; c < N; c++) if (!iceMask[c] && bed[c] < S && lvl[c] <= S + 0.01 && !(land[c] && bed[c] < 0)) water[c] = 1;
+  let id = 0; lakeStats = { n: 0, area: 0, dammed: 0, biggest: null };
+  for (let c0 = 0; c0 < N; c0++) {
+    if (comp[c0] || iceMask[c0] || !(lvl[c0] > bed[c0] + 2 && lvl[c0] > S + 0.5) || !isFinite(lvl[c0])) continue;
+    id++; let qh = 0, qt = 0; queue[qt++] = c0; comp[c0] = id; let area = 0, touches = false, sx = 0, sy = 0, cnt = 0;
+    while (qh < qt) { const c = queue[qh++], j = (c / W) | 0, i = c - j * W; area += cellArea[j]; sx += i; sy += j; cnt++;
+      for (let dj = -1; dj <= 1; dj++) { const jj = j + dj; if (jj < 0 || jj >= H) continue;
+        for (let di = -1; di <= 1; di++) { const ii = i + di; if (ii < 0 || ii >= W) continue; const q = jj * W + ii;
+          if (iceMask[q]) { touches = true; continue; }
+          if (!comp[q] && lvl[q] > bed[q] + 2 && lvl[q] > S + 0.5 && isFinite(lvl[q])) { comp[q] = id; queue[qt++] = q; } } } }
+    if ((touches && area >= 2000) || area >= 25000) {
+      for (let k = 0; k < qt; k++) water[queue[k]] = 2;
+      lakeStats.n++; lakeStats.area += area; if (touches) lakeStats.dammed++;
+      if (!lakeStats.biggest || area > lakeStats.biggest.area) lakeStats.biggest = { area, level: lvl[c0], lon: lon0 + (sx / cnt) * dlon, lat: lat0 + (sy / cnt) * dlat };
+    }
+  }
+}
+
+// ---------- meshes ----------
+const meshLayer = new GraphicsLayer({ title: "Ice, sea and lakes", elevationInfo: { mode: "absolute-height" } });
+const iceG = new Graphic({ symbol: { type: "mesh-3d", symbolLayers: [{ type: "fill", material: { color: [255, 255, 255, 0.97], colorMixMode: "multiply" } }] } });
+const seaG = new Graphic({ symbol: { type: "mesh-3d", symbolLayers: [{ type: "fill", material: { color: [255, 255, 255, 0.93], colorMixMode: "multiply" } }] } });
+const lakeG = new Graphic({ symbol: { type: "mesh-3d", symbolLayers: [{ type: "fill", material: { color: [255, 255, 255, 0.92], colorMixMode: "multiply" } }] } });
+meshLayer.addMany([seaG, lakeG, iceG]);
+const vidx = new Int32Array(N), zbuf = new Float32Array(N);
+// build a mesh from the cells where zbuf is finite (cell centres are the vertices)
+function gridMesh(colorOf) {
+  let n = 0;
+  for (let c = 0; c < N; c++) vidx[c] = isFinite(zbuf[c]) ? n++ : -1;
+  if (n < 4) return null;
+  const pos = new Float64Array(n * 3), col = new Uint8Array(n * 4);
+  for (let c = 0; c < N; c++) { const m = vidx[c]; if (m < 0) continue; const j = (c / W) | 0, i = c - j * W;
+    pos[m * 3] = lon0 + i * dlon; pos[m * 3 + 1] = lat0 + j * dlat; pos[m * 3 + 2] = zbuf[c] * EXAG; colorOf(c, col, m * 4); }
+  const faces = [];
+  for (let j = 0; j < H - 1; j++) for (let i = 0; i < W - 1; i++) { const a = vidx[j * W + i], b = vidx[j * W + i + 1], c = vidx[(j + 1) * W + i], d = vidx[(j + 1) * W + i + 1];
+    if (a < 0 || b < 0 || c < 0 || d < 0) continue; faces.push(a, b, c, b, d, c); }
+  if (!faces.length) return null;
+  return new Mesh({ spatialReference: { wkid: 4326 }, vertexAttributes: { position: pos, color: col }, components: [new MeshComponent({ faces: new Uint32Array(faces), material: { doubleSided: true } })] });
+}
+function dilate(src, rings, allow) {   // returns a mask of src cells plus up to `rings` neighbours that pass allow(c)
+  let cur = src.slice();
+  for (let r = 0; r < rings; r++) { const nxt = cur.slice();
+    for (let c = 0; c < N; c++) { if (cur[c]) continue; const j = (c / W) | 0, i = c - j * W;
+      if (!allow(c)) continue;
+      outer: for (let dj = -1; dj <= 1; dj++) { const jj = j + dj; if (jj < 0 || jj >= H) continue;
+        for (let di = -1; di <= 1; di++) { const ii = i + di; if (ii < 0 || ii >= W) continue; if (cur[jj * W + ii]) { nxt[c] = 1; break outer; } } } }
+    cur = nxt; }
+  return cur;
+}
+const ICE_THIN = [245, 248, 250], ICE_THICK = [160, 192, 216];
+let seeThrough = false;
+function buildIce() {
+  const on = dilate(iceMask, 1, () => true);
+  for (let c = 0; c < N; c++) zbuf[c] = on[c] ? bed[c] + Hcur[c] : NaN;
+  const a = seeThrough ? 140 : 255;
+  iceG.geometry = gridMesh((c, col, o) => { const f = Math.min(1, Hcur[c] / 2500); for (let k = 0; k < 3; k++) col[o + k] = Math.round(ICE_THIN[k] + (ICE_THICK[k] - ICE_THIN[k]) * f); col[o + 3] = iceMask[c] ? a : Math.round(a * 0.5); });
+}
+function buildSea(S) {
+  const src = new Uint8Array(N); for (let c = 0; c < N; c++) src[c] = water[c] === 1 ? 1 : 0;
+  const on = dilate(src, 2, (c) => !iceMask[c] && water[c] !== 2 && !(land[c] && bed[c] < 0));
+  for (let c = 0; c < N; c++) zbuf[c] = on[c] ? S : NaN;
+  seaG.geometry = gridMesh((c, col, o) => { const d = Math.min(1, Math.max(0, (S - bed[c]) / 300)); col[o] = Math.round(70 - 40 * d); col[o + 1] = Math.round(140 - 70 * d); col[o + 2] = Math.round(190 - 60 * d); col[o + 3] = 235; });
+}
+function buildLakes() {
+  const src = new Uint8Array(N); for (let c = 0; c < N; c++) src[c] = water[c] === 2 ? 1 : 0;
+  const on = dilate(src, 1, (c) => !iceMask[c] && water[c] !== 1);
+  for (let c = 0; c < N; c++) {
+    if (!on[c]) { zbuf[c] = NaN; continue; }
+    if (src[c]) { zbuf[c] = lvl[c]; continue; }
+    const j = (c / W) | 0, i = c - j * W; let z = -Infinity;   // edge ring takes the neighbouring lake level
+    for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) { const jj = j + dj, ii = i + di; if (jj < 0 || jj >= H || ii < 0 || ii >= W) continue; const q = jj * W + ii; if (src[q] && lvl[q] > z) z = lvl[q]; }
+    zbuf[c] = isFinite(z) ? z : NaN;
+  }
+  lakeG.geometry = gridMesh((c, col, o) => { col[o] = 95; col[o + 1] = 180; col[o + 2] = 217; col[o + 3] = 235; });
+}
+
+// ---------- drape (static height tint over the region, fading at its edges) ----------
+const drapeImg = new Image(); drapeImg.crossOrigin = "anonymous"; drapeImg.src = DATA + "drape.jpg";
+await drapeImg.decode().catch(() => {});
+let drapeLayer = null;
+if (drapeImg.naturalWidth) {
+  const cv = document.createElement("canvas"); cv.width = drapeImg.naturalWidth; cv.height = drapeImg.naturalHeight;
+  const ctx = cv.getContext("2d"); ctx.drawImage(drapeImg, 0, 0);
+  const img = ctx.getImageData(0, 0, cv.width, cv.height), px = img.data, fw = cv.width * 0.04, fh = cv.height * 0.04;
+  for (let y = 0; y < cv.height; y++) for (let x = 0; x < cv.width; x++) {
+    const e = Math.min(1, x / fw, (cv.width - 1 - x) / fw, y / fh, (cv.height - 1 - y) / fh);
+    px[(y * cv.width + x) * 4 + 3] = Math.round(255 * Math.max(0, e) ** 0.7);
+  }
+  ctx.putImageData(img, 0, 0);
+  drapeLayer = new MediaLayer({ title: "Ground colour (height tint)", source: [new ImageElement({ image: cv, georeference: new ExtentAndRotationGeoreference({
+    extent: new Extent({ xmin: drapeInfo.xmin, xmax: drapeInfo.xmax, ymin: drapeInfo.ymin, ymax: drapeInfo.ymax, spatialReference: { wkid: 3857 } }) }) })] });
+  map.add(drapeLayer);
+}
+
+// ---------- BRITICE layers (live, University of Sheffield) ----------
+const BRIT = "https://services2.arcgis.com/Dn40vzt2R38VJsSS/arcgis/rest/services/Gneralised_BRITICE/FeatureServer/";
+const line = (color, width) => ({ type: "simple", symbol: { type: "simple-line", color, width } });
+const LANDFORM_MIN_SCALE = 5000000;
+const layers = {
+  britExtent: new TileLayer({ url: "https://tiles.arcgis.com/tiles/Dn40vzt2R38VJsSS/arcgis/rest/services/extent1_tif/MapServer", title: "BRITICE: furthest ice extent", opacity: 0.55, visible: false }),
+  llr: new FeatureLayer({ url: "https://services.arcgis.com/XSeYKQzfXnEgju9o/arcgis/rest/services/Loch_Lomond_Readvance/FeatureServer/0", title: "Loch Lomond Readvance", visible: false, elevationInfo: { mode: "on-the-ground" },
+    renderer: { type: "simple", symbol: { type: "simple-fill", color: [244, 114, 182, 0.45], outline: { color: [244, 114, 182, 1], width: 1.5 } } } }),
+  britLakesArea: new FeatureLayer({ url: BRIT + "12", title: "BRITICE glacial lakes", visible: false, elevationInfo: { mode: "on-the-ground" },
+    renderer: { type: "simple", symbol: { type: "simple-fill", color: [56, 189, 248, 0.5], outline: { color: [14, 165, 233, 1], width: 1 } } } }),
+  britLakesDam: new FeatureLayer({ url: BRIT + "5", title: "BRITICE ice dams", visible: false, elevationInfo: { mode: "on-the-ground" }, renderer: line([14, 165, 233, 1], 2) }),
+  moraines: new FeatureLayer({ url: BRIT + "7", title: "BRITICE moraines", visible: false, minScale: LANDFORM_MIN_SCALE, elevationInfo: { mode: "on-the-ground" }, renderer: line([251, 146, 60, 1], 1.5) }),
+  eskers: new FeatureLayer({ url: BRIT + "3", title: "BRITICE eskers", visible: false, minScale: LANDFORM_MIN_SCALE, elevationInfo: { mode: "on-the-ground" }, renderer: line([163, 230, 53, 1], 1.5) }),
+  meltwater: new FeatureLayer({ url: BRIT + "6", title: "BRITICE meltwater channels", visible: false, minScale: LANDFORM_MIN_SCALE, elevationInfo: { mode: "on-the-ground" }, renderer: line([34, 211, 238, 1], 1.2) }),
+  drumlins: new FeatureLayer({ url: BRIT + "8", title: "BRITICE subglacial lineations", visible: false, minScale: LANDFORM_MIN_SCALE, elevationInfo: { mode: "on-the-ground" }, renderer: line([233, 213, 255, 0.9], 1) })
+};
+map.addMany(Object.values(layers));
+
+// today's coastline and place names
+const coastLayer = new GraphicsLayer({ title: "Today's coastline", elevationInfo: { mode: "on-the-ground" } });
+coastLayer.addMany(coast.coast.map(p => new Graphic({ geometry: { type: "polyline", paths: [p], spatialReference: { wkid: 4326 } }, symbol: { type: "simple-line", color: [255, 255, 255, 0.7], width: 1 } })));
+const PLACES = [["London", -0.13, 51.51], ["Dublin", -6.26, 53.35], ["Edinburgh", -3.19, 55.95], ["Amsterdam", 4.9, 52.37], ["Copenhagen", 12.57, 55.68],
+  ["Oslo", 10.75, 59.91], ["Stockholm", 18.07, 59.33], ["Helsinki", 24.94, 60.17], ["Dogger Bank", 2.0, 54.8, true], ["Mount Billingen", 13.75, 58.4, true]];
+const labelLayer = new GraphicsLayer({ title: "Place names", elevationInfo: { mode: "absolute-height" } });
+const labelGraphics = PLACES.map(([name, lon, lat, feature]) => new Graphic({ geometry: { type: "point", x: lon, y: lat, z: 0, spatialReference: { wkid: 4326 } },
+  symbol: { type: "point-3d", verticalOffset: { screenLength: 8 }, symbolLayers: [{ type: "text", text: name, size: feature ? 10.5 : 11, material: { color: feature ? [207, 227, 255] : [255, 255, 255] }, halo: { color: [10, 20, 35, 0.85], size: 1.2 }, font: { weight: feature ? "normal" : "bold", style: feature ? "italic" : "normal" } }] } }));
+labelLayer.addMany(labelGraphics);
+map.addMany([meshLayer, coastLayer, labelLayer]);
+const cellOf = (lon, lat) => Math.round((lat - lat0) / dlat) * W + Math.round((lon - lon0) / dlon);
+function placeLabels(S) {
+  labelGraphics.forEach((g, k) => { const [, lon, lat] = PLACES[k], c = cellOf(lon, lat);
+    const z = Math.max(bed[c] + Hcur[c], S, bed[c], 0) * EXAG + 400 * EXAG;
+    g.geometry = { type: "point", x: lon, y: lat, z, spatialReference: { wkid: 4326 } }; });
+}
+
+// ---------- state and redraw ----------
+let T = 60, lastBuild = { t: null, exag: null, see: null }, info = null, Scur = 0;
+const vis = { ice: true, sea: true, lakes: true, coast: true, labels: true, seeThrough: false, britExtent: false, llr: false, britLakes: false, moraines: false, eskers: false, meltwater: false, drumlins: false };
+function redraw(force) {
+  if (!force && lastBuild.t === T && lastBuild.exag === EXAG && lastBuild.see === seeThrough) return;
+  const t0 = performance.now();
+  info = iceAt(T); Scur = seaLevelAt(T);
+  flood(Scur); classifyWater(Scur);
+  buildIce(); buildSea(Scur); buildLakes(); placeLabels(Scur);
+  lastBuild = { t: T, exag: EXAG, see: seeThrough };
+  updateReadout();
+  window.__redrawMs = Math.round(performance.now() - t0);
+}
+let pending = false, lastDraw = 0;
+function requestRedraw() {
+  if (pending) return; pending = true;
+  requestAnimationFrame(function tick(now) { if (now - lastDraw < 110) { requestAnimationFrame(tick); return; } pending = false; lastDraw = now; redraw(false); });
+}
+function applyVis() {
+  iceG.visible = vis.ice; seaG.visible = vis.sea; lakeG.visible = vis.lakes; coastLayer.visible = vis.coast; labelLayer.visible = vis.labels;
+  layers.britExtent.visible = vis.britExtent; layers.llr.visible = vis.llr; layers.britLakesArea.visible = vis.britLakes; layers.britLakesDam.visible = vis.britLakes;
+  layers.moraines.visible = vis.moraines; layers.eskers.visible = vis.eskers; layers.meltwater.visible = vis.meltwater; layers.drumlins.visible = vis.drumlins;
+  if (seeThrough !== vis.seeThrough) { seeThrough = vis.seeThrough; requestRedraw(); }
+  document.querySelectorAll("#legend button.k").forEach(b => b.setAttribute("aria-pressed", String(!!vis[b.dataset.l])));
+}
+
+// ---------- readout and description ----------
+function outlineText() {
+  const { k, w } = info, a = TIMES[k], b = TIMES[k + 1];
+  if (w < 0.02) return `${fmtAgo(a)}: ${OUTLINE_BASIS[a]}`;
+  if (w > 0.98) return `${fmtAgo(b)}: ${OUTLINE_BASIS[b]}`;
+  return `blended between the ${nf(a * 1000)} and ${nf(b * 1000)} year outlines`;
+}
+function updateReadout() {
+  const st = stageAt(T);
+  $("tLabel").textContent = fmtAgo(T);
+  $("tStage").textContent = st.name;
+  $("tSlider").value = String(80 - T);
+  $("tSlider").setAttribute("aria-valuetext", `${fmtAgo(T)}. ${st.name}`);
+  $("nSea").textContent = Math.abs(Scur) < 0.5 ? "today's level" : `${Math.round(-Scur)} m (${ft(-Scur)} ft) lower than today`;
+  $("nIce").textContent = info.area < 20000 ? "only small glaciers and ice caps (too small to show well here)" :`${(info.area / 1e6).toFixed(2)} million km², up to ${(info.vmax / 1000).toFixed(1)} km thick`;
+  $("nOutline").textContent = outlineText();
+  $("nLakes").textContent = lakeStats.n ? `${lakeStats.n} modelled${lakeStats.dammed ? `, ${lakeStats.dammed} against the ice` : ""}; ${nf(lakeStats.area)} km² in all` : "none large enough to show";
+  drawCursor();
+  $("mapDesc").textContent = describe();
+}
+function describe() {
+  const st = stageAt(T), parts = [`${fmtAgo(T)}, ${st.name}.`];
+  parts.push(Math.abs(Scur) < 0.5 ? "Sea level is at today's level." : `Sea level is ${Math.round(-Scur)} metres lower than today${Scur < -40 ? ", so much of the North Sea floor between Britain and the continent is dry land" : Scur < -15 ? ", and Doggerland is shrinking as the sea rises" : ""}.`);
+  if (info.area < 20000) parts.push("There are no ice sheets on the map, only small glaciers.");
+  else {
+    const has = (lon, lat) => iceMask[cellOf(lon, lat)] === 1;
+    const where = [has(15, 63) && "Scandinavia", has(-4.5, 57) && "Scotland", has(-7.5, 53.5) && "Ireland", has(2, 58) && "the northern North Sea", has(-1.5, 54.5) && "northern England"].filter(Boolean);
+    parts.push(`Ice covers ${(info.area / 1e6).toFixed(1)} million square kilometres${where.length ? ", including " + where.join(", ").replace(/, ([^,]*)$/, " and $1") : ""}, up to ${(info.vmax / 1000).toFixed(1)} km thick.`);
+  }
+  if (lakeStats.biggest) parts.push(`The lake model shows ${lakeStats.n} lake${lakeStats.n > 1 ? "s" : ""}${lakeStats.dammed ? `, ${lakeStats.dammed} against the ice` : ""}; the biggest covers about ${nf(lakeStats.biggest.area / 1000) + ",000"} km² near ${lakeStats.biggest.lat.toFixed(0)}° N, ${Math.abs(lakeStats.biggest.lon).toFixed(0)}° ${lakeStats.biggest.lon < 0 ? "W" : "E"}.`);
+  const on = [vis.britExtent && "the BRITICE furthest ice extent (orange)", vis.llr && "the Loch Lomond Readvance (pink)", vis.britLakes && "BRITICE glacial lakes (blue)", vis.moraines && "moraines", vis.eskers && "eskers", vis.meltwater && "meltwater channels", vis.drumlins && "drumlins"].filter(Boolean);
+  if (on.length) parts.push("Also shown: " + on.join(", ") + ".");
+  return parts.join(" ");
+}
+const announce = () => { $("liveDesc").textContent = ""; setTimeout(() => { $("liveDesc").textContent = describe(); }, 60); };
+
+// ---------- chart ----------
+const svg = $("chart"), NS = "http://www.w3.org/2000/svg";
+let cursorLine = null;
+function drawChart() {
+  const wpx = svg.clientWidth || 800, hpx = svg.clientHeight || 92;
+  svg.setAttribute("viewBox", `0 0 ${wpx} ${hpx}`);
+  [...svg.querySelectorAll(":not(title)")].forEach(e => e.remove());
+  const X = (t) => (80 - t) / 80 * wpx;
+  const add = (tag, attrs) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); svg.appendChild(e); return e; };
+  const bands = [[31, 14.692, "cold", "Dimlington Stadial"], [14.692, 12.896, "warm", "Windermere"], [12.896, 11.703, "cold", "LL"], [11.703, 0, "warm", "Holocene"], [71, 57, "cold", "MIS 4"]];
+  for (const [a, b, kind] of bands) add("rect", { x: X(a), y: 0, width: X(b) - X(a), height: hpx, fill: kind === "warm" ? "rgba(253,186,116,0.13)" : "rgba(147,197,253,0.12)" });
+  // GISP2 interstadial shading: where δ18O is high relative to its local cold baseline (visual aid only)
+  const gx = GIS.filter(g => g[0] <= 80), dmin = -44, dmax = -34;
+  const gy = (d) => 4 + (1 - (d - dmin) / (dmax - dmin)) * (hpx * 0.5);
+  add("path", { d: gx.map((g, k) => (k ? "L" : "M") + X(g[0]).toFixed(1) + " " + gy(g[1]).toFixed(1)).join(""), fill: "none", stroke: "#fdba74", "stroke-width": 1.3 });
+  const sy = (s) => hpx * 0.56 + (-s / 135) * (hpx * 0.4);
+  const slPts = []; for (let t = 0; t <= 80; t += 0.25) slPts.push([X(t), sy(seaLevelAt(t))]);
+  add("path", { d: slPts.map((p, k) => (k ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(""), fill: "none", stroke: "#60a5fa", "stroke-width": 1.6 });
+  const lbl = (x, y, txt, anchor = "start") => { const e = add("text", { x, y, fill: "#a8b6c9", "font-size": 10, "text-anchor": anchor }); e.textContent = txt; };
+  for (const t of [80, 70, 60, 50, 40, 30, 20, 10]) { add("line", { x1: X(t), x2: X(t), y1: hpx - 10, y2: hpx, stroke: "rgba(255,255,255,0.25)" }); lbl(X(t) + 2, hpx - 1, `${t},000`); }
+  lbl(wpx - 2, hpx - 1, "today", "end");
+  lbl(X(22.8), 12, "Dimlington", "middle"); lbl(X(64), 12, "MIS 4", "middle");
+  add("line", { x1: 0, x2: wpx, y1: sy(0), y2: sy(0), stroke: "rgba(96,165,250,0.35)", "stroke-dasharray": "3 4" });
+  lbl(wpx - 40, sy(0) - 3, "sea level today", "end"); lbl(wpx - 40, sy(-120) - 3, "120 m lower", "end");
+  add("line", { x1: 0, x2: wpx, y1: sy(-120), y2: sy(-120), stroke: "rgba(96,165,250,0.2)", "stroke-dasharray": "3 4" });
+  cursorLine = add("line", { x1: 0, x2: 0, y1: 0, y2: hpx, stroke: "#fff", "stroke-width": 1.5 });
+  drawCursor();
+}
+function drawCursor() { if (!cursorLine) return; const x = (80 - T) / 80 * (svg.clientWidth || 800); cursorLine.setAttribute("x1", x); cursorLine.setAttribute("x2", x); }
+function chartPick(e) { const r = svg.getBoundingClientRect(); setTime(Math.max(0, Math.min(80, 80 - (e.clientX - r.left) / r.width * 80))); }
+svg.addEventListener("pointerdown", (e) => { stopPlay(); svg.setPointerCapture(e.pointerId); chartPick(e); svg.onpointermove = chartPick; });
+svg.addEventListener("pointerup", (e) => { svg.onpointermove = null; announce(); });
+addEventListener("resize", drawChart);
+
+// ---------- time, playback, steps ----------
+function setTime(t) { T = Math.round(Math.max(0, Math.min(80, t)) * 100) / 100; requestRedraw(); $("tLabel").textContent = fmtAgo(T); drawCursor(); }
+let playing = null;
+function stopPlay() { if (!playing) return; cancelAnimationFrame(playing.raf); playing = null; $("tPlay").textContent = "▶"; $("tPlay").setAttribute("aria-label", "Play the timeline"); setGoLabel(); announce(); }
+function play(to, kaPerSec) {
+  stopPlay();
+  const target = to ?? 0, dir = target < T ? -1 : 1; let last = performance.now();
+  playing = { target };
+  $("tPlay").textContent = "⏸"; $("tPlay").setAttribute("aria-label", "Pause the timeline"); setGoLabel();
+  const step = (now) => { const dt = Math.min(0.1, (now - last) / 1000); last = now;
+    const rate = kaPerSec ?? +$("speed").value;
+    let nt = T + dir * rate * dt; if ((dir < 0 && nt <= target) || (dir > 0 && nt >= target)) nt = target;
+    setTime(nt);
+    if (nt === target) { stopPlay(); return; }
+    playing.raf = requestAnimationFrame(step); };
+  playing.raf = requestAnimationFrame(step);
+}
+let chapter = 0;
+function setGoLabel() {
+  const c = CH[chapter];
+  $("goBtn").textContent = playing ? "⏸ Pause" : c.play ? (c.t === 11 ? "▶ Play the flood" : "▶ Play") : chapter < CH.length - 1 ? "Next step ›" : "Start again";
+}
+function goChapter(k, fly = true) {
+  stopPlay(); chapter = k; const c = CH[k];
+  $("stepOf").textContent = `Step ${k + 1} of ${CH.length}`;
+  $("chTitle").textContent = c.title;
+  const st = stageAt(c.t);
+  $("chWhen").innerHTML = `<span class="chip">${fmtAgo(c.t)}</span><span class="chip ${st.kind === "warm" ? "warm" : st.kind === "cold" ? "cold" : ""}">${st.name}</span>`;
+  $("story").innerHTML = c.html;
+  document.querySelectorAll("#steps button").forEach((b, i) => { b.setAttribute("aria-current", i === k ? "step" : "false"); b.classList.toggle("done", i < k); });
+  for (const key of ["britExtent", "llr", "britLakes", "moraines", "eskers", "meltwater", "drumlins"]) vis[key] = !!c.layers[key];
+  vis.seeThrough = !!c.seeThrough;
+  applyVis();
+  setTime(c.t); redraw(true);
+  view.goTo(CAM[c.cam], { duration: fly && !reduceMotion ? 2200 : 0, easing: "in-out-cubic" }).catch(() => {});
+  $("backBtn").disabled = k === 0;
+  $("nextBtn").disabled = k === CH.length - 1;
+  setGoLabel();
+  $("panes").scrollTop = 0;
+  announce();
+  const u = new URL(location); u.searchParams.set("step", k + 1); u.searchParams.delete("t"); history.replaceState(null, "", u);
+}
+$("steps").innerHTML = CH.map((c, i) => `<li><button aria-label="Step ${i + 1}: ${c.title}, ${fmtAgo(c.t)}" title="${c.title} (${fmtAgo(c.t)})">${i + 1}</button></li>`).join("");
+document.querySelectorAll("#steps button").forEach((b, i) => b.onclick = () => goChapter(i));
+$("backBtn").onclick = () => goChapter(Math.max(0, chapter - 1));
+$("nextBtn").onclick = () => goChapter(Math.min(CH.length - 1, chapter + 1));
+$("goBtn").onclick = () => {
+  const c = CH[chapter];
+  if (playing) { stopPlay(); return; }
+  if (c.play) { if (T <= c.play.to + 0.01) setTime(c.t); play(c.play.to, c.play.speed); return; }
+  goChapter(chapter < CH.length - 1 ? chapter + 1 : 0);
+};
+$("tPlay").onclick = () => { if (playing) stopPlay(); else play(T <= 0.01 ? 80 : 0); };
+$("tSlider").addEventListener("input", () => { stopPlay(); setTime(80 - +$("tSlider").value); });
+$("tSlider").addEventListener("change", announce);
+addEventListener("keydown", (e) => {
+  if (e.target.closest("input, select, dialog, textarea")) return;
+  if (e.code === "Space" && !e.target.closest("button")) { e.preventDefault(); $("tPlay").click(); }
+  if (e.key === "PageDown") { e.preventDefault(); $("nextBtn").click(); }
+  if (e.key === "PageUp") { e.preventDefault(); $("backBtn").click(); }
+});
+document.querySelectorAll("#legend button.k").forEach(b => b.onclick = () => { vis[b.dataset.l] = !vis[b.dataset.l]; applyVis(); $("mapDesc").textContent = describe(); });
+$("legendTitle").onclick = () => { const c = $("legend").classList.toggle("collapsed"); $("legendTitle").setAttribute("aria-expanded", String(!c)); };
+if (innerWidth <= 1280 || innerHeight <= 780) { $("legend").classList.add("collapsed"); $("legendTitle").setAttribute("aria-expanded", "false"); }
+document.querySelectorAll("#exag button").forEach(b => b.onclick = () => { EXAG = +b.dataset.x; setGround(); document.querySelectorAll("#exag button").forEach(x => x.setAttribute("aria-pressed", String(x === b))); redraw(true); });
+$("teachBtn").onclick = () => $("teachDlg").showModal();
+$("teachClose").onclick = () => $("teachDlg").close();
+
+// ---------- start ----------
+drawChart();
+$("loading").hidden = true;
+const q = new URLSearchParams(location.search);
+const qStep = +q.get("step"), qT = q.get("t");
+goChapter(qStep >= 1 && qStep <= CH.length ? qStep - 1 : 0, false);
+if (qT !== null && isFinite(+qT)) setTime(+qT);
+</script>
+</body>
+</html>

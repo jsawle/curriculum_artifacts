@@ -1,0 +1,10 @@
+{
+ "crs": "EPSG:3857",
+ "xmin": -1781111.852692377,
+ "xmax": 3896182.1777645745,
+ "ymin": 5621521.486192066,
+ "ymax": 12316623.451071337,
+ "W": 2200,
+ "H": 2594,
+ "source": "RTopo-2 bed topography (Schaffer et al. 2016, CC BY 4.0) as filtered and projected in Gowan's ICESHEET 2.0 repository; 0.25 degree RTopo-2 outside its area"
+}
