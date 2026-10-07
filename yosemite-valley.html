@@ -92,7 +92,7 @@
       <svg viewBox="0 0 180 180" aria-hidden="true"><line id="insetLine" stroke="#C8452B" stroke-width="2.5"/><text id="insetN" font-size="11" fill="#fff" font-weight="600"></text><text id="insetS" font-size="11" fill="#fff" font-weight="600"></text></svg>
       <p class="cap">Line of section, north (top) to south. Imagery: Esri, Maxar, Earthstar Geographics.</p>
     </div>
-    <div class="credit">Created by Jason Sawle<br>© Esri 2026</div>
+    <div class="credit">Created by Jason Sawle</div>
   </div>
   <p id="status">Loading elevation…</p>
   <div class="models"><span class="badge" data-model="profile"></span><span class="badge" data-model="recon"></span></div>
@@ -128,7 +128,7 @@
       <thead><tr><th scope="col">Part</th><th scope="col">Version</th><th scope="col">What it does</th></tr></thead>
       <tbody id="versionRows"></tbody>
     </table>
-    <p>Created by Jason Sawle. © Esri 2026.</p>
+    <p>Created by Jason Sawle.</p>
     <button type="button" class="close">Close</button>
   </div>
 </dialog>
@@ -136,7 +136,7 @@
 <script>
 // ---------- versions: single source of truth for the app and model version numbers ----------
 // Bump a model's version whenever its maths or data handling changes. Bump APP_VERSION on every release.
-const APP_VERSION="1.0.0";
+const APP_VERSION="1.0.1";
 const MODELS={
   profile:{name:'Elevation profile',version:'1.0',desc:'Samples 300 points of Esri World Elevation (Terrain3D), or Mapzen Terrarium if Esri is unavailable, along a 7.8 km north–south line through El Capitan, with bilinear interpolation and light smoothing.'},
   recon:{name:'Valley reconstruction',version:'1.0',desc:'Rebuilds the earlier stages from today’s line: bedrock under about 300 m of sediment, a V-shaped river canyon inside today’s rims, and the ice, lake and sediment levels for each stage.'}

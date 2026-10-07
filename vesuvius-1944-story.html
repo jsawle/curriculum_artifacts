@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
 <title>Vesuvius 1944: The Eruption, Step by Step</title>
-<meta name="description" content="Grades 6-8: follow the March 1944 eruption of Mount Vesuvius moment by moment in 3D, with photographs, newsreels and eyewitness accounts." />
+<meta name="description" content="Grades 6-8: follow the March 1944 eruption of Mount Vesuvius moment by moment in 3D, with photographs and eyewitness accounts." />
 <script type="module" src="https://js.arcgis.com/5.1/"></script>
 <script src="vesuvius-1944-archive.js"></script>
 <style>
@@ -179,7 +179,6 @@
     <div id="cap" aria-live="polite"><div class="k" id="capK"></div><div class="t" id="capT"></div><div class="x" id="capX"></div></div>
     <div id="tools">
       <button id="snd" aria-pressed="false"><span id="sndT">🔈 Sound</span><span class="ver">v<span data-ver="sound">–</span></span></button>
-      <button id="film">▶ Newsreels</button>
       <button id="evid">Photos &amp; eyewitnesses<span class="ver">archive v<span data-ver="archive">–</span></span></button>
       <button id="teach">For teachers</button>
       <button id="about">About</button>
@@ -190,7 +189,7 @@
       <div class="k"><span class="sw" style="background:#3a3632;opacity:.6"></span>Ash on the ground <span class="ver">v<span data-ver="ground">–</span></span><span class="tag illus">Illustration</span></div>
     </div>
     <div id="loading"><div id="loadMsg">Loading the volcano…</div><div class="bar"><div id="prog"></div></div></div>
-    <div id="credit">Created by Jason Sawle<br />© Esri 2026</div>
+    <div id="credit">Created by Jason Sawle</div>
   </main>
 </div>
 
@@ -203,7 +202,7 @@
       <li><b>Whole class, about 20 minutes:</b> on a projector, watch it through once, then open the moments together for discussion.</li>
       <li><b>Pairs or small groups, about 30–40 minutes:</b> students watch, then work through the moments and note their answers.</li>
       <li><b>As a starting point for the “what if” explorer:</b> after seeing what happened in 1944, students test what lava might do at Vesuvius or another volcano today.</li>
-      <li><b>For a history or literacy lesson:</b> the Photos &amp; eyewitnesses button has the newsreels, 12 photographs, 7 accounts and 5 source-analysis tasks.</li>
+      <li><b>For a history or literacy lesson:</b> the Photos &amp; eyewitnesses button has 12 photographs, 7 accounts and 5 source-analysis tasks.</li>
     </ul>
     <h3>Standards it can support</h3>
     <ul>
@@ -215,7 +214,7 @@
     <h3>What is modeled and what is illustrated</h3>
     <p>The <b>lava</b> comes from a computer model (the DOWNFLOW method) run on today's elevation data from the two places the 1944 flows started. It follows the most likely downhill path and stops at the heights recorded in 1944. Its timing is set so the northern flow reaches San Sebastiano early on 21 March, as recorded. The <b>ash cloud, lava fountains and ash on the ground</b> are illustrations that follow the directions, heights and dates in the scientific record. They are not modeled.</p>
     <h3>If videos or photos don't load</h3>
-    <p>The newsreels play from YouTube and the Internet Archive, and most photos load from Flickr and Wikimedia Commons. Some school networks block these. Every item has a link to its source, and the lesson still works without them.</p>
+    <p>Most photos load from Flickr and Wikimedia Commons. Some school networks block these. Every item has a link to its source, and the lesson still works without them.</p>
   </div>
 </dialog>
 
@@ -227,13 +226,13 @@
       <caption>Version numbers for this app and each model it uses</caption>
       <thead><tr><th scope="col">Part</th><th scope="col">Version</th><th scope="col">What it is</th></tr></thead>
       <tbody>
-      <tr><td>App</td><td data-ver="app">–</td><td>0.4: version numbers for sound and the archive on their buttons; credit box. 0.3: the eruption plays straight through (about 1½ minutes) with a caption for each moment, then the moments open one by one with their evidence, question and a replay. 0.2: fixes from review (photo window styling, Play beats the automatic start, model versions on the map key, larger moment buttons). 0.1: first version of the guided story, eight moments with Back and Next, each pausing on evidence and a question</td></tr>
+      <tr><td>App</td><td data-ver="app">–</td><td>0.5: no © line in the credit box; newsreels removed, as both need a paid licence (archive 1.7). 0.4: version numbers for sound and the archive on their buttons; credit box. 0.3: the eruption plays straight through (about 1½ minutes) with a caption for each moment, then the moments open one by one with their evidence, question and a replay. 0.2: fixes from review (photo window styling, Play beats the automatic start, model versions on the map key, larger moment buttons). 0.1: first version of the guided story, eight moments with Back and Next, each pausing on evidence and a question</td></tr>
       <tr><td>Lava model</td><td data-ver="lava">–</td><td>DOWNFLOW-style steepest descent with hollow filling, on a 20 m grid of Esri World Elevation (same code as the lava explorer). Here it traces the single most likely path for each 1944 flow</td></tr>
       <tr><td>Lava look and timing</td><td data-ver="lavaLook">–</td><td>Both 1944 flows (north, stopping at about 140 m; south-east, stopping at about 350 m), 200 m wide, at one speed timed so the northern flow reaches San Sebastiano early on 21 March</td></tr>
       <tr><td>Ash cloud and fountains</td><td data-ver="cloud">–</td><td>Illustration drawn in the 3D scene: eight lava fountains up to about 4 km, then an ash column over 5 km blown east, then smaller bursts under 2 km blown south-west. 0.3: smaller bursts lowered from 3 km to under 2 km (INGV)</td></tr>
       <tr><td>Ash on the ground</td><td data-ver="ground">–</td><td>Illustration: ash-fall areas to the east (22–23 March) and south-west (23–29 March)</td></tr>
       <tr><td>Sound</td><td data-ver="sound">–</td><td>Made in the browser, no recordings. Off until you turn it on</td></tr>
-      <tr><td>1944 archive</td><td id="archVer" data-ver="archive">–</td><td>Photos, newsreels and eyewitness accounts, shared with the other Vesuvius pages (vesuvius-1944-archive.js)</td></tr>
+      <tr><td>1944 archive</td><td id="archVer" data-ver="archive">–</td><td>Photos and eyewitness accounts, shared with the other Vesuvius pages (vesuvius-1944-archive.js)</td></tr>
       </tbody>
     </table>
     <h3>Sources</h3>
@@ -245,7 +244,7 @@
       <a href="https://www.researchgate.net/publication/282203833_Simulating_the_area_covered_by_lava_flows_using_the_DOWNFLOW_code" target="_blank" rel="noopener">DOWNFLOW method</a> ·
       <a href="https://www.forgottenairfields.com/airfield-pompeii-559.html" target="_blank" rel="noopener">Pompeii Airfield location</a>
     </p>
-    <p>Elevation: Esri World Elevation. Imagery: Esri World Imagery. Photographs, films and accounts are credited where they appear.</p>
+    <p>Elevation: Esri World Elevation. Imagery: Esri World Imagery. Photographs and accounts are credited where they appear.</p>
     <p>Other Vesuvius pages: <a href="vesuvius-1944-eruption-3d.html">3D eruption with model settings</a> · <a href="vesuvius-1944-lava.html">lava hazard explorer</a> · <a href="https://jsawle.github.io/vr/vesuvius-1944-vr-story.html">VR version of this story</a> · <a href="volcano-what-if.html?v=vesuvius">What if a volcano erupted?</a></p>
   </div>
 </dialog>
@@ -254,7 +253,7 @@
 // ---------- Versions (single source of truth: every [data-ver] label, the About table and the console read from here) ----------
 // Bump a model's number whenever its maths or data handling changes, and bump the app version on every release.
 // The archive's number lives in vesuvius-1944-archive.js.
-const APP_VERSION = "0.4";
+const APP_VERSION = "0.5";
 const VERSIONS = { app: APP_VERSION, lava: "1.0", lavaLook: "0.3", cloud: "0.3", ground: "0.2", sound: "0.1", archive: window.VesuviusArchive ? VesuviusArchive.version : "missing" };
 document.querySelectorAll("[data-ver]").forEach(el => { el.textContent = VERSIONS[el.dataset.ver] || "–"; });
 </script>
@@ -1098,7 +1097,7 @@ function setHead() {
   if (view_.finished && view_.mode !== "watch") {
     $("listHead").innerHTML = `<h1>Now explore the evidence</h1>
       <div class="endbox"><b>That was the whole eruption.</b> Now open each moment below to see photographs, read what people saw, and answer a question. You can replay any part.</div>
-      <div class="tools2"><button onclick="VesuviusArchive.open('film')">▶ 1944 newsreels</button><button onclick="VesuviusArchive.open('tasks')">Be a historian</button><a href="volcano-what-if.html?v=vesuvius">What if it erupted today? →</a></div>`;
+      <div class="tools2"><button onclick="VesuviusArchive.open('photos')">1944 photographs</button><button onclick="VesuviusArchive.open('tasks')">Be a historian</button><a href="volcano-what-if.html?v=vesuvius">What if it erupted today? →</a></div>`;
   }
 }
 function updateWatch() {
@@ -1146,7 +1145,7 @@ function openMoment(i) {                                   // look closely at on
   $("mEv").querySelectorAll("img[data-p]").forEach(im => im.onclick = () => A && A.open("photos", im.dataset.p));
   if (A && A.guardImages) A.guardImages($("mEv"));
   $("mQ").textContent = " " + m.q;
-  $("mLinks").innerHTML = m.links ? `<button onclick="VesuviusArchive.open('film')">▶ Watch the 1944 newsreels</button>
+  $("mLinks").innerHTML = m.links ? `<button onclick="VesuviusArchive.open('photos')">Look at the 1944 photographs</button>
     <button onclick="VesuviusArchive.open('tasks')">Be a historian: 5 tasks with the evidence</button>
     <a href="volcano-what-if.html?v=vesuvius">What if Vesuvius erupted today? Try the “what if” explorer →</a>` : "";
   $("replayPart").hidden = !seg || !m.dur; $("prevM").disabled = i === 0; $("nextM").disabled = i === MOMENTS.length - 1;
@@ -1185,7 +1184,6 @@ function fmtDate(h) { const day = 18 + Math.floor(h / 24), hh = Math.floor(h % 2
 
 // ---------- Buttons on the map ----------
 $("snd").onclick = () => { const on = !snd.on; setSound(on); $("snd").setAttribute("aria-pressed", String(on)); $("sndT").textContent = on ? "🔊 Sound on" : "🔈 Sound"; };
-$("film").onclick = () => A ? A.open("film") : null;
 $("evid").onclick = () => A ? A.open("voices") : null;
 for (const [btn, dlg] of [["teach", "dTeach"], ["about", "dAbout"]]) $(btn).onclick = () => $(dlg).showModal();
 document.querySelectorAll("dialog.info [data-close]").forEach(b => b.onclick = () => b.closest("dialog").close());

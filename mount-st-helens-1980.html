@@ -230,7 +230,7 @@
       <div class="k note"><span class="sw" style="background:linear-gradient(90deg, rgba(138,90,43,.5) 50%, rgba(14,116,144,.5) 50%)"></span>Paler shade: danger zone near the summit</div>
       <div class="hint2" id="legendHint">Run a hazard, then tap it here to show or hide it.</div>
     </div>
-    <div id="credit">Created by Jason Sawle<br />© Esri 2026</div>
+    <div id="credit">Created by Jason Sawle</div>
   </main>
 </div>
 
@@ -529,7 +529,7 @@ const HM = window.HazardModels;
 // ---------- Versions (single source of truth: the page, the About table and the console all read from here) ----------
 // Bump a model's number whenever its maths or data handling changes, and bump the app version on every release.
 // Up to 1.15 the app version was labelled "model version"; it is the version of the whole app.
-const APP_VERSION = "1.16";
+const APP_VERSION = "1.17";
 const MODELS = {
   cone:     { name: "Energy cone", v: "1.5", what: "Pyroclastic flows and, limited to a fan, the lateral blast. A flow can reach any spot where a line falling H/L metres per metre from above the vent stays above the ground (Malin & Sheridan 1982)." },
   laharz:   { name: "LAHARZ", v: "1.5", what: "Lahars and the debris avalanche. The volume sets how much of each valley is filled and the total area covered (Iverson and others 1998; Griswold & Iverson 2008), plus the danger zone near the summit (H/L 0.23)." },
@@ -544,7 +544,7 @@ document.title = "Mount St Helens 1980: Four Hazards (v" + APP_VERSION + ")";
 document.querySelectorAll("[data-ver]").forEach(el => { el.textContent = VERSIONS[el.dataset.ver] || "–"; });
 document.querySelectorAll("[data-model]").forEach(el => { const m = MODELS[el.dataset.model]; el.textContent = m ? "v" + m.v : "–"; });
 { const vEsc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
-  document.getElementById("versRows").innerHTML = `<tr><td>App</td><td>${APP_VERSION}</td><td>1.16: a version for each model, shown beside each hazard and in this table; credit box. 1.15 and earlier were labelled “model version”.</td></tr>` +
+  document.getElementById("versRows").innerHTML = `<tr><td>App</td><td>${APP_VERSION}</td><td>1.17: no © line in the credit box. 1.16: a version for each model, shown beside each hazard and in this table; credit box. 1.15 and earlier were labelled “model version”.</td></tr>` +
     Object.values(MODELS).map(m => `<tr><td>${vEsc(m.name)}</td><td>${m.v}</td><td>${vEsc(m.what)}</td></tr>`).join(""); }
 // One fixed overview camera: always looking the same way (east-north-east, back up the North Fork Toutle towards the volcano).
 // It frames the mountain box, which holds the avalanche, blast and pyroclastic flows; a lahar that runs beyond it zooms out along the same line.
