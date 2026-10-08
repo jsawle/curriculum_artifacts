@@ -114,6 +114,10 @@
   .lbl .ld { font-weight: 500; font-size: 11.5px; opacity: .85; margin-left: 4px; font-variant-numeric: tabular-nums; }
   .lbl.small { font-size: 11px; font-weight: 600; padding: 1px 7px; opacity: .85; }
   .lbl.small::before { display: none; }
+  /* numbered markers (convection view): the numbers match the list in the panel */
+  span.lbl.num { pointer-events: auto; cursor: help; } /* so pointing at a number shows its text */
+  .lbl.num { width: 28px; height: 28px; padding: 0; display: grid; place-items: center; border-radius: 50%; font-size: 14px; font-weight: 800; border-width: 2.5px; }
+  .lbl.num::before { display: none; }
   .lbl[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
   /* a layer name pulses when the cut first reaches that layer */
   .lbl.fresh { animation: lblIn 1.5s ease-out; }
@@ -324,6 +328,7 @@
       <h2 id="convTitle" tabindex="-1">Why do the plates move?</h2>
       <button class="iconbtn" id="convClose" aria-label="Close the explanation">✕</button>
     </div>
+    <p class="sub" style="margin:8px 0 0">The numbers on the cut match this list. Point at a number to see what it shows.</p>
     <ol>
       <li><b>Heat escapes from inside the Earth.</b> It comes from the core, from heat left over from when the Earth formed, and from radioactive elements in the rocks.</li>
       <li><b>The mantle is solid rock, but it flows very slowly,</b> like extremely stiff putty, over millions of years.</li>
@@ -392,11 +397,11 @@
 <script type="module">
 // ================= Versions (single source of truth) =================
 // Bump a model's number whenever its maths or data handling changes, and bump the app version on every release.
-const APP_VERSION = "0.12.2"; // test copy of earth-structure-lab.html (0.8.1)
+const APP_VERSION = "0.12.3"; // test copy of earth-structure-lab.html (0.8.1)
 const MODELS = {
   layers: { name: "Layer model", version: "2.3", desc: "Two ways of dividing the Earth: by what it is made of (crust 0–35, upper mantle 35–660, lower mantle 660–2,891, outer core, inner core) and by how it behaves (lithosphere 0–100, asthenosphere 100–250, mesosphere 250–2,891, outer core, inner core; km). On a slider cut each layer the cut reaches is a flat filled ring where the cut plane meets that layer's shell (ring radius √(r² − h²), where h is the plane's distance from the centre), 2 km behind the cut, or 40 km behind it when the Earth is cut in half so the models drawn on the cut stay in front. Shells: concentric spheres for mantle and core at PREM depths, scaled to the globe's radius. Facts per layer for the information panel (2.2: lower mantle and mesosphere flow slowly; core temperatures made consistent, rising with depth; inner-core history corrected; 2.3: where earthquakes happen added to the mantle layers). While a model ('How it moves', 'Earthquake waves') is showing, the rings are darkened to 40% so the model lines stand out." },
   waves:  { name: "Seismic wave model", version: "1.2", desc: "Wave paths traced through wave speeds rounded from PREM (crust and the low-speed zone smoothed out; PREM's 400 and 670 km boundaries moved to the 410 and 660 km used in the rest of the app): each path bends with the speed change and refracts with Snell's law at 410 km, 660 km, the core–mantle boundary and the inner-core boundary; S-waves stop at the liquid outer core. Shadow zones are drawn at the measured edges (USGS: 104°–140°), not the model's. The animation runs 30 real minutes in 15 seconds. P-waves blue and solid, S-waves orange and dashed (readable with red–green colour blindness). (1.2: the option to start from a real earthquake is removed.)" },
-  conv:   { name: "Convection model", version: "2.1", desc: "Schematic mantle convection on the centre cut, the same on any cut (ridges, trenches and plume are not the real ones under that cut). Five loops between 3,730 km and 6,090 km from the centre (core–mantle boundary 3,480 km), turning in alternate directions, so broad rising return flow (under ridges at 30°, 150° and 270°) and sinking rock (at trenches at 90°, 210° and 330°) alternate; the sixth loop position (180°) holds a plume rising from the core–mantle boundary to the base of the plate under the middle of a plate. Under each ridge a short, shallow upwelling from 200 km deep, pulled up by the plates (WHOI MELT experiment: melting from 150–200 km). Plates drawn as arrows 220 km above the surface from ridge to trench; a sinking slab from each trench to 1,500 km deep. White arrows (each 0.55 of the way round a loop parameter, 5 per loop) move round each loop once in 12 seconds (in reality hundreds of millions of years); 2.1: arrows instead of moving dots, so the rock is seen to flow as a whole rather than as separate lumps." },
+  conv:   { name: "Convection model", version: "2.2", desc: "Schematic mantle convection on the centre cut, the same on any cut (ridges, trenches and plume are not the real ones under that cut). Five loops between 3,730 km and 6,090 km from the centre (core–mantle boundary 3,480 km), turning in alternate directions, so broad rising return flow (under ridges at 30°, 150° and 270°) and sinking rock (at trenches at 90°, 210° and 330°) alternate; the sixth loop position (180°) holds a plume rising from the core–mantle boundary to the base of the plate under the middle of a plate. Under each ridge a short, shallow upwelling from 200 km deep, pulled up by the plates (WHOI MELT experiment: melting from 150–200 km). Plates drawn as arrows 220 km above the surface from ridge to trench; a sinking slab from each trench to 1,500 km deep. White arrows (each 0.55 of the way round a loop parameter, 5 per loop) move round each loop once in 12 seconds (in reality hundreds of millions of years); 2.1: arrows instead of moving dots, so the rock is seen to flow as a whole rather than as separate lumps. 2.2: the text labels on the cut are replaced by numbered markers matching the numbered list in the panel (the text is on each marker for pointing and screen readers)." },
   dims:   { name: "Depth label model", version: "1.3", desc: "Depth lines (Esri DimensionAnalysis) only when the Earth is cut in half: boundaries follow the chosen way of dividing the Earth (hidden when both are shown), drawn from the surface to each boundary at true depth on a radius 90° from the cut's anchor (to the right of the cut), spaced 650 km apart. Layer names on any slider cut: on-screen buttons pinned to the middle of each ring the cut reaches (rings under 120 km wide get their name just outside the cut), fanned around the left half; a name pulses when the cut first reaches its layer. Shown while the cut face is turned towards the camera at less than 75° (seen from the side or face-on)." },
   slice:  { name: "Slice model", version: "3.2", desc: "Starts with the whole Earth. The slider sets the cut depth from 0 to 6,371 km (step 10 km; 6,350 km or more snaps to the centre, with the plane 1 km off the exact centre, where its direction is undefined): an Esri SliceAnalysis plane (tilt 0°) that far below the surface point in the middle of the view, facing that point, so it removes the cap of the Earth nearest the viewer. When a new cut starts, the camera turns 50° to the left round the globe's screen-up axis (to at least 16,000 km up), so the cut is seen from the side. The cut stays fixed to the Earth; it moves to the middle of the view only when the slider starts a new cut from the whole Earth or the cut face has been turned out of sight (more than 75° away). 'Cut in half' takes the same cut to the centre. While cut, the ground is swapped for a sphere with the same imagery, boundaries and names (Esri World Imagery export with World Boundaries and Places level-3 tiles re-projected onto it; NASA Blue Marble if the imagery can't load), which the cut slices with the layers, so the countries stay on the uncut part (viewer can turn this off). ArcGIS's own sliced ground leaves a faint copy of the removed part over the cut face, and the atmosphere's haze washes over it, so the atmosphere is off while cut. (3.2: cuts through a chosen place removed; real places are now in Subduction Zones Lab.)" },
   bounds: { name: "Plate boundary model", version: "1.1", desc: "Plate boundaries from Hasterok et al. (2022), loaded live from ArcGIS Online (Tectonic Plates and Boundaries, layer 9), coloured by type: convergent, divergent, transform, inferred (dashed). Drawn as lines 2 km above the ground, so they show on the uncut part of the globe; the slice removes them with the part it cuts away. Shown only with 'Layers and depths'. (1.1: the walls going 100 km down and the labels on the cut were removed, as they cluttered the cut.)" }
@@ -910,19 +915,21 @@ function faceCos(anchor, depthKm) {
   return (v[0] * n[0] + v[1] * n[1] + v[2] * n[2]) / Math.hypot(...v);
 }
 // Convection labels, placed the same way as the layer names (positions: angle on the cut from screen-up, distance from the centre in km)
+// Numbered markers on the cut, matching the numbered list in "Why do the plates move?" (full text labels here crowded together
+// and were pushed away from what they labelled). Some numbers appear twice, where a point applies in two places.
 const CONV_CHIPS = [
-  { id: "ridge",  text: "Ridge · plates move apart",   c: "#ff6b3d", th: 30,  r: 6371 + 750 },
-  { id: "trench", text: "Trench · plate sinks",        c: "#4dabf7", th: 330, r: 6371 + 750 },
-  { id: "plate",  text: "Plate moves 2–10 cm a year",  c: "#f1f3f5", th: 0,   r: 6371 + 420 },
-  { id: "rise",   text: "Warm rock slowly rises",      c: "#ffd43b", th: 270, r: 4910 },
-  { id: "plume",  text: "Plume of hot rock",           c: "#ff4d2e", th: 180, r: 4700 },
-  { id: "pulled", text: "Rock pulled up under the ridge, melts", c: "#ff8787", th: 150, r: 6371 - 420 },
-  { id: "sink",   text: "Cooler, denser rock sinks",   c: "#4dabf7", th: 210, r: 4910 },
-  { id: "slab",   text: "Slab pull",                   c: "#a5d8ff", th: 318, r: 5500 },
-  { id: "heat",   text: "Heat from the core",          c: "#ffd8a8", th: 180, r: 3150 }
+  { id: "heat",   n: 1, text: "1: Heat escapes from the core",               c: "#ffd8a8", th: 180, r: 3150 },
+  { id: "flow",   n: 2, text: "2: The solid mantle flows very slowly",       c: "#b197fc", th: 60,  r: 3950 },
+  { id: "plume",  n: 3, text: "3: A plume of hot rock rises",                c: "#ff4d2e", th: 180, r: 4700 },
+  { id: "rise",   n: 3, text: "3: Warm rock slowly rises",                   c: "#ffd43b", th: 270, r: 4910 },
+  { id: "ridge",  n: 4, text: "4: Under a ridge, rock is pulled up and melts", c: "#ff8787", th: 30, r: 6371 - 330 },
+  { id: "trench", n: 5, text: "5: At a trench, cold plate sinks",            c: "#4dabf7", th: 330, r: 6371 + 450 },
+  { id: "sink",   n: 5, text: "5: Cooler, denser rock sinks",                c: "#4dabf7", th: 210, r: 4910 },
+  { id: "slab",   n: 6, text: "6: The sinking plate pulls the plate along (slab pull)", c: "#a5d8ff", th: 318, r: 5500 },
+  { id: "plate",  n: 6, text: "6: The plate moves 2–10 cm a year",           c: "#f1f3f5", th: 0,   r: 6371 + 420 }
 ];
 const convOverlay = $("convOverlay");
-convOverlay.innerHTML = CONV_CHIPS.map(c => `<span class="lbl" data-pt="${c.id}" style="--c:${c.c}">${c.text}</span>`).join("");
+convOverlay.innerHTML = CONV_CHIPS.map(c => `<span class="lbl num" data-pt="${c.id}" style="--c:${c.c}" role="img" aria-label="${c.text}" title="${c.text}">${c.n}</span>`).join("");
 let convPts = null;
 let raf = 0;
 function placeGroup(container, pts, key) {
