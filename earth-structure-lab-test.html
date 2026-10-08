@@ -88,8 +88,11 @@
   #conv .src, #waves .src .src { font-size: 11.5px; color: var(--muted); margin: 8px 0 0; }
   #waves fieldset { border: 1px solid var(--rule); border-radius: 12px; padding: 4px 10px; margin: 8px 0; }
   #waveClock { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--accent); }
-  .key { display: grid; grid-template-columns: auto 1fr; gap: 3px 8px; font-size: 12.5px; margin: 6px 0; align-items: center; }
-  .key i { display: inline-block; width: 18px; height: 4px; border-radius: 2px; }
+  .key { display: grid; grid-template-columns: auto 1fr; gap: 6px 10px; font-size: 13.5px; line-height: 1.3; margin: 6px 0; align-items: center; }
+  .key i { display: inline-block; width: 30px; height: 8px; border-radius: 4px; }
+  /* the key sits near the top of each explanation panel, in its own box, so it can be seen without scrolling */
+  .keybox { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--rule); border-radius: 12px; padding: 8px 12px 6px; margin: 10px 0; }
+  .keybox h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 2px; }
   .seg { display: flex; gap: 6px; }
   .seg button { flex: 1; font-size: 13px; padding: 8px 4px; line-height: 1.2; }
   #info .head { display: flex; align-items: center; gap: 10px; }
@@ -304,6 +307,16 @@
     </fieldset>
     <div class="navrow"><button id="btnQuake" class="primary">Start an earthquake</button><button id="btnWavePause" aria-pressed="false">Pause</button></div>
     <p class="sub" style="margin:6px 0 0">Time after the earthquake: <span id="waveClock">0 min</span></p>
+    <div class="keybox">
+      <h3>Key</h3>
+      <div class="key" aria-label="Key to the colours">
+        <i style="background:#4dabf7"></i><span>P-wave path (solid line)</span>
+        <i style="background:#e7f5ff;height:4px"></i><span>P-wave path through the inner core (thin, pale)</span>
+        <i style="background:repeating-linear-gradient(90deg,#ff922b 0 5px,transparent 5px 8px)"></i><span>S-wave path (dashed line)</span>
+        <i style="background:repeating-linear-gradient(90deg,#ff922b 0 5px,transparent 5px 8px);height:14px"></i><span>S-wave shadow zone (dashed band)</span>
+        <i style="background:#4dabf7;height:14px;opacity:.85"></i><span>P-wave shadow zone (solid band)</span>
+      </div>
+    </div>
     <ol>
       <li><b>P-waves</b> (primary) are <i>longitudinal</i>: the rock is pushed and pulled along the direction the wave travels. They are the fastest, and they travel through solids <b>and</b> liquids.</li>
       <li><b>S-waves</b> (secondary) are <i>transverse</i>: the rock shakes from side to side. They are slower, and they can only travel through <b>solids</b>.</li>
@@ -312,13 +325,6 @@
       <li><b>P-wave shadow zone.</b> Between about 104° and 140°, almost no P-waves arrive, because they bend sharply where they enter the slower, liquid core.</li>
       <li><b>The inner core.</b> In 1936 Inge Lehmann noticed faint P-waves arriving inside the P-wave shadow zone. She showed they had been bent by a boundary deep inside the core: there is an inner core, where the waves travel faster. Scientists later argued that it is solid (1940s–1950s), and in 1971 this was confirmed from the way the whole Earth "rings" after very large earthquakes.</li>
     </ol>
-    <div class="key" aria-label="Key to the colours">
-      <i style="background:#4dabf7"></i><span>P-wave path (solid line)</span>
-      <i style="background:#e7f5ff"></i><span>P-wave path through the inner core (thin, pale)</span>
-      <i style="background:repeating-linear-gradient(90deg,#ff922b 0 5px,transparent 5px 8px)"></i><span>S-wave path (dashed line)</span>
-      <i style="background:repeating-linear-gradient(90deg,#ff922b 0 5px,transparent 5px 8px);height:8px"></i><span>S-wave shadow zone (dashed band)</span>
-      <i style="background:#4dabf7;height:8px;opacity:.85"></i><span>P-wave shadow zone (solid band)</span>
-    </div>
     <p class="note" id="waveModelNote">The paths come from a simplified model of how fast waves travel at each depth, so they land a few degrees from the measured shadow-zone edges, which are drawn from real seismometer records.</p>
     <p class="src">Sources: USGS, "Shadow zone"; Earle, <i>Physical Geology</i> 9.1; AQA GCSE Physics 4.6.1.5; NGSS HS-ESS2-3. Wave speeds rounded from PREM (Dziewonski &amp; Anderson, 1981). Inner core history: Wikipedia, "Earth's inner core"; Dziewoński &amp; Gilbert (1971), <i>Nature</i> 234.</p>
   </section>
@@ -327,6 +333,20 @@
     <div class="head">
       <h2 id="convTitle" tabindex="-1">Why do the plates move?</h2>
       <button class="iconbtn" id="convClose" aria-label="Close the explanation">✕</button>
+    </div>
+    <div class="keybox">
+      <h3>Key</h3>
+      <div class="key" aria-label="Key to the colours">
+        <i style="background:#ff4d2e;height:12px"></i><span>Plume of hot rock rising from deep down</span>
+        <i style="background:#ff8787"></i><span>Rock pulled up under a ridge, melting a little</span>
+        <i style="background:#ffd43b"></i><span>Warm rock slowly rising</span>
+        <i style="background:#ffa94d"></i><span>Rock cooling under the plate</span>
+        <i style="background:#4dabf7"></i><span>Cooler, denser rock sinking</span>
+        <i style="background:#b197fc"></i><span>Rock moving back along the bottom</span>
+        <i style="background:#a5d8ff;height:12px"></i><span>Sinking plate (slab)</span>
+        <i style="background:#f1f3f5"></i><span>Plate moving from a ridge to a trench (drawn just above the surface)</span>
+        <i style="background:#ffffff;height:4px"></i><span>Moving arrows: the mantle flowing, very slowly</span>
+      </div>
     </div>
     <p class="sub" style="margin:8px 0 0">The numbers on the cut match this list. Point at a number to see what it shows.</p>
     <ol>
@@ -337,17 +357,6 @@
       <li><b>Cold rock sinks.</b> Old ocean plate cools, becomes denser than the mantle below it and sinks at the trenches.</li>
       <li><b>The plates are part of the loop.</b> The sinking edge pulls the rest of the plate after it (<i>slab pull</i>), and new plate slides away from the high ridge (<i>ridge push</i>). Plates with sinking edges move fastest, which is why many scientists think slab pull is the biggest force. The flowing mantle is the rest of the same loop, not a conveyor belt carrying the plates.</li>
     </ol>
-    <div class="key" aria-label="Key to the colours">
-      <i style="background:#ff4d2e;height:7px"></i><span>Plume of hot rock rising from deep in the mantle</span>
-      <i style="background:#ff8787"></i><span>Rock pulled up under a ridge, melting a little</span>
-      <i style="background:#ffd43b"></i><span>Warm rock slowly rising</span>
-      <i style="background:#ffa94d"></i><span>Rock cooling as it moves under the plate</span>
-      <i style="background:#4dabf7"></i><span>Cooler, denser rock sinking</span>
-      <i style="background:#b197fc"></i><span>Rock moving back along the bottom of the mantle</span>
-      <i style="background:#ffffff"></i><span>Moving arrows: the way the whole mantle flows, very slowly</span>
-      <i style="background:#a5d8ff;height:7px"></i><span>Sinking plate (slab)</span>
-      <i style="background:#f1f3f5"></i><span>Plate moving away from a ridge towards a trench (drawn just above the surface so you can see it)</span>
-    </div>
     <p class="how"><b>How fast?</b> Plates move about 2–10 cm a year, roughly as fast as fingernails grow. Here a trip round one loop takes 12 seconds; in the real mantle it takes hundreds of millions of years.</p>
     <p class="note">This is a simplified picture, drawn the same on any cut. The ridges, trenches and plume are spaced evenly to show the idea: they are not the real ones under the places on this cut. Real convection is not neat loops of equal size, and sinking plates can reach the bottom of the mantle.</p>
     <div class="navrow"><button id="btnPause" aria-pressed="false">Pause movement</button></div>
@@ -397,7 +406,7 @@
 <script type="module">
 // ================= Versions (single source of truth) =================
 // Bump a model's number whenever its maths or data handling changes, and bump the app version on every release.
-const APP_VERSION = "0.12.3"; // test copy of earth-structure-lab.html (0.8.1)
+const APP_VERSION = "0.12.4"; // test copy of earth-structure-lab.html (0.8.1)
 const MODELS = {
   layers: { name: "Layer model", version: "2.3", desc: "Two ways of dividing the Earth: by what it is made of (crust 0–35, upper mantle 35–660, lower mantle 660–2,891, outer core, inner core) and by how it behaves (lithosphere 0–100, asthenosphere 100–250, mesosphere 250–2,891, outer core, inner core; km). On a slider cut each layer the cut reaches is a flat filled ring where the cut plane meets that layer's shell (ring radius √(r² − h²), where h is the plane's distance from the centre), 2 km behind the cut, or 40 km behind it when the Earth is cut in half so the models drawn on the cut stay in front. Shells: concentric spheres for mantle and core at PREM depths, scaled to the globe's radius. Facts per layer for the information panel (2.2: lower mantle and mesosphere flow slowly; core temperatures made consistent, rising with depth; inner-core history corrected; 2.3: where earthquakes happen added to the mantle layers). While a model ('How it moves', 'Earthquake waves') is showing, the rings are darkened to 40% so the model lines stand out." },
   waves:  { name: "Seismic wave model", version: "1.2", desc: "Wave paths traced through wave speeds rounded from PREM (crust and the low-speed zone smoothed out; PREM's 400 and 670 km boundaries moved to the 410 and 660 km used in the rest of the app): each path bends with the speed change and refracts with Snell's law at 410 km, 660 km, the core–mantle boundary and the inner-core boundary; S-waves stop at the liquid outer core. Shadow zones are drawn at the measured edges (USGS: 104°–140°), not the model's. The animation runs 30 real minutes in 15 seconds. P-waves blue and solid, S-waves orange and dashed (readable with red–green colour blindness). (1.2: the option to start from a real earthquake is removed.)" },
