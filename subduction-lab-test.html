@@ -204,6 +204,7 @@
     <li>Earthquakes: USGS earthquake catalogue (FDSN event service), magnitude 4.5+, past 5 years, within 1,300 km of the middle of the block. Saved in the app's data folder and refreshed once a month (the date is shown in the Earthquakes section); if the saved file can't load, the app asks USGS directly.</li>
     <li>Plate boundaries: "Tectonic Plates and Boundaries" (TeachingAtlas_Curator, ArcGIS Online), from Hasterok et al. (2022), <i>Earth-Science Reviews</i> 231, loaded live.</li>
     <li>Tonga: Horizon Deep position, plate speed (15–24 cm a year) and plate names from Wikipedia, "Tonga Trench"; Hunga Tonga–Hunga Haʻapai position from Wikipedia.</li>
+    <li>The plate below the earthquakes: Chang, Ferreira &amp; Faccenda (2016), "Upper- and mid-mantle interaction between the Samoan plume and the Tonga–Kermadec slabs", <i>Nature Communications</i> 7, 10799 (Tonga plate lying in the transition zone, Kermadec plate going into the lower mantle); van der Hilst (1995), "Complex morphology of subducted lithosphere in the mantle beneath the Tonga trench", <i>Nature</i> 374, 154–157.</li>
     <li>Subduction steps: Wikipedia, "Wadati–Benioff zone"; Earle, <i>Physical Geology</i>, chapter 10; WHOI <i>Oceanus</i>. Layer depths as in Earth Structure Lab (PREM, rounded).</li>
     <li>Block top: Esri World Imagery with World Boundaries and Places (exported for each block). Globe: the same as a basemap.</li>
   </ul>
@@ -216,12 +217,12 @@ import * as E from "./subduction-engine.js";
 
 // ================= Versions (single source of truth) =================
 // Bump a model's number whenever its maths or data handling changes, and bump the app version on every release.
-const APP_VERSION = "0.4.2-test";
+const APP_VERSION = "0.5.0-test";
 const MODELS = {
   places: { name: "Place", version: "1.1", desc: "Tonga: section through Horizon Deep (23.26° S, 174.73° W) at right angles to the trench, taken to run about 20° east of north; volcano Hunga Tonga–Hunga Haʻapai (20.545° S, 175.393° W). (1.1: Japan removed for now.)" },
   block:  { name: "Block model", version: "1.4", desc: "A block of the Earth 1,800 km across the trench (500 km east of it to 1,300 km west), 700 km along it and 800 km deep, in its true curved shape (sides point to the Earth's centre), lifted 1,500 km straight up above where it came from. Front face: the layers (crust 0–35, upper mantle 35–660, lower mantle 660–800 km). Top: Esri imagery with boundaries and names (1,024 px). Sides, back and bottom: see-through layers. Dashed lines join the block to its outline on the globe. Camera: 3,600 km in front of the block and 1,600 km above, looking at 350 km deep in the middle of the front face. (1.1: built once per view; the steps only show and hide parts. 1.2: when the block opens it rises out of the Earth over 5 seconds: its layers start lowered by the full lift, straight down at each point, so it begins roughly in place under the ground; earthquakes, labels and guide lines appear once it is up. Skipped with reduced motion. 1.3: a white pointer and label mark the trench from step 1 (the real trench, about 10 km deep, is too shallow to see at this scale); the volcano on top is larger. 1.4: the rise is drawn with a simple stand-in block (top and layered faces) recalculated at each height, about 20 times a second; the full block replaces it at the top.)" },
   quakes: { name: "Earthquake model", version: "2.0", desc: "USGS catalogue, magnitude 4.5+, past 5 years, within 1,300 km of the middle of the block, from a file saved monthly in the app's data folder (live USGS query only if the file can't load). Map: dots coloured by depth (0–70, 70–300, 300 km and deeper), 4 to 13 px by magnitude. Cross-section: earthquakes up to 150 km behind the front face moved onto it, spheres 12 km + 10 km per magnitude above 4.5. See inside: every earthquake in the block at its real position, spheres 10 km + 8 km per magnitude above 4.5. (2.0: saved file instead of a live 5-year query; drawn as feature layers.)" },
-  plate:  { name: "Plate model", version: "1.1", desc: "Going down in 40 km steps, the median position of the earthquakes in each step, counting only earthquakes within 1° east or 3° west of the step above (3° more for each empty step between), at least 3 per step. Joined to the ocean plate east of the trench, resampled every 15 km, smoothed (5-point moving average, 3 passes). Front face: drawn 80 km thick (35 km above to 45 km below that line) from the earthquakes up to 150 km behind it; slope = average between 60 and 200 km deep. See inside: the same fit in 100 km slices along the trench, each from its own earthquakes, drawn as see-through ribbons. White arrows (140 km long, 9) move along the front-face plate once every 16 seconds. Melt line: from the top of the plate under the volcano. The plate on top (Tonga plate) is drawn on the front face from the trench westwards, 60 km thick (an estimate; real thickness varies) or down to the top of the sinking plate where that is shallower. (1.1: plate on top added; moving arrows thinner.)" }
+  plate:  { name: "Plate model", version: "1.2", desc: "Going down in 40 km steps, the median position of the earthquakes in each step, counting only earthquakes within 1° east or 3° west of the step above (3° more for each empty step between), at least 3 per step. Joined to the ocean plate east of the trench, resampled every 15 km, smoothed (5-point moving average, 3 passes). Front face: drawn 80 km thick (35 km above to 45 km below that line) from the earthquakes up to 150 km behind it; slope = average between 60 and 200 km deep. See inside: the same fit in 100 km slices along the trench, each from its own earthquakes, drawn as see-through ribbons. White arrows (140 km long, 9) move along the front-face plate once every 16 seconds. Melt line: from the top of the plate under the volcano. The plate on top (Tonga plate) is drawn on the front face from the trench westwards, 60 km thick (an estimate; real thickness varies) or down to the top of the sinking plate where that is shallower. (1.1: plate on top added; moving arrows thinner. 1.2: from step 6, the plate continues below the last earthquakes as a paler dashed band, bending (a smooth curve starting 40 km along its direction) to lie with its middle at 615 km, so its base is on the 660 km boundary, for 3.2° (about 330 km) westwards, with fainter moving arrows. This part is not fitted to earthquakes: its shape follows seismic-image studies (Chang et al. 2016; van der Hilst 1995) and its length is an example.)" }
 };
 const $ = (id) => document.getElementById(id);
 $("appVersion").textContent = "v" + APP_VERSION;
@@ -249,12 +250,12 @@ const P = {
     "<b>Shallow earthquakes</b> happen where the two plates grind past each other: they stick, then slip suddenly.",
     "<b>Earthquakes carry on inside the sinking plate.</b> It stays cold and brittle as it sinks, so it keeps breaking. The earthquakes make a sloping line that shows where the plate is. {dip}",
     "<b>Volcanoes form above it.</b> Where the plate is about 100 km down, water squeezed out of it rises into the hot mantle above. Water makes rock melt at a lower temperature, so some melts and the magma rises to make a line of volcanoes. The red cone is Hunga Tonga–Hunga Haʻapai, which erupted in January 2022. {volcano}",
-    "<b>Deeper down, the plate keeps sinking.</b> {deepest} Below about 700 km there are no earthquakes anywhere on Earth, but plates can sink further. The sinking plate's weight pulls the rest of the plate along behind it (<i>slab pull</i>)."
+    "<b>Below the earthquakes, the plate keeps going.</b> {deepest} Below about 700 km there are no earthquakes anywhere on Earth, so scientists use seismic images, made from earthquake waves, to see further. Under Tonga they show the plate spreading out on top of the lower mantle, at about 660 km (the dashed part). Further south, under the Kermadec Islands, the same plate goes straight down into the lower mantle. The sinking plate's weight pulls the rest of the plate along behind it (<i>slab pull</i>)."
   ],
-  src: "Wikipedia, \"Tonga Trench\", \"Wadati–Benioff zone\", \"Hunga Tonga–Hunga Haʻapai\"; Earle, <i>Physical Geology</i>, chapter 10; USGS earthquake catalogue."
+  src: "Chang, Ferreira &amp; Faccenda (2016), <i>Nature Communications</i> 7, 10799; van der Hilst (1995), <i>Nature</i> 374, 154–157; Wikipedia, \"Tonga Trench\", \"Wadati–Benioff zone\", \"Hunga Tonga–Hunga Haʻapai\"; Earle, <i>Physical Geology</i>, chapter 10; USGS earthquake catalogue."
 };
 const STEP_LABELS = [`1 · Pacific plate moves west, ${P.speed}`, `2 · ${P.trench}: the plate bends down`, "3 · Shallow earthquakes: the plates stick and slip",
-  "4 · Earthquakes inside the cold, sinking plate", "5 · Volcano: water from the plate melts rock above", "6 · The plate keeps sinking"];
+  "4 · Earthquakes inside the cold, sinking plate", "5 · Volcano: water from the plate melts rock above", "6 · Below the earthquakes: seismic images show the plate spreading out on top of the lower mantle"];
 const STEP_COLORS = ["#ffffff", "#ffffff", "#66e3ff", "#a78bfa", "#ff6b3d", "#a5d8ff"];
 const LAYERS = [
   { name: "Crust", top: 0, bottom: 35, color: "#9c7b5b" },
@@ -320,13 +321,15 @@ async function loadQuakes() {
   const inside = quakes.filter(q => E.inBlock(B, q)), face = inside.filter(q => q.y <= FACE_BAND);
   const bins = E.fitSlab(face);
   const line = bins.length >= 3 ? E.plateLine(bins, { above: PLATE_ABOVE, eastDeg: -B.thMin - 0.2 }) : null;
+  // beyond the earthquakes: the plate bending to lie on top of the lower mantle (from seismic images; length an example)
+  const ext = line ? E.extendFlat(line, { flatDepth: Math.max(660 - PLATE_BELOW, E.fromXY(line[line.length - 1].xy).depth), lengthDeg: 3.2 }) : null;
   const strips = [];
   for (let y0 = 0; y0 < B.yMax; y0 += STRIP) {
     const sb = E.fitSlab(inside.filter(q => q.y >= y0 && q.y < y0 + STRIP));
     if (sb.length >= 3) strips.push({ y0, y1: y0 + STRIP, line: E.plateLine(sb, { above: PLATE_ABOVE, eastDeg: -B.thMin - 0.2 }) });
   }
   const vb = E.toBlock(B, P.volcano.longitude, P.volcano.latitude);
-  return { quakes, inside, face, bins, line, strips, vb, source, fetched,
+  return { quakes, inside, face, bins, line, ext, strips, vb, source, fetched,
     dip: line ? E.dipBetween(line, 60, 200) : null, deepest: inside.length ? Math.max(...inside.map(q => q.depth)) : null,
     under: line ? E.plateTopAt(line, vb.thW, PLATE_ABOVE) : null };
 }
@@ -483,6 +486,12 @@ function buildBlock() {
         D.line.map(pp => { const b = E.offsetAt(pp, PLATE_BELOW); return bc(b.thW, -4, b.depth); })], flat("#1d5fa8", 0.75))));
       add(faceLayer, new Graphic({ geometry: lineOn(D.line.map(pp => { const t = E.offsetAt(pp, -PLATE_ABOVE); return bc(t.thW, -5, t.depth); })), symbol: lineSym("#a5d8ff", 2) }));
       for (let k = 0; k < 9; k++) { const g = new Graphic({ symbol: lineSym("#ffffff", 3, { arrow: true }) }); arrows.push({ g, k }); arrowLayer.add(g); }
+      if (D.ext) { // step 6: the plate below the earthquakes, paler and dashed because it comes from seismic images, not earthquakes
+        add(faceLayer, meshG(gridMesh([D.ext.map(pp => { const t = E.offsetAt(pp, -PLATE_ABOVE); return bc(t.thW, -4, t.depth); }),
+          D.ext.map(pp => { const b = E.offsetAt(pp, PLATE_BELOW); return bc(b.thW, -4, b.depth); })], flat("#1d5fa8", 0.35))), 6);
+        for (const k of [-PLATE_ABOVE, PLATE_BELOW]) add(faceLayer, new Graphic({ geometry: lineOn(D.ext.map(pp => { const t = E.offsetAt(pp, k); return bc(t.thW, -5, t.depth); })), symbol: lineSym("#a5d8ff", 1.5, { dash: true }) }), 6);
+        for (let k = 0; k < 3; k++) { const g = new Graphic({ symbol: lineSym([165, 216, 255, 0.75], 2.5, { arrow: true }) }); arrows.push({ g, k, ext: true }); arrowLayer.add(g); }
+      }
       placeArrows();
       // the plate on top (the Tonga plate): from the surface down to OVER_THICK km, or to the top of the sinking plate where that is shallower
       const over = Array.from({ length: 61 }, (_, i) => 0.05 + (B.thMax - 0.05) * i / 60).map(t => [t, Math.min(OVER_THICK, E.plateTopAt(D.line, t, PLATE_ABOVE) ?? OVER_THICK)]);
@@ -506,12 +515,13 @@ function applyStep() {
   if (faceQuakes) { faceQuakes.visible = !inside && step >= 3; faceQuakes.definitionExpression = step >= 4 ? "1=1" : "depth < 70"; }
   if (insideQuakes) insideQuakes.visible = inside;
   for (const [g, from] of stepped) g.visible = step >= from;
+  placeArrows(); // the arrows below the earthquakes show from step 6, even when the movement is paused
   const list = [];
   if (!inside) {
     for (const dep of [100, 300, 660]) list.push({ text: `${dep} km`, color: "#ffffff", small: true, pt: bpt(B.thMin + 0.5, -2, dep - 22) });
     const deepB = D.bins[D.bins.length - 1], midB = D.bins[Math.floor(D.bins.length * 0.6)];
     const where = [bpt(B.thMin + 2.5, -6, -230), bpt(0, -6, -330), bpt(-2.6, -6, 120), midB ? bpt(midB.thW - 2.6, -6, midB.depth + 40) : null,
-      bpt(D.vb.thW + 0.4, -6, -190), deepB ? bpt(deepB.thW, -6, Math.min(deepB.depth + 80, B.dMax - 30)) : null][step - 1];
+      bpt(D.vb.thW + 0.4, -6, -190), D.ext ? (() => { const m = E.fromXY(D.ext[Math.floor(D.ext.length * 0.6)].xy); return bpt(m.thW, -6, m.depth - 130); })() : deepB ? bpt(deepB.thW, -6, Math.min(deepB.depth + 80, B.dMax - 30)) : null][step - 1];
     if (where) list.push({ text: STEP_LABELS[step - 1], color: STEP_COLORS[step - 1], step: true, pt: where });
   } else list.push({ text: "Every earthquake in the block, and the plate fitted in 100 km slices", color: "#a5d8ff", pt: bpt((B.thMin + B.thMax) / 2, B.yMax / 2, -260) });
   if (step !== 2) list.push({ text: "Trench", color: "#ffffff", small: true, pt: bpt(0, -6, -140) });
@@ -523,9 +533,11 @@ function applyStep() {
 }
 function placeArrows() {
   if (!D?.line || arrows.length === 0) return;
-  const line = D.line, total = line[line.length - 1].len;
-  for (const a of arrows) { const s1 = ((phase + a.k / arrows.length) % 1) * total;
-    a.g.geometry = lineOn(Array.from({ length: 6 }, (_, i) => { const c = E.alongLine(line, Math.max(0, s1 - 140 + 140 * i / 5)); return bc(c.thW, -6, c.depth); })); }
+  const main = arrows.filter(a => !a.ext), more = arrows.filter(a => a.ext);
+  const along = (line, from, to, list) => { for (const a of list) { const s1 = from + ((phase + a.k / list.length) % 1) * (to - from);
+    a.g.geometry = lineOn(Array.from({ length: 6 }, (_, i) => { const c = E.alongLine(line, Math.max(from, s1 - 140 + 140 * i / 5)); return bc(c.thW, -6, c.depth); })); } };
+  along(D.line, 0, D.line[D.line.length - 1].len, main);
+  if (D.ext && more.length) { for (const a of more) a.g.visible = step >= 6; if (step >= 6) along(D.ext, D.ext[0].len, D.ext[D.ext.length - 1].len, more); }
 }
 function tick(ts) {
   if (ts - last > 80) { if (!paused && arrowLayer.visible && arrows.length) { phase = (phase + Math.min(0.2, (ts - last) / 1000) / 16) % 1; placeArrows(); } last = ts; }
@@ -566,6 +578,7 @@ function renderPanel() {
       `<i style="background:${OVER_COLOR};height:10px"></i><span>Tonga plate: the plate on top, which the Pacific plate sinks under</span>` +
       `<i style="background:#fff"></i><span>Moving arrows: the whole plate moving</span>` +
       `<i style="background:repeating-linear-gradient(90deg,#ff6b3d 0 5px,transparent 5px 8px)"></i><span>Water and melt rising to the volcano</span>` +
+      `<i style="background:repeating-linear-gradient(90deg,#a5d8ff 0 5px,transparent 5px 8px);height:6px"></i><span>Plate below the earthquakes (step 6): from seismic images, length drawn as an example</span>` +
       `<i style="background:#ff4d2e;height:10px;width:10px;clip-path:polygon(50% 0,100% 100%,0 100%);border-radius:0"></i><span>Volcano</span></div>`;
     $("stepsNav").innerHTML = `<button id="stepBack" ${step === 1 ? "disabled" : ""}>← Back</button><button class="primary" id="stepNext" ${step === 6 ? "disabled" : ""}>Next →</button>` +
       `<button id="btnPause" aria-pressed="${paused}">${paused ? "Play movement" : "Pause movement"}</button><button id="goInside">See inside</button><button id="goReplay">Lift it out again</button><button id="goMap">Back to the map</button>`;

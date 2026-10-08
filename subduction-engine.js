@@ -188,3 +188,21 @@ export function blockCamera(B, thW, y, d, back, upKm) {
   return { longitude: p.longitude, latitude: p.latitude, z: (p.r - R) * 1000,
     heading: (Math.atan2(dotV(dd, east), dotV(dd, north)) / RAD + 360) % 360, tilt: Math.acos(Math.max(-1, Math.min(1, -dotV(dd, upv)))) / RAD };
 }
+
+// The plate continued beyond the last earthquakes, bending to run flat at `flatDepth` (middle of the plate) for `lengthDeg`
+// degrees westwards. Same point format as plateLine, with `len` carrying on from the end of `line`. This part is not fitted to
+// earthquakes; it is a drawing of what seismic images show (see the app's notes), with a length chosen as an example.
+export function extendFlat(line, { flatDepth = 615, lengthDeg = 3, bendKm = 40, n = 30 } = {}) {
+  const end = line[line.length - 1], prev = line[Math.max(0, line.length - 4)], e = fromXY(end.xy);
+  const dx = end.xy[0] - prev.xy[0], dy = end.xy[1] - prev.xy[1], dl = Math.hypot(dx, dy) || 1;
+  const P0 = end.xy, P1 = [P0[0] + dx / dl * bendKm, P0[1] + dy / dl * bendKm];
+  const P2 = toXY({ thW: e.thW + lengthDeg * 0.45, depth: flatDepth }), P3 = toXY({ thW: e.thW + lengthDeg, depth: flatDepth });
+  const pts = Array.from({ length: n + 1 }, (_, i) => { const t = i / n, u = 1 - t;
+    return [0, 1].map(k => u * u * u * P0[k] + 3 * u * u * t * P1[k] + 3 * u * t * t * P2[k] + t * t * t * P3[k]); });
+  let len = end.len;
+  return pts.map((p, i) => {
+    const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)], ex = b[0] - a[0], ey = b[1] - a[1], el = Math.hypot(ex, ey) || 1;
+    if (i > 0) len += Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1]);
+    return { xy: p, under: [ey / el, -ex / el], len };
+  });
+}
