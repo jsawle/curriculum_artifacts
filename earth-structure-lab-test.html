@@ -106,7 +106,7 @@
   .navrow button { flex: 1; font-size: 13px; padding: 6px 8px; }
 
   /* layer names pinned to points on the cut (HTML, because ArcGIS hides 3D text placed below the ground) */
-  #labelsOverlay, #convOverlay, #wavesOverlay, #boundsOverlay { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+  #labelsOverlay, #convOverlay, #wavesOverlay { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
   span.lbl { pointer-events: none; }
   .lbl { position: absolute; transform: translate(-50%, -50%); pointer-events: auto; font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 999px;
     background: rgba(11, 18, 33, 0.8); border: 1.5px solid var(--c, #fff); color: #fff; white-space: nowrap; box-shadow: 0 4px 14px rgba(0,0,0,.4); }
@@ -216,7 +216,6 @@
           <li><i style="background:#ffd43b"></i>Plates slide past each other (transform)</li>
           <li><i style="background:repeating-linear-gradient(90deg,#b0b8c4 0 5px,transparent 5px 8px)"></i>Boundary not certain (inferred)</li>
         </ul>
-        <p class="sub" style="margin:4px 0 0">Each boundary goes 100 km down, through the plates. Cut the Earth, or lower the "Surface" slider, to see this. Labels show where boundaries cross the cut.</p>
       </section>
 
       <section class="sec" aria-labelledby="hExplore">
@@ -286,7 +285,6 @@
   <div id="labelsOverlay" role="group" aria-label="Layer names on the cut" hidden></div>
   <div id="convOverlay" role="group" aria-label="Labels for the convection model" hidden></div>
   <div id="wavesOverlay" role="group" aria-label="Labels for the earthquake waves" hidden></div>
-  <div id="boundsOverlay" role="group" aria-label="Plate boundaries crossing the cut" hidden></div>
 
   <section id="waves" class="glass" aria-labelledby="wavesTitle" hidden>
     <div class="head">
@@ -393,14 +391,14 @@
 <script type="module">
 // ================= Versions (single source of truth) =================
 // Bump a model's number whenever its maths or data handling changes, and bump the app version on every release.
-const APP_VERSION = "0.12.0"; // test copy of earth-structure-lab.html (0.8.1)
+const APP_VERSION = "0.12.1"; // test copy of earth-structure-lab.html (0.8.1)
 const MODELS = {
   layers: { name: "Layer model", version: "2.3", desc: "Two ways of dividing the Earth: by what it is made of (crust 0–35, upper mantle 35–660, lower mantle 660–2,891, outer core, inner core) and by how it behaves (lithosphere 0–100, asthenosphere 100–250, mesosphere 250–2,891, outer core, inner core; km). On a slider cut each layer the cut reaches is a flat filled ring where the cut plane meets that layer's shell (ring radius √(r² − h²), where h is the plane's distance from the centre), 2 km behind the cut, or 40 km behind it when the Earth is cut in half so the models drawn on the cut stay in front. Shells: concentric spheres for mantle and core at PREM depths, scaled to the globe's radius. Facts per layer for the information panel (2.2: lower mantle and mesosphere flow slowly; core temperatures made consistent, rising with depth; inner-core history corrected; 2.3: where earthquakes happen added to the mantle layers). While a model ('How it moves', 'Earthquake waves') is showing, the rings are darkened to 40% so the model lines stand out." },
   waves:  { name: "Seismic wave model", version: "1.2", desc: "Wave paths traced through wave speeds rounded from PREM (crust and the low-speed zone smoothed out; PREM's 400 and 670 km boundaries moved to the 410 and 660 km used in the rest of the app): each path bends with the speed change and refracts with Snell's law at 410 km, 660 km, the core–mantle boundary and the inner-core boundary; S-waves stop at the liquid outer core. Shadow zones are drawn at the measured edges (USGS: 104°–140°), not the model's. The animation runs 30 real minutes in 15 seconds. P-waves blue and solid, S-waves orange and dashed (readable with red–green colour blindness). (1.2: the option to start from a real earthquake is removed.)" },
   conv:   { name: "Convection model", version: "2.0", desc: "Schematic mantle convection on the centre cut, the same on any cut (ridges, trenches and plume are not the real ones under that cut). Five loops between 3,730 km and 6,090 km from the centre (core–mantle boundary 3,480 km), turning in alternate directions, so broad rising return flow (under ridges at 30°, 150° and 270°) and sinking rock (at trenches at 90°, 210° and 330°) alternate; the sixth loop position (180°) holds a plume rising from the core–mantle boundary to the base of the plate under the middle of a plate. Under each ridge a short, shallow upwelling from 200 km deep, pulled up by the plates (WHOI MELT experiment: melting from 150–200 km). Plates drawn as arrows 220 km above the surface from ridge to trench; a sinking slab from each trench to 1,500 km deep. Rock parcels go once round a loop in 12 seconds (in reality hundreds of millions of years)." },
   dims:   { name: "Depth label model", version: "1.3", desc: "Depth lines (Esri DimensionAnalysis) only when the Earth is cut in half: boundaries follow the chosen way of dividing the Earth (hidden when both are shown), drawn from the surface to each boundary at true depth on a radius 90° from the cut's anchor (to the right of the cut), spaced 650 km apart. Layer names on any slider cut: on-screen buttons pinned to the middle of each ring the cut reaches (rings under 120 km wide get their name just outside the cut), fanned around the left half; a name pulses when the cut first reaches its layer. Shown while the cut face is turned towards the camera at less than 75° (seen from the side or face-on)." },
   slice:  { name: "Slice model", version: "3.2", desc: "Starts with the whole Earth. The slider sets the cut depth from 0 to 6,371 km (step 10 km; 6,350 km or more snaps to the centre, with the plane 1 km off the exact centre, where its direction is undefined): an Esri SliceAnalysis plane (tilt 0°) that far below the surface point in the middle of the view, facing that point, so it removes the cap of the Earth nearest the viewer. When a new cut starts, the camera turns 50° to the left round the globe's screen-up axis (to at least 16,000 km up), so the cut is seen from the side. The cut stays fixed to the Earth; it moves to the middle of the view only when the slider starts a new cut from the whole Earth or the cut face has been turned out of sight (more than 75° away). 'Cut in half' takes the same cut to the centre. While cut, the ground is swapped for a sphere with the same imagery, boundaries and names (Esri World Imagery export with World Boundaries and Places level-3 tiles re-projected onto it; NASA Blue Marble if the imagery can't load), which the cut slices with the layers, so the countries stay on the uncut part (viewer can turn this off). ArcGIS's own sliced ground leaves a faint copy of the removed part over the cut face, and the atmosphere's haze washes over it, so the atmosphere is off while cut. (3.2: cuts through a chosen place removed; real places are now in Subduction Zones Lab.)" },
-  bounds: { name: "Plate boundary model", version: "1.0", desc: "Plate boundaries from Hasterok et al. (2022), loaded live from ArcGIS Online (Tectonic Plates and Boundaries, layer 9), coloured by type: convergent, divergent, transform, inferred (dashed). Each is drawn as a line 2 km above the ground and as a wall 20 km wide hanging 100 km down from the ground (about the thickness of the plates; in reality plates are thinner at ridges and thicker under old continents). The slice cuts the walls like the layers. Labels where a boundary crosses the edge of a slider cut: segments of the boundary lines crossing the cut plane, crossings of the same type within 400 km merged. Shown only with 'Layers and depths'." }
+  bounds: { name: "Plate boundary model", version: "1.1", desc: "Plate boundaries from Hasterok et al. (2022), loaded live from ArcGIS Online (Tectonic Plates and Boundaries, layer 9), coloured by type: convergent, divergent, transform, inferred (dashed). Drawn as lines 2 km above the ground, so they show on the uncut part of the globe; the slice removes them with the part it cuts away. Shown only with 'Layers and depths'. (1.1: the walls going 100 km down and the labels on the cut were removed, as they cluttered the cut.)" }
 };
 const $ = (id) => document.getElementById(id);
 $("appVersion").textContent = "v" + APP_VERSION;
@@ -483,7 +481,6 @@ const MECH = [...MECH_ONLY, LAYERS.find(l => l.id === "outerCore"), LAYERS.find(
 const ALL_LAYERS = [...LAYERS, ...MECH_ONLY];
 const byId = Object.fromEntries(ALL_LAYERS.map(l => [l.id, l]));
 let scheme = "made"; // "made", "behaves" or "both"
-let boundFeats = null, boundPts = null; // plate boundary shapes (for labels where they cross the cut) and the label positions
 let mode = "layers";   // what is drawn on the cut: "layers" (names and depth dimensions), "conv" (convection) or "waves"
 let cutAnchor = null;  // the slider cut's anchor { longitude, latitude, heading, cam }, or null when the slider isn't cutting
 let cutDepth = 0;      // the slider cut's true depth below the anchor, km (0 = whole Earth, 6,371 = cut in half)
@@ -897,7 +894,6 @@ function drawLabels() {
     if (b) { b.classList.remove("fresh"); void b.offsetWidth; b.classList.add("fresh"); setTimeout(() => b.classList.remove("fresh"), 1600); }
   }
   labelsBefore = now;
-  drawBoundLabels();
 }
 // How squarely the cut face is turned towards the camera: the cosine of the angle between the face's direction and the
 // line from the middle of the face to the camera (1 = face-on, 0 = edge-on, below 0 = from behind).
@@ -968,14 +964,13 @@ const WAVE_CHIPS = [
 const wavesOverlay = $("wavesOverlay");
 wavesOverlay.innerHTML = WAVE_CHIPS.map(c => `<span class="lbl" data-pt="${c.id}" style="--c:${c.c}">${c.text}</span>`).join("");
 let wavePts = null;
-function placeLabels() { placeGroup(overlay, labelPts, "info"); placeGroup(convOverlay, convPts, "pt"); placeGroup(wavesOverlay, wavePts, "pt"); placeGroup($("boundsOverlay"), boundPts, "pt"); }
+function placeLabels() { placeGroup(overlay, labelPts, "info"); placeGroup(convOverlay, convPts, "pt"); placeGroup(wavesOverlay, wavePts, "pt"); }
 reactiveUtils.watch(() => [view.camera, view.width, view.height, view.padding], () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(placeLabels); });
 $("showDims").addEventListener("change", drawDims);
 $("showLabels").addEventListener("change", drawLabels);
 
 // ---------- Plate boundaries ----------
-// Hasterok et al. (2022), from ArcGIS Online. Two layers on the same service: lines just above the ground, and walls hanging
-// 100 km down through the plates (the slice cuts the walls, so the cut face shows where boundaries go through the plates).
+// Hasterok et al. (2022), from ArcGIS Online: lines just above the ground, coloured by type.
 const BOUNDS_URL = "https://P3ePLMYs2RVChkJx.svcs.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/Tectonic_Plates_and_Boundaries/FeatureServer/9";
 const BOUND_TYPES = [
   ["Convergent", "#ff6b3d", "Plates move together"], ["Divergent", "#4dabf7", "Plates move apart"],
@@ -987,45 +982,12 @@ const boundLines = new FeatureLayer({ url: BOUNDS_URL, title: "Plate boundaries"
   elevationInfo: { mode: "relative-to-ground", offset: 2000 },
   renderer: boundRenderer((color, t) => ({ type: "line-3d", symbolLayers: [{ type: "line", size: 2.5, material: { color }, cap: "round",
     ...(t === "Inferred" ? { pattern: { type: "style", style: "dash" } } : {}) }] })) });
-const boundWalls = new FeatureLayer({ url: BOUNDS_URL, title: "Plate boundaries going down through the plates", popupEnabled: false,
-  elevationInfo: { mode: "relative-to-ground", offset: 0 },
-  renderer: boundRenderer((color) => ({ type: "line-3d", symbolLayers: [{ type: "path", profile: "quad", width: 20000, height: 100000, anchor: "top",
-    profileRotation: "heading", cap: "butt", join: "miter", material: { color } }] })) });
-map.addMany([boundWalls, boundLines]);
+map.add(boundLines);
 function applyBounds() {
   const on = $("showBounds").checked && mode === "layers";
-  boundLines.visible = boundWalls.visible = on;
-  drawBoundLabels();
+  boundLines.visible = on;
 }
 $("showBounds").addEventListener("change", applyBounds);
-// where boundaries cross the edge of the slider's cut: labels just above the surface
-async function loadBoundGeometry() {
-  try {
-    const r = await boundLines.queryFeatures({ where: "1=1", outFields: ["type", "subtype"], returnGeometry: true, outSpatialReference: { wkid: 4326 } });
-    boundFeats = r.features.map(f => ({ type: f.attributes.type, subtype: f.attributes.subtype, paths: f.geometry?.paths || [] }));
-    drawBoundLabels();
-    return true;
-  } catch (e) { console.warn("Plate boundary shapes not loaded:", e); return false; }
-}
-function drawBoundLabels() {
-  const box = $("boundsOverlay");
-  boundPts = null;
-  if (!boundFeats || !cutAnchor || cutDepth <= 0 || mode !== "layers" || !$("showBounds").checked || !$("showLabels").checked) { box.innerHTML = ""; placeLabels(); return; }
-  const n = ecefKm(cutAnchor.longitude, cutAnchor.latitude, 1), h = planeH(), R = R_SCENE_KM, hits = [];
-  for (const f of boundFeats) for (const path of f.paths) for (let i = 1; i < path.length; i++) {
-    const a = ecefKm(path[i - 1][0], path[i - 1][1], R), b = ecefKm(path[i][0], path[i][1], R);
-    const fa = a[0] * n[0] + a[1] * n[1] + a[2] * n[2] - h, fb = b[0] * n[0] + b[1] * n[1] + b[2] * n[2] - h;
-    if (fa * fb > 0 || fa === fb) continue;
-    const t = fa / (fa - fb), c = a.map((x, k) => x + t * (b[k] - x));
-    if (!hits.some(o => o.type === f.type && Math.hypot(o.c[0] - c[0], o.c[1] - c[1], o.c[2] - c[2]) < 400)) hits.push({ type: f.type, subtype: f.subtype, c });
-  }
-  const text = (o) => (BOUND_TYPES.find(b => b[0] === o.type) || BOUND_TYPES[3])[2] + (o.subtype ? ` (${String(o.subtype).toLowerCase()})` : "");
-  const color = (o) => (BOUND_TYPES.find(b => b[0] === o.type) || BOUND_TYPES[3])[1];
-  box.innerHTML = hits.map((o, i) => `<span class="lbl small" data-pt="b${i}" style="--c:${color(o)};opacity:1">${text(o)}</span>`).join("");
-  boundPts = Object.fromEntries(hits.map((o, i) => { const u = o.c.map(x => x / Math.hypot(...o.c)), rr = R + 250;
-    return ["b" + i, pointAt(Math.atan2(u[1], u[0]) * 180 / Math.PI, Math.asin(u[2]) * 180 / Math.PI, (rr - R) * 1000)]; }));
-  placeLabels();
-}
 
 // ---------- Slice ----------
 const PLANE_SIZE = 120000000; // far wider than the globe, so the plane's outline stays off-screen
@@ -1383,7 +1345,7 @@ function setMode(m) {
   for (const [id, k] of [["modeLayers", "layers"], ["modeConv", "conv"], ["modeWaves", "waves"]]) $(id).setAttribute("aria-pressed", String(m === k));
   $("btnWhy").hidden = !PANELS[m]; if (PANELS[m]) $("btnWhy").textContent = PANELS[m].why;
   if (m !== "layers" && !dimAnchor) setCutDepth(R_TRUE_KM); // these models are drawn on the Earth cut in half
-  boundLines.visible = boundWalls.visible = m === "layers" && $("showBounds").checked; // real boundaries would contradict the schematic models
+  boundLines.visible = m === "layers" && $("showBounds").checked; // real boundaries would contradict the schematic models
   drawCaps(); drawDims(); drawLabels(); drawConvection(); drawWaves();
   if (PANELS[m]) showPanel(m); else hidePanels();
   if (m === "conv") setStatus("Showing how the mantle and plates move. Select \"Why do the plates move?\" for the explanation.");
@@ -1409,7 +1371,6 @@ $("btnHome").addEventListener("click", async () => { setCutDepth(0); await view.
 // ---------- Start: the whole Earth ----------
 setCutDepth(0);
 setStatus("Ready. Drag the slider under the globe to cut into the Earth.");
-if (!(await loadBoundGeometry())) setStatus("Ready. The plate boundary labels could not be loaded. Drag the slider under the globe to cut into the Earth.");
 // work out the earthquake-wave paths while the page is idle, so "Earthquake waves" opens without a pause
 (window.requestIdleCallback || ((f) => setTimeout(f, 1500)))(() => computeRays());
 </script>
