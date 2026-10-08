@@ -394,7 +394,7 @@
 <script type="module">
 // ================= Versions (single source of truth) =================
 // Bump a model's number whenever its maths or data handling changes, and bump the app version on every release.
-const APP_VERSION = "0.9.0"; // test copy of earth-structure-lab.html (0.8.1)
+const APP_VERSION = "0.9.1"; // test copy of earth-structure-lab.html (0.8.1)
 const MODELS = {
   layers: { name: "Layer model", version: "2.2", desc: "Two ways of dividing the Earth: by what it is made of (crust 0–35, upper mantle 35–660, lower mantle 660–2,891, outer core, inner core) and by how it behaves (lithosphere 0–100, asthenosphere 100–250, mesosphere 250–2,891, outer core, inner core; km). On a slider cut each layer the cut reaches is a flat filled ring where the cut plane meets that layer's shell (ring radius √(r² − h²), where h is the plane's distance from the centre), 2 km behind the cut, or 40 km behind it when the Earth is cut in half so the models drawn on the cut stay in front. Shells: concentric spheres for mantle and core at PREM depths, scaled to the globe's radius. Facts per layer for the information panel (2.2: lower mantle and mesosphere flow slowly; core temperatures made consistent, rising with depth; inner-core history corrected). While a model ('How it moves', 'Earthquake waves') is showing, the rings are darkened to 40% so the model lines stand out." },
   waves:  { name: "Seismic wave model", version: "1.1", desc: "Wave paths traced through wave speeds rounded from PREM (crust and the low-speed zone smoothed out; PREM's 400 and 670 km boundaries moved to the 410 and 660 km used in the rest of the app): each path bends with the speed change and refracts with Snell's law at 410 km, 660 km, the core–mantle boundary and the inner-core boundary; S-waves stop at the liquid outer core. Shadow zones are drawn at the measured edges (USGS: 104°–140°), not the model's. The animation runs 30 real minutes in 15 seconds. P-waves blue and solid, S-waves orange and dashed (readable with red–green colour blindness). The earthquake can be placed at the biggest earthquake in the USGS 30-day feed: the cut is then the great circle through it running north–south." },
@@ -402,7 +402,7 @@ const MODELS = {
   dims:   { name: "Depth label model", version: "1.3", desc: "Depth lines (Esri DimensionAnalysis) only when the Earth is cut in half: boundaries follow the chosen way of dividing the Earth (hidden when both are shown), drawn from the surface to each boundary at true depth on a radius 90° from the cut's anchor (to the right of the cut), spaced 650 km apart. Layer names on any slider cut: on-screen buttons pinned to the middle of each ring the cut reaches (rings under 120 km wide get their name just outside the cut), fanned around the left half; a name pulses when the cut first reaches its layer. Shown while the cut face is turned towards the camera at less than 75° (seen from the side or face-on)." },
   slice:  { name: "Slice model", version: "3.1", desc: "Starts with the whole Earth. The slider sets the cut depth from 0 to 6,371 km (step 10 km; 6,350 km or more snaps to the centre, with the plane 1 km off the exact centre, where its direction is undefined): an Esri SliceAnalysis plane (tilt 0°) that far below the surface point in the middle of the view, facing that point, so it removes the cap of the Earth nearest the viewer. When a new cut starts, the camera turns 50° to the left round the globe's screen-up axis (to at least 16,000 km up), so the cut is seen from the side. The cut stays fixed to the Earth; it moves to the middle of the view only when the slider starts a new cut from the whole Earth or the cut face has been turned out of sight (more than 75° away). 'Cut in half' takes the same cut to the centre. While cut, the ground is swapped for a sphere with the same imagery, boundaries and names (Esri World Imagery export with World Boundaries and Places level-3 tiles re-projected onto it; NASA Blue Marble if the imagery can't load), which the cut slices with the layers, so the countries stay on the uncut part (viewer can turn this off). ArcGIS's own sliced ground leaves a faint copy of the removed part over the cut face, and the atmosphere's haze washes over it, so the atmosphere is off while cut. 3.1: a cut can also be set to pass through a chosen place (the Tonga cross-section, the earthquake-wave start point): the Earth is cut in half on the great circle through that place, using an anchor 90° away from it." },
   quakes: { name: "Earthquake depth model", version: "1.1", desc: "USGS depths placed below the surface: height = −depth × 1000 × stretch. Coloured in three depth classes (0–70, 70–300, 300 km and deeper) that match the key. Choosing a stretched depth lowers the surface to 40% if it is solid, so the deep earthquakes can be seen." },
-  section: { name: "Tonga cross-section", version: "1.0", desc: "The Earth cut in half on the great circle through Horizon Deep (23.26° S, 174.73° W), at right angles to the Tonga trench (taken to run about 20° east of north). Earthquakes: USGS catalogue, magnitude 4.5+, past 12 months, within 1,000 km of Horizon Deep; those within 300 km of the cut are moved straight onto it (12 km in front of it, so the cut face does not hide them), at true depth, coloured by the same depth classes. Camera: 2,800 km in front of the cut, looking at a point 300 km deep, 3° west of the trench." }
+  section: { name: "Tonga cross-section", version: "1.1", desc: "The Earth cut in half on the great circle through Horizon Deep (23.26° S, 174.73° W), at right angles to the Tonga trench (taken to run about 20° east of north). Earthquakes: USGS catalogue, magnitude 4.5+, past 12 months, within 1,000 km of Horizon Deep; those within 300 km of the cut are moved straight onto it (12 km in front of it, so the cut face does not hide them), at true depth, coloured by the same depth classes. Camera: 3,500 km in front of the cut, looking at a point 300 km deep, 3° west of the trench. 1.1: while the cross-section shows, the view draws everything from 20 km to 40,000 km from the camera (by default a camera this low stops drawing far-off and underground things, so the cut face and earthquakes did not show)." }
 };
 const $ = (id) => document.getElementById(id);
 $("appVersion").textContent = "v" + APP_VERSION;
@@ -1445,7 +1445,15 @@ const SECTION_CHIPS = [
 ];
 sectionOverlay.innerHTML = SECTION_CHIPS.map(c => `<span class="lbl" data-pt="${c.id}" style="--c:${c.c}">${c.text}</span>`).join("");
 const QUAKE_CHIP = wavesOverlay.querySelector('[data-pt="quake"]');
+// A low camera normally stops drawing far-off and underground things; the cross-section camera needs to see the cut deep down.
+function setDeepClip(on) {
+  try {
+    const cd = view.constraints.clipDistance;
+    if (on) { cd.near = 20000; cd.far = 40000000; } else cd.mode = "auto";
+  } catch (e) { console.warn("Clip distance not changed:", e); }
+}
 function clearSection() {
+  setDeepClip(false);
   sectionOn = false; sectionLayer.removeAll(); sectionPts = null;
   if (QUAKE_CHIP) QUAKE_CHIP.textContent = "Earthquake";
   $("realQuakeText").hidden = true;
@@ -1492,7 +1500,8 @@ $("btnTongaSection").addEventListener("click", async () => {
   const w = westSign(anchor, TONGA.q);
   sectionPts = Object.fromEntries(SECTION_CHIPS.map(c => [c.id, cutPt(c.id === "east" ? -w * Math.abs(c.th) : w * c.th, c.r)]));
   const tq = quarterRound(anchor, anchor.heading + w * 3), target = ecefKm(tq.longitude, tq.latitude, R_SCENE_KM - 300);
-  view.goTo(cameraLookingAt(target, anchor, 2800), { animate: !reduceMotion, duration: 2000 })
+  setDeepClip(true);
+  view.goTo(cameraLookingAt(target, anchor, 3500), { animate: !reduceMotion, duration: 2000 })
     .catch(e => { if (e?.name !== "AbortError") console.warn(e); });
   placeLabels();
   setStatus("Cut through the Tonga trench. Loading a year of earthquakes near the cut…");
