@@ -206,3 +206,22 @@ export function extendFlat(line, { flatDepth = 615, lengthDeg = 3, bendKm = 40, 
     return { xy: p, under: [ey / el, -ex / el], len };
   });
 }
+
+// ---------- one smooth slab from strip-by-strip fits ----------
+// The slab is fitted separately in strips along the trench (each strip's earthquakes give its shape). To draw it as one
+// continuous plate, each strip's curve is sampled where it crosses a set of depths, and neighbouring strips are joined.
+// `offset` picks the surface: -above = top of the plate, +below = its base. Returns rows [{ y, pts: [[thW, depth] | null] }].
+function crossingAt(curve, d) {
+  for (let i = 1; i < curve.length; i++) {
+    const a = curve[i - 1], b = curve[i];
+    if (b.thW < -0.5 || b.depth <= a.depth) continue; // only the sinking part, going down
+    if (a.depth <= d && b.depth >= d) return a.thW + (d - a.depth) / (b.depth - a.depth) * (b.thW - a.thW);
+  }
+  return null;
+}
+export function slabSurface(strips, offset, levels, yMax) {
+  const rows = strips.map(s => ({ y: (s.y0 + s.y1) / 2, pts: (() => { const curve = s.line.map(p => offsetAt(p, offset));
+    return levels.map(d => { const t = crossingAt(curve, d); return t == null ? null : [t, d]; }); })() }));
+  if (!rows.length) return rows;
+  return [{ y: 0, pts: rows[0].pts }, ...rows, { y: yMax, pts: rows[rows.length - 1].pts }]; // carry the end strips to the block's ends
+}

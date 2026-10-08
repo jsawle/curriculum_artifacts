@@ -218,12 +218,12 @@ import * as E from "./subduction-engine.js";
 
 // ================= Versions (single source of truth) =================
 // Bump a model's number whenever its maths or data handling changes, and bump the app version on every release.
-const APP_VERSION = "0.5.2-test";
+const APP_VERSION = "0.5.3-test";
 const MODELS = {
   places: { name: "Place", version: "1.2", desc: "Tonga: section through Horizon Deep (23.26° S, 174.73° W) at right angles to the trench, taken to run about 20° east of north; volcano Hunga Tonga–Hunga Haʻapai (20.545° S, 175.393° W). (1.1: Japan removed for now. 1.2: the map view fits the whole earthquake area, 1,300 km round the middle of the block, between the side panels, looking north with a slight tilt.)" },
   block:  { name: "Block model", version: "1.4", desc: "A block of the Earth 1,800 km across the trench (500 km east of it to 1,300 km west), 700 km along it and 800 km deep, in its true curved shape (sides point to the Earth's centre), lifted 1,500 km straight up above where it came from. Front face: the layers (crust 0–35, upper mantle 35–660, lower mantle 660–800 km). Top: Esri imagery with boundaries and names (1,024 px). Sides, back and bottom: see-through layers. Dashed lines join the block to its outline on the globe. Camera: 3,600 km in front of the block and 1,600 km above, looking at 350 km deep in the middle of the front face. (1.1: built once per view; the steps only show and hide parts. 1.2: when the block opens it rises out of the Earth over 5 seconds: its layers start lowered by the full lift, straight down at each point, so it begins roughly in place under the ground; earthquakes, labels and guide lines appear once it is up. Skipped with reduced motion. 1.3: a white pointer and label mark the trench from step 1 (the real trench, about 10 km deep, is too shallow to see at this scale); the volcano on top is larger. 1.4: the rise is drawn with a simple stand-in block (top and layered faces) recalculated at each height, about 20 times a second; the full block replaces it at the top.)" },
   quakes: { name: "Earthquake model", version: "2.0", desc: "USGS catalogue, magnitude 4.5+, past 5 years, within 1,300 km of the middle of the block, from a file saved monthly in the app's data folder (live USGS query only if the file can't load). Map: dots coloured by depth (0–70, 70–300, 300 km and deeper), 4 to 13 px by magnitude. Cross-section: earthquakes up to 150 km behind the front face moved onto it, spheres 12 km + 10 km per magnitude above 4.5. See inside: every earthquake in the block at its real position, spheres 10 km + 8 km per magnitude above 4.5. (2.0: saved file instead of a live 5-year query; drawn as feature layers.)" },
-  plate:  { name: "Plate model", version: "1.3", desc: "Going down in 40 km steps, the median position of the earthquakes in each step, counting only earthquakes within 1° east or 3° west of the step above (3° more for each empty step between), at least 3 per step. Joined to the ocean plate east of the trench, resampled every 15 km, smoothed (5-point moving average, 3 passes). Front face: drawn 80 km thick (35 km above to 45 km below that line) from the earthquakes up to 150 km behind it; slope = average between 60 and 200 km deep. See inside: the same fit in 100 km slices along the trench, each from its own earthquakes, drawn as see-through slab slices 80 km thick. White arrows (140 km long, 9) move along the front-face plate once every 16 seconds. Melt line: from the top of the plate under the volcano. The plate on top (Tonga plate) is drawn on the front face from the trench westwards, 60 km thick (an estimate; real thickness varies) or down to the top of the sinking plate where that is shallower. (1.1: plate on top added; moving arrows thinner. 1.2: from step 6, the plate continues below the last earthquakes as a paler dashed band, bending (a smooth curve starting 40 km along its direction) to lie with its middle at 615 km, so its base is on the 660 km boundary, for 3.2° (about 330 km) westwards, with fainter moving arrows. This part is not fitted to earthquakes: its shape follows seismic-image studies (Chang et al. 2016; van der Hilst 1995) and its length is an example. 1.3: in See inside, each 100 km slice of the slab is drawn 80 km thick (top, bottom and ends) instead of as one surface; the zone where the plates stick and slip (top of the slab from the trench down to 50 km) is shown in yellow, on the cross-section from step 3 and in See inside.)" }
+  plate:  { name: "Plate model", version: "1.4", desc: "Going down in 40 km steps, the median position of the earthquakes in each step, counting only earthquakes within 1° east or 3° west of the step above (3° more for each empty step between), at least 3 per step. Joined to the ocean plate east of the trench, resampled every 15 km, smoothed (5-point moving average, 3 passes). Front face: drawn 80 km thick (35 km above to 45 km below that line) from the earthquakes up to 150 km behind it; slope = average between 60 and 200 km deep. See inside: the same fit in 100 km slices along the trench, each from its own earthquakes, joined into one see-through slab 80 km thick (see 1.4). White arrows (140 km long, 9) move along the front-face plate once every 16 seconds. Melt line: from the top of the plate under the volcano. The plate on top (Tonga plate) is drawn on the front face from the trench westwards, 60 km thick (an estimate; real thickness varies) or down to the top of the sinking plate where that is shallower. (1.1: plate on top added; moving arrows thinner. 1.2: from step 6, the plate continues below the last earthquakes as a paler dashed band, bending (a smooth curve starting 40 km along its direction) to lie with its middle at 615 km, so its base is on the 660 km boundary, for 3.2° (about 330 km) westwards, with fainter moving arrows. This part is not fitted to earthquakes: its shape follows seismic-image studies (Chang et al. 2016; van der Hilst 1995) and its length is an example. 1.3: in See inside, each 100 km slice of the slab is drawn 80 km thick (top, bottom and ends) instead of as one surface; the zone where the plates stick and slip (top of the slab from the trench down to 50 km) is shown in yellow, on the cross-section from step 3 and in See inside. 1.4: in See inside the slab is drawn as one continuous plate. It is still fitted separately in 100 km strips along the trench (the method), but the top and base of each strip are sampled every 15 km of depth and joined to the neighbouring strips into smooth surfaces, carried to the front and back of the block, with end walls; it stops where a strip has too few earthquakes.)" }
 };
 const $ = (id) => document.getElementById(id);
 $("appVersion").textContent = "v" + APP_VERSION;
@@ -409,6 +409,16 @@ function gridMesh(rows, material, uvRows) {
   return new Mesh({ spatialReference: { wkid: 4326 }, vertexAttributes: { position: new Float64Array(pos), ...(uvRows ? { uv: new Float32Array(uv) } : {}) },
     components: [new MeshComponent({ faces: new Uint32Array(faces), shading: "flat", material })] });
 }
+// a mesh from rows of points where some points may be missing (null): only complete squares are drawn
+function holeyMesh(rows, material) {
+  const pos = [], idx = rows.map(r => r.pts.map(q => q ? (pos.push(...bc(q[0], r.y, q[1])), pos.length / 3 - 1) : -1)), faces = [];
+  for (let i = 0; i < rows.length - 1; i++) for (let j = 0; j < idx[i].length - 1; j++) {
+    const a = idx[i][j], b = idx[i + 1][j], c = idx[i][j + 1], d = idx[i + 1][j + 1];
+    if (a >= 0 && b >= 0 && c >= 0 && d >= 0) faces.push(a, b, c, b, d, c);
+  }
+  return new Mesh({ spatialReference: { wkid: 4326 }, vertexAttributes: { position: new Float64Array(pos.length ? pos : [0, 0, 0]) },
+    components: [new MeshComponent({ faces: new Uint32Array(faces.length ? faces : [0, 0, 0]), shading: "flat", material })] });
+}
 const meshG = (geometry, attributes = {}) => new Graphic({ geometry, attributes, symbol: { type: "mesh-3d", symbolLayers: [{ type: "fill" }] } });
 const T = Array.from({ length: 41 }, (_, i) => B.thMin + (B.thMax - B.thMin) * i / 40);
 const Y = Array.from({ length: 15 }, (_, i) => B.yMax * i / 14);
@@ -513,14 +523,20 @@ function buildBlock() {
     add(faceLayer, new Graphic({ geometry: bpt(vb.thW, -9, -15), symbol: { type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "cone" }, width: 45000, height: 40000, depth: 45000, material: { color: "#ff4d2e" } }] } }), 5);
     if (D.under != null) add(faceLayer, new Graphic({ geometry: lineOn(Array.from({ length: 10 }, (_, i) => bc(vb.thW, -9, (D.under - 8) * (1 - i / 9) + 3 * i / 9))), symbol: lineSym("#ff6b3d", 3, { arrow: true, dash: true }) }), 5);
   } else {
-    // the slab, 80 km thick, in 100 km slices along the trench: top and bottom surfaces and the ends of each slice
-    for (const s of D.strips) {
-      const at = (k, y) => s.line.map(pp => { const c = E.offsetAt(pp, k); return bc(c.thW, y, c.depth); });
-      for (const k of [-PLATE_ABOVE, PLATE_BELOW]) add(insideLayer, meshG(gridMesh([at(k, s.y0), at(k, s.y1)], flat("#4dabf7", 0.35))));
-      for (const y of [s.y0, s.y1]) add(insideLayer, meshG(gridMesh([at(-PLATE_ABOVE, y), at(PLATE_BELOW, y)], flat("#4dabf7", 0.22))));
-      // where the plates stick and slip: the top of the slab from the trench down to SLIP_DEPTH
-      const slip = s.line.map(pp => E.offsetAt(pp, -PLATE_ABOVE)).filter(c => c.thW > -0.2 && c.depth <= SLIP_DEPTH);
-      if (slip.length > 1) add(insideLayer, meshG(gridMesh([slip.map(c => bc(c.thW, s.y0, c.depth - 1)), slip.map(c => bc(c.thW, s.y1, c.depth - 1))], flat(SLIP_COLOR, 0.8))));
+    // the slab as one continuous plate, 80 km thick: its top and base are smooth surfaces joining the strip-by-strip fits,
+    // with end walls at the front and back of the block. It stops where there are too few earthquakes to fit.
+    if (D.strips.length) {
+      const levels = Array.from({ length: 50 }, (_, i) => 2 + i * 15);
+      const surf = (rows, mat) => add(insideLayer, meshG(holeyMesh(rows, mat)));
+      surf(E.slabSurface(D.strips, -PLATE_ABOVE, levels, B.yMax), flat("#4dabf7", 0.35));
+      surf(E.slabSurface(D.strips, PLATE_BELOW, levels.map(d => d + PLATE_ABOVE + PLATE_BELOW), B.yMax), flat("#4dabf7", 0.35));
+      for (const [st, y] of [[D.strips[0], 0], [D.strips[D.strips.length - 1], B.yMax]]) {
+        const sink = st.line.filter(pp => E.fromXY(pp.xy).thW > -0.5);
+        add(insideLayer, meshG(gridMesh([sink.map(pp => { const c = E.offsetAt(pp, -PLATE_ABOVE); return bc(c.thW, y, c.depth); }),
+          sink.map(pp => { const c = E.offsetAt(pp, PLATE_BELOW); return bc(c.thW, y, c.depth); })], flat("#4dabf7", 0.25))));
+      }
+      // where the plates stick and slip: the top of the slab from the trench down to SLIP_DEPTH, all along the block
+      surf(E.slabSurface(D.strips, -PLATE_ABOVE, levels.filter(d => d <= SLIP_DEPTH).concat([SLIP_DEPTH]), B.yMax).map(r => ({ y: r.y, pts: r.pts.map(q => q && [q[0], q[1] - 1]) })), flat(SLIP_COLOR, 0.8));
     }
     const s = D.strips.find(s => vb.y >= s.y0 && vb.y < s.y1), top = s ? E.plateTopAt(s.line, vb.thW, PLATE_ABOVE) : null;
     if (top != null) add(insideLayer, new Graphic({ geometry: lineOn(Array.from({ length: 10 }, (_, i) => bc(vb.thW, vb.y, (top - 8) * (1 - i / 9) + 3 * i / 9))), symbol: lineSym("#ff6b3d", 3, { arrow: true, dash: true }) }));
@@ -541,7 +557,7 @@ function applyStep() {
     const where = [bpt(B.thMin + 2.5, -6, -230), bpt(0, -6, -330), bpt(-2.6, -6, 120), midB ? bpt(midB.thW - 2.6, -6, midB.depth + 40) : null,
       bpt(D.vb.thW + 0.4, -6, -190), D.ext ? (() => { const m = E.fromXY(D.ext[Math.floor(D.ext.length * 0.6)].xy); return bpt(m.thW, -6, m.depth - 130); })() : deepB ? bpt(deepB.thW, -6, Math.min(deepB.depth + 80, B.dMax - 30)) : null][step - 1];
     if (where) list.push({ text: STEP_LABELS[step - 1], color: STEP_COLORS[step - 1], step: true, pt: where });
-  } else list.push({ text: "Every earthquake in the block, and the slab (the sinking plate) in 100 km slices", color: "#a5d8ff", pt: bpt((B.thMin + B.thMax) / 2, B.yMax / 2, -260) });
+  } else list.push({ text: "Every earthquake in the block, and the slab (the sinking plate)", color: "#a5d8ff", pt: bpt((B.thMin + B.thMax) / 2, B.yMax / 2, -260) });
   if (step !== 2) list.push({ text: "Trench", color: "#ffffff", small: true, pt: bpt(0, -6, -140) });
   if (!inside && D.line) list.push({ text: "Tonga plate", color: OVER_COLOR, small: true, pt: bpt(Math.min(B.thMax - 1, 5), -6, 30) },
     { text: "Pacific plate", color: "#4dabf7", small: true, pt: bpt(B.thMin + 1, -6, 40) });
@@ -582,7 +598,7 @@ function renderPanel() {
   } else if (faceMode === "inside") {
     $("stepsTitle").textContent = `Inside the block`;
     $("stepsBody").innerHTML = `<p>Every earthquake in the block from the past ${YEARS} years, at its real position and depth. Turn the block to see them from the side and from above.</p>` +
-      `<p>They form a thick, sloping sheet, not just a line: the whole sinking plate, which scientists call the <i>slab</i>. The see-through blue shape is the slab, drawn 80 km thick through the middle of the earthquakes. It is worked out separately for each 100 km strip along the trench, so you can see how its shape changes. Where a strip has too few earthquakes, it is left out.</p>` +
+      `<p>They form a thick, sloping sheet, not just a line: the whole sinking plate, which scientists call the <i>slab</i>. The see-through blue shape is the slab, drawn 80 km thick through the middle of the earthquakes. Its shape comes from the earthquakes all along the trench, so you can see how it bends and changes. Where there are too few earthquakes to show where it is, it stops.</p>` +
       `<p>The yellow strip on top of the slab, down to about 50 km, is where the two plates touch and stick and slip. The deeper earthquakes are inside the slab itself.</p>` +
       `<p class="note">The front of the block is see-through in this view. Choose "Cross-section" to go back to the steps.</p>`;
     $("stepsNav").innerHTML = `<button id="goFace">Back to the cross-section</button><button id="goMap">Back to the map</button>`;
