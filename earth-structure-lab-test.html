@@ -1,0 +1,1532 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Earth Structure Lab (test)</title>
+<!-- ArcGIS Maps SDK for JavaScript 5.1 (core + components) -->
+<script type="module" src="https://js.arcgis.com/5.1/"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  /* Dark "glass" theme (same family as the Helene and Ice Age apps). Text colours meet WCAG AA on the panel colour. */
+  :root {
+    --bg: #0b1220; --panel: #0f172a; --glass: rgba(11, 18, 33, 0.86); --glass-edge: rgba(255, 255, 255, 0.10);
+    --ink: #eef3fa; --muted: #a8b6c9; --rule: rgba(255, 255, 255, 0.13); --chip: rgba(255, 255, 255, 0.08); --chip-hover: rgba(255, 255, 255, 0.14);
+    --accent: #7dd3fc; --accent-ink: #04121f; --go1: #2563eb; --go2: #0e7490; --warn: #fdba74;
+    --radius: 18px; --shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font: 15px/1.5 Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  #app { position: relative; height: 100%; overflow: hidden; }
+  #mapwrap { position: absolute; inset: 0; }
+  arcgis-scene { display: block; width: 100%; height: 100%; }
+  .glass { background: var(--glass); border: 1px solid var(--glass-edge); border-radius: var(--radius); box-shadow: var(--shadow); backdrop-filter: blur(14px) saturate(1.2); -webkit-backdrop-filter: blur(14px) saturate(1.2); }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .skip { position: absolute; left: -9999px; top: 0; z-index: 20; background: var(--accent); color: var(--accent-ink); padding: 8px 12px; border-radius: 10px; font-weight: 700; }
+  .skip:focus { left: 16px; top: 16px; }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  button { font: inherit; font-weight: 600; border-radius: 12px; padding: 8px 13px; cursor: pointer; border: 1px solid var(--glass-edge); background: var(--chip); color: var(--ink); transition: background .15s; }
+  button:hover:not(:disabled) { background: var(--chip-hover); }
+  button.primary { background: linear-gradient(135deg, var(--go1), var(--go2)); border-color: transparent; color: #fff; box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45); }
+  button[aria-pressed="true"]:not(.lname) { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  button[aria-pressed="true"]:not(.lname):hover:not(:disabled) { background: #a5e4ff; }
+  .iconbtn { width: 36px; height: 36px; padding: 0; display: inline-grid; place-items: center; font-size: 16px; flex: none; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  input[type=checkbox], input[type=radio] { width: 18px; height: 18px; accent-color: var(--accent); flex: none; margin: 0; }
+
+  /* left control card */
+  #card { position: absolute; left: 16px; top: 16px; bottom: 24px; width: 372px; display: flex; flex-direction: column; padding: 16px 18px 12px; z-index: 6; }
+  .brand { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); }
+  .brand .kicker { text-transform: uppercase; letter-spacing: .12em; font-weight: 700; color: var(--accent); }
+  .brand .sp { flex: 1; }
+  .labchip { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; border: 1px dashed rgba(253, 186, 116, .6); color: #ffdcb8; }
+  h1 { font-size: 22px; line-height: 1.15; margin: 6px 0 2px; font-weight: 800; letter-spacing: -0.01em; }
+  .lede { color: var(--muted); margin: 4px 0 8px; font-size: 13.5px; line-height: 1.45; }
+  #status { font-size: 12.5px; color: var(--accent); min-height: 1.3em; margin: 0 0 6px; }
+  .scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 2px 4px 8px 2px; margin-right: -6px; scrollbar-width: thin; }
+  .sec { border-top: 1px solid var(--rule); padding: 10px 0 6px; }
+  .sec h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .mv { font-size: 10.5px; font-weight: 600; color: var(--muted); border: 1px solid var(--rule); border-radius: 999px; padding: 0 6px; white-space: nowrap; text-transform: none; letter-spacing: 0; }
+  .sub { color: var(--muted); font-size: 12.5px; }
+  .note { font-size: 12.5px; color: var(--warn); }
+  label.row { display: flex; align-items: center; gap: 10px; margin: 6px 0; cursor: pointer; font-size: 14px; }
+  label.stack { display: block; font-size: 14px; margin: 6px 0; }
+  .btnrow { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 6px; }
+  /* layer list */
+  ul.layers { list-style: none; margin: 0; padding: 0; }
+  ul.layers li { display: flex; align-items: center; gap: 10px; padding: 3px 0; }
+  ul.layers li.grp { display: block; font-size: 11.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: 8px 0 2px; }
+  .sw { width: 16px; height: 16px; border-radius: 5px; flex: none; border: 1px solid rgba(0,0,0,.4); }
+  button.lname { flex: 1; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; text-align: left; background: transparent; border-color: transparent; padding: 6px 8px; border-radius: 10px; font-weight: 600; }
+  button.lname .d { font-weight: 500; font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  button.lname[aria-pressed="true"] { background: rgba(125, 211, 252, 0.16); border-color: rgba(125, 211, 252, 0.45); }
+  .cbox { width: 18px; display: grid; place-items: center; }
+  .readout { font: 12px/1.45 ui-monospace, Menlo, Consolas, monospace; color: var(--muted); background: rgba(0,0,0,.25); border: 1px solid var(--rule); border-radius: 10px; padding: 6px 8px; white-space: pre-wrap; }
+  .keyrow { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); }
+  .keyrow i { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: -1px; margin-right: 5px; }
+  details summary { cursor: pointer; font-size: 13px; color: var(--muted); padding: 3px 0; }
+  details.more > summary { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; font-weight: 600; padding: 4px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 4px; }
+  th, td { text-align: left; padding: 4px 6px 4px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  thead th { color: var(--muted); font-weight: 600; }
+  .cfoot { flex: none; padding-top: 10px; border-top: 1px solid var(--rule); display: flex; gap: 8px; }
+  .cfoot button { flex: 1; }
+
+  /* right info panel for the selected layer */
+  #info, #conv, #waves { position: absolute; right: 64px; top: 16px; width: 340px; max-height: calc(100% - 120px); overflow-y: auto; padding: 14px 16px 12px; z-index: 6; scrollbar-width: thin; }
+  #conv .head, #waves .head { display: flex; align-items: center; gap: 10px; }
+  #conv h2, #waves h2 { font-size: 20px; margin: 0; flex: 1; font-weight: 800; line-height: 1.2; }
+  #conv ol, #waves ol { padding-left: 20px; margin: 10px 0; font-size: 13.5px; }
+  #conv li, #waves li { margin-bottom: 7px; }
+  #conv .how, #waves .how { font-size: 13.5px; border-left: 3px solid var(--rule); padding-left: 10px; margin: 8px 0 6px; }
+  #conv .src, #waves .src { font-size: 11.5px; color: var(--muted); margin: 8px 0 0; }
+  #waves fieldset { border: 1px solid var(--rule); border-radius: 12px; padding: 4px 10px; margin: 8px 0; }
+  #waveClock { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--accent); }
+  .key { display: grid; grid-template-columns: auto 1fr; gap: 3px 8px; font-size: 12.5px; margin: 6px 0; align-items: center; }
+  .key i { display: inline-block; width: 18px; height: 4px; border-radius: 2px; }
+  .seg { display: flex; gap: 6px; }
+  .seg button { flex: 1; font-size: 13px; padding: 8px 4px; line-height: 1.2; }
+  #info .head { display: flex; align-items: center; gap: 10px; }
+  #info .head .sw { width: 22px; height: 22px; border-radius: 7px; }
+  #info h2 { font-size: 20px; margin: 0; flex: 1; font-weight: 800; line-height: 1.2; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 8px; }
+  .chip { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; background: var(--chip); border: 1px solid var(--glass-edge); font-variant-numeric: tabular-nums; }
+  #info dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; margin: 6px 0 8px; font-size: 13.5px; }
+  #info dt { color: var(--muted); }
+  #info dd { margin: 0; }
+  #info .how { font-size: 13.5px; border-left: 3px solid var(--rule); padding-left: 10px; margin: 8px 0 6px; }
+  #info .src { font-size: 11.5px; color: var(--muted); margin: 6px 0 0; }
+  .navrow { display: flex; gap: 6px; margin-top: 10px; }
+  .navrow button { flex: 1; font-size: 13px; padding: 6px 8px; }
+
+  /* layer names pinned to points on the cut (HTML, because ArcGIS hides 3D text placed below the ground) */
+  #labelsOverlay, #convOverlay, #wavesOverlay, #sectionOverlay { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+  span.lbl { pointer-events: none; }
+  .lbl { position: absolute; transform: translate(-50%, -50%); pointer-events: auto; font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 999px;
+    background: rgba(11, 18, 33, 0.8); border: 1.5px solid var(--c, #fff); color: #fff; white-space: nowrap; box-shadow: 0 4px 14px rgba(0,0,0,.4); }
+  .lbl::before { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--c, #fff); margin-right: 6px; vertical-align: 0; }
+  .lbl .ld { font-weight: 500; font-size: 11.5px; opacity: .85; margin-left: 4px; font-variant-numeric: tabular-nums; }
+  .lbl[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  /* a layer name pulses when the cut first reaches that layer */
+  .lbl.fresh { animation: lblIn 1.5s ease-out; }
+  @keyframes lblIn {
+    0%   { transform: translate(-50%, -50%) scale(.5); opacity: 0; box-shadow: 0 0 0 0 var(--c, #fff); }
+    25%  { transform: translate(-50%, -50%) scale(1.15); opacity: 1; box-shadow: 0 0 0 10px color-mix(in srgb, var(--c, #fff) 40%, transparent); }
+    100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 4px 14px rgba(0,0,0,.4); }
+  }
+  #credit { position: absolute; right: 16px; bottom: 24px; z-index: 4; padding: 6px 12px; border-radius: 12px; font-size: 11.5px; line-height: 1.35; color: #fff; text-align: right; }
+  #credit b { font-weight: 600; }
+
+  /* slice slider: a floating bar under the globe */
+  #cutbar { position: absolute; left: 404px; right: 210px; bottom: 24px; margin: 0 auto; max-width: 680px; padding: 10px 14px 9px; z-index: 5; }
+  @media (min-width: 821px) { #app.panel-open #cutbar { right: 420px; } }
+  #cutbar .cbhead { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  #cutbar h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0; }
+  #cutOut { font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums; }
+  #cutbar .cbrow { display: flex; align-items: center; gap: 10px; margin-top: 2px; }
+  #cutbar .track { flex: 1; min-width: 0; }
+  #cutbar input[type=range] { display: block; margin: 0; height: 28px; cursor: pointer; }
+  #cutbar button { white-space: nowrap; }
+  .strip { display: flex; height: 7px; border-radius: 4px; overflow: hidden; margin: 0 8px; } /* 8px = half the slider thumb, so depths line up with the thumb */
+  .strip + .strip { margin-top: 2px; }
+  .ends { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin: 2px 2px 0; }
+  @media (max-width: 1180px) {
+    #cutbar .cbrow { flex-wrap: wrap; }
+    #cutbar .track { flex-basis: 100%; order: -1; }
+    #cutbar .cbrow button { flex: 1; }
+  }
+
+  dialog { max-width: 660px; width: calc(100% - 32px); max-height: calc(100% - 48px); border: 1px solid var(--glass-edge); border-radius: var(--radius); background: var(--panel); color: var(--ink); padding: 16px 20px; box-shadow: var(--shadow); }
+  dialog::backdrop { background: rgba(2, 6, 16, .6); }
+  dialog h2 { margin: 0 0 6px; font-size: 18px; }
+  dialog h3 { font-size: 14px; margin: 14px 0 4px; }
+  dialog li { font-size: 13.5px; margin-bottom: 4px; }
+
+  /* narrow screens: card becomes a bottom sheet, info panel sits at the top */
+  @media (max-width: 820px) {
+    #card { left: 8px; right: 8px; top: auto; bottom: 22px; width: auto; height: 46%; }
+    #info, #conv, #waves { left: 8px; right: 56px; top: 8px; width: auto; max-height: calc(54% - 190px); }
+    #cutbar { left: 8px; right: 8px; bottom: calc(46% + 28px); max-width: none; padding: 8px 10px; }
+    #credit { bottom: calc(46% + 212px); right: 8px; }
+    .lede { display: none; }
+    .lbl { font-size: 11.5px; padding: 2px 7px; }
+    .lbl .ld { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } .lbl.fresh { animation: none; } }
+</style>
+</head>
+<body>
+<a class="skip" href="#card">Skip to controls</a>
+<div id="app">
+  <main id="mapwrap" aria-label="3D globe of the Earth, which the slider cuts open to show its layers. The layer list and the information panel give the same information as text.">
+    <arcgis-scene id="scene" viewing-mode="global">
+      <arcgis-zoom slot="top-right"></arcgis-zoom>
+      <arcgis-navigation-toggle slot="top-right"></arcgis-navigation-toggle>
+      <arcgis-compass slot="top-right"></arcgis-compass>
+    </arcgis-scene>
+  </main>
+
+  <aside id="card" class="glass" aria-label="Controls">
+    <div class="brand"><span class="kicker">Thinking Spatially</span><span class="sp"></span><span class="labchip">Test <span id="appVersion"></span></span></div>
+    <h1>Inside the Earth</h1>
+    <p class="lede">Drag the slider under the globe to slice into the Earth, or cut it in half through the centre. Select a layer to find out what it is like.</p>
+    <div id="status" role="status" aria-live="polite">Loading the globe…</div>
+
+    <div class="scroll">
+      <section class="sec" aria-labelledby="hShow">
+        <h2 id="hShow">On the cut <span class="mv" id="v-conv"></span> <span class="mv" id="v-waves"></span></h2>
+        <div class="seg" role="group" aria-label="What to show on the cut">
+          <button id="modeLayers" aria-pressed="true">Layers and depths</button>
+          <button id="modeConv" aria-pressed="false">How it moves</button>
+          <button id="modeWaves" aria-pressed="false">Earthquake waves</button>
+        </div>
+        <button id="btnWhy" hidden style="width:100%;margin-top:8px">Why do the plates move?</button>
+      </section>
+
+      <section class="sec" aria-labelledby="hLayers">
+        <h2 id="hLayers">Layers <span class="mv" id="v-layers"></span></h2>
+        <fieldset style="border:1px solid var(--rule);border-radius:12px;padding:4px 10px;margin:0 0 8px">
+          <legend class="sub">Divide the Earth by</legend>
+          <label class="row"><input type="radio" name="scheme" value="made" checked /> What it's made of</label>
+          <label class="row"><input type="radio" name="scheme" value="behaves" /> How it behaves</label>
+          <label class="row"><input type="radio" name="scheme" value="both" /> Both (left: made of · right: behaves)</label>
+        </fieldset>
+        <ul class="layers" id="layerList"></ul>
+        <label class="stack" for="groundOpacity">Surface: <span id="groundOpacityVal">100% visible</span>
+          <input id="groundOpacity" type="range" min="0" max="100" step="5" value="100" aria-describedby="crustHint" />
+        </label>
+        <label class="row"><input type="checkbox" id="hideSurface" checked /> Keep the countries on the uncut part</label>
+        <p class="sub" id="crustHint">Lower the slider to see through the surface. Untick a layer to peel it away.</p>
+      </section>
+
+      <section class="sec" aria-labelledby="hQuakes">
+        <h2 id="hQuakes">Earthquakes <span class="mv" id="v-quakes"></span></h2>
+        <label class="row"><input id="showQuakes" type="checkbox" checked /> Last 30 days, magnitude 4.5+</label>
+        <label class="row"><input id="excludeQuakes" type="checkbox" /> Keep earthquakes when the Earth is cut</label>
+        <p class="sub" id="quakeHint">Most earthquakes are under the surface. Lower the "Surface" slider above, or cut the Earth, to see the deep ones.</p>
+        <fieldset style="border:1px solid var(--rule);border-radius:12px;padding:4px 10px;margin:6px 0">
+          <legend class="sub">Depth scale</legend>
+          <label class="row"><input type="radio" name="exag" value="1" checked /> True depth (matches the layers)</label>
+          <label class="row"><input type="radio" name="exag" value="3" /> Stretched ×3</label>
+          <label class="row"><input type="radio" name="exag" value="6" /> Stretched ×6</label>
+        </fieldset>
+        <p class="note" id="exagNote" hidden>Stretched depths make patterns easier to see, but the earthquakes no longer sit in the right layer.</p>
+        <div class="keyrow" aria-label="Key to the earthquake colours"><span><i style="background:#66e3ff"></i>0–70 km</span><span><i style="background:#3b82f6"></i>70–300 km</span><span><i style="background:#a78bfa"></i>300–700 km</span></div>
+      </section>
+
+      <section class="sec" aria-labelledby="hExplore">
+        <h2 id="hExplore">Explore <span class="mv" id="v-section"></span></h2>
+        <button id="btnTongaSection" class="primary" style="width:100%">Cut through the Tonga trench</button>
+        <p class="sub" style="margin:6px 0 0">A slice down through the Earth across the Tonga trench, showing a year of earthquakes near the cut. They trace a plate sinking into the mantle.</p>
+      </section>
+
+      <details class="sec more">
+        <summary>More options</summary>
+
+        <section aria-labelledby="hDims" style="margin-top:8px">
+          <h2 id="hDims">Depth labels <span class="mv" id="v-dims"></span></h2>
+          <label class="row"><input type="checkbox" id="showDims" checked /> Depth dimensions from the surface</label>
+          <label class="row"><input type="checkbox" id="showLabels" checked /> Layer names on the cut</label>
+          <p class="sub">The depth lines show when the Earth is cut in half; the layer names show on any cut made with the slider. Zoom in to read the labels on the short, shallow lines.</p>
+        </section>
+
+        <section aria-labelledby="hSlice" style="margin-top:10px">
+          <h2 id="hSlice">Cut the Earth <span class="mv" id="v-slice"></span></h2>
+          <p class="sub">The slider under the globe cuts straight down into the point in the middle of your view, then turns the globe so you can see the cut from the side. To cut somewhere else, select "Whole Earth", turn the globe and use the slider again.</p>
+          <div class="btnrow">
+            <button id="btnPlace">Draw your own cut</button>
+          </div>
+          <details>
+            <summary>Lab readout of the cut plane</summary>
+            <div class="readout" id="sliceReadout">No cut yet.</div>
+          </details>
+        </section>
+
+        <section aria-labelledby="hCam" style="margin-top:10px">
+          <h2 id="hCam">Camera</h2>
+          <label class="row"><input id="underground" type="checkbox" checked /> Let the camera go underground</label>
+          <div class="btnrow"><button id="btnHome">Start view</button></div>
+        </section>
+
+        <section aria-labelledby="hTable" style="margin-top:10px">
+          <details>
+            <summary id="hTable">All layers as a table</summary>
+            <table>
+              <caption class="sr-only">The Earth's layers, from the surface down</caption>
+              <thead><tr><th scope="col">Layer</th><th scope="col">Depth (km)</th><th scope="col">State</th><th scope="col">Temperature</th></tr></thead>
+              <tbody id="layerTable"></tbody>
+            </table>
+          </details>
+        </section>
+      </details>
+    </div>
+    <div class="cfoot"><button id="btnAbout">About and versions</button></div>
+  </aside>
+
+  <section id="cutbar" class="glass" aria-labelledby="cutTitle">
+    <div class="cbhead">
+      <h2 id="cutTitle">Slice through the Earth</h2>
+      <output id="cutOut" for="cutDepth">Whole Earth</output>
+    </div>
+    <div class="cbrow">
+      <button id="btnWhole" aria-pressed="true">Whole Earth</button>
+      <div class="track">
+        <input id="cutDepth" type="range" min="0" max="6370" step="10" value="0" aria-labelledby="cutTitle" aria-valuetext="0 km: the whole Earth, not cut" />
+        <div id="cutStrip" aria-hidden="true"></div>
+        <div class="ends" aria-hidden="true"><span>Surface</span><span>Centre</span></div>
+      </div>
+      <button id="btnHalf" class="primary" aria-pressed="false">Cut in half</button>
+    </div>
+  </section>
+
+  <div id="labelsOverlay" role="group" aria-label="Layer names on the cut" hidden></div>
+  <div id="convOverlay" role="group" aria-label="Labels for the convection model" hidden></div>
+  <div id="wavesOverlay" role="group" aria-label="Labels for the earthquake waves" hidden></div>
+  <div id="sectionOverlay" role="group" aria-label="Labels for the Tonga cross-section" hidden></div>
+
+  <section id="waves" class="glass" aria-labelledby="wavesTitle" hidden>
+    <div class="head">
+      <h2 id="wavesTitle" tabindex="-1">How do we know what's inside?</h2>
+      <button class="iconbtn" id="wavesClose" aria-label="Close the explanation">✕</button>
+    </div>
+    <p style="font-size:13.5px;margin:8px 0">Nobody has drilled through even the crust: the deepest hole ever drilled is about 12 km. Instead, scientists use the waves that earthquakes send through the Earth, recorded by seismometers all round the world.</p>
+    <fieldset>
+      <legend class="sub">Show</legend>
+      <label class="row"><input type="radio" name="wshow" value="both" checked /> P-waves (right) and S-waves (left)</label>
+      <label class="row"><input type="radio" name="wshow" value="P" /> P-waves only</label>
+      <label class="row"><input type="radio" name="wshow" value="S" /> S-waves only</label>
+    </fieldset>
+    <div class="navrow"><button id="btnQuake" class="primary">Start an earthquake</button><button id="btnWavePause" aria-pressed="false">Pause</button></div>
+    <div class="navrow"><button id="btnRealQuake">Start from the biggest earthquake this month</button></div>
+    <p class="sub" id="realQuakeText" style="margin:6px 0 0" hidden></p>
+    <p class="sub" style="margin:6px 0 0">Time after the earthquake: <span id="waveClock">0 min</span></p>
+    <ol>
+      <li><b>P-waves</b> (primary) are <i>longitudinal</i>: the rock is pushed and pulled along the direction the wave travels. They are the fastest, and they travel through solids <b>and</b> liquids.</li>
+      <li><b>S-waves</b> (secondary) are <i>transverse</i>: the rock shakes from side to side. They are slower, and they can only travel through <b>solids</b>.</li>
+      <li><b>The paths curve.</b> Waves speed up as they go deeper, so they bend back up towards the surface. Where they cross a sudden change, such as the edge of the core, they bend sharply (refraction).</li>
+      <li><b>S-wave shadow zone.</b> Beyond about 104° from an earthquake, no S-waves arrive. They are stopped by the outer core, so it must be liquid. In 1914 Beno Gutenberg worked out that the core starts about 2,900 km down.</li>
+      <li><b>P-wave shadow zone.</b> Between about 104° and 140°, almost no P-waves arrive, because they bend sharply where they enter the slower, liquid core.</li>
+      <li><b>The inner core.</b> In 1936 Inge Lehmann noticed faint P-waves arriving inside the P-wave shadow zone. She showed they had been bent by a boundary deep inside the core: there is an inner core, where the waves travel faster. Scientists later argued that it is solid (1940s–1950s), and in 1971 this was confirmed from the way the whole Earth "rings" after very large earthquakes.</li>
+    </ol>
+    <div class="key" aria-label="Key to the colours">
+      <i style="background:#4dabf7"></i><span>P-wave path (solid line)</span>
+      <i style="background:#e7f5ff"></i><span>P-wave path through the inner core (thin, pale)</span>
+      <i style="background:repeating-linear-gradient(90deg,#ff922b 0 5px,transparent 5px 8px)"></i><span>S-wave path (dashed line)</span>
+      <i style="background:repeating-linear-gradient(90deg,#ff922b 0 5px,transparent 5px 8px);height:8px"></i><span>S-wave shadow zone (dashed band)</span>
+      <i style="background:#4dabf7;height:8px;opacity:.85"></i><span>P-wave shadow zone (solid band)</span>
+    </div>
+    <p class="note" id="waveModelNote">The paths come from a simplified model of how fast waves travel at each depth, so they land a few degrees from the measured shadow-zone edges, which are drawn from real seismometer records.</p>
+    <p class="src">Sources: USGS, "Shadow zone"; Earle, <i>Physical Geology</i> 9.1; AQA GCSE Physics 4.6.1.5; NGSS HS-ESS2-3. Wave speeds rounded from PREM (Dziewonski &amp; Anderson, 1981). Inner core history: Wikipedia, "Earth's inner core"; Dziewoński &amp; Gilbert (1971), <i>Nature</i> 234.</p>
+  </section>
+
+  <section id="conv" class="glass" aria-labelledby="convTitle" hidden>
+    <div class="head">
+      <h2 id="convTitle" tabindex="-1">Why do the plates move?</h2>
+      <button class="iconbtn" id="convClose" aria-label="Close the explanation">✕</button>
+    </div>
+    <ol>
+      <li><b>Heat escapes from inside the Earth.</b> It comes from the core, from heat left over from when the Earth formed, and from radioactive elements in the rocks.</li>
+      <li><b>The mantle is solid rock, but it flows very slowly,</b> like extremely stiff putty, over millions of years.</li>
+      <li><b>Hot rock rises</b> because it is less dense than the cooler rock around it. Narrow <i>plumes</i> of hot rock rise from deep in the mantle, for example under Hawaii, which is in the middle of a plate. Elsewhere, warm rock rises slowly over wide areas to replace the rock that sinks.</li>
+      <li><b>Under the ocean ridges, rock is pulled up.</b> As two plates move apart, rock rises to fill the gap. From about 150–200 km down the pressure has dropped enough for a little of it to melt, and the melt makes new plate. This rising rock is shallow: it is pulled up by the plates, not pushed up from the core.</li>
+      <li><b>Cold rock sinks.</b> Old ocean plate cools, becomes denser than the mantle below it and sinks at the trenches.</li>
+      <li><b>The plates are part of the loop.</b> The sinking edge pulls the rest of the plate after it (<i>slab pull</i>), and new plate slides away from the high ridge (<i>ridge push</i>). Plates with sinking edges move fastest, which is why many scientists think slab pull is the biggest force. The flowing mantle is the rest of the same loop, not a conveyor belt carrying the plates.</li>
+    </ol>
+    <div class="key" aria-label="Key to the colours">
+      <i style="background:#ff4d2e;height:7px"></i><span>Plume of hot rock rising from deep in the mantle</span>
+      <i style="background:#ff8787"></i><span>Rock pulled up under a ridge, melting a little</span>
+      <i style="background:#ffd43b"></i><span>Warm rock slowly rising</span>
+      <i style="background:#ffa94d"></i><span>Rock cooling as it moves under the plate</span>
+      <i style="background:#4dabf7"></i><span>Cooler, denser rock sinking</span>
+      <i style="background:#b197fc"></i><span>Rock moving back along the bottom of the mantle</span>
+      <i style="background:#a5d8ff;height:7px"></i><span>Sinking plate (slab)</span>
+      <i style="background:#f1f3f5"></i><span>Plate moving away from a ridge towards a trench (drawn just above the surface so you can see it)</span>
+    </div>
+    <p class="how"><b>How fast?</b> Plates move about 2–10 cm a year, roughly as fast as fingernails grow. Here a trip round one loop takes 12 seconds; in the real mantle it takes hundreds of millions of years.</p>
+    <p class="note">This is a simplified picture, drawn the same on any cut. The ridges, trenches and plume are spaced evenly to show the idea: they are not the real ones under the places on this cut. Real convection is not neat loops of equal size, and sinking plates can reach the bottom of the mantle.</p>
+    <div class="navrow"><button id="btnPause" aria-pressed="false">Pause movement</button></div>
+    <p class="src">Sources: NGSS HS-ESS2-3 and ESS2.B; Columbia University, "Driving forces of plate motions"; Pacific Northwest Seismic Network, "Plate tectonics"; WHOI <i>Oceanus</i>, "The Big MELT" (upwelling under ridges driven by the plates, melting from 150–200 km).</p>
+  </section>
+
+  <section id="info" class="glass" aria-labelledby="infoTitle" hidden>
+    <div class="head">
+      <span class="sw" id="infoSw"></span>
+      <h2 id="infoTitle" tabindex="-1"></h2>
+      <button class="iconbtn" id="infoClose" aria-label="Close layer information">✕</button>
+    </div>
+    <div class="chips" id="infoChips"></div>
+    <p id="infoText"></p>
+    <dl id="infoFacts"></dl>
+    <p class="how" id="infoHow"></p>
+    <div class="navrow"><button id="infoUp">↑ Layer above</button><button id="infoDown">Layer below ↓</button></div>
+    <p class="src">Sources: National Geographic Education; Earle, <i>Physical Geology</i>; Wikipedia ("Lithosphere", "Asthenosphere"); PREM (Dziewonski &amp; Anderson, 1981). Figures are rounded; scientists' estimates vary.</p>
+  </section>
+
+  <div id="credit" class="glass"><b>Created by Jason Sawle</b></div>
+</div>
+
+<dialog id="about" aria-labelledby="aboutTitle">
+  <h2 id="aboutTitle">About Earth Structure Lab</h2>
+  <p class="note">Test copy: changes are tried here before they go into the main Earth Structure Lab.</p>
+  <p class="sub">An experiment in using ArcGIS 3D (global scene, see-through ground, underground camera, mesh shapes, slice and dimension analysis) to show the structure of the Earth.</p>
+  <table>
+    <caption class="sr-only">Versions</caption>
+    <thead><tr><th scope="col">Part</th><th scope="col">Version</th><th scope="col">What it does</th></tr></thead>
+    <tbody id="versionTable"></tbody>
+  </table>
+  <h3>Data sources</h3>
+  <ul>
+    <li>Layer depths: Preliminary Reference Earth Model (Dziewonski &amp; Anderson, 1981), rounded. The crust uses a 35 km average (real range about 5–70 km).</li>
+    <li>Lithosphere and asthenosphere: Wikipedia, "Lithosphere" and "Asthenosphere"; Earle, <i>Physical Geology</i> 9.1 (low-velocity zone 100–250 km).</li>
+    <li>Temperatures and facts: National Geographic Education ("Core"); Earle, <i>Physical Geology</i>, 9.2 "The Temperature of Earth's Interior"; Wikipedia, "Earth's outer core" and "Earth's inner core". Inner-core history: Wikipedia, "Earth's inner core"; Dziewoński &amp; Gilbert (1971).</li>
+    <li>Earthquakes: USGS real-time feed, magnitude 4.5+, past 30 days. Tonga cross-section: USGS earthquake catalogue (FDSN event service), magnitude 4.5+, past 12 months, within 1,000 km of Horizon Deep; trench facts from Wikipedia, "Tonga Trench".</li>
+    <li>Earthquake waves: paths traced through wave speeds rounded from PREM; shadow zones from USGS ("Shadow zone": 104°–140°); history from Earle, <i>Physical Geology</i>, and Wikipedia "Shadow zone".</li>
+    <li>Convection and plate forces: NGSS HS-ESS2-3 (ESS2.A, ESS2.B); Columbia University, "Driving forces of plate motions"; plate speeds from the Pacific Northwest Seismic Network.</li>
+    <li>Convection: upwelling under ridges from WHOI <i>Oceanus</i>, "The Big MELT".</li>
+    <li>Basemap: Esri World Imagery with World Boundaries and Places (country boundaries and names), on the globe and on the cut globe. World Boundaries and Places is in Esri's "mature support", so its names are no longer updated. Elevation: Esri World Elevation. NASA Blue Marble is used on the cut globe only if the Esri imagery can't load.</li>
+  </ul>
+  <button id="btnAboutClose">Close</button>
+</dialog>
+
+<script type="module">
+// ================= Versions (single source of truth) =================
+// Bump a model's number whenever its maths or data handling changes, and bump the app version on every release.
+const APP_VERSION = "0.9.0"; // test copy of earth-structure-lab.html (0.8.1)
+const MODELS = {
+  layers: { name: "Layer model", version: "2.2", desc: "Two ways of dividing the Earth: by what it is made of (crust 0–35, upper mantle 35–660, lower mantle 660–2,891, outer core, inner core) and by how it behaves (lithosphere 0–100, asthenosphere 100–250, mesosphere 250–2,891, outer core, inner core; km). On a slider cut each layer the cut reaches is a flat filled ring where the cut plane meets that layer's shell (ring radius √(r² − h²), where h is the plane's distance from the centre), 2 km behind the cut, or 40 km behind it when the Earth is cut in half so the models drawn on the cut stay in front. Shells: concentric spheres for mantle and core at PREM depths, scaled to the globe's radius. Facts per layer for the information panel (2.2: lower mantle and mesosphere flow slowly; core temperatures made consistent, rising with depth; inner-core history corrected). While a model ('How it moves', 'Earthquake waves') is showing, the rings are darkened to 40% so the model lines stand out." },
+  waves:  { name: "Seismic wave model", version: "1.1", desc: "Wave paths traced through wave speeds rounded from PREM (crust and the low-speed zone smoothed out; PREM's 400 and 670 km boundaries moved to the 410 and 660 km used in the rest of the app): each path bends with the speed change and refracts with Snell's law at 410 km, 660 km, the core–mantle boundary and the inner-core boundary; S-waves stop at the liquid outer core. Shadow zones are drawn at the measured edges (USGS: 104°–140°), not the model's. The animation runs 30 real minutes in 15 seconds. P-waves blue and solid, S-waves orange and dashed (readable with red–green colour blindness). The earthquake can be placed at the biggest earthquake in the USGS 30-day feed: the cut is then the great circle through it running north–south." },
+  conv:   { name: "Convection model", version: "2.0", desc: "Schematic mantle convection on the centre cut, the same on any cut (ridges, trenches and plume are not the real ones under that cut). Five loops between 3,730 km and 6,090 km from the centre (core–mantle boundary 3,480 km), turning in alternate directions, so broad rising return flow (under ridges at 30°, 150° and 270°) and sinking rock (at trenches at 90°, 210° and 330°) alternate; the sixth loop position (180°) holds a plume rising from the core–mantle boundary to the base of the plate under the middle of a plate. Under each ridge a short, shallow upwelling from 200 km deep, pulled up by the plates (WHOI MELT experiment: melting from 150–200 km). Plates drawn as arrows 220 km above the surface from ridge to trench; a sinking slab from each trench to 1,500 km deep. Rock parcels go once round a loop in 12 seconds (in reality hundreds of millions of years)." },
+  dims:   { name: "Depth label model", version: "1.3", desc: "Depth lines (Esri DimensionAnalysis) only when the Earth is cut in half: boundaries follow the chosen way of dividing the Earth (hidden when both are shown), drawn from the surface to each boundary at true depth on a radius 90° from the cut's anchor (to the right of the cut), spaced 650 km apart. Layer names on any slider cut: on-screen buttons pinned to the middle of each ring the cut reaches (rings under 120 km wide get their name just outside the cut), fanned around the left half; a name pulses when the cut first reaches its layer. Shown while the cut face is turned towards the camera at less than 75° (seen from the side or face-on)." },
+  slice:  { name: "Slice model", version: "3.1", desc: "Starts with the whole Earth. The slider sets the cut depth from 0 to 6,371 km (step 10 km; 6,350 km or more snaps to the centre, with the plane 1 km off the exact centre, where its direction is undefined): an Esri SliceAnalysis plane (tilt 0°) that far below the surface point in the middle of the view, facing that point, so it removes the cap of the Earth nearest the viewer. When a new cut starts, the camera turns 50° to the left round the globe's screen-up axis (to at least 16,000 km up), so the cut is seen from the side. The cut stays fixed to the Earth; it moves to the middle of the view only when the slider starts a new cut from the whole Earth or the cut face has been turned out of sight (more than 75° away). 'Cut in half' takes the same cut to the centre. While cut, the ground is swapped for a sphere with the same imagery, boundaries and names (Esri World Imagery export with World Boundaries and Places level-3 tiles re-projected onto it; NASA Blue Marble if the imagery can't load), which the cut slices with the layers, so the countries stay on the uncut part (viewer can turn this off). ArcGIS's own sliced ground leaves a faint copy of the removed part over the cut face, and the atmosphere's haze washes over it, so the atmosphere is off while cut. 3.1: a cut can also be set to pass through a chosen place (the Tonga cross-section, the earthquake-wave start point): the Earth is cut in half on the great circle through that place, using an anchor 90° away from it." },
+  quakes: { name: "Earthquake depth model", version: "1.1", desc: "USGS depths placed below the surface: height = −depth × 1000 × stretch. Coloured in three depth classes (0–70, 70–300, 300 km and deeper) that match the key. Choosing a stretched depth lowers the surface to 40% if it is solid, so the deep earthquakes can be seen." },
+  section: { name: "Tonga cross-section", version: "1.0", desc: "The Earth cut in half on the great circle through Horizon Deep (23.26° S, 174.73° W), at right angles to the Tonga trench (taken to run about 20° east of north). Earthquakes: USGS catalogue, magnitude 4.5+, past 12 months, within 1,000 km of Horizon Deep; those within 300 km of the cut are moved straight onto it (12 km in front of it, so the cut face does not hide them), at true depth, coloured by the same depth classes. Camera: 2,800 km in front of the cut, looking at a point 300 km deep, 3° west of the trench." }
+};
+const $ = (id) => document.getElementById(id);
+$("appVersion").textContent = "v" + APP_VERSION;
+for (const k of Object.keys(MODELS)) $("v-" + k).textContent = MODELS[k].name + " v" + MODELS[k].version;
+$("versionTable").innerHTML = `<tr><td>App</td><td>${APP_VERSION}</td><td>Whole app</td></tr>` +
+  Object.values(MODELS).map(m => `<tr><td>${m.name}</td><td>${m.version}</td><td>${m.desc}</td></tr>`).join("");
+
+const setStatus = (msg) => { $("status").textContent = msg; };
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const km = (n) => n.toLocaleString("en-US");
+
+// ================= Layer model =================
+const R_SCENE_KM = 6378.137;           // globe radius used by the global scene
+const R_TRUE_KM = 6371;                // mean Earth radius
+const SCALE = R_SCENE_KM / R_TRUE_KM;  // keeps true proportions on the scene globe
+const R_SCENE_M = R_SCENE_KM * 1000;
+
+const LAYERS = [
+  { id: "crust", name: "Crust", top: 0, bottom: 35, color: "#9c7b5b", mesh: false, fan: 330, state: "Solid",
+    text: "The thin, rocky outer skin we live on. It is broken into the tectonic plates, together with the top of the mantle.",
+    made: "Continents: light rocks such as granite. Ocean floor: dark, heavier basalt.",
+    temp: "From surface temperature to about 1,000 °C at its base",
+    density: "about 2.7–3.0 g/cm³",
+    thick: "About 5–10 km under the oceans, 30–70 km under continents. This model uses a 35 km average.",
+    how: "In 1909 Andrija Mohorovičić noticed that earthquake waves speed up suddenly at a certain depth. That boundary, the base of the crust, is called the Moho." },
+  { id: "upperMantle", name: "Upper mantle", top: 35, bottom: 660, color: "#f4a259", mesh: true, fan: 300, state: "Solid, but flows very slowly",
+    text: "Hot rock that is solid, but soft enough in places to creep a few centimetres a year. Together with the sinking plates, this slow flow is mantle convection (choose \"How it moves\").",
+    made: "Rock rich in the green mineral olivine (peridotite).",
+    temp: "About 1,000 °C at the top, about 1,700 °C at 250 km down",
+    density: "about 3.4–4.0 g/cm³",
+    thick: "About 625 km",
+    how: "Earthquake waves change speed at about 410 km and 660 km, where the minerals are squeezed into denser forms." },
+  { id: "lowerMantle", name: "Lower mantle", top: 660, bottom: 2891, color: "#c0504d", mesh: true, fan: 255, state: "Solid, but flows very slowly",
+    text: "The thickest layer. The pressure is so high that the rock is squeezed into dense minerals, even though it is very hot. It is solid, but over millions of years it flows slowly too: sinking plates and rising plumes pass through it, so it is part of mantle convection.",
+    made: "Dense minerals of magnesium, iron, silicon and oxygen.",
+    temp: "About 2,600 °C at 2,000 km, about 3,500 °C at its base",
+    density: "about 4.4–5.6 g/cm³",
+    thick: "About 2,230 km",
+    how: "Both kinds of earthquake wave (P and S) travel through it, which shows it is solid." },
+  { id: "outerCore", name: "Outer core", top: 2891, bottom: 5150, color: "#f59f00", mesh: true, fan: 320, state: "Liquid",
+    text: "A churning ocean of liquid metal. Its movement creates and sustains Earth's magnetic field, which protects us from the solar wind.",
+    made: "Iron and nickel, with some lighter elements such as sulfur.",
+    temp: "About 3,500–4,000 °C at the top, rising to about 5,000–5,400 °C at the bottom",
+    density: "about 9.9–12.2 g/cm³",
+    thick: "About 2,260 km",
+    how: "S-waves cannot travel through liquid. They stop at the outer core, leaving an S-wave 'shadow zone' on the far side of the Earth from an earthquake." },
+  { id: "innerCore", name: "Inner core", top: 5150, bottom: 6371, color: "#fff3bf", mesh: true, fan: 180, state: "Solid",
+    text: "A ball of solid metal at the centre. It is as hot as the surface of the Sun, but the enormous pressure stops the iron from melting.",
+    made: "Iron and nickel.",
+    temp: "About 5,000–5,500 °C, hottest at the centre (estimates vary, and some are higher)",
+    density: "about 12.8–13.1 g/cm³",
+    thick: "A ball with a radius of about 1,220 km",
+    how: "In 1936 Inge Lehmann found faint P-waves where none were expected, and showed they had been bent by a boundary deep inside the core, where the waves speed up: an inner core. That it is solid was argued later (1940s–1950s) and confirmed in 1971 from the way the whole Earth 'rings' after very large earthquakes." }
+];
+// The same Earth divided by how the rock behaves (strong or weak, solid or liquid) instead of what it is made of.
+const MECH_ONLY = [
+  { id: "lithosphere", name: "Lithosphere", top: 0, bottom: 100, color: "#7a5236", mesh: false, fan: 330, fanR: 30, state: "Solid and rigid",
+    text: "The rigid outer shell of the Earth: the crust plus the top, coolest part of the mantle. It is broken into the tectonic plates, which move as solid slabs.",
+    made: "The crust (granite on continents, basalt under the oceans) and the top of the mantle (peridotite).",
+    temp: "From surface temperature to about 1,300 °C at its base",
+    density: "about 2.7–3.3 g/cm³",
+    thick: "Only a few kilometres at mid-ocean ridges, about 140 km under the oldest ocean floor, and about 40–280 km under continents. This model uses 100 km.",
+    how: "Earthquake waves travel fast through it, then slow down below it. The rigid layer above that slow zone is the lithosphere." },
+  { id: "asthenosphere", name: "Asthenosphere", top: 100, bottom: 250, color: "#ff8f3f", mesh: true, fan: 300, fanR: 60, state: "Solid, but weak and slowly flowing",
+    text: "Hot, soft rock below the plates. It is still solid, but weak enough to flow a few centimetres a year, and a tiny amount may be molten in places. The plates move over it.",
+    made: "Mantle rock (peridotite), very close to its melting point.",
+    temp: "About 1,300 °C at its top",
+    density: "about 3.4 g/cm³",
+    thick: "About 100–250 km down in this model. Its depth varies from place to place, and some scientists extend it deeper.",
+    how: "Earthquake waves slow down between about 100 and 250 km (the 'low-velocity zone'), a sign that the rock is hot, soft and slightly molten in places." },
+  { id: "mesosphere", name: "Mesosphere", top: 250, bottom: 2891, color: "#b9614f", mesh: true, fan: 255, fanR: 105, state: "Solid, but flows very slowly",
+    text: "The rest of the mantle, down to the core (not the same as the mesosphere in the atmosphere). The pressure makes the rock stronger than in the asthenosphere, but over millions of years it still flows slowly. It includes the transition zone (410–660 km), where minerals are squeezed into denser forms.",
+    made: "Mantle rock, changing into denser minerals with depth.",
+    temp: "About 1,700 °C near the top, about 3,500 °C at its base",
+    density: "about 3.5–5.6 g/cm³",
+    thick: "About 2,640 km",
+    how: "Earthquake waves speed up steadily with depth, with sudden jumps at about 410 km and 660 km where the minerals change." }
+];
+const MECH = [...MECH_ONLY, LAYERS.find(l => l.id === "outerCore"), LAYERS.find(l => l.id === "innerCore")];
+const ALL_LAYERS = [...LAYERS, ...MECH_ONLY];
+const byId = Object.fromEntries(ALL_LAYERS.map(l => [l.id, l]));
+let scheme = "made"; // "made", "behaves" or "both"
+let mode = "layers";   // what is drawn on the cut: "layers" (names and depth dimensions), "conv" (convection) or "waves"
+let cutAnchor = null;  // the slider cut's anchor { longitude, latitude, heading, cam }, or null when the slider isn't cutting
+let cutDepth = 0;      // the slider cut's true depth below the anchor, km (0 = whole Earth, 6,371 = cut in half)
+let freeCut = false;   // true while the viewer's own drawn cut is showing
+let dimAnchor = null;  // the same anchor while the Earth is cut in half (depth lines and the models need that cut), else null
+const schemeLayers = () => scheme === "behaves" ? MECH : LAYERS;           // the main list (and the left half when both)
+const listFor = (id) => scheme === "behaves" || (scheme === "both" && MECH_ONLY.some(l => l.id === id)) ? MECH : LAYERS;
+const peeled = {};                                                         // layers the viewer has unticked
+
+// layer list (buttons open the info panel; checkboxes peel a layer away)
+const layerRow = (l) => `<li>
+  <span class="cbox"><input type="checkbox" data-layer="${l.id}" ${peeled[l.id] ? "" : "checked"} aria-label="Show ${l.name}" /></span>
+  <span class="sw" style="background:${l.color}"></span>
+  <button class="lname" data-info="${l.id}" aria-pressed="${selectedId === l.id}" aria-controls="info">${l.name}<span class="d">${km(l.top)}–${km(l.bottom)} km</span></button>
+</li>`;
+function renderLayerList() {
+  $("layerList").innerHTML = scheme === "both"
+    ? `<li class="grp">Made of · left half</li>${LAYERS.map(layerRow).join("")}<li class="grp">Behaves · right half</li>${MECH_ONLY.map(layerRow).join("")}`
+    : schemeLayers().map(layerRow).join("");
+}
+const tableRows = (list) => list.map(l => `<tr><th scope="row">${l.name}</th><td>${km(l.top)}–${km(l.bottom)}</td><td>${l.state}</td><td>${l.temp}</td></tr>`).join("");
+$("layerTable").innerHTML = `<tr><th colspan="4" scope="colgroup">Divided by what it's made of</th></tr>${tableRows(LAYERS)}<tr><th colspan="4" scope="colgroup">Divided by how it behaves</th></tr>${tableRows(MECH)}`;
+
+// ================= Info panel (works before the 3D view loads) =================
+let selectedId = null;
+let onSelect = () => {};
+function showInfo(id, { focus = false } = {}) {
+  const l = byId[id]; if (!l) return;
+  selectedId = id;
+  $("infoSw").style.background = l.color;
+  $("infoTitle").textContent = l.name;
+  $("infoChips").innerHTML = `<span class="chip">${km(l.top)}–${km(l.bottom)} km deep</span><span class="chip">${l.state}</span>`;
+  $("infoText").textContent = l.text;
+  $("infoFacts").innerHTML = `<dt>Thickness</dt><dd>${l.thick}</dd><dt>Made of</dt><dd>${l.made}</dd><dt>Temperature</dt><dd>${l.temp}</dd><dt>Density</dt><dd>${l.density} <span class="sub">(water is 1)</span></dd>`;
+  $("infoHow").innerHTML = `<b>How we know:</b> ${l.how}`;
+  const list = listFor(id), i = list.indexOf(l);
+  $("infoUp").disabled = i <= 0; $("infoDown").disabled = i === list.length - 1;
+  document.querySelectorAll("button.lname").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.info === id)));
+  $("conv").hidden = true; $("waves").hidden = true;
+  $("info").hidden = false;
+  if (focus) $("infoTitle").focus();
+  onSelect(id);
+}
+function hideInfo() {
+  $("info").hidden = true; selectedId = null;
+  document.querySelectorAll("button.lname").forEach(b => b.setAttribute("aria-pressed", "false"));
+  onSelect(null);
+}
+renderLayerList();
+updateCutBar(); // (defined with the slice code below)
+$("layerList").addEventListener("click", (e) => {
+  const b = e.target.closest("button.lname"); if (!b) return;
+  if (selectedId === b.dataset.info) hideInfo(); else showInfo(b.dataset.info, { focus: true });
+});
+$("infoClose").addEventListener("click", () => {
+  const prev = selectedId; hideInfo();
+  document.querySelector(`button.lname[data-info="${prev}"]`)?.focus();
+});
+$("infoUp").addEventListener("click", () => { const list = listFor(selectedId), i = list.findIndex(l => l.id === selectedId); if (i > 0) showInfo(list[i - 1].id, { focus: true }); });
+$("infoDown").addEventListener("click", () => { const list = listFor(selectedId), i = list.findIndex(l => l.id === selectedId); if (i < list.length - 1) showInfo(list[i + 1].id, { focus: true }); });
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape" || document.querySelector("dialog[open]")) return;
+  if (!$("info").hidden) $("infoClose").click(); else if (!$("conv").hidden) $("convClose").click(); else if (!$("waves").hidden) $("wavesClose").click();
+});
+
+const about = $("about");
+$("btnAbout").addEventListener("click", () => about.showModal());
+$("btnAboutClose").addEventListener("click", () => about.close());
+
+// ================= SDK =================
+if (typeof $arcgis === "undefined") {
+  setStatus("The 3D globe could not load. The layer list still works.");
+  $("cutbar").querySelectorAll("input, button").forEach(el => { el.disabled = true; });
+  throw new Error("ArcGIS Maps SDK not available");
+}
+const [ArcGISMap, Basemap, TileLayer, GraphicsLayer, FeatureLayer, Graphic, Mesh, MeshComponent, MeshMaterial, MeshMaterialMetallicRoughness, MeshTexture, MeshLocalVertexSpace,
+       Point, SliceAnalysis, SlicePlane, DimensionAnalysis, LengthDimension, reactiveUtils] = await $arcgis.import([
+  "@arcgis/core/Map.js",
+  "@arcgis/core/Basemap.js",
+  "@arcgis/core/layers/TileLayer.js",
+  "@arcgis/core/layers/GraphicsLayer.js",
+  "@arcgis/core/layers/FeatureLayer.js",
+  "@arcgis/core/Graphic.js",
+  "@arcgis/core/geometry/Mesh.js",
+  "@arcgis/core/geometry/support/MeshComponent.js",
+  "@arcgis/core/geometry/support/MeshMaterial.js",
+  "@arcgis/core/geometry/support/MeshMaterialMetallicRoughness.js",
+  "@arcgis/core/geometry/support/MeshTexture.js",
+  "@arcgis/core/geometry/support/MeshLocalVertexSpace.js",
+  "@arcgis/core/geometry/Point.js",
+  "@arcgis/core/analysis/SliceAnalysis.js",
+  "@arcgis/core/analysis/SlicePlane.js",
+  "@arcgis/core/analysis/DimensionAnalysis.js",
+  "@arcgis/core/analysis/LengthDimension.js",
+  "@arcgis/core/core/reactiveUtils.js"
+]);
+
+// Satellite imagery with country boundaries and names: Esri World Imagery plus World Boundaries and Places
+// (raster, so the cut globe's texture below can use exactly the same labels).
+const ESRI_SERVICES = "https://services.arcgisonline.com/arcgis/rest/services/";
+const LABELS_URL = ESRI_SERVICES + "Reference/World_Boundaries_and_Places/MapServer";
+const imageryWithLabels = new Basemap({ title: "Imagery with labels",
+  baseLayers: [new TileLayer({ url: ESRI_SERVICES + "World_Imagery/MapServer" })],
+  referenceLayers: [new TileLayer({ url: LABELS_URL })] });
+const map = new ArcGISMap({ basemap: imageryWithLabels, ground: "world-elevation" });
+map.ground.opacity = 1; // start with the whole, solid Earth
+map.ground.navigationConstraint = { type: "none" };
+
+const sceneEl = $("scene");
+sceneEl.map = map;
+await sceneEl.viewOnReady();
+const view = sceneEl.view;
+view.popupEnabled = false;
+// keep the globe clear of the floating card on the left
+const setPadding = () => {
+  const infoOpen = !$("info").hidden || !$("conv").hidden || !$("waves").hidden;
+  $("app").classList.toggle("panel-open", infoOpen); // the slider bar moves out from under the right-hand panel
+  view.padding = window.innerWidth > 820 ? { left: 400, right: infoOpen ? 400 : 0, top: 0, bottom: $("cutbar").offsetHeight + 24 }
+                                         : { left: 0, top: 0, right: 0, bottom: Math.round(window.innerHeight * 0.46) + $("cutbar").offsetHeight + 28 };
+};
+setPadding(); window.addEventListener("resize", setPadding);
+try {
+  view.environment.background = { type: "color", color: [8, 10, 22, 1] };
+  view.environment.starsEnabled = true;
+  view.environment.atmosphereEnabled = true;
+} catch (e) { console.warn("Environment settings not applied:", e); }
+
+// Camera positions must be real Point objects: SDK 5.1 rejects a plain {longitude, latitude, z} object in goTo().
+const pointAt = (longitude, latitude, z = 0) => new Point({ longitude, latitude, z, spatialReference: { wkid: 4326 } });
+const camAt = (longitude, latitude, z, heading, tilt) => ({ position: pointAt(longitude, latitude, z), heading, tilt });
+const START_CAMERA = camAt(30, 8, 22000000, 0, 0); // Africa, Europe and the Middle East in view
+await view.goTo(START_CAMERA, { animate: false });
+
+// ---------- 3D shells ----------
+function sphereMesh(radiusM, color, segLon = 72, segLat = 36) {
+  const pos = [], nrm = [], faces = [];
+  for (let i = 0; i <= segLat; i++) {
+    const th = (i * Math.PI) / segLat, st = Math.sin(th), ct = Math.cos(th);
+    for (let j = 0; j <= segLon; j++) {
+      const ph = (j * 2 * Math.PI) / segLon;
+      const x = st * Math.cos(ph), y = st * Math.sin(ph), z = ct;
+      // local east-north-up frame anchored on the surface at 0°,0°, shifted down by the globe radius
+      pos.push(radiusM * x, radiusM * y, radiusM * z - R_SCENE_M);
+      nrm.push(x, y, z);
+    }
+  }
+  for (let i = 0; i < segLat; i++) for (let j = 0; j < segLon; j++) {
+    const a = i * (segLon + 1) + j, b = a + segLon + 1;
+    faces.push(a, b, a + 1, b, b + 1, a + 1);
+  }
+  return new Mesh({
+    spatialReference: { wkid: 4326 },
+    vertexSpace: new MeshLocalVertexSpace({ origin: [0, 0, 0] }),
+    vertexAttributes: { position: new Float64Array(pos), normal: new Float32Array(nrm) },
+    components: [new MeshComponent({ faces: new Uint32Array(faces), shading: "smooth", material: new MeshMaterial({ color, doubleSided: true }) })]
+  });
+}
+// A latitude/longitude sphere with texture coordinates, for satellite imagery (equirectangular image, west edge at 180° W).
+function imageryGlobe(radiusM, material, segLon = 180, segLat = 90) {
+  const pos = [], nrm = [], uv = [], faces = [], r = Math.PI / 180;
+  for (let i = 0; i <= segLat; i++) {
+    const lat = (90 - (180 * i) / segLat) * r;
+    for (let j = 0; j <= segLon; j++) {
+      const lon = (-180 + (360 * j) / segLon) * r;
+      // east-north-up frame anchored at 0°,0°: east = sin(lon)·cos(lat), north = sin(lat), up = cos(lon)·cos(lat)
+      const x = Math.cos(lat) * Math.sin(lon), y = Math.sin(lat), z = Math.cos(lat) * Math.cos(lon);
+      pos.push(radiusM * x, radiusM * y, radiusM * z - R_SCENE_M);
+      nrm.push(x, y, z);
+      uv.push(j / segLon, i / segLat);
+    }
+  }
+  for (let i = 0; i < segLat; i++) for (let j = 0; j < segLon; j++) {
+    const a = i * (segLon + 1) + j, b = a + segLon + 1;
+    faces.push(a, b, a + 1, b, b + 1, a + 1);
+  }
+  return new Mesh({
+    spatialReference: { wkid: 4326 },
+    vertexSpace: new MeshLocalVertexSpace({ origin: [0, 0, 0] }),
+    vertexAttributes: { position: new Float64Array(pos), normal: new Float32Array(nrm), uv: new Float32Array(uv) },
+    components: [new MeshComponent({ faces: new Uint32Array(faces), shading: "smooth", material })]
+  });
+}
+const layersLayer = new GraphicsLayer({ title: "Earth's layers", elevationInfo: { mode: "absolute-height" } });
+const shell = {};
+for (const l of ALL_LAYERS.filter(x => x.mesh)) {
+  const g = new Graphic({ geometry: sphereMesh((R_TRUE_KM - l.top) * SCALE * 1000, l.color),
+    symbol: { type: "mesh-3d", symbolLayers: [{ type: "fill" }] }, attributes: { id: l.id } });
+  shell[l.id] = g; layersLayer.add(g);
+}
+// While the Earth is cut, ArcGIS's own ground can't be used: the cut removes it, but a faint see-through copy of the
+// removed part is still drawn over the cut face. So the imagery goes on a sphere of its own that the cut slices like
+// the layers. Its texture is the same imagery with the same boundaries and names drawn on top.
+const SURFACE_TEXTURES = [
+  ESRI_SERVICES + "World_Imagery/MapServer/export?bbox=-180,-90,180,90&bboxSR=4326&imageSR=4326&size=4096,2048&format=jpg&f=image",
+  ESRI_SERVICES + "World_Imagery/MapServer/export?bbox=-180,-90,180,90&bboxSR=4326&imageSR=4326&size=2048,1024&format=jpg&f=image",
+  "https://cdn.jsdelivr.net/npm/three-globe@2.45.2/example/img/earth-blue-marble.jpg"
+];
+const LABEL_LEVEL = 3; // label tiles from the level the ground shows when the whole globe is in view (8 × 8 tiles)
+const surfaceShell = new Graphic({
+  geometry: imageryGlobe(R_SCENE_M, new MeshMaterial({ color: LAYERS[0].color, doubleSided: true })),
+  symbol: { type: "mesh-3d", symbolLayers: [{ type: "fill" }] }, attributes: { id: "crust" }, visible: false
+});
+layersLayer.add(surfaceShell);
+let surfaceImagery = "none";
+const loadImage = (url) => new Promise((res, rej) => { const im = new Image(); im.crossOrigin = "anonymous"; im.onload = () => res(im); im.onerror = rej; im.src = url; });
+// The boundaries-and-names tiles (Web Mercator) stitched into one square image, or null if none load.
+async function labelTiles() {
+  const n = 2 ** LABEL_LEVEL, c = document.createElement("canvas"); c.width = c.height = n * 256;
+  const g = c.getContext("2d");
+  const jobs = [];
+  for (let row = 0; row < n; row++) for (let col = 0; col < n; col++)
+    jobs.push(loadImage(`${LABELS_URL}/tile/${LABEL_LEVEL}/${row}/${col}`).then(im => { g.drawImage(im, col * 256, row * 256); return 1; }, () => 0));
+  const loaded = (await Promise.all(jobs)).reduce((a, b) => a + b, 0);
+  return loaded ? c : null;
+}
+// Imagery (longitude/latitude grid) with the Mercator label tiles re-projected onto it, one row of pixels at a time.
+function surfaceTexture(img, merc) {
+  const W = img.naturalWidth, H = Math.round(W / 2), c = document.createElement("canvas");
+  c.width = W; c.height = H;
+  const g = c.getContext("2d");
+  g.drawImage(img, 0, 0, W, H);
+  if (merc) {
+    const N = merc.width, maxLat = 85.0511;
+    for (let j = 0; j < H; j++) {
+      const lat = 90 - (j + 0.5) * 180 / H;
+      if (Math.abs(lat) > maxLat) continue;
+      const phi = lat * Math.PI / 180;
+      const y = (1 - Math.log(Math.tan(Math.PI / 4 + phi / 2)) / Math.PI) / 2 * N;
+      g.drawImage(merc, 0, Math.min(N - 1, Math.max(0, Math.floor(y))), N, 1, 0, j, W, 1);
+    }
+  }
+  return c;
+}
+(async () => {
+  const labelsJob = labelTiles().catch(() => null);
+  for (const url of SURFACE_TEXTURES) {
+    try {
+      const img = await loadImage(url);
+      if (img.naturalWidth < 512) throw new Error("image too small");
+      const merc = await labelsJob;
+      surfaceShell.geometry = imageryGlobe(R_SCENE_M, new MeshMaterial({ colorTexture: new MeshTexture({ data: surfaceTexture(img, merc) }), doubleSided: true }));
+      surfaceImagery = (url.includes("World_Imagery") ? "Esri World Imagery" : "NASA Blue Marble") + (merc ? " with boundaries and names" : "");
+      return;
+    } catch (e) { console.warn("Surface imagery not loaded from", url, e); }
+  }
+})();
+map.add(layersLayer);
+const shellView = await view.whenLayerView(layersLayer);
+let highlight = null;
+// shells show for the layers of the chosen division (both: what it's made of), unless peeled away
+function applyShells() {
+  const ids = new Set((scheme === "behaves" ? MECH : LAYERS).map(l => l.id));
+  const capsOn = !!cutAnchor && cutDepth > 0; // the filled cut face replaces the hollow shells
+  for (const [id, g] of Object.entries(shell)) g.visible = !capsOn && ids.has(id) && !peeled[id];
+}
+applyShells();
+// Flat filled rings on the cut face, so thin layers (like the 100 km lithosphere) show as solid bands.
+// They sit just behind the cut (40 km when the Earth is cut in half, so the lines drawn exactly on that cut stay in front of them).
+const capsLayer = new GraphicsLayer({ title: "Cut face", elevationInfo: { mode: "absolute-height" } });
+map.add(capsLayer);
+const capsView = await view.whenLayerView(capsLayer);
+try { const h = view.highlights?.getItemAt(0); if (h) { h.fillOpacity = 0.08; h.haloOpacity = 1; } } catch (e) { console.warn(e); } // outline, not a grey wash
+let capHighlight = null;
+onSelect = (id) => {
+  setPadding();
+  highlight?.remove(); highlight = null; capHighlight?.remove(); capHighlight = null;
+  if (id && shell[id]) highlight = shellView.highlight(shell[id]);
+  if (id) { const caps = capsLayer.graphics.filter(g => g.attributes.id === id).toArray(); if (caps.length) capHighlight = capsView.highlight(caps); }
+  document.querySelectorAll('.lbl').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.info === id)));
+};
+
+document.getElementById("layerList").addEventListener("change", (e) => {
+  const id = e.target.dataset.layer; if (!id) return;
+  peeled[id] = !e.target.checked; applyShells(); drawCaps();
+});
+document.querySelectorAll('input[name="scheme"]').forEach(r => r.addEventListener("change", () => {
+  scheme = document.querySelector('input[name="scheme"]:checked').value;
+  renderLayerList(); applyShells(); drawCaps(); drawDims(); drawLabels(); updateCutBar();
+  setStatus(scheme === "made" ? "Layers divided by what they are made of." : scheme === "behaves" ? "Layers divided by how the rock behaves: rigid lithosphere, weak asthenosphere, and so on."
+    : "Left half: divided by what it's made of. Right half: divided by how it behaves.");
+}));
+const go = $("groundOpacity");
+// While the Earth is cut, the see-through ground is switched off and the imagery sphere is shown instead:
+// the cut removes it in front of the plane, so the countries stay on the uncut part and the cut face shows the layers.
+let cutOn = false;
+function applySurface() {
+  const swap = cutOn && $("hideSurface").checked;
+  map.ground.opacity = swap ? 0 : go.value / 100;
+  surfaceShell.visible = swap;
+  go.disabled = swap;
+  $("groundOpacityVal").textContent = swap ? "solid while the Earth is cut" : go.value + "% visible";
+}
+function setCut(on) {
+  cutOn = on; applySurface();
+  // the atmosphere haze washes over the cut face in pale bands when the cut is not through the centre, so it is off while cut
+  try { view.environment.atmosphereEnabled = !on; } catch (e) { console.warn(e); }
+}
+go.addEventListener("input", applySurface);
+$("hideSurface").addEventListener("change", applySurface);
+
+// ---------- Depth dimensions and layer names ----------
+// A point 90° of arc from the anchor, along a bearing: it lies on the circle where a plane through the Earth's
+// centre, facing the anchor, meets the surface, so a radius from it lies in the centre cut.
+function quarterRound(anchor, bearingDeg) {
+  const r = Math.PI / 180, lat1 = anchor.latitude * r, th = bearingDeg * r;
+  const lat2 = Math.asin(Math.cos(lat1) * Math.cos(th));
+  const lon2 = anchor.longitude * r + Math.atan2(Math.sin(th) * Math.cos(lat1), -Math.sin(lat1) * Math.sin(lat2));
+  let lon = lon2 / r; lon = ((lon + 540) % 360) - 180;
+  return { longitude: lon, latitude: lat2 / r };
+}
+// A point at any angular distance from the anchor, along a bearing (quarterRound is the 90° case).
+function fromAnchor(anchor, bearingDeg, distDeg) {
+  const r = Math.PI / 180, lat1 = anchor.latitude * r, th = bearingDeg * r, d = distDeg * r;
+  const lat2 = Math.asin(Math.sin(lat1) * Math.cos(d) + Math.cos(lat1) * Math.sin(d) * Math.cos(th));
+  const lon2 = anchor.longitude * r + Math.atan2(Math.sin(th) * Math.sin(d) * Math.cos(lat1), Math.cos(d) - Math.sin(lat1) * Math.sin(lat2));
+  let lon = lon2 / r; lon = ((lon + 540) % 360) - 180;
+  return { longitude: lon, latitude: lat2 / r };
+}
+// The slider's cut is a plane facing the anchor, h km (scene scale) from the Earth's centre: h = (6,371 − depth) × SCALE,
+// so h = 0 when the Earth is cut in half. A sphere of radius r meets a plane h from the centre in a circle of radius √(r² − h²).
+const planeH = () => (R_TRUE_KM - cutDepth) * SCALE;
+const ringRadius = (rScene, h) => Math.sqrt(Math.max(rScene * rScene - h * h, 0));
+// A point on a plane facing the anchor: th = angle on the plane from screen-up (clockwise), rho = distance from the
+// plane's middle and h = the plane's distance from the Earth's centre (scene km). Returns [lon, lat, z in m].
+function cutPoint(th, rho, h) {
+  const r3 = Math.hypot(rho, h), dist = Math.atan2(rho, h) * 180 / Math.PI;
+  const q = fromAnchor(cutAnchor, cutAnchor.heading + th, dist);
+  return [q.longitude, q.latitude, -(R_SCENE_KM - r3) * 1000];
+}
+function capMesh(th0, th1, rhoIn, rhoOut, h, color) {
+  const n = Math.max(8, Math.round(Math.abs(th1 - th0) / 2)), pos = [], faces = [];
+  for (let i = 0; i <= n; i++) { const th = th0 + (th1 - th0) * i / n; pos.push(...cutPoint(th, rhoOut, h), ...cutPoint(th, rhoIn, h)); }
+  for (let i = 0; i < n; i++) { const a = 2 * i; faces.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
+  return new Mesh({ spatialReference: { wkid: 4326 }, vertexAttributes: { position: new Float64Array(pos) },
+    components: [new MeshComponent({ faces: new Uint32Array(faces), shading: "flat",
+      material: new MeshMaterialMetallicRoughness({ color: [0, 0, 0], emissiveColor: color, metallic: 0, roughness: 1, doubleSided: true }) })] });
+}
+// One graphic per half and layer, reused while the slider moves (replacing graphics every frame makes them flicker).
+const capGraphics = {};
+// While a model is drawn on the cut, the rings are darkened so its lines stand out (the colours stay recognisable).
+const dimColor = (hex, f) => "#" + [1, 3, 5].map(i => Math.round(parseInt(hex.slice(i, i + 2), 16) * f).toString(16).padStart(2, "0")).join("");
+function drawCaps() {
+  applyShells();
+  const shown = new Set();
+  let added = false;
+  if (cutAnchor && cutDepth > 0) {
+    const hc = planeH() - (dimAnchor ? 40 : 2); // just behind the cut
+    const halves = scheme === "both" ? [[LAYERS, 180, 360, "L"], [MECH, 0, 180, "R"]] : [[schemeLayers(), 0, 360, "A"]];
+    for (const [list, a, b, side] of halves) for (const l of list) {
+      const rOut = (R_TRUE_KM - l.top) * SCALE, rIn = (R_TRUE_KM - l.bottom) * SCALE;
+      if (peeled[l.id] || rOut <= Math.abs(hc)) continue; // peeled away, or the cut doesn't reach it
+      const key = side + ":" + l.id, geometry = capMesh(a, b, ringRadius(rIn, hc), ringRadius(rOut, hc), hc, mode === "layers" ? l.color : dimColor(l.color, 0.4));
+      shown.add(key);
+      if (capGraphics[key]) capGraphics[key].geometry = geometry;
+      else {
+        capGraphics[key] = new Graphic({ geometry, symbol: { type: "mesh-3d", symbolLayers: [{ type: "fill" }] }, attributes: { id: l.id } });
+        capsLayer.add(capGraphics[key]); added = true;
+      }
+    }
+  }
+  for (const [key, g] of Object.entries(capGraphics)) g.visible = shown.has(key);
+  if (added && selectedId) onSelect(selectedId);
+}
+const dims = new DimensionAnalysis({
+  style: { type: "simple", color: [255, 255, 255, 0.9], lineSize: 1.5, fontSize: 11, textColor: [4, 18, 31, 1], textBackgroundColor: [125, 211, 252, 0.92] }
+});
+view.analyses.add(dims);
+function drawDims() {
+  dims.dimensions.removeAll();
+  if (!dimAnchor || !$("showDims").checked || mode !== "layers" || scheme === "both") return;
+  const p = quarterRound(dimAnchor, dimAnchor.heading + 90); // to the right of the view
+  const depths = scheme === "behaves" ? [100, 250, 2891, 5150, 6371] : [35, 660, 2891, 5150, 6371];
+  depths.forEach((d, i) => {
+    dims.dimensions.add(new LengthDimension({
+      measureType: "direct",
+      startPoint: pointAt(p.longitude, p.latitude, 0),
+      endPoint: pointAt(p.longitude, p.latitude, -d * 1000), // true depth, so the label reads the real number
+      offset: 250000 + i * 650000,
+      orientation: 0
+    }));
+  });
+}
+// Layer names: HTML buttons placed with view.toScreen() in the middle of each ring the cut reaches, fanned round the left half.
+const overlay = $("labelsOverlay");
+overlay.innerHTML = ALL_LAYERS.map(l => `<button class="lbl" data-info="${l.id}" aria-pressed="false" style="--c:${l.color}">${l.name} <span class="ld">${km(l.top)}–${km(l.bottom)} km</span></button>`).join("");
+overlay.querySelectorAll(".lbl").forEach(b => b.addEventListener("click", () => showInfo(b.dataset.info, { focus: true })));
+let labelPts = null;
+let labelsBefore = new Set(); // the names showing last time, so a newly reached layer can be pointed out
+function drawLabels() {
+  labelPts = null;
+  if (cutAnchor && cutDepth > 0 && $("showLabels").checked && mode === "layers") {
+    // each name on its own radius (fanned around the left half of the cut) so they don't overlap;
+    // with both divisions, the behaviour layers are fanned round the right half instead
+    const shown = scheme === "both" ? [...LAYERS.map(l => [l, l.fan]), ...MECH_ONLY.map(l => [l, l.fanR])] : schemeLayers().map(l => [l, l.fan]);
+    const h = planeH();
+    labelPts = {};
+    for (const [l, fan] of shown) {
+      const rOut = (R_TRUE_KM - l.top) * SCALE, rIn = (R_TRUE_KM - l.bottom) * SCALE;
+      if (rOut <= Math.abs(h)) continue; // the cut doesn't reach this layer
+      const pOut = ringRadius(rOut, h), pIn = ringRadius(rIn, h);
+      const thin = pIn > 0 && pOut - pIn < 120; // a band too thin to hold a label: put the name just outside the cut
+      const [lon, lat, z] = cutPoint(fan, thin ? pOut + 350 * SCALE : (pOut + pIn) / 2, h);
+      labelPts[l.id] = pointAt(lon, lat, z);
+    }
+  }
+  placeLabels();
+  // a name pulses when the cut first reaches its layer
+  const now = new Set(Object.keys(labelPts || {}));
+  if (!reduceMotion) for (const id of now) if (!labelsBefore.has(id)) {
+    const b = overlay.querySelector(`.lbl[data-info="${id}"]`);
+    if (b) { b.classList.remove("fresh"); void b.offsetWidth; b.classList.add("fresh"); setTimeout(() => b.classList.remove("fresh"), 1600); }
+  }
+  labelsBefore = now;
+}
+// How squarely the cut face is turned towards the camera: the cosine of the angle between the face's direction and the
+// line from the middle of the face to the camera (1 = face-on, 0 = edge-on, below 0 = from behind).
+const FACE_MIN_COS = 0.26; // about 75°: beyond this the cut is out of sight (or too edge-on to read)
+function ecefKm(lon, lat, rKm) {
+  const r = Math.PI / 180, cl = Math.cos(lat * r);
+  return [rKm * cl * Math.cos(lon * r), rKm * cl * Math.sin(lon * r), rKm * Math.sin(lat * r)];
+}
+function faceCos(anchor, depthKm) {
+  const cam = view.camera?.position; if (!cam || !anchor) return 0;
+  const c = ecefKm(cam.longitude, cam.latitude, R_SCENE_KM + (cam.z || 0) / 1000), n = ecefKm(anchor.longitude, anchor.latitude, 1);
+  const h = (R_TRUE_KM - depthKm) * SCALE, v = c.map((x, i) => x - h * n[i]);
+  return (v[0] * n[0] + v[1] * n[1] + v[2] * n[2]) / Math.hypot(...v);
+}
+// Convection labels, placed the same way as the layer names (positions: angle on the cut from screen-up, distance from the centre in km)
+const CONV_CHIPS = [
+  { id: "ridge",  text: "Ridge · plates move apart",   c: "#ff6b3d", th: 30,  r: 6371 + 750 },
+  { id: "trench", text: "Trench · plate sinks",        c: "#4dabf7", th: 330, r: 6371 + 750 },
+  { id: "plate",  text: "Plate moves 2–10 cm a year",  c: "#f1f3f5", th: 0,   r: 6371 + 420 },
+  { id: "rise",   text: "Warm rock slowly rises",      c: "#ffd43b", th: 270, r: 4910 },
+  { id: "plume",  text: "Plume of hot rock",           c: "#ff4d2e", th: 180, r: 4700 },
+  { id: "pulled", text: "Rock pulled up under the ridge, melts", c: "#ff8787", th: 150, r: 6371 - 420 },
+  { id: "sink",   text: "Cooler, denser rock sinks",   c: "#4dabf7", th: 210, r: 4910 },
+  { id: "slab",   text: "Slab pull",                   c: "#a5d8ff", th: 318, r: 5500 },
+  { id: "heat",   text: "Heat from the core",          c: "#ffd8a8", th: 180, r: 3150 }
+];
+const convOverlay = $("convOverlay");
+convOverlay.innerHTML = CONV_CHIPS.map(c => `<span class="lbl" data-pt="${c.id}" style="--c:${c.c}">${c.text}</span>`).join("");
+let convPts = null;
+let raf = 0;
+function placeGroup(container, pts, key) {
+  // labels only make sense while the cut face is turned towards the camera (face-on or from the side)
+  const onView = pts && cutAnchor && faceCos(cutAnchor, cutDepth) > FACE_MIN_COS;
+  container.hidden = !onView;
+  if (!onView) return;
+  for (const b of container.querySelectorAll(".lbl")) {
+    const pt = pts[b.dataset[key]];
+    if (!pt) { b.hidden = true; continue; } // this label doesn't apply to what is shown
+    const sp = view.toScreen(pt);
+    const ok = sp && sp.x > 0 && sp.y > 0 && sp.x < view.width && sp.y < view.height;
+    b.hidden = !ok;
+    if (ok) { b.style.left = sp.x + "px"; b.style.top = sp.y + "px"; }
+  }
+  spreadLabels(container);
+}
+// Labels can land on top of each other (for example when a shallow cut makes a small disc), so nudge any
+// overlapping ones down until they clear, working from the top of the screen.
+function spreadLabels(container) {
+  const items = [...container.querySelectorAll(".lbl")].filter(b => !b.hidden)
+    .map(b => ({ b, x: parseFloat(b.style.left), y: parseFloat(b.style.top), w: b.offsetWidth, h: b.offsetHeight }))
+    .sort((a, b) => a.y - b.y);
+  for (let pass = 0; pass < 2; pass++) {
+    for (let i = 1; i < items.length; i++) for (let j = 0; j < i; j++) {
+      const a = items[j], c = items[i], gapY = (a.h + c.h) / 2 + 3;
+      if (Math.abs(a.x - c.x) < (a.w + c.w) / 2 + 4 && c.y - a.y < gapY && c.y >= a.y) c.y = a.y + gapY;
+    }
+  }
+  for (const it of items) it.b.style.top = it.y + "px";
+}
+const WAVE_CHIPS = [
+  { id: "quake", text: "Earthquake",                                   c: "#ffd43b", th: 0,   r: 6371 + 700,  show: "any" },
+  { id: "pzone", text: "P-wave shadow zone 104°–140°",                 c: "#4dabf7", th: 150, r: 6371 + 950,  show: "Pright" },
+  { id: "szone", text: "S-wave shadow zone beyond 104°",               c: "#ff922b", th: 205, r: 6371 + 800,  show: "S" },
+  { id: "sstop", text: "S-waves stop: the outer core is liquid",       c: "#ff922b", th: -55, r: 2600,        show: "Sleft" },
+  { id: "pbend", text: "P-waves bend entering the core",               c: "#4dabf7", th: 95,  r: 2900,        show: "Pright" },
+  { id: "lehm",  text: "Faint P-waves reveal an inner core",           c: "#e7f5ff", th: 150, r: 1700,        show: "Pright" }
+];
+const wavesOverlay = $("wavesOverlay");
+wavesOverlay.innerHTML = WAVE_CHIPS.map(c => `<span class="lbl" data-pt="${c.id}" style="--c:${c.c}">${c.text}</span>`).join("");
+let wavePts = null;
+function placeLabels() { placeGroup(overlay, labelPts, "info"); placeGroup(convOverlay, convPts, "pt"); placeGroup(wavesOverlay, wavePts, "pt"); placeGroup(sectionOverlay, mode === "layers" ? sectionPts : null, "pt"); }
+const sectionOverlay = $("sectionOverlay");
+let sectionPts = null;
+reactiveUtils.watch(() => [view.camera, view.width, view.height, view.padding], () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(placeLabels); });
+$("showDims").addEventListener("change", drawDims);
+$("showLabels").addEventListener("change", drawLabels);
+
+// ---------- Earthquakes ----------
+const USGS_URL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_month.geojson";
+let quakeLayer = null;
+let quakeFeatures = null; // the USGS 30-day feed, kept for "Start from the biggest earthquake this month"
+// three depth classes, the same as the key (a smooth colour ramp gave in-between colours that are not in the key)
+const QUAKE_CLASSES = [[-100, 70, "#66e3ff"], [70, 300, "#3b82f6"], [300, 1000, "#a78bfa"]];
+const quakeColor = (depth) => (QUAKE_CLASSES.find(([a, b]) => depth >= a && depth < b) || QUAKE_CLASSES[2])[2];
+const quakeSymbol = (color) => ({ type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "sphere" }, material: { color } }] });
+const quakeRenderer = () => ({ type: "class-breaks", field: "depth",
+  classBreakInfos: QUAKE_CLASSES.map(([minValue, maxValue, color]) => ({ minValue, maxValue, symbol: quakeSymbol(color) })),
+  defaultSymbol: quakeSymbol(QUAKE_CLASSES[2][2]),
+  visualVariables: [{ type: "size", field: "mag", axis: "all", stops: [{ value: 4.5, size: 45000 }, { value: 8, size: 220000 }] }] });
+const quakeElevation = (stretch) => ({ mode: "absolute-height", featureExpressionInfo: { expression: `-$feature.depth * 1000 * ${stretch}` }, unit: "meters" });
+async function loadQuakes() {
+  try {
+    const res = await fetch(USGS_URL);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const gj = await res.json();
+    quakeFeatures = gj.features;
+    const graphics = gj.features.map((f, i) => new Graphic({
+      geometry: { type: "point", longitude: f.geometry.coordinates[0], latitude: f.geometry.coordinates[1], spatialReference: { wkid: 4326 } },
+      attributes: { ObjectID: i + 1, mag: f.properties.mag, depth: f.geometry.coordinates[2], place: f.properties.place, time: f.properties.time }
+    }));
+    quakeLayer = new FeatureLayer({
+      title: "Earthquakes (USGS, M4.5+, 30 days)", source: graphics, objectIdField: "ObjectID", geometryType: "point",
+      spatialReference: { wkid: 4326 },
+      fields: [{ name: "ObjectID", type: "oid" }, { name: "mag", type: "double", alias: "Magnitude" }, { name: "depth", type: "double", alias: "Depth (km)" },
+               { name: "place", type: "string", alias: "Place" }, { name: "time", type: "date", alias: "Time" }],
+      elevationInfo: quakeElevation(1),
+      renderer: quakeRenderer(),
+      popupEnabled: true,
+      popupTemplate: { title: "Magnitude {mag} earthquake", content: "{place}<br><b>Depth:</b> {depth} km<br><b>Time:</b> {time}",
+        fieldInfos: [{ fieldName: "time", format: { dateFormat: "short-date-short-time" } }, { fieldName: "depth", format: { places: 0 } }] }
+    });
+    map.add(quakeLayer);
+    if ($("excludeQuakes").checked) slice.excludedLayers.add(quakeLayer);
+    const deep = gj.features.filter(f => f.geometry.coordinates[2] >= 300).length;
+    return `${gj.features.length} earthquakes loaded, ${deep} deeper than 300 km.`;
+  } catch (e) { console.error(e); return "Earthquakes could not be loaded from USGS."; }
+}
+$("showQuakes").addEventListener("change", (e) => { if (quakeLayer) quakeLayer.visible = e.target.checked; });
+document.querySelectorAll('input[name="exag"]').forEach(r => r.addEventListener("change", () => {
+  const s = Number(document.querySelector('input[name="exag"]:checked').value);
+  if (quakeLayer) quakeLayer.elevationInfo = quakeElevation(s);
+  $("exagNote").hidden = s === 1;
+  // deep earthquakes are hidden under a solid surface, so make it see-through when the depths are stretched
+  if (s > 1 && !cutOn && Number(go.value) === 100) { go.value = 40; applySurface(); setStatus("The surface is now 40% visible, so you can see the deep earthquakes."); }
+}));
+
+// ---------- Slice ----------
+const PLANE_SIZE = 120000000; // far wider than the globe, so the plane's outline stays off-screen
+const slice = new SliceAnalysis({ tiltEnabled: true });
+view.analyses.add(slice);
+const sliceView = await view.whenAnalysisView(slice);
+try { sliceView.interactive = false; } catch (e) { console.warn(e); } // no drag handles on the slider's cut
+const cutRange = $("cutDepth");
+const SNAP_KM = 20;    // slider values this close to the centre cut the Earth exactly in half
+let placeAbort = null;
+// The point in the middle of the view and the camera's heading: a new cut goes straight down into this point.
+function centreAnchor() {
+  const c = view.center || view.camera.position;
+  return { longitude: c.longitude, latitude: c.latitude, heading: view.camera.heading || 0 };
+}
+// When a new cut starts, turn the globe so the cut is seen from the side: the camera orbits SWING_DEG to the left
+// round the screen's up axis, keeping "up" the same, and backs off far enough to see the whole cut face.
+const SWING_DEG = 50, SWING_MIN_ALT_M = 16000000;
+function bearingTo(a, b) {
+  const r = Math.PI / 180, p1 = a.latitude * r, p2 = b.latitude * r, dl = (b.longitude - a.longitude) * r;
+  return (Math.atan2(Math.sin(dl) * Math.cos(p2), Math.cos(p1) * Math.sin(p2) - Math.sin(p1) * Math.cos(p2) * Math.cos(dl)) / r + 360) % 360;
+}
+function swingToSide(anchor) {
+  const side = fromAnchor(anchor, anchor.heading - 90, SWING_DEG);
+  const upAxis = fromAnchor(anchor, anchor.heading, 90); // 90° from every point on the circle the camera moves along
+  const alt = Math.max(view.camera.position.z || 0, SWING_MIN_ALT_M);
+  view.goTo(camAt(side.longitude, side.latitude, alt, bearingTo(side, upAxis), 0), { animate: !reduceMotion, duration: 1500 })
+    .catch(e => { if (e?.name !== "AbortError") console.warn(e); });
+}
+// what the slider's cut reaches, for the readout and for screen readers
+const layerAt = (list, d) => list.find(l => d < l.bottom) || list[list.length - 1];
+function cutText(d) {
+  if (freeCut) return { short: "Your own cut", long: "Your own cut is showing. Move the slider to go back to a straight cut." };
+  if (d <= 0) return { short: "Whole Earth", long: "0 km: the whole Earth, not cut" };
+  if (d >= R_TRUE_KM) return { short: "Cut in half through the centre", long: "6,371 km: cut in half through the centre" };
+  const lc = (l) => l.name.toLowerCase();
+  const where = scheme === "both" ? `the ${lc(layerAt(LAYERS, d))} and ${lc(layerAt(MECH, d))}` : `the ${lc(layerAt(schemeLayers(), d))}`;
+  return { short: `${km(d)} km deep: into ${where}`, long: `${km(d)} km deep, cutting into ${where}` };
+}
+function updateCutBar() {
+  const t = cutText(cutDepth), r = $("cutDepth");
+  $("cutOut").textContent = t.short;
+  r.setAttribute("aria-valuetext", t.long);
+  $("btnWhole").setAttribute("aria-pressed", String(!freeCut && cutDepth === 0));
+  $("btnHalf").setAttribute("aria-pressed", String(!freeCut && cutDepth >= R_TRUE_KM));
+  // the strip under the slider: the layers by true depth, surface on the left, centre on the right
+  const rows = scheme === "both" ? [LAYERS, MECH] : [schemeLayers()];
+  $("cutStrip").innerHTML = rows.map(list => `<div class="strip">${list.map(l => `<i style="flex:${l.bottom - l.top};background:${l.color}"></i>`).join("")}</div>`).join("");
+}
+// Cut d km (true depth) straight down into the anchor point: a plane facing that point that removes the cap of the
+// Earth around it. 0 = the whole Earth; 6,371 = cut in half through the centre.
+// forced: an anchor to cut on (a cut through a chosen place); the caller then moves the camera itself.
+function setCutDepth(d, forced = null) {
+  d = Math.max(0, Math.min(R_TRUE_KM, Math.round(d)));
+  if (d >= R_TRUE_KM - SNAP_KM) d = R_TRUE_KM;
+  placeAbort?.abort(); freeCut = false;
+  if (!forced) clearSection();
+  let started = false;
+  if (d === 0) {
+    cutAnchor = null;
+    sliceView.active = false;
+    if (slice.clear) slice.clear(); else slice.shape = null;
+  } else {
+    // keep the cut where it is while its face can be seen; otherwise start a new one in the middle of the view
+    if (forced) cutAnchor = forced;
+    else if (!cutAnchor || faceCos(cutAnchor, d) < FACE_MIN_COS) { cutAnchor = centreAnchor(); started = true; }
+    slice.shape = new SlicePlane({ // (kept 1 km off the exact centre, where the plane's "up" direction is undefined)
+      position: pointAt(cutAnchor.longitude, cutAnchor.latitude, -Math.min(d * SCALE, R_SCENE_KM - 1) * 1000),
+      heading: cutAnchor.heading, tilt: 0, width: PLANE_SIZE, height: PLANE_SIZE
+    });
+    sliceView.active = true;
+    try { sliceView.interactive = false; } catch (e) { console.warn(e); }
+  }
+  cutDepth = d;
+  if (Number(cutRange.value) !== Math.min(d, Number(cutRange.max))) cutRange.value = d;
+  setCut(d > 0);
+  dimAnchor = d === R_TRUE_KM ? cutAnchor : null; // the depth lines and the models need the Earth cut in half
+  updateCutBar();
+  if (started) swingToSide(cutAnchor);
+  if (!dimAnchor && mode !== "layers") {
+    setMode("layers");
+    setStatus("The movement and earthquake-wave models need the Earth cut in half, so the layers are showing instead. Select \"Cut in half\" to go back.");
+    return;
+  }
+  drawCaps(); drawDims(); drawLabels(); drawConvection(); drawWaves();
+  if (started && mode === "layers") setStatus("Cutting into the Earth under the middle of your view. The globe turns so you can see the cut from the side.");
+}
+cutRange.addEventListener("input", () => setCutDepth(Number(cutRange.value)));
+$("btnHalf").addEventListener("click", () => { setCutDepth(R_TRUE_KM); setStatus("The Earth is cut in half through the centre."); });
+$("btnWhole").addEventListener("click", () => { setCutDepth(0); setStatus("The whole Earth. Drag the slider to cut into it."); });
+$("btnPlace").addEventListener("click", async () => {
+  setCutDepth(0); // also switches back to the layers if a model was showing
+  freeCut = true; updateCutBar();
+  placeAbort = new AbortController();
+  sliceView.active = true;
+  try { sliceView.interactive = true; } catch (e) { console.warn(e); }
+  setCut(true);
+  setStatus("Click on the globe to place a cut, then drag its handles. Press Escape to cancel.");
+  try { await sliceView.place({ signal: placeAbort.signal }); setStatus("Cut placed. Drag its handles to move it."); }
+  catch (e) {
+    if (e.name !== "AbortError") { console.error(e); setStatus("Placing a cut did not work in this version."); }
+    if (freeCut && !slice.shape) { setCutDepth(0); setStatus("No cut placed."); } // cancelled before a cut was placed
+  }
+});
+$("excludeQuakes").addEventListener("change", (e) => {
+  if (!quakeLayer) return;
+  if (e.target.checked) slice.excludedLayers.add(quakeLayer); else slice.excludedLayers.remove(quakeLayer);
+});
+reactiveUtils.watch(() => slice.shape, (s) => {
+  if (!s || !s.position) { $("sliceReadout").textContent = "No cut yet."; return; }
+  const p = s.position;
+  $("sliceReadout").textContent = `lon ${p.longitude?.toFixed(2)}  lat ${p.latitude?.toFixed(2)}\nz ${km(Math.round((p.z ?? 0) / 1000))} km\n` +
+    `heading ${Math.round(s.heading)}°  tilt ${Math.round(s.tilt)}°`;
+}, { initial: true });
+
+// ---------- Convection model ----------
+// Everything is drawn in the plane of the centre cut: a point is given by its angle on the cut (0° = up the screen,
+// clockwise) and its distance from the Earth's centre. quarterRound() finds the surface point at that angle; going
+// straight down from it stays in the cut plane.
+const convLayer = new GraphicsLayer({ title: "Convection", elevationInfo: { mode: "absolute-height" } });
+const parcelLayer = new GraphicsLayer({ title: "Moving rock", elevationInfo: { mode: "absolute-height" } });
+map.addMany([convLayer, parcelLayer]);
+slice.excludedLayers.addMany([convLayer, parcelLayer, capsLayer]); // they lie exactly on the cut, so the cut must not hide them
+const CONV = { n: 6, rIn: 3730, rOut: 6090, cmb: 3480, half: 24, q: 0.45, loopSeconds: 12, parcels: 5, slabDepth: 1500, plateR: 6371 + 220 };
+function cutPt(th, rKm) {
+  const q = quarterRound(dimAnchor, dimAnchor.heading + th);
+  return pointAt(q.longitude, q.latitude, -(R_TRUE_KM - rKm) * SCALE * 1000);
+}
+const sgp = (x) => Math.sign(x) * Math.pow(Math.abs(x), CONV.q);
+function convLoop(cell) {
+  // t = 0 at the bottom; t increasing goes along the bottom, up the rising side, across the top, down the sinking side
+  const rm = (CONV.rIn + CONV.rOut) / 2, b = (CONV.rOut - CONV.rIn) / 2;
+  return (t) => ({ th: cell.thc + cell.s * CONV.half * sgp(Math.sin(t)), r: rm - b * sgp(Math.cos(t)) });
+}
+// cells alternate direction: with these centres, rising rock (ridges) is at 30°, 150°, 270° and sinking rock (trenches) at 90°, 210°, 330°.
+// The cell at 180° has no loop: a plume rises there instead, under the middle of a plate (like Hawaii).
+const PLUME_TH = 180;
+const convCells = () => Array.from({ length: CONV.n }, (_, k) => ({ s: k % 2 === 0 ? 1 : -1, thc: k * (360 / CONV.n), plume: k * (360 / CONV.n) === PLUME_TH }));
+const RIDGES = [30, 150, 270];
+const SIDES = [[-Math.PI / 4, Math.PI / 4, "#b197fc"], [Math.PI / 4, 3 * Math.PI / 4, "#ffd43b"], [3 * Math.PI / 4, 5 * Math.PI / 4, "#ffa94d"], [5 * Math.PI / 4, 7 * Math.PI / 4, "#4dabf7"]];
+const lineSym = (color, size, arrow = true, dashed = false) => ({ type: "line-3d", symbolLayers: [{ type: "line", size, material: { color }, cap: dashed ? "butt" : "round",
+  ...(dashed ? { pattern: { type: "style", style: "dash" } } : {}),
+  ...(arrow ? { marker: { type: "style", style: "arrow", placement: "end", color } } : {}) }] });
+const polyAt = (pts) => ({ type: "polyline", hasZ: true, spatialReference: { wkid: 4326 }, paths: [pts.map(p => { const g = cutPt(p.th, p.r); return [g.longitude, g.latitude, g.z]; })] });
+let parcels = [];
+function drawConvection() {
+  convLayer.removeAll(); parcelLayer.removeAll(); parcels = []; convPts = null;
+  if (mode !== "conv" || !dimAnchor) { placeLabels(); return; }
+  const add = (pts, sym) => convLayer.add(new Graphic({ geometry: polyAt(pts), symbol: sym }));
+  // heat from the core: a glowing line along the core–mantle boundary
+  add(Array.from({ length: 121 }, (_, i) => ({ th: i * 3, r: CONV.cmb + 40 })), lineSym("#ff6b3d", 3, false));
+  // a plume: a narrow column of hot rock from the core–mantle boundary to the base of the plate, spreading out under it
+  add(Array.from({ length: 30 }, (_, i) => ({ th: PLUME_TH, r: CONV.cmb + 60 + (6371 - 130 - CONV.cmb - 60) * i / 29 })), lineSym("#ff4d2e", 7));
+  for (const d of [-1, 1]) add(Array.from({ length: 8 }, (_, i) => ({ th: PLUME_TH + d * (1 + 7 * i / 7), r: 6371 - 120 })), lineSym("#ff4d2e", 4));
+  // under each ridge: shallow rock pulled up as the plates move apart (from about 200 km)
+  for (const th of RIDGES) add(Array.from({ length: 10 }, (_, i) => ({ th, r: 6371 - 200 + 170 * i / 9 })), lineSym("#ff8787", 5));
+  for (const cell of convCells()) {
+    const f = convLoop(cell);
+    if (!cell.plume) for (const [a, b, color] of SIDES) add(Array.from({ length: 15 }, (_, i) => f(a + 0.1 + (b - a - 0.2) * i / 14)), lineSym(color, 3));
+    // the plate on top, moving from its ridge (rising side) to its trench (sinking side)
+    add(Array.from({ length: 21 }, (_, i) => ({ th: cell.thc + cell.s * (27 - 54 * i / 20), r: CONV.plateR })), lineSym("#f1f3f5", 4));
+    // the sinking slab at this cell's trench (one per trench: drawn from the cells turning clockwise)
+    if (cell.s === 1) {
+      const tt = cell.thc - 30;
+      add(Array.from({ length: 21 }, (_, i) => { const d = CONV.slabDepth * i / 20; return { th: tt + 1.2 - 6 * Math.pow(d / CONV.slabDepth, 0.7), r: 6371 - d }; }), lineSym("#a5d8ff", 7));
+    }
+    if (!cell.plume) for (let k = 0; k < CONV.parcels; k++) {
+      const g = new Graphic({ symbol: { type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "sphere" },
+        width: 170000, height: 170000, depth: 170000, material: { color: "#ffffff" } }] } });
+      parcels.push({ g, f, k }); parcelLayer.add(g);
+    }
+  }
+  placeParcels();
+  convPts = Object.fromEntries(CONV_CHIPS.map(c => [c.id, cutPt(c.th, c.r)]));
+  placeLabels();
+}
+let convPhase = 0, convPaused = reduceMotion, lastTick = 0;
+function placeParcels() {
+  if (!dimAnchor) return;
+  for (const p of parcels) { const v = p.f(convPhase + p.k * 2 * Math.PI / CONV.parcels); p.g.geometry = cutPt(v.th, v.r); }
+}
+function tickConv(ts) {
+  if (ts - lastTick > 100) {
+    if (!convPaused && mode === "conv" && parcels.length) { convPhase += Math.min(0.5, (ts - lastTick) / 1000) * (2 * Math.PI / CONV.loopSeconds); placeParcels(); }
+    lastTick = ts;
+  }
+  requestAnimationFrame(tickConv);
+}
+requestAnimationFrame(tickConv);
+const btnPause = $("btnPause");
+function showPause() { btnPause.setAttribute("aria-pressed", String(convPaused)); btnPause.textContent = convPaused ? "Play movement" : "Pause movement"; }
+showPause();
+btnPause.addEventListener("click", () => { convPaused = !convPaused; showPause(); });
+
+// ---------- Seismic wave model ----------
+// Wave paths are traced through wave speeds rounded from PREM. Each path is stepped along (4 km steps), bending with the
+// speed gradient; at a sudden change of speed it refracts by Snell's law. S-waves stop where the S speed is zero (liquid).
+const SEIS = {
+  R: 6371,
+  // [depth km, P speed, S speed] km/s; a repeated depth is a sudden change. Crust and the low-speed zone are smoothed out.
+  // PREM puts the two mantle jumps at 400 and 670 km; they are moved to 410 and 660 km to match the layer model and the text.
+  model: [[0, 8.0, 4.45], [410, 8.91, 4.77], [410, 9.13, 4.93], [660, 10.27, 5.57], [660, 10.75, 5.95], [771, 11.07, 6.24],
+    [1000, 11.46, 6.38], [1500, 12.06, 6.64], [2000, 12.59, 6.84], [2500, 13.09, 7.04], [2741, 13.68, 7.27], [2891, 13.72, 7.26],
+    [2891, 8.06, 0], [3500, 8.9, 0], [4000, 9.5, 0], [4500, 9.95, 0], [5150, 10.36, 0], [5150, 11.03, 3.5], [6371, 11.26, 3.67]],
+  jumps: [410, 660, 2891, 5150],
+  replaySeconds: 15, realSeconds: 1800 // 30 real minutes in 15 seconds
+};
+const seisSeg = (d) => { const m = SEIS.model; for (let i = 0; i < m.length - 1; i++) if (m[i + 1][0] > m[i][0] && d >= m[i][0] && d <= m[i + 1][0]) return i; return m.length - 2; };
+const seisV = (r, c) => { const d = SEIS.R - r, i = seisSeg(d), a = SEIS.model[i], b = SEIS.model[i + 1]; return a[c] + (d - a[0]) / (b[0] - a[0]) * (b[c] - a[c]); };
+const seisG = (r, c) => { const i = seisSeg(SEIS.R - r), a = SEIS.model[i], b = SEIS.model[i + 1]; return -(b[c] - a[c]) / (b[0] - a[0]); };
+function shootRay(takeoffDeg, wave, ds = 4) {
+  const c = wave === "P" ? 1 : 2, R = SEIS.R, JR = SEIS.jumps.map(d => R - d);
+  let x = 0, y = R, ex = Math.sin(takeoffDeg * Math.PI / 180), ey = -Math.cos(takeoffDeg * Math.PI / 180), t = 0, minR = R, blocked = false, reflected = false;
+  const path = [[0, R, 0]];
+  for (let step = 1; step < 20000; step++) {
+    const r = Math.hypot(x, y), v = seisV(r, c);
+    const g = seisG(r, c), rx = x / r, ry = y / r, ge = g * (rx * ex + ry * ey);
+    let nx = ex - ds * (g * rx - ge * ex) / v, ny = ey - ds * (g * ry - ge * ey) / v; const nl = Math.hypot(nx, ny); nx /= nl; ny /= nl;
+    let x2 = x + ds * nx, y2 = y + ds * ny; const r2 = Math.hypot(x2, y2);
+    const jr = JR.find(rb => (r - rb) * (r2 - rb) < 0);
+    if (jr !== undefined) {
+      const f = (r - jr) / (r - r2), xi = x + f * (x2 - x), yi = y + f * (y2 - y); t += f * ds / v;
+      const down = r2 < r, v1 = seisV(down ? jr + 0.001 : jr - 0.001, c), v2 = seisV(down ? jr - 0.001 : jr + 0.001, c);
+      if (v2 <= 0) { x = xi; y = yi; blocked = true; path.push([Math.atan2(x, y) * 180 / Math.PI, jr, t]); break; }
+      const rxi = xi / jr, ryi = yi / jr, cosi = nx * rxi + ny * ryi, sg = Math.sign(cosi);
+      const tx = nx - cosi * rxi, ty = ny - cosi * ryi, sini = Math.hypot(tx, ty), sin2 = sini * v2 / v1;
+      if (sin2 >= 1) { nx -= 2 * cosi * rxi; ny -= 2 * cosi * ryi; reflected = true; } // bounces off the boundary
+      else { const cos2 = Math.sqrt(1 - sin2 * sin2), k = sini > 1e-12 ? sin2 / sini : 0; nx = tx * k + sg * cos2 * rxi; ny = ty * k + sg * cos2 * ryi; }
+      const rest = (1 - f) * ds; x2 = xi + rest * nx; y2 = yi + rest * ny; t += rest / v2;
+    } else t += ds / v;
+    x = x2; y = y2; ex = nx; ey = ny;
+    const rn = Math.hypot(x, y); minR = Math.min(minR, rn);
+    if (step % 6 === 0) path.push([Math.atan2(x, y) * 180 / Math.PI, rn, t]);
+    if (rn >= R) { path.push([Math.atan2(x, y) * 180 / Math.PI, R, t]); break; }
+  }
+  const end = path[path.length - 1];
+  let delta = blocked ? null : (end[0] < 0 ? end[0] + 360 : end[0]);
+  const type = blocked ? "blocked" : reflected ? "reflected" : minR > R - 2891 ? "mantle" : minR > R - 5150 ? "outer" : "inner";
+  return { wave, blocked, delta, land: delta == null ? null : Math.min(delta, 360 - delta), type, path, time: end[2] };
+}
+let seisRays = null, seisSummary = "";
+function computeRays() {
+  if (seisRays) return seisRays;
+  const pick = (rays, type, targets) => targets.map(tg => rays.filter(r => r.type === type)
+    .reduce((best, r) => (best == null || Math.abs((tg === "max" ? 999 : tg) - r.land) < Math.abs((tg === "max" ? 999 : tg) - best.land) ? r : best), null)).filter(Boolean);
+  const all = { P: [], S: [] };
+  for (const w of ["P", "S"]) for (let a = 0.25; a < 89.9; a += 0.25) all[w].push(shootRay(a, w));
+  for (let a = 6; a < 9; a += 0.03) all.P.push(shootRay(a, "P")); // finer, where P-waves just graze the inner core
+  const P = all.P, S = all.S;
+  const maxLand = (rs, type) => Math.max(...rs.filter(r => r.type === type).map(r => r.land));
+  const minLand = (rs, type) => Math.min(...rs.filter(r => r.type === type).map(r => r.land));
+  seisSummary = `In this model, P-waves through the mantle reach ${Math.round(maxLand(P, "mantle"))}°, S-waves ${Math.round(maxLand(S, "mantle"))}°. ` +
+    `P-waves through the liquid core land from ${Math.round(minLand(P, "outer"))}°, and through the inner core from ${Math.round(minLand(P, "inner"))}°.`;
+  // S-waves that hit the liquid outer core never land, so pick those by take-off angle instead
+  const blockedS = S.map((r, i) => ({ r, a: 0.25 + i * 0.25 })).filter(o => o.r.blocked);
+  const nearestBlocked = (a) => blockedS.reduce((b, o) => (b == null || Math.abs(o.a - a) < Math.abs(b.a - a) ? o : b), null)?.r;
+  seisRays = {
+    P: [...pick(P, "mantle", [12, 25, 40, 55, 70, 85, "max"]), ...pick(P, "outer", [146, 158, 170]), ...pick(P, "inner", [130, 140, 165, 178])],
+    S: [...pick(S, "mantle", [12, 25, 40, 55, 70, 85, "max"]), ...[2, 7, 12, 17].map(nearestBlocked).filter(Boolean)]
+  };
+  return seisRays;
+}
+const wavesLayer = new GraphicsLayer({ title: "Earthquake waves", elevationInfo: { mode: "absolute-height" } });
+const waveDotLayer = new GraphicsLayer({ title: "Wave fronts", elevationInfo: { mode: "absolute-height" } });
+map.addMany([wavesLayer, waveDotLayer]);
+slice.excludedLayers.addMany([wavesLayer, waveDotLayer]);
+// blue (P) and orange (S), with S dashed, so they can be told apart with red–green colour blindness
+const WCOL = { P: "#4dabf7", Pinner: "#e7f5ff", S: "#ff922b" };
+let waveDots = [], waveTime = 0, wavePlaying = false, wavePaused = false;
+const wshow = () => document.querySelector('input[name="wshow"]:checked').value;
+function drawWaves() {
+  wavesLayer.removeAll(); waveDotLayer.removeAll(); waveDots = []; wavePts = null;
+  if (mode !== "waves" || !dimAnchor) { placeLabels(); return; }
+  const rays = computeRays(), show = wshow();
+  const sides = show === "both" ? { P: [1], S: [-1] } : show === "P" ? { P: [1, -1], S: [] } : { P: [], S: [1, -1] };
+  const add = (pts, sym) => wavesLayer.add(new Graphic({ geometry: polyAt(pts), symbol: sym }));
+  for (const w of ["P", "S"]) for (const side of sides[w]) for (const ray of rays[w]) {
+    const color = w === "S" ? WCOL.S : ray.type === "inner" ? WCOL.Pinner : WCOL.P;
+    const pts = ray.path.filter((_, i) => i % 2 === 0 || i === ray.path.length - 1).map(([th, r]) => ({ th: side * th, r }));
+    add(pts, lineSym(color, ray.type === "inner" ? 1.5 : w === "S" ? 2.5 : 2, false, w === "S"));
+    if (ray.blocked) { // a cross where the S-wave stops at the outer core
+      const [th, r] = ray.path[ray.path.length - 1];
+      waveDotLayer.add(new Graphic({ geometry: cutPt(side * th, r), symbol: { type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "cube" },
+        width: 150000, height: 150000, depth: 150000, material: { color: WCOL.S } }] } }));
+    }
+    const g = new Graphic({ geometry: cutPt(0, 6371), symbol: { type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "sphere" }, width: 230000, height: 230000, depth: 230000, material: { color } }] }, visible: false });
+    waveDots.push({ g, ray, side }); waveDotLayer.add(g);
+  }
+  // shadow zones: arcs just outside the surface, at the measured edges (104° and 140°)
+  const arc = (from, to, r) => Array.from({ length: 41 }, (_, i) => ({ th: from + (to - from) * i / 40, r }));
+  const band = (color, dashed) => ({ type: "line-3d", symbolLayers: [{ type: "line", size: 9, material: { color }, cap: "butt", ...(dashed ? { pattern: { type: "style", style: "dash" } } : {}) }] });
+  if (sides.S.length) add(arc(104, 256, 6371 + 280), band([255, 146, 43, 0.9], true));
+  for (const side of sides.P) add(arc(side * 104, side * 140, 6371 + 520), band([77, 171, 247, 0.9], false));
+  // earthquake marker
+  waveDotLayer.add(new Graphic({ geometry: cutPt(0, 6371), symbol: { type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "diamond" }, width: 320000, height: 320000, depth: 320000, material: { color: "#ffd43b" } }] } }));
+  // labels that apply to what is shown
+  const shown = (c) => c.show === "any" || (c.show === "S" && sides.S.length) || (c.show === "Pright" && sides.P.length) || (c.show === "Sleft" && sides.S.length);
+  wavePts = Object.fromEntries(WAVE_CHIPS.filter(shown).map(c => {
+    // put each label on the side where its waves are drawn
+    let th = c.th;
+    if (c.show === "Pright" && !sides.P.includes(1)) th = -th;
+    if (c.show === "Sleft" && !sides.S.includes(-1)) th = -th;
+    return [c.id, cutPt(th, c.r)];
+  }));
+  $("waveModelNote").textContent = "The paths come from a simplified model of how fast waves travel at each depth, so they land a few degrees from the measured shadow-zone edges, which are drawn from real seismometer records. " + seisSummary;
+  placeLabels();
+  placeWaveDots();
+}
+function placeWaveDots() {
+  const tReal = waveTime;
+  for (const d of waveDots) {
+    const p = d.ray.path, end = p[p.length - 1][2];
+    if (!wavePlaying || tReal <= 0 || tReal > end) { d.g.visible = false; continue; }
+    let i = 1; while (i < p.length - 1 && p[i][2] < tReal) i++;
+    const a = p[i - 1], b = p[i], f = b[2] > a[2] ? (tReal - a[2]) / (b[2] - a[2]) : 0;
+    d.g.geometry = cutPt(d.side * (a[0] + f * (b[0] - a[0])), a[1] + f * (b[1] - a[1]));
+    d.g.visible = true;
+  }
+  const mins = Math.floor(waveTime / 60);
+  $("waveClock").textContent = wavePlaying ? `${mins} min ${String(Math.floor(waveTime % 60)).padStart(2, "0")} s` : "0 min";
+}
+let lastWaveTick = 0;
+function tickWaves(ts) {
+  if (ts - lastWaveTick > 80) {
+    if (wavePlaying && !wavePaused && mode === "waves") {
+      waveTime += Math.min(0.3, (ts - lastWaveTick) / 1000) * SEIS.realSeconds / SEIS.replaySeconds;
+      if (waveTime > SEIS.realSeconds) { wavePlaying = false; waveTime = 0; setStatus("The earthquake waves have all arrived. Start another to watch again."); }
+      placeWaveDots();
+    }
+    lastWaveTick = ts;
+  }
+  requestAnimationFrame(tickWaves);
+}
+requestAnimationFrame(tickWaves);
+function startQuake() {
+  waveTime = 0.01; wavePlaying = true; wavePaused = reduceMotion;
+  $("btnWavePause").setAttribute("aria-pressed", String(wavePaused)); $("btnWavePause").textContent = wavePaused ? "Play" : "Pause";
+  setStatus("Earthquake! Watch which waves arrive where. P-waves arrive first.");
+}
+$("btnQuake").addEventListener("click", startQuake);
+$("btnWavePause").addEventListener("click", () => {
+  if (!wavePlaying) { startQuake(); wavePaused = false; }
+  else wavePaused = !wavePaused;
+  $("btnWavePause").setAttribute("aria-pressed", String(wavePaused)); $("btnWavePause").textContent = wavePaused ? "Play" : "Pause";
+});
+document.querySelectorAll('input[name="wshow"]').forEach(r => r.addEventListener("change", drawWaves));
+
+// ---------- explanation panels and the three views ----------
+const PANELS = { conv: { el: "conv", title: "convTitle", why: "Why do the plates move?" }, waves: { el: "waves", title: "wavesTitle", why: "How do we know what's inside?" } };
+function showPanel(m, { focus = false } = {}) {
+  if (!$("info").hidden) hideInfo();
+  for (const [k, p] of Object.entries(PANELS)) $(p.el).hidden = k !== m;
+  setPadding();
+  if (focus && PANELS[m]) $(PANELS[m].title).focus();
+}
+function hidePanels() { for (const p of Object.values(PANELS)) $(p.el).hidden = true; setPadding(); }
+$("convClose").addEventListener("click", () => { hidePanels(); $("btnWhy").focus(); });
+$("wavesClose").addEventListener("click", () => { hidePanels(); $("btnWhy").focus(); });
+$("btnWhy").addEventListener("click", () => showPanel(mode, { focus: true }));
+function setMode(m) {
+  mode = m;
+  for (const [id, k] of [["modeLayers", "layers"], ["modeConv", "conv"], ["modeWaves", "waves"]]) $(id).setAttribute("aria-pressed", String(m === k));
+  $("btnWhy").hidden = !PANELS[m]; if (PANELS[m]) $("btnWhy").textContent = PANELS[m].why;
+  if (m !== "layers" && !dimAnchor) setCutDepth(R_TRUE_KM); // these models are drawn on the Earth cut in half
+  sectionLayer.visible = m === "layers"; // the Tonga earthquakes go with the layers view
+  drawCaps(); drawDims(); drawLabels(); drawConvection(); drawWaves();
+  if (PANELS[m]) showPanel(m); else hidePanels();
+  if (m === "conv") setStatus("Showing how the mantle and plates move. Select \"Why do the plates move?\" for the explanation.");
+  else if (m === "waves") { setStatus("Showing earthquake waves. Select \"Start an earthquake\" to watch them travel."); if (!reduceMotion) startQuake(); }
+  else setStatus("Showing the layers and their depths.");
+}
+$("modeLayers").addEventListener("click", () => setMode("layers"));
+$("modeConv").addEventListener("click", () => setMode("conv"));
+$("modeWaves").addEventListener("click", () => setMode("waves"));
+
+// ---------- Selecting on the globe ----------
+view.on("click", async (evt) => {
+  const hit = await view.hitTest(evt, { include: [capsLayer, layersLayer] });
+  const g = hit.results.find(r => r.graphic?.attributes?.id)?.graphic;
+  if (g) showInfo(g.attributes.id);
+});
+
+// ---------- Camera ----------
+$("underground").addEventListener("change", (e) => { map.ground.navigationConstraint = { type: e.target.checked ? "none" : "stay-above" }; });
+$("btnHome").addEventListener("click", async () => { setCutDepth(0); await view.goTo(START_CAMERA, { animate: !reduceMotion }); setStatus("The whole Earth. Drag the slider to cut into it."); });
+
+
+// ---------- Cuts through a chosen place: the Tonga cross-section and a real earthquake for the waves ----------
+const unitV = (v) => { const l = Math.hypot(...v); return v.map(x => x / l); };
+const dotV = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const lonLatR = (v) => { const r = Math.hypot(...v); return { longitude: Math.atan2(v[1], v[0]) * 180 / Math.PI, latitude: Math.asin(v[2] / r) * 180 / Math.PI, r }; };
+// The anchor that cuts the Earth in half on the great circle through q running along bearing `along`: the point 90° from q
+// at right angles to that circle, with its heading pointing at q, so q is at the top of the cut face (angle 0).
+function anchorThrough(q, along) {
+  const a = fromAnchor(q, along + 90, 90);
+  return { longitude: a.longitude, latitude: a.latitude, heading: bearingTo(a, q) };
+}
+// A camera distKm in front of the centre cut (on the anchor's side), looking at the point `target` ([x, y, z] km) on the cut.
+function cameraLookingAt(target, anchor, distKm) {
+  const n = ecefKm(anchor.longitude, anchor.latitude, 1), c = target.map((x, i) => x + distKm * n[i]);
+  const p = lonLatR(c), r = Math.PI / 180, lo = p.longitude * r, la = p.latitude * r;
+  const east = [-Math.sin(lo), Math.cos(lo), 0], north = [-Math.sin(la) * Math.cos(lo), -Math.sin(la) * Math.sin(lo), Math.cos(la)];
+  const up = [Math.cos(la) * Math.cos(lo), Math.cos(la) * Math.sin(lo), Math.sin(la)];
+  const d = unitV(target.map((x, i) => x - c[i]));
+  const heading = (Math.atan2(dotV(d, east), dotV(d, north)) / r + 360) % 360;
+  const tilt = Math.acos(Math.max(-1, Math.min(1, -dotV(d, up)))) / r;
+  return camAt(p.longitude, p.latitude, (p.r - R_SCENE_KM) * 1000, heading, tilt);
+}
+const TONGA = { q: { longitude: -174.7267, latitude: -23.2583 }, strike: 20 }; // Horizon Deep; the trench runs about 20° east of north
+const SECTION_BAND_KM = 300, SECTION_RADIUS_KM = 1000;
+const sectionLayer = new GraphicsLayer({ title: "Earthquakes near the cut", elevationInfo: { mode: "absolute-height" } });
+map.add(sectionLayer);
+slice.excludedLayers.add(sectionLayer); // they are moved onto the cut, so the cut must not hide them
+let sectionOn = false, sectionData = null;
+const SECTION_CHIPS = [
+  { id: "trench", text: "Tonga trench",                                 c: "#ffffff", th: 0,   r: 6371 + 300 },
+  { id: "west",   text: "West: Tonga, then Fiji",                       c: "#ffffff", th: 7,   r: 6371 + 250 },
+  { id: "east",   text: "East: Pacific Ocean",                          c: "#ffffff", th: -6,  r: 6371 + 250 },
+  { id: "slab",   text: "Earthquakes trace the sinking Pacific plate",  c: "#a78bfa", th: 1,   r: 6371 - 480 }
+];
+sectionOverlay.innerHTML = SECTION_CHIPS.map(c => `<span class="lbl" data-pt="${c.id}" style="--c:${c.c}">${c.text}</span>`).join("");
+const QUAKE_CHIP = wavesOverlay.querySelector('[data-pt="quake"]');
+function clearSection() {
+  sectionOn = false; sectionLayer.removeAll(); sectionPts = null;
+  if (QUAKE_CHIP) QUAKE_CHIP.textContent = "Earthquake";
+  $("realQuakeText").hidden = true;
+  placeLabels();
+}
+async function sectionQuakes(q) {
+  if (sectionData) return sectionData;
+  const start = new Date(Date.now() - 365 * 864e5).toISOString().slice(0, 10);
+  const url = "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&minmagnitude=4.5&orderby=time" +
+    `&starttime=${start}&latitude=${q.latitude}&longitude=${q.longitude}&maxradiuskm=${SECTION_RADIUS_KM}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  sectionData = (await res.json()).features;
+  return sectionData;
+}
+// Earthquakes within SECTION_BAND_KM of the centre cut, moved straight onto it (just in front of the cut face).
+function drawSection(features, anchor) {
+  sectionLayer.removeAll();
+  const n = ecefKm(anchor.longitude, anchor.latitude, 1);
+  let kept = 0, deep = 0;
+  for (const f of features) {
+    const [lon, lat, depth] = f.geometry.coordinates, mag = f.properties.mag || 4.5;
+    const v = ecefKm(lon, lat, R_SCENE_KM - depth), dist = dotV(v, n);
+    if (Math.abs(dist) > SECTION_BAND_KM) continue;
+    const p = lonLatR(v.map((x, i) => x + (12 - dist) * n[i]));
+    const size = 1000 * (22 + Math.max(0, mag - 4.5) * 18);
+    sectionLayer.add(new Graphic({ geometry: pointAt(p.longitude, p.latitude, (p.r - R_SCENE_KM) * 1000),
+      symbol: { type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "sphere" }, width: size, height: size, depth: size, material: { color: quakeColor(depth) } }] } }));
+    kept++; if (depth >= 300) deep++;
+  }
+  return { kept, deep };
+}
+// which way round the cut is west: the angle sign that moves from the trench towards Tonga and Fiji
+function westSign(anchor, q) {
+  const a = fromAnchor(anchor, anchor.heading + 5, 90);
+  return (((a.longitude - q.longitude + 540) % 360) - 180) < 0 ? 1 : -1;
+}
+$("btnTongaSection").addEventListener("click", async () => {
+  clearSection();
+  if (mode !== "layers") setMode("layers");
+  const anchor = anchorThrough(TONGA.q, TONGA.strike + 90);
+  setCutDepth(R_TRUE_KM, anchor);
+  sectionOn = true;
+  const w = westSign(anchor, TONGA.q);
+  sectionPts = Object.fromEntries(SECTION_CHIPS.map(c => [c.id, cutPt(c.id === "east" ? -w * Math.abs(c.th) : w * c.th, c.r)]));
+  const tq = quarterRound(anchor, anchor.heading + w * 3), target = ecefKm(tq.longitude, tq.latitude, R_SCENE_KM - 300);
+  view.goTo(cameraLookingAt(target, anchor, 2800), { animate: !reduceMotion, duration: 2000 })
+    .catch(e => { if (e?.name !== "AbortError") console.warn(e); });
+  placeLabels();
+  setStatus("Cut through the Tonga trench. Loading a year of earthquakes near the cut…");
+  try {
+    const feats = await sectionQuakes(TONGA.q);
+    if (!sectionOn || cutAnchor !== anchor) return; // the viewer has moved on
+    const { kept, deep } = drawSection(feats, anchor);
+    setStatus(`Cut through the Tonga trench. ${km(kept)} earthquakes from the past year lie within ${SECTION_BAND_KM} km of the cut, ${km(deep)} of them deeper than 300 km. ` +
+      "They slope down to the west, tracing the Pacific plate as it sinks into the mantle. Here it sinks at about 15–24 cm a year, among the fastest on Earth.");
+  } catch (e) { console.error(e); if (sectionOn) setStatus("Cut through the Tonga trench. The earthquakes for the cut could not be loaded from USGS."); }
+});
+$("btnRealQuake").addEventListener("click", () => {
+  if (!quakeFeatures?.length) { setStatus("The USGS earthquakes have not loaded, so a real earthquake can't be used."); return; }
+  const f = quakeFeatures.reduce((a, b) => ((b.properties.mag || 0) > (a.properties.mag || 0) ? b : a));
+  const [lon, lat, depth] = f.geometry.coordinates;
+  clearSection();
+  const anchor = anchorThrough({ longitude: lon, latitude: lat }, 0); // the cut runs north–south through the earthquake
+  setCutDepth(R_TRUE_KM, anchor);
+  view.goTo(camAt(anchor.longitude, anchor.latitude, SWING_MIN_ALT_M, anchor.heading, 0), { animate: !reduceMotion, duration: 1800 })
+    .catch(e => { if (e?.name !== "AbortError") console.warn(e); });
+  const mag = (f.properties.mag || 0).toFixed(1), when = new Date(f.properties.time).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+  if (QUAKE_CHIP) QUAKE_CHIP.textContent = `Magnitude ${mag} earthquake`;
+  const t = $("realQuakeText");
+  t.textContent = `Magnitude ${mag}, ${f.properties.place || "place not given"}, ${when}, ${km(Math.round(depth))} km deep. The cut runs north–south through it. The waves are drawn starting from the surface above it.`;
+  t.hidden = false;
+  startQuake();
+});
+
+// ---------- Start: the whole Earth ----------
+setCutDepth(0);
+setStatus("Ready. Loading earthquakes…");
+setStatus("Ready. " + await loadQuakes() + " Drag the slider under the globe to cut into the Earth.");
+// work out the earthquake-wave paths while the page is idle, so "Earthquake waves" opens without a pause
+(window.requestIdleCallback || ((f) => setTimeout(f, 1500)))(() => computeRays());
+</script>
+</body>
+</html>
