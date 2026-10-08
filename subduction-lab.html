@@ -206,12 +206,12 @@ import * as E from "./subduction-engine.js";
 
 // ================= Versions (single source of truth) =================
 // Bump a model's number whenever its maths or data handling changes, and bump the app version on every release.
-const APP_VERSION = "0.1.0";
+const APP_VERSION = "0.1.1";
 const MODELS = {
   places: { name: "Places", version: "1.0", desc: "Tonga: the cut passes through Horizon Deep (23.26° S, 174.73° W) at right angles to the trench, taken to run about 20° east of north; volcano Hunga Tonga–Hunga Haʻapai (20.545° S, 175.393° W). Japan: the cut passes through a point on the Japan Trench (38.1° N, 143.9° E) at right angles to it, taken to run about 15° east of north; volcano Zaō (38.144° N, 140.440° E); 2011 Tōhoku earthquake (38.322° N, 142.369° E, 29 km deep, magnitude 9.1)." },
   cut:    { name: "Slice model", version: "1.0", desc: "The Earth is cut in half on the great circle through the trench point, at right angles to the trench (Esri SliceAnalysis plane 1 km from the Earth's centre, facing a point 90° from the trench along it). The half of the Earth in front of the cut is removed; the ground is swapped for a sphere with the same imagery that the cut slices. The layers on the cut are flat rings 40 km behind it (crust 0–35, upper mantle 35–660, lower mantle 660–2,891, outer core 2,891–5,150, inner core; km). Camera: 3,500 km in front of the cut, looking at a point given for each place; while sliced, the view draws everything from 20 km to 40,000 km from the camera. Labels show only while the cut faces the camera at less than 75°." },
   quakes: { name: "Earthquake model", version: "1.0", desc: "USGS catalogue, magnitude 4.5+, past 12 months, within 1,000 km of the trench point. Map: dots on the surface, colour by depth (0–70, 70–300, 300 km and deeper), size 5 px + 2.5 px per magnitude above 4.5. Slice: earthquakes within 300 km of the cut moved straight onto it (12 km in front of the cut face) at true depth, spheres 14 km + 12 km per magnitude above 4.5." },
-  plate:  { name: "Plate model", version: "1.0", desc: "Going down in 40 km steps, the median position of the earthquakes near the cut in each step, counting only earthquakes within 1° east or 3° west of the step above (3° more for each empty step between), at least 3 per step. Joined to the ocean plate east of the trench, resampled every 15 km, smoothed (5-point moving average, 3 passes) and drawn 80 km thick (35 km above to 45 km below that line). Slope: the average between 60 and 200 km deep. White dots move along it once every 16 seconds. The melt line rises from the top of the plate under the volcano (the volcano is moved straight onto the cut)." }
+  plate:  { name: "Plate model", version: "1.1", desc: "Going down in 40 km steps, the median position of the earthquakes near the cut in each step, counting only earthquakes within 1° east or 3° west of the step above (3° more for each empty step between), at least 3 per step. Joined to the ocean plate east of the trench, resampled every 15 km, smoothed (5-point moving average, 3 passes) and drawn 80 km thick (35 km above to 45 km below that line). Slope: the average between 60 and 200 km deep. White arrows (140 km long, 9 along the plate) move along its middle once every 16 seconds; 1.1: arrows instead of moving dots, so the whole plate is seen to move rather than separate lumps of rock. The melt line rises from the top of the plate under the volcano (the volcano is moved straight onto the cut)." }
 };
 const $ = (id) => document.getElementById(id);
 $("appVersion").textContent = "v" + APP_VERSION;
@@ -520,7 +520,8 @@ function drawSlice(p, d) {
     plateLayer.add(new Graphic({ geometry: polyOnCut(line.map(pp => { const t = E.offsetAt(pp, -PLATE_ABOVE); return [t.thW, t.depth]; }), 5), symbol: lineSym("#a5d8ff", 2) }));
     const tail = line.slice(Math.floor(line.length * 0.55)).map(pp => { const c = E.fromXY(pp.xy); return [c.thW, c.depth]; });
     plateLayer.add(new Graphic({ geometry: polyOnCut(tail, 6), symbol: lineSym("#a5d8ff", 3, { arrow: true }) }));
-    for (let k = 0; k < 9; k++) { const g = new Graphic({ symbol: sphere(26000, "#ffffff") }); parcels.push({ g, k }); plateLayer.add(g); }
+    // moving arrows along the plate show the whole plate sinking (moving dots looked like separate lumps of rock)
+    for (let k = 0; k < 9; k++) { const g = new Graphic({ symbol: lineSym("#ffffff", 4, { arrow: true }) }); parcels.push({ g, k }); plateLayer.add(g); }
     placeParcels();
   }
   if (d?.bins.length) {
@@ -542,7 +543,9 @@ let phase = 0, paused = reduceMotion, last = 0;
 function placeParcels() {
   if (!line || !F) return;
   const total = line[line.length - 1].len;
-  for (const pc of parcels) { const c = E.alongLine(line, ((phase + pc.k / parcels.length) % 1) * total); pc.g.geometry = cutPt(c.thW, c.depth, 8); }
+  for (const pc of parcels) { const s1 = ((phase + pc.k / parcels.length) % 1) * total;
+    const pts = Array.from({ length: 6 }, (_, i) => { const c = E.alongLine(line, Math.max(0, s1 - 140 + 140 * i / 5)); return [c.thW, c.depth]; });
+    pc.g.geometry = polyOnCut(pts, 8); }
 }
 function tick(ts) {
   if (ts - last > 60) { if (!paused && parcels.length && viewMode === "slice") { phase = (phase + Math.min(0.2, (ts - last) / 1000) / 16) % 1; placeParcels(); } last = ts; }
@@ -585,7 +588,7 @@ function renderSteps() {
     $("stepsTitle").textContent = `What happens at the ${p.trench}?`;
     $("stepsBody").innerHTML = `<p style="margin:8px 0">This slice runs west–east across the trench. The numbers match the labels on the cut.</p><ol>${p.steps.map(s => `<li>${fill(s, d)}</li>`).join("")}</ol>` +
       `<div class="key" aria-label="Key to the drawing"><i style="background:#1d5fa8;height:10px"></i><span>Sinking Pacific plate (drawn through the earthquakes)</span>` +
-      `<i style="background:#fff;height:8px;width:8px;border-radius:50%"></i><span>Rock moving with the plate</span>` +
+      `<i style="background:#fff"></i><span>Moving arrows: the whole plate sinking</span>` +
       `<i style="background:repeating-linear-gradient(90deg,#ff6b3d 0 5px,transparent 5px 8px)"></i><span>Water and melt rising to the volcano</span>` +
       `<i style="background:#ff4d2e;height:10px;width:10px;clip-path:polygon(50% 0,100% 100%,0 100%);border-radius:0"></i><span>Volcano</span>` +
       (p.notable ? `<i style="background:#ffd43b;height:10px;width:10px;transform:rotate(45deg);border-radius:0"></i><span>${p.notable.name}</span>` : "") + `</div>` +
