@@ -68,6 +68,8 @@
 
   #steps { position: absolute; right: 64px; top: 16px; width: 360px; max-height: calc(100% - 100px); overflow-y: auto; padding: 14px 16px 12px; z-index: 6; scrollbar-width: thin; }
   #steps .head { display: flex; align-items: center; gap: 10px; }
+  /* the title and the Back/Next buttons stay at the top while the steps scroll */
+  #steps .stickytop { position: sticky; top: -14px; z-index: 1; margin: -14px -16px 0; padding: 14px 16px 8px; background: rgba(11, 18, 33, 0.97); border-bottom: 1px solid var(--rule); border-radius: var(--radius) var(--radius) 0 0; }
   #steps h2 { font-size: 20px; margin: 0; flex: 1; font-weight: 800; line-height: 1.2; }
   #steps ol { padding-left: 22px; margin: 10px 0; font-size: 13.5px; }
   #steps li { margin-bottom: 6px; color: var(--muted); }
@@ -174,12 +176,14 @@
   <div id="chips" role="group" aria-label="Labels"></div>
 
   <section id="steps" class="glass" aria-labelledby="stepsTitle">
-    <div class="head">
-      <h2 id="stepsTitle" tabindex="-1"></h2>
-      <button class="iconbtn" id="stepsClose" aria-label="Close the explanation">✕</button>
+    <div class="stickytop">
+      <div class="head">
+        <h2 id="stepsTitle" tabindex="-1"></h2>
+        <button class="iconbtn" id="stepsClose" aria-label="Close the explanation">✕</button>
+      </div>
+      <div class="navrow" id="stepsNav"></div>
     </div>
     <div id="stepsBody"></div>
-    <div class="navrow" id="stepsNav"></div>
     <p class="src" id="stepsSrc"></p>
   </section>
 
@@ -212,10 +216,10 @@ import * as E from "./subduction-engine.js";
 
 // ================= Versions (single source of truth) =================
 // Bump a model's number whenever its maths or data handling changes, and bump the app version on every release.
-const APP_VERSION = "0.4.0-test";
+const APP_VERSION = "0.4.1-test";
 const MODELS = {
   places: { name: "Place", version: "1.1", desc: "Tonga: section through Horizon Deep (23.26° S, 174.73° W) at right angles to the trench, taken to run about 20° east of north; volcano Hunga Tonga–Hunga Haʻapai (20.545° S, 175.393° W). (1.1: Japan removed for now.)" },
-  block:  { name: "Block model", version: "1.2", desc: "A block of the Earth 1,800 km across the trench (500 km east of it to 1,300 km west), 700 km along it and 800 km deep, in its true curved shape (sides point to the Earth's centre), lifted 1,500 km straight up above where it came from. Front face: the layers (crust 0–35, upper mantle 35–660, lower mantle 660–800 km). Top: Esri imagery with boundaries and names (1,024 px). Sides, back and bottom: see-through layers. Dashed lines join the block to its outline on the globe. Camera: 3,600 km in front of the block and 1,600 km above, looking at 350 km deep in the middle of the front face. (1.1: built once per view; the steps only show and hide parts. 1.2: when the block opens it rises out of the Earth over 5 seconds: its layers start lowered by the full lift, straight down at each point, so it begins roughly in place under the ground; earthquakes, labels and guide lines appear once it is up. Skipped with reduced motion.)" },
+  block:  { name: "Block model", version: "1.3", desc: "A block of the Earth 1,800 km across the trench (500 km east of it to 1,300 km west), 700 km along it and 800 km deep, in its true curved shape (sides point to the Earth's centre), lifted 1,500 km straight up above where it came from. Front face: the layers (crust 0–35, upper mantle 35–660, lower mantle 660–800 km). Top: Esri imagery with boundaries and names (1,024 px). Sides, back and bottom: see-through layers. Dashed lines join the block to its outline on the globe. Camera: 3,600 km in front of the block and 1,600 km above, looking at 350 km deep in the middle of the front face. (1.1: built once per view; the steps only show and hide parts. 1.2: when the block opens it rises out of the Earth over 5 seconds: its layers start lowered by the full lift, straight down at each point, so it begins roughly in place under the ground; earthquakes, labels and guide lines appear once it is up. Skipped with reduced motion. 1.3: a white pointer and label mark the trench from step 1 (the real trench, about 10 km deep, is too shallow to see at this scale); the volcano on top is larger.)" },
   quakes: { name: "Earthquake model", version: "2.0", desc: "USGS catalogue, magnitude 4.5+, past 5 years, within 1,300 km of the middle of the block, from a file saved monthly in the app's data folder (live USGS query only if the file can't load). Map: dots coloured by depth (0–70, 70–300, 300 km and deeper), 4 to 13 px by magnitude. Cross-section: earthquakes up to 150 km behind the front face moved onto it, spheres 12 km + 10 km per magnitude above 4.5. See inside: every earthquake in the block at its real position, spheres 10 km + 8 km per magnitude above 4.5. (2.0: saved file instead of a live 5-year query; drawn as feature layers.)" },
   plate:  { name: "Plate model", version: "1.1", desc: "Going down in 40 km steps, the median position of the earthquakes in each step, counting only earthquakes within 1° east or 3° west of the step above (3° more for each empty step between), at least 3 per step. Joined to the ocean plate east of the trench, resampled every 15 km, smoothed (5-point moving average, 3 passes). Front face: drawn 80 km thick (35 km above to 45 km below that line) from the earthquakes up to 150 km behind it; slope = average between 60 and 200 km deep. See inside: the same fit in 100 km slices along the trench, each from its own earthquakes, drawn as see-through ribbons. White arrows (140 km long, 9) move along the front-face plate once every 16 seconds. Melt line: from the top of the plate under the volcano. The plate on top (Tonga plate) is drawn on the front face from the trench westwards, 60 km thick (an estimate; real thickness varies) or down to the top of the sinking plate where that is shallower. (1.1: plate on top added; moving arrows thinner.)" }
 };
@@ -468,8 +472,10 @@ function buildBlock() {
   for (const t of [B.thMin, B.thMax]) { for (const dd of [0, B.dMax]) edge(Y.map(y => bc(t, y, dd))); for (const y of [0, B.yMax]) edge([bc(t, y, 0), bc(t, y, B.dMax)]); }
   // the volcano on top
   const vb = D.vb;
-  blockLayer.add(new Graphic({ geometry: bpt(vb.thW, vb.y, -20), symbol: { type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "cone" }, width: 60000, height: 50000, depth: 60000, material: { color: "#ff4d2e" } }] } }));
+  blockLayer.add(new Graphic({ geometry: bpt(vb.thW, vb.y, -35), symbol: { type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "cone" }, width: 110000, height: 90000, depth: 110000, material: { color: "#ff4d2e" } }] } }));
   const add = (layer, g, from = 1) => { layer.add(g); if (from > 1) stepped.push([g, from]); return g; };
+  // the trench: a pointer above the surface where the plates meet (at true scale the trench is too shallow to see on the block)
+  blockLayer.add(new Graphic({ geometry: bpt(0, -6, -55), symbol: { type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "inverted-cone" }, width: 70000, height: 80000, depth: 70000, material: { color: "#ffffff" } }] } }));
   if (!inside) {
     for (const dep of [100, 300, 660]) add(faceLayer, new Graphic({ geometry: lineOn(T.map(t => bc(t, -2, dep))), symbol: { type: "line-3d", symbolLayers: [{ type: "line", size: 1, material: { color: [255, 255, 255, 0.4] }, pattern: { type: "style", style: "dash" } }] } }));
     if (D.line) {
@@ -508,6 +514,7 @@ function applyStep() {
       bpt(D.vb.thW + 0.4, -6, -190), deepB ? bpt(deepB.thW, -6, Math.min(deepB.depth + 80, B.dMax - 30)) : null][step - 1];
     if (where) list.push({ text: STEP_LABELS[step - 1], color: STEP_COLORS[step - 1], step: true, pt: where });
   } else list.push({ text: "Every earthquake in the block, and the plate fitted in 100 km slices", color: "#a5d8ff", pt: bpt((B.thMin + B.thMax) / 2, B.yMax / 2, -260) });
+  if (step !== 2) list.push({ text: "Trench", color: "#ffffff", small: true, pt: bpt(0, -6, -140) });
   if (!inside && D.line) list.push({ text: "Tonga plate", color: OVER_COLOR, small: true, pt: bpt(Math.min(B.thMax - 1, 5), -6, 30) },
     { text: "Pacific plate", color: "#4dabf7", small: true, pt: bpt(B.thMin + 1, -6, 40) });
   list.push({ text: `West: ${P.overriding}`, color: "#ffffff", small: true, pt: bpt(B.thMax - 2, -2, -150) }, { text: "East: Pacific plate", color: "#ffffff", small: true, pt: bpt(B.thMin + 1.5, -2, -150) });
@@ -570,6 +577,7 @@ function renderPanel() {
     $("goMap").addEventListener("click", () => { riseId++; setLift(1); setView("map"); });
   }
   $("stepsSrc").innerHTML = "Sources: " + P.src;
+  document.querySelector("#steps li.current")?.scrollIntoView({ block: "nearest", behavior: reduceMotion ? "auto" : "smooth" });
 }
 $("stepsClose").addEventListener("click", () => { $("steps").hidden = true; setPadding(); $(viewMode === "map" ? "viewMap" : "viewBlock").focus(); });
 document.addEventListener("keydown", (e) => {
