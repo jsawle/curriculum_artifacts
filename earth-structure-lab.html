@@ -374,7 +374,7 @@
 <script type="module">
 // ================= Versions (single source of truth) =================
 // Bump a model's number whenever its maths or data handling changes, and bump the app version on every release.
-const APP_VERSION = "0.8.0";
+const APP_VERSION = "0.8.1";
 const MODELS = {
   layers: { name: "Layer model", version: "2.1", desc: "Two ways of dividing the Earth: by what it is made of (crust 0–35, upper mantle 35–660, lower mantle 660–2,891, outer core, inner core) and by how it behaves (lithosphere 0–100, asthenosphere 100–250, mesosphere 250–2,891, outer core, inner core; km). On a slider cut each layer the cut reaches is a flat filled ring where the cut plane meets that layer's shell (ring radius √(r² − h²), where h is the plane's distance from the centre), 2 km behind the cut, or 40 km behind it when the Earth is cut in half so the models drawn on the cut stay in front. Shells: concentric spheres for mantle and core at PREM depths, scaled to the globe's radius. Facts per layer for the information panel." },
   waves:  { name: "Seismic wave model", version: "1.0", desc: "Wave paths traced through wave speeds rounded from PREM (crust and the low-speed zone smoothed out): each path bends with the speed change and refracts with Snell's law at 400 km, 670 km, the core–mantle boundary and the inner-core boundary; S-waves stop at the liquid outer core. Shadow zones are drawn at the measured edges (USGS: 104°–140°), not the model's. The animation runs 30 real minutes in 15 seconds." },
@@ -593,7 +593,7 @@ try {
 // Camera positions must be real Point objects: SDK 5.1 rejects a plain {longitude, latitude, z} object in goTo().
 const pointAt = (longitude, latitude, z = 0) => new Point({ longitude, latitude, z, spatialReference: { wkid: 4326 } });
 const camAt = (longitude, latitude, z, heading, tilt) => ({ position: pointAt(longitude, latitude, z), heading, tilt });
-const START_CAMERA = camAt(-175, -20, 22000000, 0, 0);
+const START_CAMERA = camAt(30, 8, 22000000, 0, 0); // Africa, Europe and the Middle East in view
 await view.goTo(START_CAMERA, { animate: false });
 
 // ---------- 3D shells ----------
