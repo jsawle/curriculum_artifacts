@@ -144,3 +144,47 @@ export function alongLine(line, s) {
 // the same three depth classes as Earth Structure Lab
 export const QUAKE_CLASSES = [[-100, 70, "#66e3ff", "0–70 km"], [70, 300, "#3b82f6", "70–300 km"], [300, 1000, "#a78bfa", "300 km and deeper"]];
 export const quakeColor = (depth) => (QUAKE_CLASSES.find(([a, b]) => depth >= a && depth < b) || QUAKE_CLASSES[2])[2];
+
+// ---------- a block cut out of the Earth around a trench (Subduction Zones Lab test) ----------
+// Block coordinates: thW = degrees west along the section line (great circle at right angles to the trench through the
+// block's origin; negative = east of the trench), y = km behind the front face along the trench (negative = in front),
+// d = depth in km. The origin is q moved `faceOffset` km against the trench direction. The block is drawn lifted `lift` km
+// straight up (along the "up" direction at its middle), a rigid move, so its shape is exactly the real shape.
+export const KM_PER_DEG = R * RAD;
+const tangent = (lon, lat, bearing) => { const lo = lon * RAD, la = lat * RAD, b = bearing * RAD;
+  const east = [-Math.sin(lo), Math.cos(lo), 0], north = [-Math.sin(la) * Math.cos(lo), -Math.sin(la) * Math.sin(lo), Math.cos(la)];
+  return north.map((x, i) => x * Math.cos(b) + east[i] * Math.sin(b)); };
+export function makeBlock(q, strike, { faceOffset = 0, xMinKm = -500, xMaxKm = 1300, yMax = 700, dMax = 800, lift = 1500 } = {}) {
+  const origin = fromAnchor(q, strike + 180, faceOffset / KM_PER_DEG);
+  const B = { q, strike, origin, thMin: xMinKm / KM_PER_DEG, thMax: xMaxKm / KM_PER_DEG, yMax, dMax, lift,
+    o: ecefKm(origin.longitude, origin.latitude, 1), w: tangent(origin.longitude, origin.latitude, strike - 90), s: tangent(origin.longitude, origin.latitude, strike) };
+  B.up = blockUnit(B, (B.thMin + B.thMax) / 2, yMax / 2);
+  return B;
+}
+function blockUnit(B, thW, y) {
+  const a = thW * RAD, b = y / R;
+  return unitV(B.o.map((x, i) => x * Math.cos(a) * Math.cos(b) + B.w[i] * Math.sin(a) * Math.cos(b) + B.s[i] * Math.sin(b)));
+}
+// real position (km, Earth-centred) and the lifted position as [lon, lat, height m]
+export const blockVec = (B, thW, y, d) => blockUnit(B, thW, y).map(x => x * (R - d));
+export function blockCoords(B, thW, y, d) {
+  const v = blockVec(B, thW, y, d).map((x, i) => x + B.lift * B.up[i]);
+  const p = lonLatR(v); return [p.longitude, p.latitude, (p.r - R) * 1000];
+}
+// where a place is in block coordinates
+export function toBlock(B, lon, lat, d = 0) {
+  const u = ecefKm(lon, lat, 1);
+  return { thW: Math.atan2(dotV(u, B.w), dotV(u, B.o)) / RAD, y: Math.asin(Math.max(-1, Math.min(1, dotV(u, B.s)))) * R, d };
+}
+export const inBlock = (B, p) => p.thW >= B.thMin && p.thW <= B.thMax && p.y >= 0 && p.y <= B.yMax && p.d <= B.dMax;
+// A camera `back` km in front of the block and `up` km above it, looking at block point (thW, y, d). Lifted positions.
+export function blockCamera(B, thW, y, d, back, upKm) {
+  const lift = (v) => v.map((x, i) => x + B.lift * B.up[i]);
+  const T = lift(blockVec(B, thW, y, d)), front = B.s.map(x => -x);
+  const C = T.map((x, i) => x + back * front[i] + upKm * B.up[i]);
+  const p = lonLatR(C), lo = p.longitude * RAD, la = p.latitude * RAD;
+  const east = [-Math.sin(lo), Math.cos(lo), 0], north = [-Math.sin(la) * Math.cos(lo), -Math.sin(la) * Math.sin(lo), Math.cos(la)];
+  const upv = [Math.cos(la) * Math.cos(lo), Math.cos(la) * Math.sin(lo), Math.sin(la)], dd = unitV(T.map((x, i) => x - C[i]));
+  return { longitude: p.longitude, latitude: p.latitude, z: (p.r - R) * 1000,
+    heading: (Math.atan2(dotV(dd, east), dotV(dd, north)) / RAD + 360) % 360, tilt: Math.acos(Math.max(-1, Math.min(1, -dotV(dd, upv)))) / RAD };
+}
