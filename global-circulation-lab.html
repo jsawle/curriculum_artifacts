@@ -17,8 +17,8 @@
     --border: #2c3a60;
     --focus: #ffd43b;
     --warn: #ffb4a2;
-    --hadley: #ff922b;
-    --ferrel: #51cf66;
+    --hadley: #ffa94d;
+    --ferrel: #e64980;
     --polar: #74c0fc;
     --low: #1971c2;      /* L badges: white text on this is 5.0:1 */
     --low-soft: #4dabf7;
@@ -44,7 +44,7 @@
   .dockbar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; padding: 0 2px 6px; }
   .dockbar .mlabel { margin: 0; white-space: nowrap; }
   .dockbar input[type=range] { flex: 1 1 160px; width: auto; min-width: 120px; }
-  .dockbar select { max-width: 220px; }
+  .dockbar select { max-width: 260px; }
   .dockbar .grp { display: inline-flex; align-items: center; gap: 8px; }
   .dockbar button { margin: 0; }
   .card .monthline { margin: 0 0 3px; font-size: .8rem; }
@@ -106,23 +106,40 @@
   .legend .lrow { display: flex; align-items: center; gap: 8px; margin: 3px 0; }
   .legend .cellbtns { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
   .legend .cellbtns button { padding: 3px 8px; font-size: .78rem; margin: 0; min-height: 28px; display: inline-flex; align-items: center; gap: 6px; }
-  .info { position: absolute; right: 10px; bottom: calc(var(--dock-h, 280px) + 40px); width: min(400px, calc(100% - 20px)); padding: 10px 12px; z-index: 6; }
-  .info h2 { margin: 0 0 4px; font-size: 1rem; }
-  .info p { font-size: .88rem; margin: 4px 0; }
+  /* selection info: a strip inside the diagram panel, so it no longer covers the globe */
+  .info { background: #0b0f1ee6; border: 1px solid var(--border);
+    border-left: 4px solid var(--focus); border-radius: 8px; padding: 6px 10px; margin: 0 0 8px; }
+  .info .infohead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; }
+  .info .infobtns { display: flex; flex-wrap: wrap; gap: 4px; }
+  .info .infobtns button { margin: 0; min-height: 28px; padding: 3px 9px; font-size: .82rem; }
+  .steprow { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+  .steprow .steps { flex: 1 1 520px; margin: 0; flex-wrap: nowrap; }
+  .steprow .steplabel { flex: 0 1 120px; line-height: 1.2; }
+  .steprow .steps li { flex: 1 1 0; min-width: 0; }
+  .steprow .steps button { white-space: normal; line-height: 1.2; height: 100%; align-items: center; }
+  @media (max-width: 700px) { .steprow .steps { flex-wrap: wrap; } .steprow .steps li { flex: 1 1 130px; } }
+  .info h2 { margin: 0 0 2px; font-size: .95rem; }
+  .info p { font-size: .86rem; margin: 2px 0; }
+  .regnote { border-left: 3px solid var(--warn); padding: 3px 8px; margin: 6px 0 0; font-size: .82rem; color: #ffd8cc; background: #ffb4a214; border-radius: 4px; }
+  .regnote[hidden] { display: none; }
+  .sunseg { display: inline-flex; margin: 0; }
+  .sunseg button { margin: 0; min-height: 28px; padding: 3px 10px; font-size: .8rem; border-radius: 0; }
+  .sunseg button:first-child { border-radius: 6px 0 0 6px; }
+  .sunseg button:last-child { border-radius: 0 6px 6px 0; border-left: 0; }
   .credit { position: absolute; right: 10px; bottom: 30px; background: #000c; color: #fff; border: 1px solid #ffffff40;
     border-radius: 6px; padding: 5px 9px; font-size: .75rem; line-height: 1.3; z-index: 5; text-align: right; }
 
   /* diagrams */
   svg.diagram { width: 100%; height: auto; display: block; background: #0e1630; border: 1px solid var(--border); border-radius: 8px; }
-  #section { max-height: 175px; }
-  svg.diagram text { fill: var(--muted); font-size: 9px; font-family: inherit; }
+  /* diagrams are drawn at screen size (see svgWidth), so these are real pixel sizes */
+  svg.diagram text { fill: var(--muted); font-size: 11.5px; font-family: inherit; }
   #section text { font-size: 12px; }
   #section .cell { cursor: pointer; }
   #section .cell .loop { stroke: none; }
   #section .cell text.cname { font-weight: 700; font-size: 13px; }
   #section .zone { cursor: pointer; }
   #section .zone text.letter { fill: #fff; font-weight: 800; font-size: 14px; }
-  #section .zone text.word { font-size: 10.5px; font-weight: 600; }
+  #section .zone text.word { font-size: 11.5px; font-weight: 600; }
   #section .dim { opacity: .22; }
   #section .dimsoft { opacity: .5; }
   #section .hi .loop { fill-opacity: .38; }
@@ -130,7 +147,6 @@
   #section .cell:focus-visible, #section .zone:focus-visible { outline: none; }
   #section .cell:focus-visible .loop { stroke: var(--focus); stroke-width: 2; }
   #section .zone:focus-visible circle { stroke: var(--focus); stroke-width: 3; }
-  #sunChart { max-height: 78px; }
   #sunChart.hi { border-color: var(--focus); box-shadow: 0 0 0 2px var(--focus); }
   .steps { list-style: none; padding: 0; margin: 6px 0 0; display: flex; flex-wrap: wrap; gap: 4px; }
   .steps li { flex: 1 1 150px; }
@@ -144,7 +160,6 @@
 
   @media (max-width: 1180px) {
     .dock { right: 10px; }
-    .info { right: auto; left: 10px; }
     .steps li { flex: 1 1 112px; }
     .steps button { font-size: .76rem; padding: 3px 6px; white-space: normal; }
     .card .monthline, .keyline { font-size: .72rem; }
@@ -157,10 +172,9 @@
     /* phones: everything stacks under the globe instead of floating over it */
     .globe-wrap { position: relative; inset: auto; display: flex; flex-direction: column; overflow: visible; }
     arcgis-scene { height: 60vh; }
-    .legend, .info, .dock { position: static; width: auto; max-width: none; max-height: none; margin: 8px 10px 0; }
+    .legend, .dock { position: static; width: auto; max-width: none; max-height: none; margin: 8px 10px 0; }
     .dockbody { grid-template-columns: 1fr; }
     .credit { top: calc(60vh - 64px); bottom: auto; }
-    #section { max-height: none; }
   }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
@@ -185,7 +199,7 @@
       <label><input type="checkbox" id="showParcels" checked /> Moving air (white blobs)</label>
       <label><input type="checkbox" id="showBelts" checked /> High and low pressure (H and L)</label>
       <label><input type="checkbox" id="showLabels" checked /> Labels</label>
-      <label><input type="checkbox" id="showSun" /> Sunlight strength</label>
+      <label><input type="checkbox" id="showSun" /> Sunlight strength (midday or whole day, as chosen on the chart)</label>
       <label><input type="checkbox" id="showKey" checked /> Equator, tropics, polar circles and main meridians</label>
     </fieldset>
     <fieldset>
@@ -215,6 +229,7 @@
       <label><input type="radio" name="wind" value="surface" /> Near the surface (trade winds, westerlies)</label>
       <label><input type="radio" name="wind" value="upper" /> High up, about 12 km (raised to match the stretch)</label>
     </fieldset>
+    <p class="sub">Near the surface over high mountains and ice sheets (Tibet, the Andes, Antarctica) the ground is higher than this level, so the values there are calculated, not real winds.</p>
     <p class="layerstat" id="stat-wind" aria-live="polite"></p>
 
     <h3>Rainfall <span class="badge" id="v-rain"></span></h3>
@@ -247,7 +262,7 @@
   </aside>
 
   <main id="main">
-    <div class="globe-wrap" role="region" aria-label="3D globe. It shows the circulation cells over the selected region, moving air, and bands of high (H) and low (L) pressure. The diagrams below the globe give the same information and can be used with the keyboard.">
+    <div class="globe-wrap" role="region" aria-label="3D globe. It shows the circulation cells over the selected region, moving air, and bands of high (H) and low (L) pressure. The diagram panel over the globe gives the same information and can be used with the keyboard.">
       <arcgis-scene id="scene" viewing-mode="global">
         <arcgis-zoom slot="top-right"></arcgis-zoom>
         <arcgis-navigation-toggle slot="top-right"></arcgis-navigation-toggle>
@@ -262,13 +277,6 @@
           <button class="cellbtn" data-kind="polar" aria-pressed="false"><span class="swatch" style="background:var(--polar)"></span>Polar</button>
         </div>
       </div>
-      <div class="info glass" id="infoCard" hidden>
-        <h2 id="infoTitle"></h2>
-        <div id="infoText"></div>
-        <button id="infoFly">Show me on the globe</button>
-        <button id="infoNext" hidden>Next step</button>
-        <button id="infoClear">Clear</button>
-      </div>
       <p class="sr-only" id="selAnnounce" aria-live="polite"></p>
       <section class="dock glass" id="dock" aria-label="Month, region and diagrams">
         <div class="dockbar">
@@ -279,21 +287,40 @@
           <select id="region"></select></span>
           <button id="btnDock" aria-expanded="true" aria-controls="dockBody">Hide diagrams</button>
         </div>
+        <div class="info" id="infoCard" hidden>
+          <div class="infohead">
+            <h2 id="infoTitle"></h2>
+            <div class="infobtns">
+              <button id="infoFly">Show me on the globe</button>
+              <button id="infoNext" hidden>Next step</button>
+              <button id="infoClear">Clear</button>
+            </div>
+          </div>
+          <div id="infoText"></div>
+        </div>
         <div class="dockbody" id="dockBody">
           <div class="card">
             <h2 id="sectionTitle">Cross-section, south to north <span class="hint">Select a cell, H or L</span></h2>
             <p class="monthline" id="monthSummary" aria-live="polite"></p>
-            <svg id="section" class="diagram" viewBox="0 0 640 200" role="group" aria-labelledby="sectionTitle" aria-describedby="sectionDesc"></svg>
+            <svg id="section" class="diagram" viewBox="0 0 480 178" role="group" aria-labelledby="sectionTitle" aria-describedby="sectionDesc"></svg>
             <p class="sr-only" id="sectionDesc"></p>
-            <p class="keyline"><span>Dashed line: top of the weather layer</span><span>Yellow line: where the midday Sun is overhead</span></p>
+            <p class="keyline"><span>Dashed: top of the weather layer (tropopause)</span><span>Yellow: Sun overhead at midday</span></p>
+            <p class="regnote" id="regNote" hidden></p>
           </div>
           <div class="card">
-            <h2>Why does the air move? <span class="badge" id="v-sun"></span> <span class="hint">Select a step</span></h2>
-            <svg id="sunChart" class="diagram" viewBox="0 0 320 120" role="img" aria-labelledby="sunTitle sunDesc">
+            <h2>Sunlight <span class="badge" id="v-sun"></span>
+              <span class="sunseg" role="group" aria-label="Sunlight chart shows">
+                <button class="sunmode" data-mode="noon" aria-pressed="true">Midday</button><button class="sunmode" data-mode="day" aria-pressed="false">Whole day</button>
+              </span></h2>
+            <svg id="sunChart" class="diagram" viewBox="0 0 380 104" role="img" aria-labelledby="sunTitle sunDesc">
               <title id="sunTitle">How strong the midday sunlight is at each latitude</title>
               <desc id="sunDesc"></desc>
             </svg>
-            <ol class="steps" id="steps"></ol>
+            <p class="keyline" id="sunNote"></p>
+          </div>
+          <div class="steprow">
+            <span class="hint steplabel" id="stepsLabel">Why does the air move? Select a step</span>
+            <ol class="steps" id="steps" aria-labelledby="stepsLabel"></ol>
           </div>
         </div>
       </section>
@@ -326,14 +353,14 @@
 <script type="module">
 // ================= Versions (single source of truth) =================
 // Bump a model's number whenever its maths or data handling changes; bump the app version on every release.
-const APP_VERSION = "0.7.0";
+const APP_VERSION = "0.8.0";
 const MODELS = {
-  sun: { name: "Sunlight model", version: "1.0",
-    desc: "Latitude where the Sun is overhead at midday = 23.44° × sin(2π(day − 80)/365), using the 15th of each month. Midday sunlight strength = sine of the midday Sun's height (100% when overhead). Midday only: it ignores day length and the atmosphere, so it understates summer sunlight near the poles." },
+  sun: { name: "Sunlight model", version: "1.1",
+    desc: "Latitude where the Sun is overhead at midday = 23.44° × sin(2π(day − 80)/365), using the 15th of each month. Midday: strength = sine of the midday Sun's height (100% when overhead). Whole day (new in 1.1): daily total at the top of the atmosphere, counting day length (sunrise hour angle h0 = arccos(−tan φ tan δ); total ∝ h0 sin φ sin δ + cos φ cos δ sin h0), shown as a % of the most any place gets in a day (a pole at midsummer). Both ignore the atmosphere, clouds and reflection by ice, and the Earth–Sun distance." },
   surf: { name: "Surface wind model", version: "1.1",
     desc: "Gives the surface wind direction in the zone table and Check a place (no arrows are drawn on the globe). The model air at the ground moves toward the rain belt between the two subtropical highs, and toward the polar fronts elsewhere. Winds bend right in the north and left in the south (Coriolis); the bend fades to nothing within 4° of the equator. Winds that cross the equator turn the other way (monsoon winds) only when the rain belt is at least 8° from it; otherwise they stay easterly. Calm within 2.5° of the rain belt and the subtropical highs, and changeable within 2° of the polar fronts. Uses the belt positions for the longitude being checked. Direction only, not speed." },
-  cells: { name: "Cell model", version: "1.1",
-    desc: "Three cells per hemisphere, drawn on one north–south curtain over the chosen region. Belt positions change with longitude: between the four regions, the regional mean and amplitude are interpolated in a straight line. Rain belt (ITCZ) latitude = regional mean + amplitude × cos(2π(month − 7.5)/12). Subtropical highs move half as far, polar fronts a quarter as far. Cell tops follow a simple tropopause curve (16 km at the equator, 8 km at the poles) times the height stretch." },
+  cells: { name: "Cell model", version: "1.2",
+    desc: "Three cells per hemisphere, drawn on one north–south curtain over the chosen region or a chosen place. Belt positions change with longitude: between the six regions (1.2 added the Atlantic at 25° W and the eastern Pacific at 110° W, where the rain belt stays north of the equator all year), the regional mean and amplitude are interpolated in a straight line. Rain belt (ITCZ) latitude = regional mean + amplitude × cos(2π(month − 7.5)/12). Subtropical highs move half as far, polar fronts a quarter as far. Cell tops follow a simple tropopause curve (16 km at the equator, 8 km at the poles) times the height stretch." },
   wind: { name: "Wind layer", version: "1.0",
     desc: "ERA5 monthly averages 2005–2024. Surface = 1000 hPa at 10 m. Upper = 175 hPa, raised to 12.5 km × height stretch so it sits at the top of the cells." },
   rain: { name: "Rainfall layers", version: "1.0",
@@ -358,19 +385,24 @@ const LAND_CLASSES = { 1: "Water", 2: "Trees", 4: "Flooded vegetation", 5: "Crop
   8: "Bare ground", 9: "Snow and ice", 10: "Clouds (no data)", 11: "Rangeland (grass, savanna, shrubs)" };
 
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+// Over the Atlantic and Pacific oceans the rain belt stays north of the equator all year (about 2° N to 9° N);
+// over Africa, Asia and South America it swings much further (Schneider et al. 2014, Nature 513).
 const REGIONS = {
-  africa:   { label: "Africa (20° E)",                  lon: 20,   mean: 2,  amp: 12 },
-  americas: { label: "South America (60° W)",           lon: -60,  mean: -1, amp: 10 },
-  asia:     { label: "East Asia and Australia (130° E)", lon: 130, mean: 4,  amp: 16 },
-  pacific:  { label: "Central Pacific Ocean (150° W)",  lon: -150, mean: 6,  amp: 4 }
+  africa:   { label: "Africa (20° E)",                   lon: 20,   mean: 2,   amp: 12 },
+  asia:     { label: "East Asia and Australia (130° E)", lon: 130,  mean: 4,   amp: 16 },
+  pacific:  { label: "Central Pacific Ocean (150° W)",   lon: -150, mean: 6,   amp: 4 },
+  epacific: { label: "Eastern Pacific Ocean (110° W)",   lon: -110, mean: 7,   amp: 3 },
+  americas: { label: "South America (60° W)",            lon: -60,  mean: -1,  amp: 10 },
+  atlantic: { label: "Atlantic Ocean (25° W)",           lon: -25,  mean: 5.5, amp: 3.5 }
 };
-const COL = { hadley: "#ff922b", ferrel: "#51cf66", polar: "#74c0fc" };
+// Ferrel is pink rather than green so the three cells stay apart for colour-blind students
+const COL = { hadley: "#ffa94d", ferrel: "#e64980", polar: "#74c0fc" };
 const ZONES = {
   itcz:       { name: "Rain belt (ITCZ)",     air: "Warm, moist air rises. Low pressure.", rain: "Heavy rain, often daily thunderstorms.", land: "Tropical rainforest" },
   trades:     { name: "Trade winds",          air: "Surface winds blow from the high toward the rain belt.", rain: "Wet season when the rain belt is close, dry season when it moves away.", land: "Savanna and seasonal forest" },
   sth:        { name: "Subtropical high",     air: "Dry air sinks and warms. High pressure.", rain: "Very little rain.", land: "Hot desert" },
   westerlies: { name: "Westerlies",           air: "Surface winds blow from the high toward the polar front.", rain: "Rain from passing storms in every season.", land: "Temperate forest and grassland" },
-  pf:         { name: "Polar front",          air: "Cold polar air meets milder air, which rises. Low pressure.", rain: "Frequent storms, rain and snow.", land: "Boreal (northern) forest" },
+  pf:         { name: "Polar front",          air: "Cold polar air meets milder air, which rises. Low pressure.", rain: "Frequent storms, rain and snow.", land: "Boreal forest in the north; mostly the Southern Ocean in the south" },
   polar:      { name: "Polar high",           air: "Very cold, dry air sinks. High pressure.", rain: "Very little snow or rain (polar desert).", land: "Tundra and ice" }
 };
 
@@ -435,6 +467,16 @@ const DOY_MID = [15, 46, 74, 105, 135, 166, 196, 227, 258, 288, 319, 349];
 const sunLat = (month) => 23.44 * Math.sin(2 * Math.PI * (DOY_MID[month - 1] - 80) / 365);
 const noonHeight = (lat, d) => 90 - Math.abs(lat - d);                       // degrees above the horizon
 const sunStrength = (lat, d) => Math.max(0, Math.sin(noonHeight(lat, d) * Math.PI / 180)) * 100; // %
+// Whole day: sunlight reaching the top of the atmosphere over 24 hours, counting day length.
+// 100% = the most any place can get in a day (a pole at midsummer, when the Sun never sets).
+function dayStrength(lat, d) {
+  const p = lat * Math.PI / 180, q = d * Math.PI / 180;
+  const c = -Math.tan(p) * Math.tan(q);
+  const h0 = c >= 1 ? 0 : c <= -1 ? Math.PI : Math.acos(c);          // half the day length, as an angle
+  const day = (h0 * Math.sin(p) * Math.sin(q) + Math.cos(p) * Math.cos(q) * Math.sin(h0)) / Math.PI;
+  return Math.max(0, day / Math.sin(23.44 * Math.PI / 180)) * 100;
+}
+const sunNow = (lat, d) => state.sunMode === "day" ? dayStrength(lat, d) : sunStrength(lat, d);
 
 // ================= Surface wind model =================
 const MONSOON_MIN = 8; // rain belt must be at least this far from the equator for winds crossing it to turn
@@ -471,34 +513,58 @@ function windName(lat, b) {
   return `From the ${from}${kind}`;
 }
 
+// Diagrams are drawn in screen pixels (viewBox = their real width), so text keeps its size on every screen
+// short screens (school laptops, 768 px tall) get shorter diagrams so more of the globe shows
+const short = () => window.innerHeight < 820 && window.innerWidth > 860;
+const svgWidth = (svg, fallback) => Math.max(280, Math.round(svg.clientWidth || fallback));
+const SUN_TITLES = { noon: "How strong the midday sunlight is at each latitude",
+  day: "How much sunlight each latitude gets over a whole day" };
 function drawSunChart(b, monthName) {
-  const W = 320, L = 22, R = W - 12, T = 16, B = 90;
+  const svg = $("sunChart");
+  const W = svgWidth(svg, 380), H = short() ? 92 : 104, L = 36, R = W - 14, T = 20, B = H - 34;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
   const x = (lat) => L + (lat + 90) / 180 * (R - L);
   const y = (p) => B - p / 100 * (B - T);
-  const d = sunLat(state.month);
+  const d = sunLat(state.month), day = state.sunMode === "day";
   let line = "";
-  for (let lat = -90; lat <= 90; lat += 1) line += `${lat === -90 ? "M" : "L"}${x(lat).toFixed(1)},${y(sunStrength(lat, d)).toFixed(1)} `;
-  let s = `<title id="sunTitle">How strong the midday sunlight is at each latitude</title><desc id="sunDesc"></desc>`;
+  for (let lat = -90; lat <= 90; lat += 1) line += `${lat === -90 ? "M" : "L"}${x(lat).toFixed(1)},${y(sunNow(lat, d)).toFixed(1)} `;
+  let s = `<title id="sunTitle">${SUN_TITLES[state.sunMode]}</title><desc id="sunDesc"></desc>`;
   s += `<path d="${line} L${x(90)},${B} L${x(-90)},${B} Z" fill="#ffd43b33" stroke="none"/>`;
   s += `<path d="${line}" fill="none" stroke="#ffd43b" stroke-width="2"/>`;
   s += `<line x1="${L}" y1="${B}" x2="${R}" y2="${B}" stroke="#8892b0"/>`;
   s += `<line x1="${L}" y1="${T}" x2="${R}" y2="${T}" stroke="#8892b0" stroke-dasharray="1 3"/>`;
-  s += `<text x="${L + 2}" y="${T - 3}">100%</text><text x="${L - 3}" y="${B}" text-anchor="end">0</text>`;
+  s += `<text x="${L - 4}" y="${T + 4}" text-anchor="end">100%</text><text x="${L - 4}" y="${B + 4}" text-anchor="end">0</text>`;
   s += `<line x1="${x(d)}" y1="${T - 4}" x2="${x(d)}" y2="${B}" stroke="#ffd43b" stroke-dasharray="3 2"/>`;
-  s += `<text x="${x(d)}" y="${T - 6}" text-anchor="middle" style="fill:#ffe066">Sun overhead</text>`;
-  s += `<line x1="${x(b.itcz)}" y1="${T + 10}" x2="${x(b.itcz)}" y2="${B}" stroke="#4dabf7" stroke-width="1.5"/>`;
-  s += `<text x="${x(b.itcz) + (b.itcz > d ? 3 : -3)}" y="${B - 4}" text-anchor="${b.itcz > d ? "start" : "end"}" style="fill:#4dabf7">rain belt</text>`;
+  s += `<text x="${x(d)}" y="${T - 7}" text-anchor="middle" style="fill:#ffe066">Sun overhead</text>`;
+  s += `<line x1="${x(b.itcz)}" y1="${T + 14}" x2="${x(b.itcz)}" y2="${B}" stroke="#4dabf7" stroke-width="1.5"/>`;
+  s += `<text x="${x(b.itcz) + (b.itcz > d ? 4 : -4)}" y="${B - 5}" text-anchor="${b.itcz > d ? "start" : "end"}" style="fill:#74c0fc">rain belt</text>`;
   for (const lat of [-60, -30, 0, 30, 60]) {
     s += `<line x1="${x(lat)}" y1="${B}" x2="${x(lat)}" y2="${B + 4}" stroke="#8892b0"/>`;
-    s += `<text x="${x(lat)}" y="${B + 14}" text-anchor="middle">${lat === 0 ? "Equator" : fmtLat(lat)}</text>`;
+    s += `<text x="${x(lat)}" y="${B + 16}" text-anchor="middle">${lat === 0 ? "Eq." : fmtLat(lat)}</text>`;
   }
-  s += `<text x="${L}" y="${B + 27}">South</text><text x="${R}" y="${B + 27}" text-anchor="end">North</text>`;
-  const svg = $("sunChart");
+  s += `<text x="${L}" y="${B + 31}">South</text><text x="${R}" y="${B + 31}" text-anchor="end">North</text>`;
   svg.innerHTML = s;
-  const dark = d < -1 ? ` There is no midday Sun north of about ${fmtLat(90 + d)}.` : d > 1 ? ` There is no midday Sun south of about ${fmtLat(d - 90)}.` : "";
-  svg.querySelector("desc").textContent =
-    `${monthName}: the midday Sun is overhead at ${fmtLat(d)}, where sunlight is strongest. It gets weaker toward both poles.${dark} ` +
-    `The model rain belt is at ${fmtLat(b.itcz)}.`;
+  $("sunNote").textContent = day
+    ? "Whole day, counting day length. A pole in summer gets the most, as the Sun never sets, but ice reflects much of it and over a year the poles get far less."
+    : "Midday strength. 100% means the Sun is straight overhead.";
+  let desc;
+  if (day) {
+    const pole = d >= 0 ? 90 : -90;
+    desc = `${monthName}, whole day: the equator gets ${Math.round(dayStrength(0, d))}% and the ${d >= 0 ? "North" : "South"} Pole gets ${Math.round(dayStrength(pole, d))}% of the most any place can get in a day. ` +
+      `The other pole is in darkness all day.`;
+  } else {
+    const dark = d < -1 ? ` There is no midday Sun north of about ${fmtLat(90 + d)}.` : d > 1 ? ` There is no midday Sun south of about ${fmtLat(d - 90)}.` : "";
+    desc = `${monthName}, midday: the Sun is overhead at ${fmtLat(d)}, where midday sunlight is strongest. It gets weaker toward both poles.${dark}`;
+  }
+  svg.querySelector("desc").textContent = `${desc} The model rain belt is at ${fmtLat(b.itcz)}.`;
+}
+
+// Places where the simple model is known to go wrong; shown under the cross-section and in Check a place
+function modelNote(lon, month, lat = null) {
+  lon = wrapLon(lon);
+  const eastAsia = lon >= 100 && lon <= 150 && month >= 6 && month <= 8 && (lat == null || (lat >= 20 && lat <= 45));
+  if (eastAsia) return "East Asia breaks the model in June to August. The summer monsoon brings heavy rain to eastern China, Korea and Japan, even where the model puts the dry subtropical high. Here the high sits out over the Pacific Ocean instead.";
+  return "";
 }
 
 function zoneAt(lat, b) {
@@ -513,9 +579,11 @@ function zoneAt(lat, b) {
 
 // ================= 2D cross-section (works without the 3D view); cells and H/L badges are selectable =================
 function drawSection(b, monthName, region) {
-  const W = 640, L = 44, R = W - 16, G = 140;
+  const svg = $("section");
+  const W = svgWidth(svg, 480), H = short() ? 152 : 178, L = 26, R = W - 26, G = H - 60;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
   const x = (lat) => L + (lat + 90) / 180 * (R - L);
-  const y = (h) => G - h / 17 * 118;
+  const y = (h) => G - h / 17 * (G - 24);
   const d = sunLat(state.month);
   let s = `<defs>` + Object.entries(COL).map(([k, c]) => `<marker id="ah-${k}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="${c}"/></marker>`).join("") + `</defs>`;
   let tp = "";
@@ -547,8 +615,8 @@ function drawSection(b, monthName, region) {
   badge("polar", -85, "H", "Dry"); badge("pf", b.pfS, "L", "Stormy"); badge("sth", b.sthS, "H", "Dry");
   badge("itcz", b.itcz, "L", "Rainy"); badge("sth", b.sthN, "H", "Dry"); badge("pf", b.pfN, "L", "Stormy"); badge("polar", 85, "H", "Dry");
   for (const lat of [-60, -30, 0, 30, 60]) s += `<text x="${x(lat)}" y="${G + 55}" text-anchor="middle">${lat === 0 ? "Equator" : fmtLat(lat)}</text>`;
-  s += `<text x="${L - 30}" y="${G + 55}">South</text><text x="${R}" y="${G + 55}" text-anchor="end">North</text>`;
-  $("section").innerHTML = s;
+  s += `<text x="${L - 20}" y="${G + 55}">S</text><text x="${R + 20}" y="${G + 55}" text-anchor="end">N</text>`;
+  svg.innerHTML = s;
   $("sectionTitle").firstChild.textContent = "Cross-section, south to north ";
   $("sectionDesc").textContent =
     `${monthName}, ${region.label}. Air rises with heavy rain near ${fmtLat(b.itcz)}, making low pressure. ` +
@@ -588,7 +656,7 @@ const CELL_INFO = {
   hadley: { title: "Hadley cells", lat: (b) => (b.itcz + b.sthN) / 2,
     text: "From the rain belt to about 30°. Warm, moist air rises at the rain belt (L), flows toward the poles high up, sinks at about 30° (H) and flows back along the ground as the trade winds. The Sun's heating drives these cells directly." },
   ferrel: { title: "Ferrel cells", lat: (b) => (b.sthN + b.pfN) / 2,
-    text: "From about 30° to 60°. Air flows toward the poles along the ground (the westerlies), rises at the polar front (L) and sinks again at about 30° (H). The cells on either side turn the Ferrel cell, a bit like a gear between two others." },
+    text: "From about 30° to 60°. On average, air drifts toward the poles along the ground (the westerlies), rises near the polar front (L) and sinks near 30° (H). Heating does not drive it: it is the average effect of the many storms (depressions) crossing the middle latitudes, so real air does not travel round this loop. That is why its moving air is fainter." },
   polar: { title: "Polar cells", lat: (b) => (b.pfN + 90) / 2,
     text: "From about 60° to the poles. Very cold air sinks over the pole (H), flows out along the ground as the polar easterlies, and rises where it meets milder air at the polar front (L)." }
 };
@@ -618,7 +686,7 @@ function zoneSel(key) {
 }
 const STEPS = [
   { title: "The Sun heats the Earth unevenly", short: "Sun heats unevenly", make: (b) => ({ sun: true, flyLat: null,
-    text: `Where the midday Sun is high, its energy is packed onto a small area, so the ground and air get hot. Near the poles the same energy is spread over a much bigger area. In ${MONTHS[state.month - 1]} the midday Sun is overhead at ${fmtLat(sunLat(state.month))}. The rain belt follows it north and south through the year, a month or so behind.` }) },
+    text: `Where the midday Sun is high, its energy is packed onto a small area, so the ground and air get hot. Near the poles the same energy is spread over a much bigger area. In ${MONTHS[state.month - 1]} the midday Sun is overhead at ${fmtLat(sunLat(state.month))}. The rain belt follows it north and south through the year, a month or so behind. Over a whole year the tropics get far more sunlight than the poles; switch the chart to "Whole day" to see how long summer days change the picture.` }) },
   { title: "Hot air rises: low pressure (L)", short: "Hot air rises (L)", make: (b) => ({ zones: ["itcz"], cells: ["hadley"], segs: [1], flyLat: b.itcz,
     text: `Hot air rises, leaving low pressure (L) at the ground. The rising air cools, clouds form and it rains. This is the rain belt, near ${fmtLat(b.itcz)} this month.` }) },
   { title: "Air sinks at about 30°: high pressure (H)", short: "Air sinks at 30° (H)", make: (b) => ({ zones: ["sth"], cells: ["hadley"], segs: [2, 3], flyLat: b.sthN,
@@ -710,6 +778,7 @@ const state = {
   month: 1,
   regionKey: "africa",
   sel: null,
+  sunMode: "noon",   // "noon" (midday strength) or "day" (whole-day total)
   get region() { return REGIONS[this.regionKey]; },
   get exag() { return Number(document.querySelector('input[name="exag"]:checked').value); },
   paused: reduceMotion
@@ -723,12 +792,34 @@ function update2D() {
   $("monthSummary").textContent = `${MONTHS[state.month - 1]}: rain belt near ${fmtLat(b.itcz)}, dry belts near ${fmtLat(b.sthN)} and ${fmtLat(b.sthS)}.`;
   drawSunChart(b, MONTHS[state.month - 1]);
   drawSection(b, MONTHS[state.month - 1], state.region);
+  const note = modelNote(state.region.lon, state.month);
+  $("regNote").textContent = note; $("regNote").hidden = !note;
   fillTable(b);
   refreshSel();
   applySelection2D();
   return b;
 }
 update2D();
+// redraw the diagrams when their width changes, so the text stays the same size
+{
+  let lastW = 0, queued = false;
+  const ro = new ResizeObserver(() => {
+    if (queued) return; queued = true;
+    requestAnimationFrame(() => {
+      queued = false;
+      const w = $("section").clientWidth + "x" + $("sunChart").clientWidth + "x" + short();
+      if (w !== lastW) { lastW = w; update2D(); }
+    });
+  });
+  ro.observe($("dockBody")); ro.observe(document.body);
+}
+// midday / whole-day switch for the sunlight chart (and the sunlight layer on the globe)
+document.querySelectorAll(".sunmode").forEach(bt => bt.addEventListener("click", () => {
+  state.sunMode = bt.dataset.mode;
+  document.querySelectorAll(".sunmode").forEach(o => o.setAttribute("aria-pressed", String(o === bt)));
+  update2D();
+  redraw3D();
+}));
 
 // ---- 2D interaction (works with or without the globe) ----
 function activate(target) {
@@ -939,12 +1030,14 @@ function draw3D(b) {
     });
     if (looks.every(l => l === "dim")) continue;   // no label or moving air on faded cells
     labelLayer.add(new Graphic({ geometry: pt3(lon, f.centre.lat, f.centre.h), symbol: textSymbol(cell.name, COL[cell.kind], looks.includes("hi") ? 15 : 12) }));
+    // Ferrel air is fainter: the Ferrel cell is an average of many storms, not a loop real air follows
+    const fade = cell.kind === "ferrel" ? 0.45 : 1;
     for (let j = 0; j < PARCEL.heads; j++) {
       const off = j * 2 * Math.PI / PARCEL.heads;
-      const head = new Graphic({ symbol: parcelSymbol(PARCEL.size, "#ffffff") });
+      const head = new Graphic({ symbol: parcelSymbol(PARCEL.size, [255, 255, 255, fade]) });
       parcels.push({ g: head, f, off }); parcelLayer.add(head);
       PARCEL.trail.forEach((lag, i) => {
-        const t = new Graphic({ symbol: parcelSymbol(PARCEL.size * (0.75 - 0.2 * i), [255, 255, 255, 0.55 - 0.2 * i]) });
+        const t = new Graphic({ symbol: parcelSymbol(PARCEL.size * (0.75 - 0.2 * i), [255, 255, 255, (0.55 - 0.2 * i) * fade]) });
         parcels.push({ g: t, f, off: off - lag }); parcelLayer.add(t);
       });
     }
@@ -1004,7 +1097,7 @@ function drawSun(lon) {
   const d = sunLat(state.month);
   const ramp = (p) => { const t = p / 100; return [Math.round(30 + 225 * t), Math.round(40 + 172 * t), Math.round(90 - 31 * t), 0.5]; };
   for (let lat = -90; lat < 90; lat += 5) {
-    const sym = { type: "polygon-3d", symbolLayers: [{ type: "fill", material: { color: ramp(sunStrength(lat + 2.5, d)) } }] };
+    const sym = { type: "polygon-3d", symbolLayers: [{ type: "fill", material: { color: ramp(sunNow(lat + 2.5, d)) } }] };
     for (const [w0, e0] of [[-180, 0], [0, 180]]) {            // two halves, so no ring spans the whole globe
       const ring = [];
       for (let x = w0; x <= e0; x += 10) ring.push([x, lat]);
@@ -1125,14 +1218,21 @@ async function checkPlace(point) {
     `<p><strong>Model:</strong> ${z.name}. ${z.air} ${z.rain} Typical land cover: ${z.land}.</p>`,
     `<p><strong>Model surface wind:</strong> ${windName(lat, b)}.</p>`,
     (() => { const d = sunLat(state.month), h = noonHeight(lat, d);
-      return `<p><strong>Midday Sun:</strong> ${h > 0 ? `${Math.round(h)}° above the horizon, ${Math.round(sunStrength(lat, d))}% as strong as an overhead Sun` : "below the horizon all day (polar night)"}.</p>`; })()
+      return `<p><strong>Midday Sun:</strong> ${h > 0 ? `${Math.round(h)}° above the horizon, ${Math.round(sunStrength(lat, d))}% as strong as an overhead Sun` : "below the horizon all day (polar night)"}.</p>` +
+        `<p><strong>Sunlight over the whole day:</strong> ${Math.round(dayStrength(lat, d))}% of the most any place can get in a day.</p>`; })()
   ];
-  out.innerHTML = lines.join("") + `<p class="sub">Checking the real data…</p>`;
+  const note = modelNote(lon, state.month, lat);
+  if (note) lines.push(`<p class="regnote">${note}</p>`);
+  const moveBtn = Math.abs(wrapLon(lon - state.region.lon)) > 3
+    ? `<button id="btnMoveHere">Move the cross-section to ${fmtLon(lon)}</button>` : "";
+  const finish = (extra) => { out.innerHTML = lines.join("") + extra + moveBtn;
+    $("btnMoveHere")?.addEventListener("click", () => moveCurtain(lon)); };
+  finish(`<p class="sub">Checking the real data…</p>`);
   const data = [];
   try {
     const r = await rainAnnual.queryFeatures({ geometry: point, spatialRelationship: "intersects", outFields: ["PrecipMin", "PrecipMax"], returnGeometry: false });
     const a = r.features[0]?.attributes;
-    data.push(a ? `<p><strong>Average monthly rainfall (ERA5 1981–2010):</strong> ${a.PrecipMin}–${a.PrecipMax} <span class="sub">(units to confirm)</span></p>`
+    data.push(a ? `<p><strong>Average rainfall, average year (ERA5 1981–2010):</strong> ${a.PrecipMin}–${a.PrecipMax} <span class="sub">(units to confirm)</span></p>`
                 : `<p><strong>Average rainfall:</strong> no value here.</p>`);
   } catch (e) { data.push(`<p><strong>Average rainfall:</strong> could not be read.</p>`); }
   if (rainMonthly && rainMonthly.loaded) {
@@ -1152,7 +1252,21 @@ async function checkPlace(point) {
       new TimeExtent({ start: new Date(Date.UTC(LAND_YEAR, 0, 1)), end: new Date(Date.UTC(LAND_YEAR, 11, 31)) }));
     data.push(`<p><strong>Land cover ${LAND_YEAR}:</strong> ${lc == null ? "no value (could be ocean or not loaded)" : (LAND_CLASSES[lc] || "class " + lc)}</p>`);
   }
-  out.innerHTML = lines.join("") + data.join("");
+  finish(data.join(""));
+}
+// Move the cross-section (curtain) to any longitude; the model belts there come from the six regions
+function moveCurtain(lon) {
+  lon = Math.round(wrapLon(lon));
+  const p = paramsAt(lon);
+  REGIONS.custom = { label: `Chosen place (${fmtLon(lon)})`, lon, mean: p.mean, amp: p.amp };
+  let opt = $("region").querySelector('option[value="custom"]');
+  if (!opt) { opt = document.createElement("option"); opt.value = "custom"; $("region").append(opt); }
+  opt.textContent = REGIONS.custom.label;
+  $("region").value = "custom";
+  state.regionKey = "custom";
+  updateAll();
+  globeView();
+  setStatus(`Cross-section moved to ${fmtLon(lon)}.`);
 }
 
 // ================= Wire up controls =================
