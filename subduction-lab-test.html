@@ -123,17 +123,13 @@
   <aside id="card" class="glass" aria-label="Controls">
     <div class="brand"><span class="kicker">Thinking Spatially</span><span class="sp"></span><span class="labchip">Test <span id="appVersion"></span></span></div>
     <h1>Where plates sink</h1>
-    <p class="lede">Choose a trench on the map. Then lift out a block of the Earth there to see the plate sinking underneath, one step at a time.</p>
+    <p class="lede">Start with the earthquakes around the Tonga trench on the map. Then lift out a block of the Earth there to see the plate sinking underneath, one step at a time.</p>
     <div id="status" role="status" aria-live="polite">Loading the globe…</div>
 
     <div class="scroll">
       <section class="sec" aria-labelledby="hPlace">
-        <h2 id="hPlace">Choose a trench <span class="mv" id="v-places"></span></h2>
-        <div class="seg" role="group" aria-label="Trench">
-          <button data-place="tonga" aria-pressed="true">Tonga</button>
-          <button data-place="japan" aria-pressed="false">Japan</button>
-        </div>
-        <p class="sub" id="placeIntro" style="margin:8px 0 0"></p>
+        <h2 id="hPlace">The trench <span class="mv" id="v-places"></span></h2>
+        <p class="sub" id="placeIntro" style="margin:0"></p>
       </section>
 
       <section class="sec" aria-labelledby="hView">
@@ -153,6 +149,7 @@
         <p class="sub" style="margin:0 0 6px">Magnitude 4.5 and above in the past 5 years. Colour shows how deep each one was; size shows its magnitude.</p>
         <div class="keyrow" id="quakeKey" aria-label="Key to the earthquake colours"></div>
         <p class="sub" id="quakeCount" style="margin:6px 0 0"></p>
+        <p class="sub" id="quakeFacts" style="margin:6px 0 0"></p>
       </section>
 
       <section class="sec" aria-labelledby="hShow">
@@ -164,16 +161,6 @@
           <li><i style="background:#4dabf7"></i>Plates move apart</li>
           <li><i style="background:#ffd43b"></i>Plates slide past each other</li>
         </ul>
-      </section>
-
-      <section class="sec" aria-labelledby="hCompare">
-        <h2 id="hCompare">Compare the trenches</h2>
-        <table>
-          <caption class="sr-only">The two subduction zones compared</caption>
-          <thead><tr><th scope="col">Trench</th><th scope="col">Plate speed</th><th scope="col">Slope of the plate</th><th scope="col">Deepest earthquake in the block</th></tr></thead>
-          <tbody id="compareRows"></tbody>
-        </table>
-        <p class="sub" style="margin:6px 0 0">Slope and depth are worked out from the earthquakes, so they change a little as new ones happen.</p>
       </section>
 
       <section class="sec" aria-labelledby="hMore">
@@ -210,26 +197,26 @@
   </table>
   <h3>Data sources</h3>
   <ul>
-    <li>Earthquakes: USGS earthquake catalogue (FDSN event service), magnitude 4.5+, past 5 years, within 1,300 km of the middle of each block, loaded live.</li>
+    <li>Earthquakes: USGS earthquake catalogue (FDSN event service), magnitude 4.5+, past 5 years, within 1,300 km of the middle of the block. Saved in the app's data folder and refreshed once a month (the date is shown in the Earthquakes section); if the saved file can't load, the app asks USGS directly.</li>
     <li>Plate boundaries: "Tectonic Plates and Boundaries" (TeachingAtlas_Curator, ArcGIS Online), from Hasterok et al. (2022), <i>Earth-Science Reviews</i> 231, loaded live.</li>
     <li>Tonga: Horizon Deep position, plate speed (15–24 cm a year) and plate names from Wikipedia, "Tonga Trench"; Hunga Tonga–Hunga Haʻapai position from Wikipedia.</li>
-    <li>Japan: plate speed (7.9–9.2 cm a year), plate names and the 2011 earthquake from Wikipedia, "Japan Trench"; 2011 Tōhoku earthquake position, depth (29 km) and magnitude (9.1) from Wikipedia; Zaō position from the map reference in Wikipedia, "Zaō Mountains". The point on the Japan Trench (38.1° N, 143.9° E) and both trench directions are approximate.</li>
     <li>Subduction steps: Wikipedia, "Wadati–Benioff zone"; Earle, <i>Physical Geology</i>, chapter 10; WHOI <i>Oceanus</i>. Layer depths as in Earth Structure Lab (PREM, rounded).</li>
     <li>Block top: Esri World Imagery with World Boundaries and Places (exported for each block). Globe: the same as a basemap.</li>
   </ul>
   <button id="btnAboutClose">Close</button>
 </dialog>
 
+
 <script type="module">
 import * as E from "./subduction-engine.js";
 
 // ================= Versions (single source of truth) =================
 // Bump a model's number whenever its maths or data handling changes, and bump the app version on every release.
-const APP_VERSION = "0.2.0-test";
+const APP_VERSION = "0.3.0-test";
 const MODELS = {
-  places: { name: "Places", version: "1.0", desc: "Tonga: section through Horizon Deep (23.26° S, 174.73° W) at right angles to the trench, taken to run about 20° east of north; volcano Hunga Tonga–Hunga Haʻapai (20.545° S, 175.393° W). Japan: section through a point on the Japan Trench (38.1° N, 143.9° E) moved 100 km south-south-west so the volcano is inside the block; trench taken to run about 15° east of north; volcano Zaō (38.144° N, 140.440° E); 2011 Tōhoku earthquake (38.322° N, 142.369° E, 29 km deep, magnitude 9.1)." },
-  block:  { name: "Block model", version: "1.0", desc: "A block of the Earth 1,800 km across the trench (500 km east of it to 1,300 km west), 700 km along it and 800 km deep, in its true curved shape (sides point to the Earth's centre), lifted 1,500 km straight up above where it came from so it can be seen from all sides. Front face: the layers (crust 0–35, upper mantle 35–660, lower mantle 660–800 km). Top: Esri imagery with boundaries and names. Sides, back and bottom: see-through layers. Dashed lines join the block to its outline on the globe. Camera: 3,600 km in front of the block and 1,600 km above, looking at 350 km deep in the middle of the front face." },
-  quakes: { name: "Earthquake model", version: "1.0", desc: "USGS catalogue, magnitude 4.5+, past 5 years, within 1,300 km of the middle of the block. Map: dots coloured by depth (0–70, 70–300, 300 km and deeper), 5 px + 2.5 px per magnitude above 4.5. Cross-section: earthquakes up to 150 km behind the front face moved onto it, spheres 12 km + 10 km per magnitude above 4.5. See inside: every earthquake in the block at its real position, spheres 10 km + 8 km per magnitude above 4.5." },
+  places: { name: "Place", version: "1.1", desc: "Tonga: section through Horizon Deep (23.26° S, 174.73° W) at right angles to the trench, taken to run about 20° east of north; volcano Hunga Tonga–Hunga Haʻapai (20.545° S, 175.393° W). (1.1: Japan removed for now.)" },
+  block:  { name: "Block model", version: "1.1", desc: "A block of the Earth 1,800 km across the trench (500 km east of it to 1,300 km west), 700 km along it and 800 km deep, in its true curved shape (sides point to the Earth's centre), lifted 1,500 km straight up above where it came from. Front face: the layers (crust 0–35, upper mantle 35–660, lower mantle 660–800 km). Top: Esri imagery with boundaries and names (1,024 px). Sides, back and bottom: see-through layers. Dashed lines join the block to its outline on the globe. Camera: 3,600 km in front of the block and 1,600 km above, looking at 350 km deep in the middle of the front face. (1.1: built once per view; the steps only show and hide parts.)" },
+  quakes: { name: "Earthquake model", version: "2.0", desc: "USGS catalogue, magnitude 4.5+, past 5 years, within 1,300 km of the middle of the block, from a file saved monthly in the app's data folder (live USGS query only if the file can't load). Map: dots coloured by depth (0–70, 70–300, 300 km and deeper), 4 to 13 px by magnitude. Cross-section: earthquakes up to 150 km behind the front face moved onto it, spheres 12 km + 10 km per magnitude above 4.5. See inside: every earthquake in the block at its real position, spheres 10 km + 8 km per magnitude above 4.5. (2.0: saved file instead of a live 5-year query; drawn as feature layers.)" },
   plate:  { name: "Plate model", version: "1.0", desc: "Going down in 40 km steps, the median position of the earthquakes in each step, counting only earthquakes within 1° east or 3° west of the step above (3° more for each empty step between), at least 3 per step. Joined to the ocean plate east of the trench, resampled every 15 km, smoothed (5-point moving average, 3 passes). Front face: drawn 80 km thick (35 km above to 45 km below that line) from the earthquakes up to 150 km behind it; slope = average between 60 and 200 km deep. See inside: the same fit in 100 km slices along the trench, each from its own earthquakes, drawn as see-through ribbons. White arrows (140 km long, 9) move along the front-face plate once every 16 seconds. Melt line: from the top of the plate under the volcano." }
 };
 const $ = (id) => document.getElementById(id);
@@ -245,42 +232,24 @@ const setStatus = (msg) => { $("status").textContent = msg; };
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const km = (n) => Math.round(n).toLocaleString("en-US");
 
-// ================= Places =================
+// ================= The place =================
 // Step text: {dip}, {deepest} and {volcano} are filled in from the earthquakes once they load.
-const PLACES = {
-  tonga: {
-    name: "Tonga", trench: "Tonga trench", q: { longitude: -174.7267, latitude: -23.2583 }, strike: 20, faceOffset: 0,
-    overriding: "Tonga plate", speed: "15–24 cm a year",
-    volcano: { name: "Hunga Tonga–Hunga Haʻapai", longitude: -175.3925, latitude: -20.545 }, notable: null,
-    intro: "In the South Pacific, the Pacific plate sinks under the Tonga plate at one of the fastest rates on Earth, and has the most deep earthquakes of anywhere.",
-    steps: [
-      "<b>The Pacific plate moves west</b>, about 15–24 cm a year here, one of the fastest plates on Earth. It is old, cold and dense.",
-      "<b>At the Tonga trench it bends down</b> and sinks under the Tonga plate. The trench is the second-deepest place in the oceans.",
-      "<b>Shallow earthquakes</b> happen where the two plates grind past each other: they stick, then slip suddenly.",
-      "<b>Earthquakes carry on inside the sinking plate.</b> It stays cold and brittle as it sinks, so it keeps breaking. The earthquakes make a sloping line that shows where the plate is. {dip}",
-      "<b>Volcanoes form above it.</b> Where the plate is about 100 km down, water squeezed out of it rises into the hot mantle above. Water makes rock melt at a lower temperature, so some melts and the magma rises to make a line of volcanoes. The red cone is Hunga Tonga–Hunga Haʻapai, which erupted in January 2022. {volcano}",
-      "<b>Deeper down, the plate keeps sinking.</b> {deepest} Below about 700 km there are no earthquakes anywhere on Earth, but plates can sink further. The sinking plate's weight pulls the rest of the plate along behind it (<i>slab pull</i>)."
-    ],
-    src: "Wikipedia, \"Tonga Trench\", \"Wadati–Benioff zone\", \"Hunga Tonga–Hunga Haʻapai\"; Earle, <i>Physical Geology</i>, chapter 10; USGS earthquake catalogue."
-  },
-  japan: {
-    name: "Japan", trench: "Japan Trench", q: { longitude: 143.9, latitude: 38.1 }, strike: 15, faceOffset: 100,
-    overriding: "northern Japan (Okhotsk plate)", speed: "8–9 cm a year",
-    volcano: { name: "Zaō", longitude: 140.440, latitude: 38.144 },
-    notable: { name: "2011 Tōhoku earthquake", longitude: 142.369, latitude: 38.322, depth: 29, mag: 9.1 },
-    intro: "Off northern Japan, the Pacific plate sinks under the plate that northern Japan sits on. The magnitude 9.1 Tōhoku earthquake of 2011 happened here.",
-    steps: [
-      "<b>The Pacific plate moves west towards Japan</b>, about 8–9 cm a year. It is old, cold and dense.",
-      "<b>At the Japan Trench it bends down</b> and sinks under northern Japan (the Okhotsk plate).",
-      "<b>Shallow earthquakes</b> happen where the plates stick, then slip suddenly. The yellow diamond is the 2011 Tōhoku earthquake (magnitude 9.1), 29 km down. Its tsunami reached up to about 40 m high on parts of the coast, and about 16,000 people died.",
-      "<b>Earthquakes carry on inside the sinking plate</b>, making a sloping line under Japan. {dip} Compare the slope with Tonga's in the table.",
-      "<b>Volcanoes form above it.</b> Where the plate is about 100 km down, water squeezed out of it rises into the hot mantle above and makes some of the rock melt. The magma rises to make a line of volcanoes down the middle of northern Japan. The red cone is Zaō. {volcano}",
-      "<b>Deeper down, the plate keeps sinking</b> under the Sea of Japan. {deepest} Compare this with Tonga in the table."
-    ],
-    src: "Wikipedia, \"Japan Trench\", \"2011 Tōhoku earthquake and tsunami\", \"Zaō Mountains\", \"Wadati–Benioff zone\"; Earle, <i>Physical Geology</i>, chapter 10; USGS earthquake catalogue."
-  }
+const P = {
+  id: "tonga", name: "Tonga", trench: "Tonga trench", q: { longitude: -174.7267, latitude: -23.2583 }, strike: 20, faceOffset: 0,
+  overriding: "Tonga plate", speed: "15–24 cm a year",
+  volcano: { name: "Hunga Tonga–Hunga Haʻapai", longitude: -175.3925, latitude: -20.545 },
+  intro: "In the South Pacific, the Pacific plate sinks under the Tonga plate at one of the fastest rates on Earth. It has more deep earthquakes than anywhere else.",
+  steps: [
+    "<b>The Pacific plate moves west</b>, about 15–24 cm a year here, one of the fastest plates on Earth. It is old, cold and dense.",
+    "<b>At the Tonga trench it bends down</b> and sinks under the Tonga plate. The trench is the second-deepest place in the oceans.",
+    "<b>Shallow earthquakes</b> happen where the two plates grind past each other: they stick, then slip suddenly.",
+    "<b>Earthquakes carry on inside the sinking plate.</b> It stays cold and brittle as it sinks, so it keeps breaking. The earthquakes make a sloping line that shows where the plate is. {dip}",
+    "<b>Volcanoes form above it.</b> Where the plate is about 100 km down, water squeezed out of it rises into the hot mantle above. Water makes rock melt at a lower temperature, so some melts and the magma rises to make a line of volcanoes. The red cone is Hunga Tonga–Hunga Haʻapai, which erupted in January 2022. {volcano}",
+    "<b>Deeper down, the plate keeps sinking.</b> {deepest} Below about 700 km there are no earthquakes anywhere on Earth, but plates can sink further. The sinking plate's weight pulls the rest of the plate along behind it (<i>slab pull</i>)."
+  ],
+  src: "Wikipedia, \"Tonga Trench\", \"Wadati–Benioff zone\", \"Hunga Tonga–Hunga Haʻapai\"; Earle, <i>Physical Geology</i>, chapter 10; USGS earthquake catalogue."
 };
-const STEP_LABELS = (p) => [`1 · Pacific plate moves west, ${p.speed}`, `2 · ${p.trench}: the plate bends down`, "3 · Shallow earthquakes: the plates stick and slip",
+const STEP_LABELS = [`1 · Pacific plate moves west, ${P.speed}`, `2 · ${P.trench}: the plate bends down`, "3 · Shallow earthquakes: the plates stick and slip",
   "4 · Earthquakes inside the cold, sinking plate", "5 · Volcano: water from the plate melts rock above", "6 · The plate keeps sinking"];
 const STEP_COLORS = ["#ffffff", "#ffffff", "#66e3ff", "#a78bfa", "#ff6b3d", "#a5d8ff"];
 const LAYERS = [
@@ -289,6 +258,8 @@ const LAYERS = [
   { name: "Lower mantle", top: 660, bottom: 800, color: "#c0504d" }
 ];
 const FACE_BAND = 150, YEARS = 5, QUERY_KM = 1300, PLATE_ABOVE = 35, PLATE_BELOW = 45, STRIP = 100;
+const B = E.makeBlock(P.q, P.strike, { faceOffset: P.faceOffset });
+$("placeIntro").textContent = P.intro;
 
 // ================= SDK =================
 if (typeof $arcgis === "undefined") { setStatus("The 3D globe could not load."); throw new Error("ArcGIS Maps SDK not available"); }
@@ -304,6 +275,8 @@ const map = new ArcGISMap({
   basemap: new Basemap({ title: "Imagery with labels", baseLayers: [new TileLayer({ url: ESRI + "World_Imagery/MapServer" })], referenceLayers: [new TileLayer({ url: ESRI + "Reference/World_Boundaries_and_Places/MapServer" })] }),
   ground: "world-elevation"
 });
+// start the earthquake download straight away, while the globe loads
+const quakesJob = loadQuakes();
 const sceneEl = $("scene");
 sceneEl.map = map;
 await sceneEl.viewOnReady();
@@ -319,8 +292,39 @@ const pointAt = (longitude, latitude, z = 0) => new Point({ longitude, latitude,
 const camAt = (c) => ({ position: pointAt(c.longitude, c.latitude, c.z), heading: c.heading, tilt: c.tilt });
 const goTo = (target, ms = 2000) => view.goTo(target, { animate: !reduceMotion, duration: ms }).catch(e => { if (e?.name !== "AbortError") console.warn(e); });
 // keep longitudes continuous along a line, so a line crossing 180° (as at Tonga) is not drawn the long way round
-const unwrap = (pts, ref) => { let prev = ref; return pts.map(p => { let lon = p[0]; if (prev != null) { while (lon - prev > 180) lon -= 360; while (lon - prev < -180) lon += 360; } prev = lon; return [lon, ...p.slice(1)]; }); };
+const unwrap = (pts) => { let prev = null; return pts.map(p => { let lon = p[0]; if (prev != null) { while (lon - prev > 180) lon -= 360; while (lon - prev < -180) lon += 360; } prev = lon; return [lon, ...p.slice(1)]; }); };
 function setDeepClip(on) { try { const cd = view.constraints.clipDistance; if (on) { cd.near = 20000; cd.far = 40000000; } else cd.mode = "auto"; } catch (e) { console.warn(e); } }
+
+// ---------- earthquakes: the saved file (fast), or USGS directly if it can't load ----------
+async function loadQuakes() {
+  let rows = null, fetched = null, source = "saved";
+  try {
+    const res = await fetch("data/subduction/tonga.json", { cache: "no-cache" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const j = await res.json(); rows = j.quakes; fetched = j.fetched;
+  } catch (e) {
+    console.warn("Saved earthquakes not loaded, asking USGS:", e); source = "live";
+    const mid = E.lonLatR(E.blockVec(B, (B.thMin + B.thMax) / 2, B.yMax / 2, 0));
+    const start = new Date(Date.now() - YEARS * 365.25 * 864e5).toISOString().slice(0, 10);
+    const res = await fetch("https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&minmagnitude=4.5&orderby=magnitude-asc" +
+      `&starttime=${start}&latitude=${mid.latitude.toFixed(4)}&longitude=${mid.longitude.toFixed(4)}&maxradiuskm=${QUERY_KM}`);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    rows = (await res.json()).features.map(f => [...f.geometry.coordinates.slice(0, 3), f.properties.mag || 4.5]);
+  }
+  const quakes = rows.map(([lon, lat, depth, mag]) => ({ lon, lat, depth, mag, ...E.toBlock(B, lon, lat, depth) }));
+  const inside = quakes.filter(q => E.inBlock(B, q)), face = inside.filter(q => q.y <= FACE_BAND);
+  const bins = E.fitSlab(face);
+  const line = bins.length >= 3 ? E.plateLine(bins, { above: PLATE_ABOVE, eastDeg: -B.thMin - 0.2 }) : null;
+  const strips = [];
+  for (let y0 = 0; y0 < B.yMax; y0 += STRIP) {
+    const sb = E.fitSlab(inside.filter(q => q.y >= y0 && q.y < y0 + STRIP));
+    if (sb.length >= 3) strips.push({ y0, y1: y0 + STRIP, line: E.plateLine(sb, { above: PLATE_ABOVE, eastDeg: -B.thMin - 0.2 }) });
+  }
+  const vb = E.toBlock(B, P.volcano.longitude, P.volcano.latitude);
+  return { quakes, inside, face, bins, line, strips, vb, source, fetched,
+    dip: line ? E.dipBetween(line, 60, 200) : null, deepest: inside.length ? Math.max(...inside.map(q => q.depth)) : null,
+    under: line ? E.plateTopAt(line, vb.thW, PLATE_ABOVE) : null };
+}
 
 // ---------- layers ----------
 const BOUNDS_URL = "https://P3ePLMYs2RVChkJx.svcs.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/Tectonic_Plates_and_Boundaries/FeatureServer/9";
@@ -328,59 +332,29 @@ const boundLine = (color, dash) => ({ type: "simple-line", color, width: 2, styl
 const bounds = new FeatureLayer({ url: BOUNDS_URL, title: "Plate boundaries", popupEnabled: false,
   renderer: { type: "unique-value", field: "type", defaultSymbol: boundLine("#b0b8c4", true),
     uniqueValueInfos: [["Convergent", "#ff6b3d"], ["Divergent", "#4dabf7"], ["Transform", "#ffd43b"], ["Inferred", "#b0b8c4"]].map(([value, c]) => ({ value, symbol: boundLine(c, value === "Inferred") })) } });
-const mapLayer = new GraphicsLayer({ title: "Earthquakes and the block's outline", elevationInfo: { mode: "on-the-ground" } });
-const guideLayer = new GraphicsLayer({ title: "Lines from the block to where it came from", elevationInfo: { mode: "absolute-height" } });
-const blockLayer = new GraphicsLayer({ title: "The block", elevationInfo: { mode: "absolute-height" } });
-const faceLayer = new GraphicsLayer({ title: "The cross-section", elevationInfo: { mode: "absolute-height" } });
-const insideLayer = new GraphicsLayer({ title: "Inside the block", elevationInfo: { mode: "absolute-height" } });
-map.addMany([bounds, mapLayer, guideLayer, blockLayer, insideLayer, faceLayer]);
+const outlineLayer = new GraphicsLayer({ title: "The block's outline", elevationInfo: { mode: "on-the-ground" } });
+const guideLayer = new GraphicsLayer({ title: "Lines from the block to where it came from", elevationInfo: { mode: "absolute-height" }, visible: false });
+const blockLayer = new GraphicsLayer({ title: "The block", elevationInfo: { mode: "absolute-height" }, visible: false });
+const faceLayer = new GraphicsLayer({ title: "The cross-section", elevationInfo: { mode: "absolute-height" }, visible: false });
+const insideLayer = new GraphicsLayer({ title: "Inside the block", elevationInfo: { mode: "absolute-height" }, visible: false });
+const arrowLayer = new GraphicsLayer({ title: "The plate moving", elevationInfo: { mode: "absolute-height" }, visible: false });
+map.addMany([bounds, outlineLayer, guideLayer, blockLayer, insideLayer, faceLayer, arrowLayer]);
 $("showBounds").addEventListener("change", (e) => { bounds.visible = e.target.checked; });
-
-// ================= state =================
-let placeId = "tonga", viewMode = "map", faceMode = "face", step = 1, B = null, data = {};
-const P = () => PLACES[placeId];
-const blockFor = (p) => E.makeBlock(p.q, p.strike, { faceOffset: p.faceOffset });
-
-// ---------- earthquakes (USGS) and the fitted plate ----------
-async function loadQuakes(id) {
-  if (data[id]) return data[id];
-  const p = PLACES[id], Bp = blockFor(p);
-  const mid = E.lonLatR(E.blockVec(Bp, (Bp.thMin + Bp.thMax) / 2, Bp.yMax / 2, 0));
-  const start = new Date(Date.now() - YEARS * 365.25 * 864e5).toISOString().slice(0, 10);
-  const url = "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&minmagnitude=4.5&orderby=magnitude-asc" +
-    `&starttime=${start}&latitude=${mid.latitude.toFixed(4)}&longitude=${mid.longitude.toFixed(4)}&maxradiuskm=${QUERY_KM}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error("HTTP " + res.status);
-  const quakes = (await res.json()).features.map(f => { const [lon, lat, depth] = f.geometry.coordinates;
-    return { lon, lat, depth, mag: f.properties.mag || 4.5, ...E.toBlock(Bp, lon, lat, depth) }; });
-  const inside = quakes.filter(q => E.inBlock(Bp, q));
-  const face = inside.filter(q => q.y <= FACE_BAND);
-  const bins = E.fitSlab(face);
-  const line = bins.length >= 3 ? E.plateLine(bins, { above: PLATE_ABOVE, eastDeg: -Bp.thMin - 0.2 }) : null;
-  const strips = [];
-  for (let y0 = 0; y0 < Bp.yMax; y0 += STRIP) {
-    const sb = E.fitSlab(inside.filter(q => q.y >= y0 && q.y < y0 + STRIP));
-    if (sb.length >= 3) strips.push({ y0, y1: y0 + STRIP, line: E.plateLine(sb, { above: PLATE_ABOVE, eastDeg: -Bp.thMin - 0.2 }) });
-  }
-  const vb = E.toBlock(Bp, p.volcano.longitude, p.volcano.latitude);
-  const d = { quakes, inside, face, bins, line, strips, vb,
-    dip: line ? E.dipBetween(line, 60, 200) : null,
-    deepest: inside.length ? Math.max(...inside.map(q => q.depth)) : null,
-    under: line ? E.plateTopAt(line, vb.thW, PLATE_ABOVE) : null };
-  data[id] = d;
-  renderCompare();
-  return d;
+// earthquake layers are made once the data has loaded: client-side feature layers draw thousands of points far faster than graphics
+let mapQuakes = null, faceQuakes = null, insideQuakes = null;
+const QFIELDS = [{ name: "oid", type: "oid" }, { name: "depth", type: "double" }, { name: "mag", type: "double" }];
+const classBreaks = (symbolFor, sizeVV) => ({ type: "class-breaks", field: "depth", defaultSymbol: symbolFor(E.QUAKE_CLASSES[2][2]),
+  classBreakInfos: E.QUAKE_CLASSES.map(([minValue, maxValue, color]) => ({ minValue, maxValue, symbol: symbolFor(color) })), visualVariables: [sizeVV] });
+const sphereSym = (color) => ({ type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "sphere" }, material: { color } }] });
+function quakeLayer(title, list, at, sizeVV, symbolFor, elevationInfo) {
+  return new FeatureLayer({ title, source: list.map((q, i) => new Graphic({ geometry: at(q), attributes: { oid: i + 1, depth: q.depth, mag: q.mag } })),
+    objectIdField: "oid", fields: QFIELDS, geometryType: "point", hasZ: elevationInfo.mode !== "on-the-ground", spatialReference: { wkid: 4326 },
+    popupEnabled: false, elevationInfo, renderer: classBreaks(symbolFor, sizeVV) });
 }
-function renderCompare() {
-  $("compareRows").innerHTML = Object.entries(PLACES).map(([id, p]) => { const d = data[id];
-    return `<tr><th scope="row">${p.name}</th><td>${p.speed}</td><td>${d ? (d.dip != null ? `about ${Math.round(d.dip)}°` : "not enough earthquakes") : "…"}</td>` +
-      `<td>${d ? (d.deepest != null ? `${km(d.deepest)} km` : "none") : "…"}</td></tr>`; }).join("");
-}
-renderCompare();
 
 // ---------- labels ----------
 const chipsEl = $("chips");
-let chips = []; // [{ text, color, pt, small, step, onClick }]
+let chips = [];
 function setChips(list) {
   chips = list;
   chipsEl.innerHTML = list.map((c, i) => c.onClick
@@ -416,10 +390,8 @@ const bpt = (thW, y, d) => { const c = bc(thW, y, d); return pointAt(c[0], c[1],
 const lineOn = (pts) => ({ type: "polyline", hasZ: true, spatialReference: { wkid: 4326 }, paths: [unwrap(pts)] });
 const lineSym = (color, size, { arrow = false, dash = false } = {}) => ({ type: "line-3d", symbolLayers: [{ type: "line", size, material: { color }, cap: dash ? "butt" : "round",
   ...(dash ? { pattern: { type: "style", style: "dash" } } : {}), ...(arrow ? { marker: { type: "style", style: "arrow", placement: "end", color } } : {}) }] });
-const sphere = (sizeKm, color) => ({ type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "sphere" }, width: sizeKm * 1000, height: sizeKm * 1000, depth: sizeKm * 1000, material: { color } }] });
 const hexRgb = (h) => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
 const flat = (hex, alpha = 1) => new MeshMaterialMetallicRoughness({ color: [...hexRgb(hex), alpha], emissiveColor: hex, metallic: 0, roughness: 1, doubleSided: true, alphaMode: alpha < 1 ? "blend" : "opaque" });
-// a mesh from rows of points (each row the same length); faces join neighbouring rows
 function gridMesh(rows, material, uvRows) {
   const pos = [], uv = [], faces = [], n = rows[0].length;
   rows.forEach((r, i) => { for (const p of r) pos.push(...p); if (uvRows) for (const t of uvRows[i]) uv.push(...t); });
@@ -427,164 +399,141 @@ function gridMesh(rows, material, uvRows) {
   return new Mesh({ spatialReference: { wkid: 4326 }, vertexAttributes: { position: new Float64Array(pos), ...(uvRows ? { uv: new Float32Array(uv) } : {}) },
     components: [new MeshComponent({ faces: new Uint32Array(faces), shading: "flat", material })] });
 }
-const meshG = (geometry) => new Graphic({ geometry, symbol: { type: "mesh-3d", symbolLayers: [{ type: "fill" }] } });
-const ths = (n = 40) => Array.from({ length: n + 1 }, (_, i) => B.thMin + (B.thMax - B.thMin) * i / n);
-const ys = (n = 14) => Array.from({ length: n + 1 }, (_, i) => B.yMax * i / n);
+const meshG = (geometry, attributes = {}) => new Graphic({ geometry, attributes, symbol: { type: "mesh-3d", symbolLayers: [{ type: "fill" }] } });
+const T = Array.from({ length: 41 }, (_, i) => B.thMin + (B.thMax - B.thMin) * i / 40);
+const Y = Array.from({ length: 15 }, (_, i) => B.yMax * i / 14);
+const realLL = (t, y) => { const v = E.lonLatR(E.blockVec(B, t, y, 0)); return [v.longitude, v.latitude]; };
+const outlineLL = unwrap([...T.map(t => realLL(t, 0)), ...Y.map(y => realLL(B.thMax, y)), ...[...T].reverse().map(t => realLL(t, B.yMax)), ...[...Y].reverse().map(y => realLL(B.thMin, y))]);
+outlineLayer.add(new Graphic({ geometry: { type: "polyline", paths: [outlineLL], spatialReference: { wkid: 4326 } }, symbol: { type: "simple-line", color: [255, 255, 255, 0.9], width: 2, style: "dash" } }));
 
-// ---------- the block's top: imagery with boundaries and names, exported for the block ----------
+// ---------- the block's top: imagery with boundaries and names, exported once for the block ----------
 const loadImage = (url) => new Promise((res, rej) => { const im = new Image(); im.crossOrigin = "anonymous"; im.onload = () => res(im); im.onerror = rej; im.src = url; });
-const topCache = {};
-async function topTexture(id, lonMin, lonMax, latMin, latMax) {
-  if (topCache[id]) return topCache[id];
-  const W = 2048, H = Math.max(256, Math.min(2048, Math.round(W * (latMax - latMin) / (lonMax - lonMin))));
-  const c = document.createElement("canvas"); c.width = W; c.height = H;
-  const g = c.getContext("2d"); g.fillStyle = "#1d3b5c"; g.fillRect(0, 0, W, H);
-  // split at 180° if the block crosses it
-  const parts = lonMin < -180 ? [[lonMin + 360, 180, lonMin], [-180, lonMax, -180]] : lonMax > 180 ? [[lonMin, 180, lonMin], [-180, lonMax - 360, 180]] : [[lonMin, lonMax, lonMin]];
-  for (const svc of ["World_Imagery", "Reference/World_Boundaries_and_Places"]) for (const [a, b, at] of parts) {
-    const pw = Math.max(1, Math.round(W * (b - a) / (lonMax - lonMin)));
-    const url = `${ESRI}${svc}/MapServer/export?bbox=${a},${latMin},${b},${latMax}&bboxSR=4326&imageSR=4326&size=${pw},${H}&format=png32&transparent=${svc !== "World_Imagery"}&f=image`;
-    try { const im = await loadImage(url); g.drawImage(im, Math.round(W * (at - lonMin) / (lonMax - lonMin)), 0, pw, H); }
-    catch (e) { console.warn("Block top image not loaded:", svc, e); }
-  }
-  topCache[id] = c;
-  return c;
+const realRows = Y.map(y => unwrap(T.map(t => realLL(t, y))));
+const flatLL = realRows.flat(), lonMin = Math.min(...flatLL.map(c => c[0])), lonMax = Math.max(...flatLL.map(c => c[0])), latMin = Math.min(...flatLL.map(c => c[1])), latMax = Math.max(...flatLL.map(c => c[1]));
+const uvRows = realRows.map(r => r.map(([lo, la]) => [(lo - lonMin) / (lonMax - lonMin), (latMax - la) / (latMax - latMin)]));
+let topCanvas = null, topJob = null;
+function topTexture() {
+  if (topJob) return topJob;
+  topJob = (async () => {
+    const W = 1024, H = Math.max(256, Math.min(1024, Math.round(W * (latMax - latMin) / (lonMax - lonMin))));
+    const c = document.createElement("canvas"); c.width = W; c.height = H;
+    const g = c.getContext("2d"); g.fillStyle = "#1d3b5c"; g.fillRect(0, 0, W, H);
+    // split at 180° if the block crosses it
+    const parts = lonMin < -180 ? [[lonMin + 360, 180, lonMin], [-180, lonMax, -180]] : lonMax > 180 ? [[lonMin, 180, lonMin], [-180, lonMax - 360, 180]] : [[lonMin, lonMax, lonMin]];
+    const jobs = [];
+    for (const svc of ["World_Imagery", "Reference/World_Boundaries_and_Places"]) for (const [a, b, at] of parts) {
+      const pw = Math.max(1, Math.round(W * (b - a) / (lonMax - lonMin)));
+      const url = `${ESRI}${svc}/MapServer/export?bbox=${a},${latMin},${b},${latMax}&bboxSR=4326&imageSR=4326&size=${pw},${H}&format=${svc === "World_Imagery" ? "jpg" : "png32"}&transparent=${svc !== "World_Imagery"}&f=image`;
+      jobs.push(loadImage(url).then(im => ({ im, svc, x: Math.round(W * (at - lonMin) / (lonMax - lonMin)), pw }), e => { console.warn("Block top image not loaded:", svc, e); return null; }));
+    }
+    const ims = (await Promise.all(jobs)).filter(Boolean).sort((a, b) => (a.svc === "World_Imagery" ? 0 : 1) - (b.svc === "World_Imagery" ? 0 : 1));
+    for (const o of ims) g.drawImage(o.im, o.x, 0, o.pw, H);
+    return (topCanvas = c);
+  })();
+  return topJob;
 }
 
-// ---------- map view ----------
-function drawMap(p, d) {
-  mapLayer.removeAll(); guideLayer.removeAll(); blockLayer.removeAll(); faceLayer.removeAll(); insideLayer.removeAll(); arrows = [];
-  const Bp = blockFor(p);
-  const outline = [...ths(30).map(t => [t, 0]), ...ys(10).map(y => [Bp.thMax, y]), ...ths(30).reverse().map(t => [t, Bp.yMax]), ...ys(10).reverse().map(y => [Bp.thMin, y])]
-    .map(([t, y]) => { const v = E.lonLatR(E.blockVec(Bp, t, y, 0)); return [v.longitude, v.latitude]; });
-  mapLayer.add(new Graphic({ geometry: { type: "polyline", paths: [unwrap(outline)], spatialReference: { wkid: 4326 } }, symbol: { type: "simple-line", color: [255, 255, 255, 0.9], width: 2, style: "dash" } }));
-  if (d) for (const q of d.quakes) mapLayer.add(new Graphic({ geometry: pointAt(q.lon, q.lat),
-    symbol: { type: "simple-marker", style: "circle", size: 5 + Math.max(0, q.mag - 4.5) * 2.5, color: E.quakeColor(q.depth), outline: { color: [0, 0, 0, 0.6], width: 0.5 } } }));
-  mapLayer.add(new Graphic({ geometry: pointAt(p.volcano.longitude, p.volcano.latitude), symbol: { type: "simple-marker", style: "triangle", size: 14, color: "#ff4d2e", outline: { color: "#ffffff", width: 1 } } }));
-  const list = Object.entries(PLACES).map(([id, pl]) => ({ text: id === placeId ? `${pl.trench}: open the 3D block ▸` : pl.trench, color: id === placeId ? "#7dd3fc" : "#ffffff",
-    pt: pointAt(pl.q.longitude, pl.q.latitude), onClick: () => { if (id === placeId) setView("block"); else setPlace(id); } }));
-  list.push({ text: `Volcano: ${p.volcano.name}`, color: "#ff4d2e", small: true, pt: pointAt(p.volcano.longitude, p.volcano.latitude) });
-  const corner = E.lonLatR(E.blockVec(Bp, Bp.thMax, Bp.yMax, 0));
-  list.push({ text: "Block to lift out", color: "#ffffff", small: true, pt: pointAt(corner.longitude, corner.latitude) });
-  setChips(list);
-}
+// ================= state =================
+let viewMode = "map", faceMode = "face", step = 1, D = null, built = null, arrows = [], phase = 0, paused = reduceMotion, last = 0;
+const stepped = []; // [graphic, first step it shows at]
 
-// ---------- the 3D block ----------
-let arrows = [], phase = 0, paused = reduceMotion, last = 0;
-async function drawBlock(p, d) {
-  mapLayer.removeAll(); guideLayer.removeAll(); blockLayer.removeAll(); faceLayer.removeAll(); insideLayer.removeAll(); arrows = [];
+// ---------- the block: built once for each of the two views ----------
+function buildBlock() {
   const inside = faceMode === "inside";
-  // outline on the globe and lines up to the block
-  const outline = [...ths(30).map(t => [t, 0]), ...ys(10).map(y => [B.thMax, y]), ...ths(30).reverse().map(t => [t, B.yMax]), ...ys(10).reverse().map(y => [B.thMin, y])]
-    .map(([t, y]) => { const v = E.lonLatR(E.blockVec(B, t, y, 0)); return [v.longitude, v.latitude]; });
-  mapLayer.add(new Graphic({ geometry: { type: "polyline", paths: [unwrap(outline)], spatialReference: { wkid: 4326 } }, symbol: { type: "simple-line", color: [255, 255, 255, 0.9], width: 2, style: "dash" } }));
+  if (built === faceMode) return;
+  built = faceMode;
+  for (const l of [guideLayer, blockLayer, faceLayer, insideLayer, arrowLayer]) l.removeAll();
+  stepped.length = 0; arrows = [];
   for (const [t, y] of [[B.thMin, 0], [B.thMax, 0], [B.thMin, B.yMax], [B.thMax, B.yMax]]) {
-    const g0 = E.lonLatR(E.blockVec(B, t, y, 0));
-    guideLayer.add(new Graphic({ geometry: lineOn([[g0.longitude, g0.latitude, 0], bc(t, y, B.dMax)]), symbol: lineSym([255, 255, 255, 0.45], 1.5, { dash: true }) }));
+    const g0 = realLL(t, y);
+    guideLayer.add(new Graphic({ geometry: lineOn([[g0[0], g0[1], 0], bc(t, y, B.dMax)]), symbol: lineSym([255, 255, 255, 0.45], 1.5, { dash: true }) }));
   }
-  // the top: real imagery
-  const T = ths(40), Y = ys(14);
-  const topRows = Y.map(y => unwrap(T.map(t => bc(t, y, 0)), p.q.longitude));
-  const lons = topRows.flat().map(c => c[0]), lats = topRows.flat().map(c => c[1]);
-  // texture coordinates come from where each point really is (not lifted)
-  const realRows = Y.map(y => unwrap(T.map(t => { const v = E.lonLatR(E.blockVec(B, t, y, 0)); return [v.longitude, v.latitude]; }), p.q.longitude));
-  const rl = realRows.flat(), lonMin = Math.min(...rl.map(c => c[0])), lonMax = Math.max(...rl.map(c => c[0])), latMin = Math.min(...rl.map(c => c[1])), latMax = Math.max(...rl.map(c => c[1]));
-  const uvRows = realRows.map(r => r.map(([lo, la]) => [(lo - lonMin) / (lonMax - lonMin), (latMax - la) / (latMax - latMin)]));
-  const topG = meshG(gridMesh(topRows, new MeshMaterial({ color: "#3a5f86", doubleSided: true }), uvRows));
+  // top
+  const topRows = Y.map(y => T.map(t => bc(t, y, 0)));
+  const topMat = (c) => c ? new MeshMaterial({ colorTexture: new MeshTexture({ data: c }), doubleSided: true, ...(inside ? { color: [255, 255, 255, 0.55], alphaMode: "blend" } : {}) })
+    : new MeshMaterial({ color: "#3a5f86", doubleSided: true });
+  const topG = meshG(gridMesh(topRows, topMat(topCanvas), uvRows));
   blockLayer.add(topG);
-  topTexture(placeId, lonMin, lonMax, latMin, latMax).then(c => { if (topG.layer) topG.geometry = gridMesh(topRows, new MeshMaterial({ colorTexture: new MeshTexture({ data: c }), doubleSided: true,
-    ...(inside ? { color: [255, 255, 255, 0.55], alphaMode: "blend" } : {}) }), uvRows); });
-  // front face: the layers (see-through when looking inside)
-  for (const l of LAYERS) blockLayer.add(meshG(gridMesh([T.map(t => bc(t, 0, l.top)), T.map(t => bc(t, 0, l.bottom))], flat(l.color, inside ? 0.18 : 1))));
-  // sides, back and bottom: see-through layers
+  if (!topCanvas) topTexture().then(c => { if (topG.layer) topG.geometry = gridMesh(topRows, topMat(c), uvRows); });
+  // faces
   for (const l of LAYERS) {
+    blockLayer.add(meshG(gridMesh([T.map(t => bc(t, 0, l.top)), T.map(t => bc(t, 0, l.bottom))], flat(l.color, inside ? 0.18 : 1))));
     for (const t of [B.thMin, B.thMax]) blockLayer.add(meshG(gridMesh([Y.map(y => bc(t, y, l.top)), Y.map(y => bc(t, y, l.bottom))], flat(l.color, 0.3))));
     blockLayer.add(meshG(gridMesh([T.map(t => bc(t, B.yMax, l.top)), T.map(t => bc(t, B.yMax, l.bottom))], flat(l.color, 0.2))));
   }
   blockLayer.add(meshG(gridMesh(Y.map(y => T.map(t => bc(t, y, B.dMax))), flat("#c0504d", 0.2))));
-  // edges
   const edge = (pts) => blockLayer.add(new Graphic({ geometry: lineOn(pts), symbol: lineSym([255, 255, 255, 0.55], 1.2) }));
   for (const y of [0, B.yMax]) for (const dd of [0, B.dMax]) edge(T.map(t => bc(t, y, dd)));
   for (const t of [B.thMin, B.thMax]) { for (const dd of [0, B.dMax]) edge(Y.map(y => bc(t, y, dd))); for (const y of [0, B.yMax]) edge([bc(t, y, 0), bc(t, y, B.dMax)]); }
-  // depth guides on the front face
-  const list = [];
-  if (!inside) for (const dep of [100, 300, 660]) {
-    faceLayer.add(new Graphic({ geometry: lineOn(T.map(t => bc(t, -2, dep))), symbol: { type: "line-3d", symbolLayers: [{ type: "line", size: 1, material: { color: [255, 255, 255, 0.4] }, pattern: { type: "style", style: "dash" } }] } }));
-    list.push({ text: `${dep} km`, color: "#ffffff", small: true, pt: bpt(B.thMin + 0.5, -2, dep - 22) });
-  }
-  list.push({ text: `West: ${p.overriding}`, color: "#ffffff", small: true, pt: bpt(B.thMax - 2, -2, -150) }, { text: "East: Pacific plate", color: "#ffffff", small: true, pt: bpt(B.thMin + 1.5, -2, -150) });
-  if (d) {
-    // earthquakes: on the front face (cross-section) or where they really are (see inside)
-    const shown = (q) => inside || step >= 4 || (step >= 3 && q.depth < 70);
-    if (inside) for (const q of d.inside) insideLayer.add(new Graphic({ geometry: bpt(q.thW, q.y, q.depth), symbol: sphere(10 + Math.max(0, q.mag - 4.5) * 8, E.quakeColor(q.depth)) }));
-    else for (const q of d.face) if (shown(q)) faceLayer.add(new Graphic({ geometry: bpt(q.thW, -8, q.depth), symbol: sphere(12 + Math.max(0, q.mag - 4.5) * 10, E.quakeColor(q.depth)) }));
-    // the sinking plate
-    const bandColor = "#1d5fa8";
-    if (inside) for (const s of d.strips) insideLayer.add(meshG(gridMesh([s.line.map(pp => { const c = E.fromXY(pp.xy); return bc(c.thW, s.y0, c.depth); }),
-      s.line.map(pp => { const c = E.fromXY(pp.xy); return bc(c.thW, s.y1, c.depth); })], flat("#4dabf7", 0.45))));
-    else if (d.line) {
-      faceLayer.add(meshG(gridMesh([d.line.map(pp => { const t = E.offsetAt(pp, -PLATE_ABOVE); return bc(t.thW, -4, t.depth); }),
-        d.line.map(pp => { const b = E.offsetAt(pp, PLATE_BELOW); return bc(b.thW, -4, b.depth); })], flat(bandColor, 0.75))));
-      faceLayer.add(new Graphic({ geometry: lineOn(d.line.map(pp => { const t = E.offsetAt(pp, -PLATE_ABOVE); return bc(t.thW, -5, t.depth); })), symbol: lineSym("#a5d8ff", 2) }));
-      for (let k = 0; k < 9; k++) { const g = new Graphic({ symbol: lineSym("#ffffff", 4, { arrow: true }) }); arrows.push({ g, k }); faceLayer.add(g); }
+  // the volcano on top
+  const vb = D.vb;
+  blockLayer.add(new Graphic({ geometry: bpt(vb.thW, vb.y, -20), symbol: { type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "cone" }, width: 60000, height: 50000, depth: 60000, material: { color: "#ff4d2e" } }] } }));
+  const add = (layer, g, from = 1) => { layer.add(g); if (from > 1) stepped.push([g, from]); return g; };
+  if (!inside) {
+    for (const dep of [100, 300, 660]) add(faceLayer, new Graphic({ geometry: lineOn(T.map(t => bc(t, -2, dep))), symbol: { type: "line-3d", symbolLayers: [{ type: "line", size: 1, material: { color: [255, 255, 255, 0.4] }, pattern: { type: "style", style: "dash" } }] } }));
+    if (D.line) {
+      add(faceLayer, meshG(gridMesh([D.line.map(pp => { const t = E.offsetAt(pp, -PLATE_ABOVE); return bc(t.thW, -4, t.depth); }),
+        D.line.map(pp => { const b = E.offsetAt(pp, PLATE_BELOW); return bc(b.thW, -4, b.depth); })], flat("#1d5fa8", 0.75))));
+      add(faceLayer, new Graphic({ geometry: lineOn(D.line.map(pp => { const t = E.offsetAt(pp, -PLATE_ABOVE); return bc(t.thW, -5, t.depth); })), symbol: lineSym("#a5d8ff", 2) }));
+      for (let k = 0; k < 9; k++) { const g = new Graphic({ symbol: lineSym("#ffffff", 4, { arrow: true }) }); arrows.push({ g, k }); arrowLayer.add(g); }
       placeArrows();
     }
-    // the plate arriving from the east, above the surface
-    if (!inside) faceLayer.add(new Graphic({ geometry: lineOn(Array.from({ length: 10 }, (_, i) => bc(B.thMin + 0.6 + (-0.6 - B.thMin - 0.6) * i / 9, -4, -70))), symbol: lineSym("#ffffff", 4, { arrow: true }) }));
-    // the volcano on top, and water and melt rising to it from the plate below
-    const vb = d.vb;
-    blockLayer.add(new Graphic({ geometry: bpt(vb.thW, vb.y, -20), symbol: { type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "cone" }, width: 60000, height: 50000, depth: 60000, material: { color: "#ff4d2e" } }] } }));
-    if (inside || step >= 5) {
-      const plateTop = inside ? (() => { const s = d.strips.find(s => vb.y >= s.y0 && vb.y < s.y1); return s ? E.plateTopAt(s.line, vb.thW, PLATE_ABOVE) : null; })() : d.under;
-      const yy = inside ? vb.y : -9;
-      if (plateTop != null) faceLayer.add(new Graphic({ geometry: lineOn(Array.from({ length: 10 }, (_, i) => bc(vb.thW, yy, (plateTop - 8) * (1 - i / 9) + 3 * i / 9))), symbol: lineSym("#ff6b3d", 3, { arrow: true, dash: true }) }));
-      if (!inside) faceLayer.add(new Graphic({ geometry: bpt(vb.thW, -9, -15), symbol: { type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "cone" }, width: 45000, height: 40000, depth: 45000, material: { color: "#ff4d2e" } }] } }));
-    }
-    // a famous earthquake
-    if (p.notable && (inside || step >= 3)) {
-      const nb = E.toBlock(B, p.notable.longitude, p.notable.latitude, p.notable.depth);
-      faceLayer.add(new Graphic({ geometry: bpt(nb.thW, inside ? nb.y : -12, p.notable.depth), symbol: { type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "diamond" }, width: 70000, height: 70000, depth: 70000, material: { color: "#ffd43b" } }] } }));
-      if (!inside && step === 3) list.push({ text: `${p.notable.name}, magnitude ${p.notable.mag}`, color: "#ffd43b", pt: bpt(nb.thW + 0.4, -12, p.notable.depth - 150) });
-    }
-    // this step's label (one at a time)
-    if (!inside) {
-      const deepB = d.bins[d.bins.length - 1], midB = d.bins[Math.floor(d.bins.length * 0.6)];
-      const where = [bpt(B.thMin + 2.5, -6, -230), bpt(0, -6, -330), bpt(-2.6, -6, 120), midB ? bpt(midB.thW - 2.6, -6, midB.depth + 40) : null,
-        bpt(vb.thW + 0.4, -6, -190), deepB ? bpt(deepB.thW, -6, Math.min(deepB.depth + 80, B.dMax - 30)) : null][step - 1];
-      if (where) list.push({ text: STEP_LABELS(p)[step - 1], color: STEP_COLORS[step - 1], step: true, pt: where });
-    } else list.push({ text: "Every earthquake in the block, and the plate fitted in 100 km slices", color: "#a5d8ff", pt: bpt((B.thMin + B.thMax) / 2, B.yMax / 2, -260) });
+    add(faceLayer, new Graphic({ geometry: lineOn(Array.from({ length: 10 }, (_, i) => bc(B.thMin + 0.6 + (-1.2 - B.thMin) * i / 9, -4, -70))), symbol: lineSym("#ffffff", 4, { arrow: true }) }));
+    // step 5: the volcano shown on the cross-section, and water and melt rising to it
+    add(faceLayer, new Graphic({ geometry: bpt(vb.thW, -9, -15), symbol: { type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "cone" }, width: 45000, height: 40000, depth: 45000, material: { color: "#ff4d2e" } }] } }), 5);
+    if (D.under != null) add(faceLayer, new Graphic({ geometry: lineOn(Array.from({ length: 10 }, (_, i) => bc(vb.thW, -9, (D.under - 8) * (1 - i / 9) + 3 * i / 9))), symbol: lineSym("#ff6b3d", 3, { arrow: true, dash: true }) }), 5);
+  } else {
+    for (const s of D.strips) add(insideLayer, meshG(gridMesh([s.line.map(pp => { const c = E.fromXY(pp.xy); return bc(c.thW, s.y0, c.depth); }),
+      s.line.map(pp => { const c = E.fromXY(pp.xy); return bc(c.thW, s.y1, c.depth); })], flat("#4dabf7", 0.45))));
+    const s = D.strips.find(s => vb.y >= s.y0 && vb.y < s.y1), top = s ? E.plateTopAt(s.line, vb.thW, PLATE_ABOVE) : null;
+    if (top != null) add(insideLayer, new Graphic({ geometry: lineOn(Array.from({ length: 10 }, (_, i) => bc(vb.thW, vb.y, (top - 8) * (1 - i / 9) + 3 * i / 9))), symbol: lineSym("#ff6b3d", 3, { arrow: true, dash: true }) }));
   }
+}
+// what each step shows: earthquakes (by depth), stepped graphics, and that step's label
+function applyStep() {
+  const inside = faceMode === "inside";
+  if (faceQuakes) { faceQuakes.visible = !inside && step >= 3; faceQuakes.definitionExpression = step >= 4 ? "1=1" : "depth < 70"; }
+  if (insideQuakes) insideQuakes.visible = inside;
+  for (const [g, from] of stepped) g.visible = step >= from;
+  const list = [];
+  if (!inside) {
+    for (const dep of [100, 300, 660]) list.push({ text: `${dep} km`, color: "#ffffff", small: true, pt: bpt(B.thMin + 0.5, -2, dep - 22) });
+    const deepB = D.bins[D.bins.length - 1], midB = D.bins[Math.floor(D.bins.length * 0.6)];
+    const where = [bpt(B.thMin + 2.5, -6, -230), bpt(0, -6, -330), bpt(-2.6, -6, 120), midB ? bpt(midB.thW - 2.6, -6, midB.depth + 40) : null,
+      bpt(D.vb.thW + 0.4, -6, -190), deepB ? bpt(deepB.thW, -6, Math.min(deepB.depth + 80, B.dMax - 30)) : null][step - 1];
+    if (where) list.push({ text: STEP_LABELS[step - 1], color: STEP_COLORS[step - 1], step: true, pt: where });
+  } else list.push({ text: "Every earthquake in the block, and the plate fitted in 100 km slices", color: "#a5d8ff", pt: bpt((B.thMin + B.thMax) / 2, B.yMax / 2, -260) });
+  list.push({ text: `West: ${P.overriding}`, color: "#ffffff", small: true, pt: bpt(B.thMax - 2, -2, -150) }, { text: "East: Pacific plate", color: "#ffffff", small: true, pt: bpt(B.thMin + 1.5, -2, -150) });
   setChips(list);
+  renderPanel();
 }
 function placeArrows() {
-  const d = data[placeId];
-  if (!d?.line || !B || viewMode !== "block" || faceMode !== "face") return;
-  const line = d.line, total = line[line.length - 1].len;
+  if (!D?.line || arrows.length === 0) return;
+  const line = D.line, total = line[line.length - 1].len;
   for (const a of arrows) { const s1 = ((phase + a.k / arrows.length) % 1) * total;
     a.g.geometry = lineOn(Array.from({ length: 6 }, (_, i) => { const c = E.alongLine(line, Math.max(0, s1 - 140 + 140 * i / 5)); return bc(c.thW, -6, c.depth); })); }
 }
 function tick(ts) {
-  if (ts - last > 60) { if (!paused && arrows.length) { phase = (phase + Math.min(0.2, (ts - last) / 1000) / 16) % 1; placeArrows(); } last = ts; }
+  if (ts - last > 80) { if (!paused && arrowLayer.visible && arrows.length) { phase = (phase + Math.min(0.2, (ts - last) / 1000) / 16) % 1; placeArrows(); } last = ts; }
   requestAnimationFrame(tick);
 }
 requestAnimationFrame(tick);
 
 // ---------- the explanation panel ----------
-function fill(text, d) {
-  const dip = d?.dip != null ? `On this cross-section the plate slopes down at about ${Math.round(d.dip)}° (worked out from the earthquakes).` : "";
-  const deepest = d?.deepest != null ? `The deepest earthquake in this block in the past ${YEARS} years was ${km(d.deepest)} km down.` : "";
-  const volcano = d ? `It is ${km(d.vb.y)} km behind the front of the block; on the cross-section it is shown where it would be${d.under != null ? `, with the top of the plate about ${km(Math.round(d.under / 10) * 10)} km below it` : ""}.` : "";
+function fill(text) {
+  const dip = D?.dip != null ? `On this cross-section the plate slopes down at about ${Math.round(D.dip)}° (worked out from the earthquakes).` : "";
+  const deepest = D?.deepest != null ? `The deepest earthquake in this block in the past ${YEARS} years was ${km(D.deepest)} km down.` : "";
+  const volcano = D ? `It is ${km(D.vb.y)} km behind the front of the block; on the cross-section it is shown where it would be${D.under != null ? `, with the top of the plate about ${km(Math.round(D.under / 10) * 10)} km below it` : ""}.` : "";
   return text.replace("{dip}", dip).replace("{deepest}", deepest).replace("{volcano}", volcano);
 }
 function renderPanel() {
-  const p = P(), d = data[placeId];
   if (viewMode === "map") {
-    $("stepsTitle").textContent = `Earthquakes around the ${p.trench}`;
+    $("stepsTitle").textContent = `Earthquakes around the ${P.trench}`;
     $("stepsBody").innerHTML = [
       `Each dot is an earthquake of magnitude 4.5 or more from the past ${YEARS} years. Light blue ones were shallow (0–70 km down), dark blue ones 70–300 km and purple ones deeper still.`,
-      `Look at where each colour is. The shallow earthquakes are near the ${p.trench} (the orange plate boundary); the deeper ones are further west. That is because the Pacific plate slopes down underneath: the further west, the deeper it is.`,
+      `Look at where each colour is. The shallow earthquakes are near the ${P.trench} (the orange plate boundary); the deeper ones are further west. That is because the Pacific plate slopes down underneath: the further west, the deeper it is.`,
       `The dashed box is the block of the Earth to lift out. Open the 3D block to see inside it.`].map(t => `<p>${t}</p>`).join("");
-    $("stepsNav").innerHTML = `<button class="primary" id="goBlock">Open the 3D block</button>`;
+    $("stepsNav").innerHTML = `<button class="primary" id="goBlock" ${D ? "" : "disabled"}>Open the 3D block</button>`;
     $("goBlock").addEventListener("click", () => setView("block"));
   } else if (faceMode === "inside") {
     $("stepsTitle").textContent = `Inside the block`;
@@ -595,15 +544,14 @@ function renderPanel() {
     $("goFace").addEventListener("click", () => setFaceMode("face"));
     $("goMap").addEventListener("click", () => setView("map"));
   } else {
-    $("stepsTitle").textContent = `What happens at the ${p.trench}?`;
+    $("stepsTitle").textContent = `What happens at the ${P.trench}?`;
     $("stepsBody").innerHTML = `<p style="margin:8px 0">The front of the block is a slice across the trench, with the earthquakes from up to ${FACE_BAND} km behind it. Go through the steps.</p>` +
-      `<ol>${p.steps.map((s, i) => `<li class="${i + 1 === step ? "current" : i + 1 < step ? "done" : ""}"${i + 1 === step ? ' aria-current="step"' : ""}>${fill(s, d)}</li>`).join("")}</ol>` +
+      `<ol>${P.steps.map((s, i) => `<li class="${i + 1 === step ? "current" : i + 1 < step ? "done" : ""}"${i + 1 === step ? ' aria-current="step"' : ""}>${fill(s)}</li>`).join("")}</ol>` +
       `<p class="stepcount" aria-live="polite">Step ${step} of 6</p>` +
       `<div class="key" aria-label="Key to the drawing"><i style="background:#1d5fa8;height:10px"></i><span>Sinking Pacific plate (drawn through the earthquakes)</span>` +
       `<i style="background:#fff"></i><span>Moving arrows: the whole plate moving</span>` +
       `<i style="background:repeating-linear-gradient(90deg,#ff6b3d 0 5px,transparent 5px 8px)"></i><span>Water and melt rising to the volcano</span>` +
-      `<i style="background:#ff4d2e;height:10px;width:10px;clip-path:polygon(50% 0,100% 100%,0 100%);border-radius:0"></i><span>Volcano</span>` +
-      (p.notable ? `<i style="background:#ffd43b;height:10px;width:10px;transform:rotate(45deg);border-radius:0"></i><span>${p.notable.name}</span>` : "") + `</div>`;
+      `<i style="background:#ff4d2e;height:10px;width:10px;clip-path:polygon(50% 0,100% 100%,0 100%);border-radius:0"></i><span>Volcano</span></div>`;
     $("stepsNav").innerHTML = `<button id="stepBack" ${step === 1 ? "disabled" : ""}>← Back</button><button class="primary" id="stepNext" ${step === 6 ? "disabled" : ""}>Next →</button>` +
       `<button id="btnPause" aria-pressed="${paused}">${paused ? "Play movement" : "Pause movement"}</button><button id="goInside">See inside</button><button id="goMap">Back to the map</button>`;
     $("stepBack").addEventListener("click", () => setStep(step - 1));
@@ -612,7 +560,7 @@ function renderPanel() {
     $("goInside").addEventListener("click", () => setFaceMode("inside"));
     $("goMap").addEventListener("click", () => setView("map"));
   }
-  $("stepsSrc").innerHTML = "Sources: " + p.src;
+  $("stepsSrc").innerHTML = "Sources: " + P.src;
 }
 $("stepsClose").addEventListener("click", () => { $("steps").hidden = true; setPadding(); $(viewMode === "map" ? "viewMap" : "viewBlock").focus(); });
 document.addEventListener("keydown", (e) => {
@@ -626,52 +574,65 @@ document.addEventListener("keydown", (e) => {
 });
 
 // ---------- switching ----------
-function draw() { const p = P(), d = data[placeId]; if (viewMode === "map") drawMap(p, d); else drawBlock(p, d); renderPanel(); }
-function setStep(s) { s = Math.max(1, Math.min(6, s)); if (s === step) return; step = s; draw(); }
+function setStep(s) { s = Math.max(1, Math.min(6, s)); if (s === step) return; step = s; applyStep(); }
 function setFaceMode(m) {
   faceMode = m;
   $("modeFace").setAttribute("aria-pressed", String(m === "face")); $("modeInside").setAttribute("aria-pressed", String(m === "inside"));
-  draw();
+  if (viewMode === "block") { buildBlock(); arrowLayer.visible = m === "face"; applyStep(); }
 }
-async function setView(m, { fly = true } = {}) {
+function showMapChips() {
+  const corner = realLL(B.thMax, B.yMax);
+  setChips([{ text: D ? `${P.trench}: open the 3D block ▸` : P.trench, color: "#7dd3fc", pt: pointAt(P.q.longitude, P.q.latitude), onClick: D ? () => setView("block") : null },
+    { text: `Volcano: ${P.volcano.name}`, color: "#ff4d2e", small: true, pt: pointAt(P.volcano.longitude, P.volcano.latitude) },
+    { text: "Block to lift out", color: "#ffffff", small: true, pt: pointAt(corner[0], corner[1]) }]);
+}
+function setView(m, { fly = true } = {}) {
+  if (m === "block" && !D) return;
   viewMode = m;
   $("viewMap").setAttribute("aria-pressed", String(m === "map")); $("viewBlock").setAttribute("aria-pressed", String(m === "block"));
   $("blockMode").hidden = m !== "block";
-  const p = P(), id = placeId;
-  B = blockFor(p);
-  setDeepClip(m === "block");
   $("steps").hidden = false; setPadding();
-  if (m === "block") step = 1;
-  draw();
+  setDeepClip(m === "block");
+  const block = m === "block";
+  if (block) { buildBlock(); step = 1; }
+  for (const l of [guideLayer, blockLayer, faceLayer, insideLayer]) l.visible = block;
+  arrowLayer.visible = block && faceMode === "face";
+  if (mapQuakes) mapQuakes.visible = !block;
+  if (block) applyStep(); else { if (faceQuakes) faceQuakes.visible = false; if (insideQuakes) insideQuakes.visible = false; showMapChips(); renderPanel(); }
   if (fly) {
-    if (m === "map") { const c = E.lonLatR(E.blockVec(B, (B.thMin + B.thMax) / 2, B.yMax / 2, 0)); goTo({ position: pointAt(c.longitude, c.latitude - 6, 4200000), heading: 0, tilt: 25 }); }
-    else goTo(camAt(E.blockCamera(B, (B.thMin + B.thMax) / 2, 0, 350, 3600, 1600)), 2500);
+    if (block) goTo(camAt(E.blockCamera(B, (B.thMin + B.thMax) / 2, 0, 350, 3600, 1600)), 2500);
+    else { const c = realLL((B.thMin + B.thMax) / 2, B.yMax / 2); goTo({ position: pointAt(c[0], c[1] - 6, 4200000), heading: 0, tilt: 25 }); }
   }
-  if (!data[id]) {
-    setStatus(`Loading ${YEARS} years of earthquakes around the ${p.trench}…`);
-    try { await loadQuakes(id); if (placeId !== id || viewMode !== m) return; draw(); }
-    catch (e) { console.error(e); setStatus("The earthquakes could not be loaded from USGS. The rest of the lab still works."); return; }
-  }
-  const d = data[id];
-  $("quakeCount").textContent = `${km(d.quakes.length)} earthquakes around the ${p.trench}; ${km(d.inside.length)} inside the block.`;
-  setStatus(m === "map" ? `The ${p.trench}: where the earthquakes are. Then open the 3D block.`
-    : `A block of the Earth lifted out above the ${p.trench}.` + (d.line ? " Use Next to go through the steps." : " There were too few earthquakes to draw the sinking plate."));
+  setStatus(block ? `A block of the Earth lifted out above the ${P.trench}.` + (D.line ? " Use Next to go through the steps." : " There were too few earthquakes to draw the sinking plate.")
+    : `The ${P.trench}: where the earthquakes are. Then open the 3D block.`);
 }
-function setPlace(id) {
-  placeId = id;
-  document.querySelectorAll("[data-place]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.place === id)));
-  $("placeIntro").textContent = P().intro;
-  setView(viewMode);
-}
-document.querySelectorAll("[data-place]").forEach(b => b.addEventListener("click", () => setPlace(b.dataset.place)));
 $("viewMap").addEventListener("click", () => setView("map"));
 $("viewBlock").addEventListener("click", () => setView("block"));
 $("modeFace").addEventListener("click", () => setFaceMode("face"));
 $("modeInside").addEventListener("click", () => setFaceMode("inside"));
 
 // ---------- start ----------
-setPlace("tonga");
-loadQuakes("japan").catch(() => {}); // fill in the comparison table
+setView("map");
+setStatus(`Loading ${YEARS} years of earthquakes around the ${P.trench}…`);
+topTexture(); // start fetching the block's top image in the background
+try {
+  D = await quakesJob;
+  mapQuakes = quakeLayer("Earthquakes (map)", D.quakes, q => pointAt(q.lon, q.lat),
+    { type: "size", field: "mag", stops: [{ value: 4.5, size: 4 }, { value: 8, size: 13 }] },
+    (color) => ({ type: "simple-marker", style: "circle", color, outline: { color: [0, 0, 0, 0.6], width: 0.5 } }), { mode: "on-the-ground" });
+  faceQuakes = quakeLayer("Earthquakes on the cross-section", D.face, q => bpt(q.thW, -8, q.depth),
+    { type: "size", field: "mag", axis: "all", stops: [{ value: 4.5, size: 12000 }, { value: 8, size: 47000 }] }, sphereSym, { mode: "absolute-height" });
+  insideQuakes = quakeLayer("Earthquakes inside the block", D.inside, q => bpt(q.thW, q.y, q.depth),
+    { type: "size", field: "mag", axis: "all", stops: [{ value: 4.5, size: 10000 }, { value: 8, size: 38000 }] }, sphereSym, { mode: "absolute-height" });
+  faceQuakes.visible = insideQuakes.visible = false;
+  map.addMany([mapQuakes, faceQuakes, insideQuakes]);
+  map.reorder(faceLayer, map.layers.length - 1); map.reorder(arrowLayer, map.layers.length - 1);
+  $("quakeCount").textContent = `${km(D.quakes.length)} earthquakes around the ${P.trench}; ${km(D.inside.length)} inside the block.` +
+    (D.source === "saved" ? ` Saved ${D.fetched}.` : " Loaded directly from USGS.");
+  $("quakeFacts").textContent = (D.dip != null ? `From the earthquakes: the plate slopes down at about ${Math.round(D.dip)}°` : "From the earthquakes:") +
+    (D.deepest != null ? `, and the deepest earthquake in the block was ${km(D.deepest)} km down.` : ".");
+  if (viewMode === "map") { showMapChips(); renderPanel(); setStatus(`The ${P.trench}: where the earthquakes are. Then open the 3D block.`); }
+} catch (e) { console.error(e); setStatus("The earthquakes could not be loaded. Try again later."); }
 </script>
 </body>
 </html>
