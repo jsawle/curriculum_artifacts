@@ -212,12 +212,12 @@ import * as E from "./subduction-engine.js";
 
 // ================= Versions (single source of truth) =================
 // Bump a model's number whenever its maths or data handling changes, and bump the app version on every release.
-const APP_VERSION = "0.3.0-test";
+const APP_VERSION = "0.4.0-test";
 const MODELS = {
   places: { name: "Place", version: "1.1", desc: "Tonga: section through Horizon Deep (23.26° S, 174.73° W) at right angles to the trench, taken to run about 20° east of north; volcano Hunga Tonga–Hunga Haʻapai (20.545° S, 175.393° W). (1.1: Japan removed for now.)" },
-  block:  { name: "Block model", version: "1.1", desc: "A block of the Earth 1,800 km across the trench (500 km east of it to 1,300 km west), 700 km along it and 800 km deep, in its true curved shape (sides point to the Earth's centre), lifted 1,500 km straight up above where it came from. Front face: the layers (crust 0–35, upper mantle 35–660, lower mantle 660–800 km). Top: Esri imagery with boundaries and names (1,024 px). Sides, back and bottom: see-through layers. Dashed lines join the block to its outline on the globe. Camera: 3,600 km in front of the block and 1,600 km above, looking at 350 km deep in the middle of the front face. (1.1: built once per view; the steps only show and hide parts.)" },
+  block:  { name: "Block model", version: "1.2", desc: "A block of the Earth 1,800 km across the trench (500 km east of it to 1,300 km west), 700 km along it and 800 km deep, in its true curved shape (sides point to the Earth's centre), lifted 1,500 km straight up above where it came from. Front face: the layers (crust 0–35, upper mantle 35–660, lower mantle 660–800 km). Top: Esri imagery with boundaries and names (1,024 px). Sides, back and bottom: see-through layers. Dashed lines join the block to its outline on the globe. Camera: 3,600 km in front of the block and 1,600 km above, looking at 350 km deep in the middle of the front face. (1.1: built once per view; the steps only show and hide parts. 1.2: when the block opens it rises out of the Earth over 5 seconds: its layers start lowered by the full lift, straight down at each point, so it begins roughly in place under the ground; earthquakes, labels and guide lines appear once it is up. Skipped with reduced motion.)" },
   quakes: { name: "Earthquake model", version: "2.0", desc: "USGS catalogue, magnitude 4.5+, past 5 years, within 1,300 km of the middle of the block, from a file saved monthly in the app's data folder (live USGS query only if the file can't load). Map: dots coloured by depth (0–70, 70–300, 300 km and deeper), 4 to 13 px by magnitude. Cross-section: earthquakes up to 150 km behind the front face moved onto it, spheres 12 km + 10 km per magnitude above 4.5. See inside: every earthquake in the block at its real position, spheres 10 km + 8 km per magnitude above 4.5. (2.0: saved file instead of a live 5-year query; drawn as feature layers.)" },
-  plate:  { name: "Plate model", version: "1.0", desc: "Going down in 40 km steps, the median position of the earthquakes in each step, counting only earthquakes within 1° east or 3° west of the step above (3° more for each empty step between), at least 3 per step. Joined to the ocean plate east of the trench, resampled every 15 km, smoothed (5-point moving average, 3 passes). Front face: drawn 80 km thick (35 km above to 45 km below that line) from the earthquakes up to 150 km behind it; slope = average between 60 and 200 km deep. See inside: the same fit in 100 km slices along the trench, each from its own earthquakes, drawn as see-through ribbons. White arrows (140 km long, 9) move along the front-face plate once every 16 seconds. Melt line: from the top of the plate under the volcano." }
+  plate:  { name: "Plate model", version: "1.1", desc: "Going down in 40 km steps, the median position of the earthquakes in each step, counting only earthquakes within 1° east or 3° west of the step above (3° more for each empty step between), at least 3 per step. Joined to the ocean plate east of the trench, resampled every 15 km, smoothed (5-point moving average, 3 passes). Front face: drawn 80 km thick (35 km above to 45 km below that line) from the earthquakes up to 150 km behind it; slope = average between 60 and 200 km deep. See inside: the same fit in 100 km slices along the trench, each from its own earthquakes, drawn as see-through ribbons. White arrows (140 km long, 9) move along the front-face plate once every 16 seconds. Melt line: from the top of the plate under the volcano. The plate on top (Tonga plate) is drawn on the front face from the trench westwards, 60 km thick (an estimate; real thickness varies) or down to the top of the sinking plate where that is shallower. (1.1: plate on top added; moving arrows thinner.)" }
 };
 const $ = (id) => document.getElementById(id);
 $("appVersion").textContent = "v" + APP_VERSION;
@@ -257,6 +257,7 @@ const LAYERS = [
   { name: "Upper mantle", top: 35, bottom: 660, color: "#f4a259" },
   { name: "Lower mantle", top: 660, bottom: 800, color: "#c0504d" }
 ];
+const OVER_THICK = 60, OVER_COLOR = "#8a9a5b", RISE_SECONDS = 5;
 const FACE_BAND = 150, YEARS = 5, QUERY_KM = 1300, PLATE_ABOVE = 35, PLATE_BELOW = 45, STRIP = 100;
 const B = E.makeBlock(P.q, P.strike, { faceOffset: P.faceOffset });
 $("placeIntro").textContent = P.intro;
@@ -475,8 +476,11 @@ function buildBlock() {
       add(faceLayer, meshG(gridMesh([D.line.map(pp => { const t = E.offsetAt(pp, -PLATE_ABOVE); return bc(t.thW, -4, t.depth); }),
         D.line.map(pp => { const b = E.offsetAt(pp, PLATE_BELOW); return bc(b.thW, -4, b.depth); })], flat("#1d5fa8", 0.75))));
       add(faceLayer, new Graphic({ geometry: lineOn(D.line.map(pp => { const t = E.offsetAt(pp, -PLATE_ABOVE); return bc(t.thW, -5, t.depth); })), symbol: lineSym("#a5d8ff", 2) }));
-      for (let k = 0; k < 9; k++) { const g = new Graphic({ symbol: lineSym("#ffffff", 4, { arrow: true }) }); arrows.push({ g, k }); arrowLayer.add(g); }
+      for (let k = 0; k < 9; k++) { const g = new Graphic({ symbol: lineSym("#ffffff", 3, { arrow: true }) }); arrows.push({ g, k }); arrowLayer.add(g); }
       placeArrows();
+      // the plate on top (the Tonga plate): from the surface down to OVER_THICK km, or to the top of the sinking plate where that is shallower
+      const over = Array.from({ length: 61 }, (_, i) => 0.05 + (B.thMax - 0.05) * i / 60).map(t => [t, Math.min(OVER_THICK, E.plateTopAt(D.line, t, PLATE_ABOVE) ?? OVER_THICK)]);
+      add(faceLayer, meshG(gridMesh([over.map(([t]) => bc(t, -3, 0)), over.map(([t, base]) => bc(t, -3, Math.max(0.5, base)))], flat(OVER_COLOR, 0.9))));
     }
     add(faceLayer, new Graphic({ geometry: lineOn(Array.from({ length: 10 }, (_, i) => bc(B.thMin + 0.6 + (-1.2 - B.thMin) * i / 9, -4, -70))), symbol: lineSym("#ffffff", 4, { arrow: true }) }));
     // step 5: the volcano shown on the cross-section, and water and melt rising to it
@@ -492,6 +496,7 @@ function buildBlock() {
 // what each step shows: earthquakes (by depth), stepped graphics, and that step's label
 function applyStep() {
   const inside = faceMode === "inside";
+  if (lifted < 1) { renderPanel(); return; } // still rising
   if (faceQuakes) { faceQuakes.visible = !inside && step >= 3; faceQuakes.definitionExpression = step >= 4 ? "1=1" : "depth < 70"; }
   if (insideQuakes) insideQuakes.visible = inside;
   for (const [g, from] of stepped) g.visible = step >= from;
@@ -503,6 +508,8 @@ function applyStep() {
       bpt(D.vb.thW + 0.4, -6, -190), deepB ? bpt(deepB.thW, -6, Math.min(deepB.depth + 80, B.dMax - 30)) : null][step - 1];
     if (where) list.push({ text: STEP_LABELS[step - 1], color: STEP_COLORS[step - 1], step: true, pt: where });
   } else list.push({ text: "Every earthquake in the block, and the plate fitted in 100 km slices", color: "#a5d8ff", pt: bpt((B.thMin + B.thMax) / 2, B.yMax / 2, -260) });
+  if (!inside && D.line) list.push({ text: "Tonga plate", color: OVER_COLOR, small: true, pt: bpt(Math.min(B.thMax - 1, 5), -6, 30) },
+    { text: "Pacific plate", color: "#4dabf7", small: true, pt: bpt(B.thMin + 1, -6, 40) });
   list.push({ text: `West: ${P.overriding}`, color: "#ffffff", small: true, pt: bpt(B.thMax - 2, -2, -150) }, { text: "East: Pacific plate", color: "#ffffff", small: true, pt: bpt(B.thMin + 1.5, -2, -150) });
   setChips(list);
   renderPanel();
@@ -549,16 +556,18 @@ function renderPanel() {
       `<ol>${P.steps.map((s, i) => `<li class="${i + 1 === step ? "current" : i + 1 < step ? "done" : ""}"${i + 1 === step ? ' aria-current="step"' : ""}>${fill(s)}</li>`).join("")}</ol>` +
       `<p class="stepcount" aria-live="polite">Step ${step} of 6</p>` +
       `<div class="key" aria-label="Key to the drawing"><i style="background:#1d5fa8;height:10px"></i><span>Sinking Pacific plate (drawn through the earthquakes)</span>` +
+      `<i style="background:${OVER_COLOR};height:10px"></i><span>Tonga plate: the plate on top, which the Pacific plate sinks under</span>` +
       `<i style="background:#fff"></i><span>Moving arrows: the whole plate moving</span>` +
       `<i style="background:repeating-linear-gradient(90deg,#ff6b3d 0 5px,transparent 5px 8px)"></i><span>Water and melt rising to the volcano</span>` +
       `<i style="background:#ff4d2e;height:10px;width:10px;clip-path:polygon(50% 0,100% 100%,0 100%);border-radius:0"></i><span>Volcano</span></div>`;
     $("stepsNav").innerHTML = `<button id="stepBack" ${step === 1 ? "disabled" : ""}>← Back</button><button class="primary" id="stepNext" ${step === 6 ? "disabled" : ""}>Next →</button>` +
-      `<button id="btnPause" aria-pressed="${paused}">${paused ? "Play movement" : "Pause movement"}</button><button id="goInside">See inside</button><button id="goMap">Back to the map</button>`;
+      `<button id="btnPause" aria-pressed="${paused}">${paused ? "Play movement" : "Pause movement"}</button><button id="goInside">See inside</button><button id="goReplay">Lift it out again</button><button id="goMap">Back to the map</button>`;
     $("stepBack").addEventListener("click", () => setStep(step - 1));
     $("stepNext").addEventListener("click", () => setStep(step + 1));
     $("btnPause").addEventListener("click", (e) => { paused = !paused; e.currentTarget.setAttribute("aria-pressed", String(paused)); e.currentTarget.textContent = paused ? "Play movement" : "Pause movement"; });
     $("goInside").addEventListener("click", () => setFaceMode("inside"));
-    $("goMap").addEventListener("click", () => setView("map"));
+    $("goReplay").addEventListener("click", () => { setLift(0); rise(); });
+    $("goMap").addEventListener("click", () => { riseId++; setLift(1); setView("map"); });
   }
   $("stepsSrc").innerHTML = "Sources: " + P.src;
 }
@@ -599,14 +608,40 @@ function setView(m, { fly = true } = {}) {
   arrowLayer.visible = block && faceMode === "face";
   if (mapQuakes) mapQuakes.visible = !block;
   if (block) applyStep(); else { if (faceQuakes) faceQuakes.visible = false; if (insideQuakes) insideQuakes.visible = false; showMapChips(); renderPanel(); }
+  if (block) setLift(reduceMotion ? 1 : 0); // the block starts back inside the Earth, then rises out of it
   if (fly) {
-    if (block) goTo(camAt(E.blockCamera(B, (B.thMin + B.thMax) / 2, 0, 350, 3600, 1600)), 2500);
+    if (block) goTo(camAt(E.blockCamera(B, (B.thMin + B.thMax) / 2, 0, 350, 3600, 1600)), 2500).then(() => { if (viewMode === "block") rise(); });
     else { const c = realLL((B.thMin + B.thMax) / 2, B.yMax / 2); goTo({ position: pointAt(c[0], c[1] - 6, 4200000), heading: 0, tilt: 25 }); }
   }
   setStatus(block ? `A block of the Earth lifted out above the ${P.trench}.` + (D.line ? " Use Next to go through the steps." : " There were too few earthquakes to draw the sinking plate.")
     : `The ${P.trench}: where the earthquakes are. Then open the 3D block.`);
 }
-$("viewMap").addEventListener("click", () => setView("map"));
+// ---------- the block rising out of the Earth ----------
+// The block is drawn lifted; during the rise its layers are lowered by the rest of the lift (straight down at each point), so it
+// starts roughly back in place, hidden under the ground, and comes up out of it. Earthquakes and labels appear once it is up.
+const LIFTED = [blockLayer, faceLayer, arrowLayer, insideLayer];
+let riseId = 0, lifted = 1;
+function setLift(f) {
+  lifted = f;
+  for (const l of LIFTED) l.elevationInfo = { mode: "absolute-height", offset: -(1 - f) * B.lift * 1000 };
+  const up = f >= 1;
+  guideLayer.visible = up && viewMode === "block";
+  if (!up) { setChips([]); if (faceQuakes) faceQuakes.visible = false; if (insideQuakes) insideQuakes.visible = false; }
+}
+function rise() {
+  if (reduceMotion) { setLift(1); applyStep(); return; }
+  const id = ++riseId, t0 = performance.now();
+  setStatus(`Lifting a block of the Earth out from under the ${P.trench}…`);
+  const frame = (now) => {
+    if (id !== riseId || viewMode !== "block") return;
+    const t = Math.min(1, (now - t0) / (RISE_SECONDS * 1000)), ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+    setLift(ease);
+    if (t < 1) setTimeout(() => requestAnimationFrame(frame), 50); // about 20 updates a second is smooth enough and keeps it light
+    else { applyStep(); setStatus(`A block of the Earth lifted out from under the ${P.trench}. Use Next to go through the steps.`); }
+  };
+  requestAnimationFrame(frame);
+}
+$("viewMap").addEventListener("click", () => { riseId++; setLift(1); setView("map"); });
 $("viewBlock").addEventListener("click", () => setView("block"));
 $("modeFace").addEventListener("click", () => setFaceMode("face"));
 $("modeInside").addEventListener("click", () => setFaceMode("inside"));
