@@ -76,13 +76,13 @@
   .cfoot button { flex: 1; }
 
   /* right info panel for the selected layer */
-  #info, #conv, #waves, #tonga { position: absolute; right: 64px; top: 16px; width: 340px; max-height: calc(100% - 120px); overflow-y: auto; padding: 14px 16px 12px; z-index: 6; scrollbar-width: thin; }
-  #conv .head, #waves .head, #tonga .head { display: flex; align-items: center; gap: 10px; }
-  #conv h2, #waves h2, #tonga h2 { font-size: 20px; margin: 0; flex: 1; font-weight: 800; line-height: 1.2; }
-  #conv ol, #waves ol, #tonga ol { padding-left: 20px; margin: 10px 0; font-size: 13.5px; }
-  #conv li, #waves li, #tonga li { margin-bottom: 7px; }
-  #conv .how, #waves .how, #tonga .how { font-size: 13.5px; border-left: 3px solid var(--rule); padding-left: 10px; margin: 8px 0 6px; }
-  #conv .src, #waves .src, #tonga .src { font-size: 11.5px; color: var(--muted); margin: 8px 0 0; }
+  #info, #conv, #waves { position: absolute; right: 64px; top: 16px; width: 340px; max-height: calc(100% - 120px); overflow-y: auto; padding: 14px 16px 12px; z-index: 6; scrollbar-width: thin; }
+  #conv .head, #waves .head .head { display: flex; align-items: center; gap: 10px; }
+  #conv h2, #waves h2 h2 { font-size: 20px; margin: 0; flex: 1; font-weight: 800; line-height: 1.2; }
+  #conv ol, #waves ol ol { padding-left: 20px; margin: 10px 0; font-size: 13.5px; }
+  #conv li, #waves li li { margin-bottom: 7px; }
+  #conv .how, #waves .how .how { font-size: 13.5px; border-left: 3px solid var(--rule); padding-left: 10px; margin: 8px 0 6px; }
+  #conv .src, #waves .src .src { font-size: 11.5px; color: var(--muted); margin: 8px 0 0; }
   #waves fieldset { border: 1px solid var(--rule); border-radius: 12px; padding: 4px 10px; margin: 8px 0; }
   #waveClock { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--accent); }
   .key { display: grid; grid-template-columns: auto 1fr; gap: 3px 8px; font-size: 12.5px; margin: 6px 0; align-items: center; }
@@ -103,7 +103,7 @@
   .navrow button { flex: 1; font-size: 13px; padding: 6px 8px; }
 
   /* layer names pinned to points on the cut (HTML, because ArcGIS hides 3D text placed below the ground) */
-  #labelsOverlay, #convOverlay, #wavesOverlay, #sectionOverlay { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+  #labelsOverlay, #convOverlay, #wavesOverlay { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
   span.lbl { pointer-events: none; }
   .lbl { position: absolute; transform: translate(-50%, -50%); pointer-events: auto; font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 999px;
     background: rgba(11, 18, 33, 0.8); border: 1.5px solid var(--c, #fff); color: #fff; white-space: nowrap; box-shadow: 0 4px 14px rgba(0,0,0,.4); }
@@ -150,7 +150,7 @@
   /* narrow screens: card becomes a bottom sheet, info panel sits at the top */
   @media (max-width: 820px) {
     #card { left: 8px; right: 8px; top: auto; bottom: 22px; width: auto; height: 46%; }
-    #info, #conv, #waves, #tonga { left: 8px; right: 56px; top: 8px; width: auto; max-height: calc(54% - 190px); }
+    #info, #conv, #waves { left: 8px; right: 56px; top: 8px; width: auto; max-height: calc(54% - 190px); }
     #cutbar { left: 8px; right: 8px; bottom: calc(46% + 28px); max-width: none; padding: 8px 10px; }
     #credit { bottom: calc(46% + 212px); right: 8px; }
     .lede { display: none; }
@@ -220,10 +220,8 @@
       </section>
 
       <section class="sec" aria-labelledby="hExplore">
-        <h2 id="hExplore">Explore <span class="mv" id="v-section"></span></h2>
-        <button id="btnTongaSection" class="primary" style="width:100%">Cut through the Tonga trench</button>
-        <button id="btnTongaSteps" style="width:100%;margin-top:6px" hidden>What happens at the Tonga trench?</button>
-        <p class="sub" style="margin:6px 0 0">A slice down through the Earth across the Tonga trench, showing a year of earthquakes near the cut. They trace a plate sinking into the mantle.</p>
+        <h2 id="hExplore">Plates at real places</h2>
+        <p class="sub" style="margin:0">To see plates sinking at real trenches, such as Tonga and Japan, with a year of real earthquakes, open <a href="subduction-lab.html" style="color:var(--accent)">Subduction Zones Lab</a>.</p>
       </section>
 
       <details class="sec more">
@@ -288,7 +286,6 @@
   <div id="labelsOverlay" role="group" aria-label="Layer names on the cut" hidden></div>
   <div id="convOverlay" role="group" aria-label="Labels for the convection model" hidden></div>
   <div id="wavesOverlay" role="group" aria-label="Labels for the earthquake waves" hidden></div>
-  <div id="sectionOverlay" role="group" aria-label="Labels for the Tonga cross-section" hidden></div>
 
   <section id="waves" class="glass" aria-labelledby="wavesTitle" hidden>
     <div class="head">
@@ -303,8 +300,6 @@
       <label class="row"><input type="radio" name="wshow" value="S" /> S-waves only</label>
     </fieldset>
     <div class="navrow"><button id="btnQuake" class="primary">Start an earthquake</button><button id="btnWavePause" aria-pressed="false">Pause</button></div>
-    <div class="navrow"><button id="btnRealQuake">Start from the biggest earthquake this month</button></div>
-    <p class="sub" id="realQuakeText" style="margin:6px 0 0" hidden></p>
     <p class="sub" style="margin:6px 0 0">Time after the earthquake: <span id="waveClock">0 min</span></p>
     <ol>
       <li><b>P-waves</b> (primary) are <i>longitudinal</i>: the rock is pushed and pulled along the direction the wave travels. They are the fastest, and they travel through solids <b>and</b> liquids.</li>
@@ -323,34 +318,6 @@
     </div>
     <p class="note" id="waveModelNote">The paths come from a simplified model of how fast waves travel at each depth, so they land a few degrees from the measured shadow-zone edges, which are drawn from real seismometer records.</p>
     <p class="src">Sources: USGS, "Shadow zone"; Earle, <i>Physical Geology</i> 9.1; AQA GCSE Physics 4.6.1.5; NGSS HS-ESS2-3. Wave speeds rounded from PREM (Dziewonski &amp; Anderson, 1981). Inner core history: Wikipedia, "Earth's inner core"; Dziewoński &amp; Gilbert (1971), <i>Nature</i> 234.</p>
-  </section>
-
-  <section id="tonga" class="glass" aria-labelledby="tongaTitle" hidden>
-    <div class="head">
-      <h2 id="tongaTitle" tabindex="-1">What happens at the Tonga trench?</h2>
-      <button class="iconbtn" id="tongaClose" aria-label="Close the explanation">✕</button>
-    </div>
-    <p style="font-size:13.5px;margin:8px 0">This slice runs west–east across the trench. The numbers match the labels on the cut.</p>
-    <ol>
-      <li><b>The Pacific plate moves west</b>, about 15–24 cm a year here, one of the fastest plates on Earth. It is old, cold and dense.</li>
-      <li><b>At the trench it bends down</b> and sinks under the Tonga plate. The Tonga trench is the second-deepest place in the oceans.</li>
-      <li><b>Shallow earthquakes</b> happen where the two plates grind past each other: they stick, then slip suddenly. The biggest earthquakes and tsunamis happen at plate boundaries like this.</li>
-      <li><b>Earthquakes carry on inside the sinking plate.</b> It stays cold and brittle as it sinks, so it keeps breaking. The earthquakes make a sloping line (the Wadati–Benioff zone) that shows where the plate is.</li>
-      <li><b>Volcanoes form above it.</b> Where the plate is about 100 km down, water squeezed out of it rises into the hot mantle above. Water makes rock melt at a lower temperature, so some of it melts and the magma rises to make a line of volcanoes. <span id="tongaVolcano"></span></li>
-      <li><b>Below about 700 km the earthquakes stop</b>, but the plate keeps sinking. Its weight pulls the rest of the plate along behind it (<i>slab pull</i>).</li>
-    </ol>
-    <div class="key" aria-label="Key to the drawing">
-      <i style="background:#1d5fa8;height:10px"></i><span>Sinking Pacific plate (drawn through the earthquakes)</span>
-      <i style="background:#ffffff;height:8px;width:8px;border-radius:50%"></i><span>Rock moving with the plate</span>
-      <i style="background:#66e3ff;height:10px;width:10px;border-radius:50%"></i><span>Earthquake 0–70 km deep</span>
-      <i style="background:#3b82f6;height:10px;width:10px;border-radius:50%"></i><span>Earthquake 70–300 km deep</span>
-      <i style="background:#a78bfa;height:10px;width:10px;border-radius:50%"></i><span>Earthquake 300 km and deeper</span>
-      <i style="background:repeating-linear-gradient(90deg,#ff6b3d 0 5px,transparent 5px 8px)"></i><span>Water and melt rising to the volcano</span>
-      <i style="background:#ff4d2e;height:10px;width:10px;clip-path:polygon(50% 0,100% 100%,0 100%);border-radius:0"></i><span>Volcano</span>
-    </div>
-    <p class="note">The plate is drawn 80 km thick through the middle of the earthquakes: going down in 40 km steps, it passes through the middle (median) of the earthquakes in each step. The real plate's thickness and shape are estimates. Earthquakes from up to 300 km either side of the cut are shown on it.</p>
-    <div class="navrow"><button id="btnTongaPause" aria-pressed="false">Pause movement</button></div>
-    <p class="src">Sources: USGS earthquake catalogue; Wikipedia, "Tonga Trench", "Wadati–Benioff zone", "Hunga Tonga–Hunga Haʻapai"; Earle, <i>Physical Geology</i>, chapter 10 (subduction and volcanoes).</p>
   </section>
 
   <section id="conv" class="glass" aria-labelledby="convTitle" hidden>
@@ -413,7 +380,7 @@
     <li>Layer depths: Preliminary Reference Earth Model (Dziewonski &amp; Anderson, 1981), rounded. The crust uses a 35 km average (real range about 5–70 km).</li>
     <li>Lithosphere and asthenosphere: Wikipedia, "Lithosphere" and "Asthenosphere"; Earle, <i>Physical Geology</i> 9.1 (low-velocity zone 100–250 km).</li>
     <li>Temperatures and facts: National Geographic Education ("Core"); Earle, <i>Physical Geology</i>, 9.2 "The Temperature of Earth's Interior"; Wikipedia, "Earth's outer core" and "Earth's inner core". Inner-core history: Wikipedia, "Earth's inner core"; Dziewoński &amp; Gilbert (1971).</li>
-    <li>Earthquakes: USGS real-time feed, magnitude 4.5+, past 30 days. Tonga cross-section: USGS earthquake catalogue (FDSN event service), magnitude 4.5+, past 12 months, within 1,000 km of Horizon Deep; trench facts from Wikipedia, "Tonga Trench"; Hunga Tonga–Hunga Haʻapai position from Wikipedia; subduction steps from Wikipedia, "Wadati–Benioff zone", and Earle, <i>Physical Geology</i>, chapter 10.</li>
+    <li>Earthquakes: USGS real-time feed, magnitude 4.5+, past 30 days.</li>
     <li>Earthquake waves: paths traced through wave speeds rounded from PREM; shadow zones from USGS ("Shadow zone": 104°–140°); history from Earle, <i>Physical Geology</i>, and Wikipedia "Shadow zone".</li>
     <li>Convection and plate forces: NGSS HS-ESS2-3 (ESS2.A, ESS2.B); Columbia University, "Driving forces of plate motions"; plate speeds from the Pacific Northwest Seismic Network.</li>
     <li>Convection: upwelling under ridges from WHOI <i>Oceanus</i>, "The Big MELT".</li>
@@ -425,15 +392,14 @@
 <script type="module">
 // ================= Versions (single source of truth) =================
 // Bump a model's number whenever its maths or data handling changes, and bump the app version on every release.
-const APP_VERSION = "0.10.0"; // test copy of earth-structure-lab.html (0.8.1)
+const APP_VERSION = "0.11.0"; // test copy of earth-structure-lab.html (0.8.1)
 const MODELS = {
   layers: { name: "Layer model", version: "2.2", desc: "Two ways of dividing the Earth: by what it is made of (crust 0–35, upper mantle 35–660, lower mantle 660–2,891, outer core, inner core) and by how it behaves (lithosphere 0–100, asthenosphere 100–250, mesosphere 250–2,891, outer core, inner core; km). On a slider cut each layer the cut reaches is a flat filled ring where the cut plane meets that layer's shell (ring radius √(r² − h²), where h is the plane's distance from the centre), 2 km behind the cut, or 40 km behind it when the Earth is cut in half so the models drawn on the cut stay in front. Shells: concentric spheres for mantle and core at PREM depths, scaled to the globe's radius. Facts per layer for the information panel (2.2: lower mantle and mesosphere flow slowly; core temperatures made consistent, rising with depth; inner-core history corrected). While a model ('How it moves', 'Earthquake waves') is showing, the rings are darkened to 40% so the model lines stand out." },
-  waves:  { name: "Seismic wave model", version: "1.1", desc: "Wave paths traced through wave speeds rounded from PREM (crust and the low-speed zone smoothed out; PREM's 400 and 670 km boundaries moved to the 410 and 660 km used in the rest of the app): each path bends with the speed change and refracts with Snell's law at 410 km, 660 km, the core–mantle boundary and the inner-core boundary; S-waves stop at the liquid outer core. Shadow zones are drawn at the measured edges (USGS: 104°–140°), not the model's. The animation runs 30 real minutes in 15 seconds. P-waves blue and solid, S-waves orange and dashed (readable with red–green colour blindness). The earthquake can be placed at the biggest earthquake in the USGS 30-day feed: the cut is then the great circle through it running north–south." },
+  waves:  { name: "Seismic wave model", version: "1.2", desc: "Wave paths traced through wave speeds rounded from PREM (crust and the low-speed zone smoothed out; PREM's 400 and 670 km boundaries moved to the 410 and 660 km used in the rest of the app): each path bends with the speed change and refracts with Snell's law at 410 km, 660 km, the core–mantle boundary and the inner-core boundary; S-waves stop at the liquid outer core. Shadow zones are drawn at the measured edges (USGS: 104°–140°), not the model's. The animation runs 30 real minutes in 15 seconds. P-waves blue and solid, S-waves orange and dashed (readable with red–green colour blindness). (1.2: the option to start from a real earthquake is removed.)" },
   conv:   { name: "Convection model", version: "2.0", desc: "Schematic mantle convection on the centre cut, the same on any cut (ridges, trenches and plume are not the real ones under that cut). Five loops between 3,730 km and 6,090 km from the centre (core–mantle boundary 3,480 km), turning in alternate directions, so broad rising return flow (under ridges at 30°, 150° and 270°) and sinking rock (at trenches at 90°, 210° and 330°) alternate; the sixth loop position (180°) holds a plume rising from the core–mantle boundary to the base of the plate under the middle of a plate. Under each ridge a short, shallow upwelling from 200 km deep, pulled up by the plates (WHOI MELT experiment: melting from 150–200 km). Plates drawn as arrows 220 km above the surface from ridge to trench; a sinking slab from each trench to 1,500 km deep. Rock parcels go once round a loop in 12 seconds (in reality hundreds of millions of years)." },
   dims:   { name: "Depth label model", version: "1.3", desc: "Depth lines (Esri DimensionAnalysis) only when the Earth is cut in half: boundaries follow the chosen way of dividing the Earth (hidden when both are shown), drawn from the surface to each boundary at true depth on a radius 90° from the cut's anchor (to the right of the cut), spaced 650 km apart. Layer names on any slider cut: on-screen buttons pinned to the middle of each ring the cut reaches (rings under 120 km wide get their name just outside the cut), fanned around the left half; a name pulses when the cut first reaches its layer. Shown while the cut face is turned towards the camera at less than 75° (seen from the side or face-on)." },
-  slice:  { name: "Slice model", version: "3.1", desc: "Starts with the whole Earth. The slider sets the cut depth from 0 to 6,371 km (step 10 km; 6,350 km or more snaps to the centre, with the plane 1 km off the exact centre, where its direction is undefined): an Esri SliceAnalysis plane (tilt 0°) that far below the surface point in the middle of the view, facing that point, so it removes the cap of the Earth nearest the viewer. When a new cut starts, the camera turns 50° to the left round the globe's screen-up axis (to at least 16,000 km up), so the cut is seen from the side. The cut stays fixed to the Earth; it moves to the middle of the view only when the slider starts a new cut from the whole Earth or the cut face has been turned out of sight (more than 75° away). 'Cut in half' takes the same cut to the centre. While cut, the ground is swapped for a sphere with the same imagery, boundaries and names (Esri World Imagery export with World Boundaries and Places level-3 tiles re-projected onto it; NASA Blue Marble if the imagery can't load), which the cut slices with the layers, so the countries stay on the uncut part (viewer can turn this off). ArcGIS's own sliced ground leaves a faint copy of the removed part over the cut face, and the atmosphere's haze washes over it, so the atmosphere is off while cut. 3.1: a cut can also be set to pass through a chosen place (the Tonga cross-section, the earthquake-wave start point): the Earth is cut in half on the great circle through that place, using an anchor 90° away from it." },
+  slice:  { name: "Slice model", version: "3.2", desc: "Starts with the whole Earth. The slider sets the cut depth from 0 to 6,371 km (step 10 km; 6,350 km or more snaps to the centre, with the plane 1 km off the exact centre, where its direction is undefined): an Esri SliceAnalysis plane (tilt 0°) that far below the surface point in the middle of the view, facing that point, so it removes the cap of the Earth nearest the viewer. When a new cut starts, the camera turns 50° to the left round the globe's screen-up axis (to at least 16,000 km up), so the cut is seen from the side. The cut stays fixed to the Earth; it moves to the middle of the view only when the slider starts a new cut from the whole Earth or the cut face has been turned out of sight (more than 75° away). 'Cut in half' takes the same cut to the centre. While cut, the ground is swapped for a sphere with the same imagery, boundaries and names (Esri World Imagery export with World Boundaries and Places level-3 tiles re-projected onto it; NASA Blue Marble if the imagery can't load), which the cut slices with the layers, so the countries stay on the uncut part (viewer can turn this off). ArcGIS's own sliced ground leaves a faint copy of the removed part over the cut face, and the atmosphere's haze washes over it, so the atmosphere is off while cut. (3.2: cuts through a chosen place removed; real places are now in Subduction Zones Lab.)" },
   quakes: { name: "Earthquake depth model", version: "1.1", desc: "USGS depths placed below the surface: height = −depth × 1000 × stretch. Coloured in three depth classes (0–70, 70–300, 300 km and deeper) that match the key. Choosing a stretched depth lowers the surface to 40% if it is solid, so the deep earthquakes can be seen." },
-  section: { name: "Tonga cross-section", version: "2.0", desc: "The Earth cut in half on the great circle through Horizon Deep (23.26° S, 174.73° W), at right angles to the Tonga trench (taken to run about 20° east of north). Earthquakes: USGS catalogue, magnitude 4.5+, past 12 months, within 1,000 km of Horizon Deep; those within 300 km of the cut are moved straight onto it (12 km in front of the cut face), at true depth, sized by magnitude (14 km + 12 km per magnitude above 4.5). The sinking plate: going down in 40 km steps, the median position of the earthquakes in each step that lie within 1° east or 3° west of the step above (at least 3 earthquakes), joined to the ocean plate east of the trench, resampled every 15 km, smoothed (5-point moving average, 3 passes) and drawn 80 km thick (35 km above to 45 km below that line). White dots move along its middle once every 16 seconds. Volcano: Hunga Tonga–Hunga Haʻapai (20.545° S, 175.393° W) moved onto the cut; the dashed line rises from the top of the plate below it. Depth guides at 100, 300 and 660 km. While it shows, the view draws everything from 20 km to 40,000 km from the camera; camera 3,500 km in front of the cut, looking at 330 km deep, 1.5° west of the trench." },
 };
 const $ = (id) => document.getElementById(id);
 $("appVersion").textContent = "v" + APP_VERSION;
@@ -554,7 +520,7 @@ function showInfo(id, { focus = false } = {}) {
   const list = listFor(id), i = list.indexOf(l);
   $("infoUp").disabled = i <= 0; $("infoDown").disabled = i === list.length - 1;
   document.querySelectorAll("button.lname").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.info === id)));
-  $("conv").hidden = true; $("waves").hidden = true; $("tonga").hidden = true;
+  $("conv").hidden = true; $("waves").hidden = true;
   $("info").hidden = false;
   if (focus) $("infoTitle").focus();
   onSelect(id);
@@ -578,7 +544,7 @@ $("infoUp").addEventListener("click", () => { const list = listFor(selectedId), 
 $("infoDown").addEventListener("click", () => { const list = listFor(selectedId), i = list.findIndex(l => l.id === selectedId); if (i < list.length - 1) showInfo(list[i + 1].id, { focus: true }); });
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape" || document.querySelector("dialog[open]")) return;
-  if (!$("info").hidden) $("infoClose").click(); else if (!$("conv").hidden) $("convClose").click(); else if (!$("waves").hidden) $("wavesClose").click(); else if (!$("tonga").hidden) $("tongaClose").click();
+  if (!$("info").hidden) $("infoClose").click(); else if (!$("conv").hidden) $("convClose").click(); else if (!$("waves").hidden) $("wavesClose").click();
 });
 
 const about = $("about");
@@ -631,7 +597,7 @@ const view = sceneEl.view;
 view.popupEnabled = false;
 // keep the globe clear of the floating card on the left
 const setPadding = () => {
-  const infoOpen = !$("info").hidden || !$("conv").hidden || !$("waves").hidden || !$("tonga").hidden;
+  const infoOpen = !$("info").hidden || !$("conv").hidden || !$("waves").hidden;
   $("app").classList.toggle("panel-open", infoOpen); // the slider bar moves out from under the right-hand panel
   view.padding = window.innerWidth > 820 ? { left: 400, right: infoOpen ? 400 : 0, top: 0, bottom: $("cutbar").offsetHeight + 24 }
                                          : { left: 0, top: 0, right: 0, bottom: Math.round(window.innerHeight * 0.46) + $("cutbar").offsetHeight + 28 };
@@ -999,9 +965,7 @@ const WAVE_CHIPS = [
 const wavesOverlay = $("wavesOverlay");
 wavesOverlay.innerHTML = WAVE_CHIPS.map(c => `<span class="lbl" data-pt="${c.id}" style="--c:${c.c}">${c.text}</span>`).join("");
 let wavePts = null;
-function placeLabels() { placeGroup(overlay, labelPts, "info"); placeGroup(convOverlay, convPts, "pt"); placeGroup(wavesOverlay, wavePts, "pt"); placeGroup(sectionOverlay, mode === "layers" ? sectionPts : null, "pt"); }
-const sectionOverlay = $("sectionOverlay");
-let sectionPts = null;
+function placeLabels() { placeGroup(overlay, labelPts, "info"); placeGroup(convOverlay, convPts, "pt"); placeGroup(wavesOverlay, wavePts, "pt"); }
 reactiveUtils.watch(() => [view.camera, view.width, view.height, view.padding], () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(placeLabels); });
 $("showDims").addEventListener("change", drawDims);
 $("showLabels").addEventListener("change", drawLabels);
@@ -1009,7 +973,6 @@ $("showLabels").addEventListener("change", drawLabels);
 // ---------- Earthquakes ----------
 const USGS_URL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_month.geojson";
 let quakeLayer = null;
-let quakeFeatures = null; // the USGS 30-day feed, kept for "Start from the biggest earthquake this month"
 // three depth classes, the same as the key (a smooth colour ramp gave in-between colours that are not in the key)
 const QUAKE_CLASSES = [[-100, 70, "#66e3ff"], [70, 300, "#3b82f6"], [300, 1000, "#a78bfa"]];
 const quakeColor = (depth) => (QUAKE_CLASSES.find(([a, b]) => depth >= a && depth < b) || QUAKE_CLASSES[2])[2];
@@ -1024,7 +987,6 @@ async function loadQuakes() {
     const res = await fetch(USGS_URL);
     if (!res.ok) throw new Error("HTTP " + res.status);
     const gj = await res.json();
-    quakeFeatures = gj.features;
     const graphics = gj.features.map((f, i) => new Graphic({
       geometry: { type: "point", longitude: f.geometry.coordinates[0], latitude: f.geometry.coordinates[1], spatialReference: { wkid: 4326 } },
       attributes: { ObjectID: i + 1, mag: f.properties.mag, depth: f.geometry.coordinates[2], place: f.properties.place, time: f.properties.time }
@@ -1105,12 +1067,10 @@ function updateCutBar() {
 }
 // Cut d km (true depth) straight down into the anchor point: a plane facing that point that removes the cap of the
 // Earth around it. 0 = the whole Earth; 6,371 = cut in half through the centre.
-// forced: an anchor to cut on (a cut through a chosen place); the caller then moves the camera itself.
-function setCutDepth(d, forced = null) {
+function setCutDepth(d) {
   d = Math.max(0, Math.min(R_TRUE_KM, Math.round(d)));
   if (d >= R_TRUE_KM - SNAP_KM) d = R_TRUE_KM;
   placeAbort?.abort(); freeCut = false;
-  if (!forced) clearSection();
   let started = false;
   if (d === 0) {
     cutAnchor = null;
@@ -1118,8 +1078,7 @@ function setCutDepth(d, forced = null) {
     if (slice.clear) slice.clear(); else slice.shape = null;
   } else {
     // keep the cut where it is while its face can be seen; otherwise start a new one in the middle of the view
-    if (forced) cutAnchor = forced;
-    else if (!cutAnchor || faceCos(cutAnchor, d) < FACE_MIN_COS) { cutAnchor = centreAnchor(); started = true; }
+    if (!cutAnchor || faceCos(cutAnchor, d) < FACE_MIN_COS) { cutAnchor = centreAnchor(); started = true; }
     slice.shape = new SlicePlane({ // (kept 1 km off the exact centre, where the plane's "up" direction is undefined)
       position: pointAt(cutAnchor.longitude, cutAnchor.latitude, -Math.min(d * SCALE, R_SCENE_KM - 1) * 1000),
       heading: cutAnchor.heading, tilt: 0, width: PLANE_SIZE, height: PLANE_SIZE
@@ -1406,7 +1365,6 @@ const PANELS = { conv: { el: "conv", title: "convTitle", why: "Why do the plates
 function showPanel(m, { focus = false } = {}) {
   if (!$("info").hidden) hideInfo();
   for (const [k, p] of Object.entries(PANELS)) $(p.el).hidden = k !== m;
-  $("tonga").hidden = true;
   setPadding();
   if (focus && PANELS[m]) $(PANELS[m].title).focus();
 }
@@ -1419,7 +1377,6 @@ function setMode(m) {
   for (const [id, k] of [["modeLayers", "layers"], ["modeConv", "conv"], ["modeWaves", "waves"]]) $(id).setAttribute("aria-pressed", String(m === k));
   $("btnWhy").hidden = !PANELS[m]; if (PANELS[m]) $("btnWhy").textContent = PANELS[m].why;
   if (m !== "layers" && !dimAnchor) setCutDepth(R_TRUE_KM); // these models are drawn on the Earth cut in half
-  sectionLayer.visible = tongaLayer.visible = m === "layers"; // the Tonga earthquakes go with the layers view
   drawCaps(); drawDims(); drawLabels(); drawConvection(); drawWaves();
   if (PANELS[m]) showPanel(m); else hidePanels();
   if (m === "conv") setStatus("Showing how the mantle and plates move. Select \"Why do the plates move?\" for the explanation.");
@@ -1441,291 +1398,6 @@ view.on("click", async (evt) => {
 $("underground").addEventListener("change", (e) => { map.ground.navigationConstraint = { type: e.target.checked ? "none" : "stay-above" }; });
 $("btnHome").addEventListener("click", async () => { setCutDepth(0); await view.goTo(START_CAMERA, { animate: !reduceMotion }); setStatus("The whole Earth. Drag the slider to cut into it."); });
 
-
-// ---------- Cuts through a chosen place: the Tonga cross-section and a real earthquake for the waves ----------
-const unitV = (v) => { const l = Math.hypot(...v); return v.map(x => x / l); };
-const dotV = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-const lonLatR = (v) => { const r = Math.hypot(...v); return { longitude: Math.atan2(v[1], v[0]) * 180 / Math.PI, latitude: Math.asin(v[2] / r) * 180 / Math.PI, r }; };
-// The anchor that cuts the Earth in half on the great circle through q running along bearing `along`: the point 90° from q
-// at right angles to that circle, with its heading pointing at q, so q is at the top of the cut face (angle 0).
-function anchorThrough(q, along) {
-  const a = fromAnchor(q, along + 90, 90);
-  return { longitude: a.longitude, latitude: a.latitude, heading: bearingTo(a, q) };
-}
-// A camera distKm in front of the centre cut (on the anchor's side), looking at the point `target` ([x, y, z] km) on the cut.
-function cameraLookingAt(target, anchor, distKm) {
-  const n = ecefKm(anchor.longitude, anchor.latitude, 1), c = target.map((x, i) => x + distKm * n[i]);
-  const p = lonLatR(c), r = Math.PI / 180, lo = p.longitude * r, la = p.latitude * r;
-  const east = [-Math.sin(lo), Math.cos(lo), 0], north = [-Math.sin(la) * Math.cos(lo), -Math.sin(la) * Math.sin(lo), Math.cos(la)];
-  const up = [Math.cos(la) * Math.cos(lo), Math.cos(la) * Math.sin(lo), Math.sin(la)];
-  const d = unitV(target.map((x, i) => x - c[i]));
-  const heading = (Math.atan2(dotV(d, east), dotV(d, north)) / r + 360) % 360;
-  const tilt = Math.acos(Math.max(-1, Math.min(1, -dotV(d, up)))) / r;
-  return camAt(p.longitude, p.latitude, (p.r - R_SCENE_KM) * 1000, heading, tilt);
-}
-const TONGA = { q: { longitude: -174.7267, latitude: -23.2583 }, strike: 20, // Horizon Deep; the trench runs about 20° east of north
-  volcano: { name: "Hunga Tonga–Hunga Haʻapai", longitude: -175.3925, latitude: -20.545 } };
-const SECTION_BAND_KM = 300, SECTION_RADIUS_KM = 1000;
-const PLATE_ABOVE = 35, PLATE_BELOW = 45; // the plate is drawn 80 km thick, from 35 km above to 45 km below the line through the earthquakes
-const sectionLayer = new GraphicsLayer({ title: "Earthquakes near the cut", elevationInfo: { mode: "absolute-height" } });
-const tongaLayer = new GraphicsLayer({ title: "Tonga subduction model", elevationInfo: { mode: "absolute-height" } });
-map.addMany([tongaLayer, sectionLayer]);
-slice.excludedLayers.addMany([sectionLayer, tongaLayer]); // they are drawn on the cut, so the cut must not hide them
-let sectionOn = false, sectionData = null, secFrame = null;
-const QUAKE_CHIP = wavesOverlay.querySelector('[data-pt="quake"]');
-
-// Positions on the Tonga cut: thW = degrees round the cut west of the trench, depth in km (negative = above the surface),
-// front = km in front of the cut face (so things drawn on the cut are not hidden by it).
-const crossV = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
-function makeFrame(anchor, q) {
-  const n = ecefKm(anchor.longitude, anchor.latitude, 1), qv = ecefKm(q.longitude, q.latitude, 1);
-  let wv = unitV(crossV(n, qv));
-  const t = lonLatR(qv.map((x, i) => x * Math.cos(0.05) + wv[i] * Math.sin(0.05)));
-  if (((t.longitude - q.longitude + 540) % 360) - 180 > 0) wv = wv.map(x => -x); // make wv point west
-  return { anchor, n, qv, wv };
-}
-const secVec = (F, thW, depth, front = 0) => { const a = thW * Math.PI / 180, r = R_SCENE_KM - depth;
-  return F.qv.map((x, i) => r * (x * Math.cos(a) + F.wv[i] * Math.sin(a)) + front * F.n[i]); };
-const secCoords = (F, thW, depth, front = 0) => { const p = lonLatR(secVec(F, thW, depth, front)); return [p.longitude, p.latitude, (p.r - R_SCENE_KM) * 1000]; };
-const secPt = (F, thW, depth, front = 0) => { const c = secCoords(F, thW, depth, front); return pointAt(c[0], c[1], c[2]); };
-const onSection = (F, v) => ({ thW: Math.atan2(dotV(v, F.wv), dotV(v, F.qv)) * 180 / Math.PI, dist: dotV(v, F.n) });
-// 2D plane coordinates (km): x towards the west, y up through the trench
-const toXY = (p) => { const a = p.thW * Math.PI / 180, r = R_SCENE_KM - p.depth; return [r * Math.sin(a), r * Math.cos(a)]; };
-const fromXY = ([x, y]) => ({ thW: Math.atan2(x, y) * 180 / Math.PI, depth: R_SCENE_KM - Math.hypot(x, y) });
-
-// The line through the earthquakes: going down in 40 km steps, the median position of the earthquakes in each step,
-// keeping only earthquakes near the line so far (so earthquakes elsewhere, such as behind the volcanoes, are left out).
-const median = (a) => { const s = [...a].sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
-function fitSlab(pts) {
-  const out = [];
-  let prev = { thW: 0, depth: 0 };
-  for (let d0 = 0; d0 < 720; d0 += 40) {
-    const inBin = pts.filter(p => p.depth >= d0 && p.depth < d0 + 40 && p.thW > prev.thW - 1 && p.thW < prev.thW + 3);
-    if (inBin.length < 3) continue;
-    prev = { thW: median(inBin.map(p => p.thW)), depth: median(inBin.map(p => p.depth)) };
-    out.push(prev);
-  }
-  return out;
-}
-// The plate's middle line: the ocean plate east of the trench, then down through the earthquakes; resampled every 15 km and smoothed.
-function plateLine(bins) {
-  const raw = [{ thW: -12, depth: PLATE_ABOVE }, { thW: -0.8, depth: PLATE_ABOVE }, ...bins.filter(b => b.thW > -0.5).map(b => ({ thW: b.thW, depth: Math.max(b.depth, PLATE_ABOVE) }))].map(toXY);
-  const pts = [raw[0]];
-  for (let i = 1; i < raw.length; i++) {
-    const [a, b] = [raw[i - 1], raw[i]], L = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.max(1, Math.round(L / 15));
-    for (let k = 1; k <= n; k++) pts.push([a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n]);
-  }
-  let sm = pts;
-  for (let pass = 0; pass < 3; pass++) sm = sm.map((p, i) => {
-    if (i < 2 || i > sm.length - 3) return p;
-    const w = sm.slice(i - 2, i + 3); return [w.reduce((t, q) => t + q[0], 0) / 5, w.reduce((t, q) => t + q[1], 0) / 5];
-  });
-  // the underside direction at each point (to the right of the direction of travel: down, then down and to the east)
-  let len = 0;
-  return sm.map((p, i) => {
-    const a = sm[Math.max(0, i - 1)], b = sm[Math.min(sm.length - 1, i + 1)], dx = b[0] - a[0], dy = b[1] - a[1], dl = Math.hypot(dx, dy) || 1;
-    if (i > 0) len += Math.hypot(p[0] - sm[i - 1][0], p[1] - sm[i - 1][1]);
-    return { xy: p, under: [dy / dl, -dx / dl], len };
-  });
-}
-function plateMesh(F, line, front) {
-  const pos = [], faces = [];
-  for (const p of line) {
-    const top = fromXY([p.xy[0] - PLATE_ABOVE * p.under[0], p.xy[1] - PLATE_ABOVE * p.under[1]]);
-    const bot = fromXY([p.xy[0] + PLATE_BELOW * p.under[0], p.xy[1] + PLATE_BELOW * p.under[1]]);
-    pos.push(...secCoords(F, top.thW, top.depth, front), ...secCoords(F, bot.thW, bot.depth, front));
-  }
-  for (let i = 0; i < line.length - 1; i++) { const a = 2 * i; faces.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
-  return new Mesh({ spatialReference: { wkid: 4326 }, vertexAttributes: { position: new Float64Array(pos) },
-    components: [new MeshComponent({ faces: new Uint32Array(faces), shading: "flat",
-      material: new MeshMaterialMetallicRoughness({ color: [30, 90, 170, 0.6], emissiveColor: "#1d5fa8", metallic: 0, roughness: 1, doubleSided: true }) })] });
-}
-// the depth of the top of the plate under a point thW degrees west of the trench (null if the plate is not under it)
-function plateTopAt(line, thW) {
-  const tops = line.map(p => fromXY([p.xy[0] - PLATE_ABOVE * p.under[0], p.xy[1] - PLATE_ABOVE * p.under[1]]));
-  for (let i = 1; i < tops.length; i++) {
-    const [a, b] = [tops[i - 1], tops[i]];
-    if ((a.thW - thW) * (b.thW - thW) <= 0 && a.thW !== b.thW) return a.depth + (thW - a.thW) / (b.thW - a.thW) * (b.depth - a.depth);
-  }
-  return null;
-}
-
-// labels: the numbered steps match the "What happens at the Tonga trench?" panel
-const SECTION_CHIPS = [
-  { id: "west",  text: "West: Tonga plate",                                  c: "#ffffff" },
-  { id: "s1",    text: "1 · Pacific plate moves west, 15–24 cm a year",      c: "#ffffff" },
-  { id: "s2",    text: "2 · Trench: the plate bends down",                   c: "#ffffff" },
-  { id: "s3",    text: "3 · Shallow earthquakes: the plates stick and slip", c: "#66e3ff" },
-  { id: "s4",    text: "4 · Earthquakes inside the cold, sinking plate",     c: "#a78bfa" },
-  { id: "s5",    text: "5 · Volcano: water from the plate melts rock above", c: "#ff6b3d" },
-  { id: "s6",    text: "6 · Earthquakes stop near 700 km; the plate sinks on", c: "#a5d8ff" },
-  { id: "d100",  text: "100 km", c: "#ffffff", small: true },
-  { id: "d300",  text: "300 km", c: "#ffffff", small: true },
-  { id: "d660",  text: "660 km", c: "#ffffff", small: true }
-];
-sectionOverlay.innerHTML = SECTION_CHIPS.map(c => `<span class="lbl${c.small ? " small" : ""}" data-pt="${c.id}" style="--c:${c.c}">${c.text}</span>`).join("");
-
-// A low camera normally stops drawing far-off and underground things; the cross-section camera needs to see the cut deep down.
-function setDeepClip(on) {
-  try {
-    const cd = view.constraints.clipDistance;
-    if (on) { cd.near = 20000; cd.far = 40000000; } else cd.mode = "auto";
-  } catch (e) { console.warn("Clip distance not changed:", e); }
-}
-let tongaLine = null, tongaParcels = [], tongaPhase = 0, tongaPaused = reduceMotion, tongaLast = 0;
-function clearSection() {
-  setDeepClip(false);
-  sectionOn = false; secFrame = null; tongaLine = null; tongaParcels = [];
-  sectionLayer.removeAll(); tongaLayer.removeAll(); sectionPts = null;
-  $("tonga").hidden = true; $("btnTongaSteps").hidden = true;
-  if (QUAKE_CHIP) QUAKE_CHIP.textContent = "Earthquake";
-  $("realQuakeText").hidden = true;
-  setPadding(); placeLabels();
-}
-async function sectionQuakes(q) {
-  if (sectionData) return sectionData;
-  const start = new Date(Date.now() - 365 * 864e5).toISOString().slice(0, 10);
-  const url = "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&minmagnitude=4.5&orderby=time" +
-    `&starttime=${start}&latitude=${q.latitude}&longitude=${q.longitude}&maxradiuskm=${SECTION_RADIUS_KM}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error("HTTP " + res.status);
-  sectionData = (await res.json()).features;
-  return sectionData;
-}
-// Earthquakes within SECTION_BAND_KM of the cut, moved straight onto it (12 km in front of the cut face).
-function drawSection(features, F) {
-  sectionLayer.removeAll();
-  const pts = [];
-  let deep = 0;
-  for (const f of features) {
-    const [lon, lat, depth] = f.geometry.coordinates, mag = f.properties.mag || 4.5;
-    const o = onSection(F, ecefKm(lon, lat, R_SCENE_KM - depth));
-    if (Math.abs(o.dist) > SECTION_BAND_KM) continue;
-    const size = 1000 * (14 + Math.max(0, mag - 4.5) * 12);
-    sectionLayer.add(new Graphic({ geometry: secPt(F, o.thW, depth, 12),
-      symbol: { type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "sphere" }, width: size, height: size, depth: size, material: { color: quakeColor(depth) } }] } }));
-    pts.push({ thW: o.thW, depth });
-    if (depth >= 300) deep++;
-  }
-  return { pts, kept: pts.length, deep };
-}
-// The model of what is happening: depth guides, the plate, its movement, the volcano and the rising melt.
-function drawTongaModel(F, bins) {
-  tongaLayer.removeAll(); tongaParcels = [];
-  const add = (pts, sym) => tongaLayer.add(new Graphic({ geometry: { type: "polyline", hasZ: true, spatialReference: { wkid: 4326 }, paths: [pts] }, symbol: sym }));
-  const chips = {};
-  // depth guides
-  for (const d of [100, 300, 660]) {
-    add(Array.from({ length: 41 }, (_, i) => secCoords(F, -11 + 22 * i / 40, d, 2)),
-      { type: "line-3d", symbolLayers: [{ type: "line", size: 1, material: { color: [255, 255, 255, 0.35] }, pattern: { type: "style", style: "dash" } }] });
-    chips["d" + d] = secPt(F, -8, d - 25);
-  }
-  // the plate moving in, above the surface
-  add(Array.from({ length: 12 }, (_, i) => secCoords(F, -10 + 8.5 * i / 11, -110)), lineSym("#ffffff", 4));
-  chips.west = secPt(F, 8, -260); chips.s1 = secPt(F, -6, -260); chips.s2 = secPt(F, 0, -430);
-  chips.s3 = secPt(F, -3.4, 120);
-  if (bins.length >= 3) {
-    tongaLine = plateLine(bins);
-    tongaLayer.add(new Graphic({ geometry: plateMesh(F, tongaLine, 4), symbol: { type: "mesh-3d", symbolLayers: [{ type: "fill" }] } }));
-    // top edge of the plate, and an arrow along its middle showing it sinking
-    add(tongaLine.map(p => { const t = fromXY([p.xy[0] - PLATE_ABOVE * p.under[0], p.xy[1] - PLATE_ABOVE * p.under[1]]); return secCoords(F, t.thW, t.depth, 5); }),
-      { type: "line-3d", symbolLayers: [{ type: "line", size: 2, material: { color: "#a5d8ff" } }] });
-    const tail = tongaLine.slice(Math.floor(tongaLine.length * 0.55));
-    add(tail.map(p => { const c = fromXY(p.xy); return secCoords(F, c.thW, c.depth, 6); }), lineSym("#a5d8ff", 3));
-    // rock moving with the plate (white dots), so students see the plate sink
-    for (let k = 0; k < 9; k++) {
-      const g = new Graphic({ symbol: { type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "sphere" }, width: 26000, height: 26000, depth: 26000, material: { color: "#ffffff" } }] } });
-      tongaParcels.push({ g, k }); tongaLayer.add(g);
-    }
-    placeTongaParcels();
-    const last = bins[bins.length - 1];
-    chips.s4 = secPt(F, -3.6, 430);
-    chips.s6 = secPt(F, last.thW, last.depth + 90);
-  }
-  // the volcano and the melt rising to it from where the plate is about 100 km down
-  const vo = onSection(F, ecefKm(TONGA.volcano.longitude, TONGA.volcano.latitude, R_SCENE_KM));
-  tongaLayer.add(new Graphic({ geometry: secPt(F, vo.thW, -25, 10),
-    symbol: { type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "cone" }, width: 70000, height: 60000, depth: 70000, material: { color: "#ff4d2e" } }] } }));
-  const under = tongaLine ? plateTopAt(tongaLine, vo.thW) : null;
-  if (under != null) add(Array.from({ length: 10 }, (_, i) => secCoords(F, vo.thW, (under - 8) * (1 - i / 9) + 10 * i / 9, 7)),
-    { type: "line-3d", symbolLayers: [{ type: "line", size: 3, material: { color: "#ff6b3d" }, pattern: { type: "style", style: "dash" }, marker: { type: "style", style: "arrow", placement: "end", color: "#ff6b3d" } }] });
-  chips.s5 = secPt(F, vo.thW + 0.5, -170);
-  return { volcanoKm: Math.round(Math.abs(vo.dist)), under: under == null ? null : Math.round(under / 10) * 10, chips };
-}
-function placeTongaParcels() {
-  if (!tongaLine || !secFrame) return;
-  const total = tongaLine[tongaLine.length - 1].len;
-  for (const p of tongaParcels) {
-    const s = ((tongaPhase + p.k / tongaParcels.length) % 1) * total;
-    let i = 1; while (i < tongaLine.length - 1 && tongaLine[i].len < s) i++;
-    const a = tongaLine[i - 1], b = tongaLine[i], f = b.len > a.len ? (s - a.len) / (b.len - a.len) : 0;
-    const c = fromXY([a.xy[0] + f * (b.xy[0] - a.xy[0]), a.xy[1] + f * (b.xy[1] - a.xy[1])]);
-    p.g.geometry = secPt(secFrame, c.thW, c.depth, 8);
-  }
-}
-function tickTonga(ts) {
-  if (ts - tongaLast > 60) {
-    if (!tongaPaused && tongaParcels.length && mode === "layers") { tongaPhase = (tongaPhase + Math.min(0.2, (ts - tongaLast) / 1000) / 16) % 1; placeTongaParcels(); }
-    tongaLast = ts;
-  }
-  requestAnimationFrame(tickTonga);
-}
-requestAnimationFrame(tickTonga);
-const btnTongaPause = $("btnTongaPause");
-const showTongaPause = () => { btnTongaPause.setAttribute("aria-pressed", String(tongaPaused)); btnTongaPause.textContent = tongaPaused ? "Play movement" : "Pause movement"; };
-showTongaPause();
-btnTongaPause.addEventListener("click", () => { tongaPaused = !tongaPaused; showTongaPause(); });
-function showTongaPanel(focus) {
-  if (!$("info").hidden) hideInfo();
-  $("conv").hidden = true; $("waves").hidden = true; $("tonga").hidden = false; setPadding();
-  if (focus) $("tongaTitle").focus();
-}
-$("tongaClose").addEventListener("click", () => { $("tonga").hidden = true; setPadding(); $("btnTongaSteps").focus(); });
-$("btnTongaSteps").addEventListener("click", () => showTongaPanel(true));
-
-$("btnTongaSection").addEventListener("click", async () => {
-  clearSection();
-  if (mode !== "layers") setMode("layers");
-  const anchor = anchorThrough(TONGA.q, TONGA.strike + 90);
-  setCutDepth(R_TRUE_KM, anchor);
-  sectionOn = true;
-  const F = secFrame = makeFrame(anchor, TONGA.q);
-  setDeepClip(true);
-  view.goTo(cameraLookingAt(secVec(F, 1.5, 330), anchor, 3500), { animate: !reduceMotion, duration: 2000 })
-    .catch(e => { if (e?.name !== "AbortError") console.warn(e); });
-  const first = drawTongaModel(F, []);
-  sectionPts = first.chips; placeLabels();
-  $("btnTongaSteps").hidden = false; showTongaPanel(false);
-  setStatus("Cut through the Tonga trench. Loading a year of earthquakes near the cut…");
-  try {
-    const feats = await sectionQuakes(TONGA.q);
-    if (!sectionOn || secFrame !== F) return; // the viewer has moved on
-    const { pts, kept, deep } = drawSection(feats, F);
-    const bins = fitSlab(pts);
-    const m = drawTongaModel(F, bins);
-    sectionPts = m.chips; placeLabels();
-    $("tongaVolcano").textContent = `The red cone is ${TONGA.volcano.name}, which erupted in January 2022. It is about ${km(m.volcanoKm)} km along the line of volcanoes from this cut` +
-      (m.under ? `, and in this model the top of the sinking plate is about ${km(m.under)} km below it.` : ".");
-    setStatus(`Cut through the Tonga trench. ${km(kept)} earthquakes from the past year lie within ${SECTION_BAND_KM} km of the cut, ${km(deep)} of them deeper than 300 km. ` +
-      (bins.length >= 3 ? "The blue band is the sinking Pacific plate, drawn through the middle of the earthquakes." : "There were too few earthquakes to draw the sinking plate."));
-  } catch (e) { console.error(e); if (sectionOn) setStatus("Cut through the Tonga trench. The earthquakes for the cut could not be loaded from USGS."); }
-});
-$("btnRealQuake").addEventListener("click", () => {
-  if (!quakeFeatures?.length) { setStatus("The USGS earthquakes have not loaded, so a real earthquake can't be used."); return; }
-  const f = quakeFeatures.reduce((a, b) => ((b.properties.mag || 0) > (a.properties.mag || 0) ? b : a));
-  const [lon, lat, depth] = f.geometry.coordinates;
-  clearSection();
-  const anchor = anchorThrough({ longitude: lon, latitude: lat }, 0); // the cut runs north–south through the earthquake
-  setCutDepth(R_TRUE_KM, anchor);
-  view.goTo(camAt(anchor.longitude, anchor.latitude, SWING_MIN_ALT_M, anchor.heading, 0), { animate: !reduceMotion, duration: 1800 })
-    .catch(e => { if (e?.name !== "AbortError") console.warn(e); });
-  const mag = (f.properties.mag || 0).toFixed(1), when = new Date(f.properties.time).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
-  if (QUAKE_CHIP) QUAKE_CHIP.textContent = `Magnitude ${mag} earthquake`;
-  const t = $("realQuakeText");
-  t.textContent = `Magnitude ${mag}, ${f.properties.place || "place not given"}, ${when}, ${km(Math.round(depth))} km deep. The cut runs north–south through it. The waves are drawn starting from the surface above it.`;
-  t.hidden = false;
-  startQuake();
-});
 
 // ---------- Start: the whole Earth ----------
 setCutDepth(0);
