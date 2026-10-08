@@ -1,0 +1,646 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Subduction Zones Lab</title>
+<!-- ArcGIS Maps SDK for JavaScript 5.1 (core + components) -->
+<script type="module" src="https://js.arcgis.com/5.1/"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  /* Same dark "glass" theme as Earth Structure Lab. Text colours meet WCAG AA on the panel colour. */
+  :root {
+    --bg: #0b1220; --panel: #0f172a; --glass: rgba(11, 18, 33, 0.86); --glass-edge: rgba(255, 255, 255, 0.10);
+    --ink: #eef3fa; --muted: #a8b6c9; --rule: rgba(255, 255, 255, 0.13); --chip: rgba(255, 255, 255, 0.08); --chip-hover: rgba(255, 255, 255, 0.14);
+    --accent: #7dd3fc; --accent-ink: #04121f; --go1: #2563eb; --go2: #0e7490; --warn: #fdba74;
+    --radius: 18px; --shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font: 15px/1.5 Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  #app { position: relative; height: 100%; overflow: hidden; }
+  #mapwrap { position: absolute; inset: 0; }
+  arcgis-scene { display: block; width: 100%; height: 100%; }
+  .glass { background: var(--glass); border: 1px solid var(--glass-edge); border-radius: var(--radius); box-shadow: var(--shadow); backdrop-filter: blur(14px) saturate(1.2); -webkit-backdrop-filter: blur(14px) saturate(1.2); }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .skip { position: absolute; left: -9999px; top: 0; z-index: 20; background: var(--accent); color: var(--accent-ink); padding: 8px 12px; border-radius: 10px; font-weight: 700; }
+  .skip:focus { left: 16px; top: 16px; }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  a { color: var(--accent); }
+  button { font: inherit; font-weight: 600; border-radius: 12px; padding: 8px 13px; cursor: pointer; border: 1px solid var(--glass-edge); background: var(--chip); color: var(--ink); transition: background .15s; }
+  button:hover:not(:disabled) { background: var(--chip-hover); }
+  button.primary { background: linear-gradient(135deg, var(--go1), var(--go2)); border-color: transparent; color: #fff; box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45); }
+  button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  button[aria-pressed="true"]:hover:not(:disabled) { background: #a5e4ff; }
+  .iconbtn { width: 36px; height: 36px; padding: 0; display: inline-grid; place-items: center; font-size: 16px; flex: none; }
+  input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--accent); flex: none; margin: 0; }
+
+  #card { position: absolute; left: 16px; top: 16px; bottom: 24px; width: 372px; display: flex; flex-direction: column; padding: 16px 18px 12px; z-index: 6; }
+  .brand { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); }
+  .brand .kicker { text-transform: uppercase; letter-spacing: .12em; font-weight: 700; color: var(--accent); }
+  .brand .sp { flex: 1; }
+  .labchip { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; border: 1px dashed rgba(253, 186, 116, .6); color: #ffdcb8; }
+  h1 { font-size: 22px; line-height: 1.15; margin: 6px 0 2px; font-weight: 800; letter-spacing: -0.01em; }
+  .lede { color: var(--muted); margin: 4px 0 8px; font-size: 13.5px; line-height: 1.45; }
+  #status { font-size: 12.5px; color: var(--accent); min-height: 1.3em; margin: 0 0 6px; }
+  .scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 2px 4px 8px 2px; margin-right: -6px; scrollbar-width: thin; }
+  .sec { border-top: 1px solid var(--rule); padding: 10px 0 6px; }
+  .sec h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .mv { font-size: 10.5px; font-weight: 600; color: var(--muted); border: 1px solid var(--rule); border-radius: 999px; padding: 0 6px; white-space: nowrap; text-transform: none; letter-spacing: 0; }
+  .sub { color: var(--muted); font-size: 12.5px; }
+  .note { font-size: 12.5px; color: var(--warn); }
+  label.row { display: flex; align-items: center; gap: 10px; margin: 6px 0; cursor: pointer; font-size: 14px; }
+  .seg { display: flex; gap: 6px; }
+  .seg button { flex: 1; font-size: 14px; padding: 9px 6px; line-height: 1.2; }
+  .keyrow { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); }
+  .keyrow i { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: -1px; margin-right: 5px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 4px; }
+  th, td { text-align: left; padding: 4px 6px 4px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  thead th { color: var(--muted); font-weight: 600; }
+  .cfoot { flex: none; padding-top: 10px; border-top: 1px solid var(--rule); display: flex; gap: 8px; }
+  .cfoot button { flex: 1; }
+
+  #steps { position: absolute; right: 64px; top: 16px; width: 350px; max-height: calc(100% - 100px); overflow-y: auto; padding: 14px 16px 12px; z-index: 6; scrollbar-width: thin; }
+  #steps .head { display: flex; align-items: center; gap: 10px; }
+  #steps h2 { font-size: 20px; margin: 0; flex: 1; font-weight: 800; line-height: 1.2; }
+  #steps ol { padding-left: 20px; margin: 10px 0; font-size: 13.5px; }
+  #steps li { margin-bottom: 7px; }
+  #steps p { font-size: 13.5px; }
+  #steps .src { font-size: 11.5px; color: var(--muted); margin: 8px 0 0; }
+  .key { display: grid; grid-template-columns: auto 1fr; gap: 4px 8px; font-size: 12.5px; margin: 6px 0; align-items: center; }
+  .key i { display: inline-block; width: 18px; height: 4px; border-radius: 2px; }
+  .navrow { display: flex; gap: 6px; margin-top: 10px; }
+  .navrow button { flex: 1; font-size: 13px; padding: 7px 8px; }
+
+  /* labels pinned to points on the map or the cut */
+  #chips { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+  .lbl { position: absolute; transform: translate(-50%, -50%); font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 999px;
+    background: rgba(11, 18, 33, 0.82); border: 1.5px solid var(--c, #fff); color: #fff; white-space: nowrap; box-shadow: 0 4px 14px rgba(0,0,0,.4); }
+  .lbl::before { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--c, #fff); margin-right: 6px; vertical-align: 0; }
+  .lbl.small { font-size: 11px; font-weight: 600; padding: 1px 7px; opacity: .85; }
+  .lbl.small::before { display: none; }
+  #credit { position: absolute; right: 16px; bottom: 24px; z-index: 4; padding: 6px 12px; border-radius: 12px; font-size: 11.5px; line-height: 1.35; color: #fff; text-align: right; }
+  #credit b { font-weight: 600; }
+
+  dialog { max-width: 680px; width: calc(100% - 32px); max-height: calc(100% - 48px); border: 1px solid var(--glass-edge); border-radius: var(--radius); background: var(--panel); color: var(--ink); padding: 16px 20px; box-shadow: var(--shadow); }
+  dialog::backdrop { background: rgba(2, 6, 16, .6); }
+  dialog h2 { margin: 0 0 6px; font-size: 18px; }
+  dialog h3 { font-size: 14px; margin: 14px 0 4px; }
+  dialog li { font-size: 13.5px; margin-bottom: 4px; }
+
+  @media (max-width: 820px) {
+    #card { left: 8px; right: 8px; top: auto; bottom: 22px; width: auto; height: 46%; }
+    #steps { left: 8px; right: 56px; top: 8px; width: auto; max-height: calc(54% - 120px); }
+    #credit { bottom: calc(46% + 30px); right: 8px; }
+    .lede { display: none; }
+    .lbl { font-size: 11.5px; padding: 2px 7px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<a class="skip" href="#card">Skip to controls</a>
+<div id="app">
+  <main id="mapwrap" aria-label="3D globe. On the map it shows a year of earthquakes around the chosen trench; sliced, it shows the Earth cut open across the trench. The panels give the same information as text.">
+    <arcgis-scene id="scene" viewing-mode="global">
+      <arcgis-zoom slot="top-right"></arcgis-zoom>
+      <arcgis-navigation-toggle slot="top-right"></arcgis-navigation-toggle>
+      <arcgis-compass slot="top-right"></arcgis-compass>
+    </arcgis-scene>
+  </main>
+
+  <aside id="card" class="glass" aria-label="Controls">
+    <div class="brand"><span class="kicker">Thinking Spatially</span><span class="sp"></span><span class="labchip">Lab <span id="appVersion"></span></span></div>
+    <h1>Where plates sink</h1>
+    <p class="lede">Choose a place. First see where its earthquakes are on the map, then slice down through the Earth to see the plate sinking underneath.</p>
+    <div id="status" role="status" aria-live="polite">Loading the globe…</div>
+
+    <div class="scroll">
+      <section class="sec" aria-labelledby="hPlace">
+        <h2 id="hPlace">Choose a place <span class="mv" id="v-places"></span></h2>
+        <div class="seg" role="group" aria-label="Place">
+          <button id="placeTonga" data-place="tonga" aria-pressed="true">Tonga</button>
+          <button id="placeJapan" data-place="japan" aria-pressed="false">Japan</button>
+        </div>
+        <p class="sub" id="placeIntro" style="margin:8px 0 0"></p>
+      </section>
+
+      <section class="sec" aria-labelledby="hView">
+        <h2 id="hView">View <span class="mv" id="v-cut"></span></h2>
+        <div class="seg" role="group" aria-label="View">
+          <button id="viewMap" aria-pressed="true">1 · Map</button>
+          <button id="viewSlice" aria-pressed="false">2 · Slice through the Earth</button>
+        </div>
+      </section>
+
+      <section class="sec" aria-labelledby="hQuakes">
+        <h2 id="hQuakes">Earthquakes <span class="mv" id="v-quakes"></span></h2>
+        <p class="sub" style="margin:0 0 6px">Magnitude 4.5 and above in the past 12 months, within 1,000 km. Colour shows how deep each one was; size shows its magnitude.</p>
+        <div class="keyrow" id="quakeKey" aria-label="Key to the earthquake colours"></div>
+        <p class="sub" id="quakeCount" style="margin:6px 0 0"></p>
+      </section>
+
+      <section class="sec" aria-labelledby="hShow">
+        <h2 id="hShow">Show <span class="mv" id="v-plate"></span></h2>
+        <label class="row"><input type="checkbox" id="showLabels" checked /> Labels</label>
+        <label class="row"><input type="checkbox" id="showLayers" checked /> Earth's layers on the cut</label>
+        <label class="row"><input type="checkbox" id="showPlate" checked /> The sinking plate</label>
+      </section>
+
+      <section class="sec" aria-labelledby="hCompare">
+        <h2 id="hCompare">Compare the places</h2>
+        <table>
+          <caption class="sr-only">The two subduction zones compared</caption>
+          <thead><tr><th scope="col">Place</th><th scope="col">Plate speed</th><th scope="col">Slope of the plate</th><th scope="col">Deepest earthquake near the cut</th></tr></thead>
+          <tbody id="compareRows"></tbody>
+        </table>
+        <p class="sub" style="margin:6px 0 0">Slope and depth are worked out from the past year's earthquakes, so they change a little as new ones happen.</p>
+      </section>
+
+      <section class="sec" aria-labelledby="hMore">
+        <h2 id="hMore">Inside the Earth</h2>
+        <p class="sub" style="margin:0">For the Earth's layers, how we know about them and why the plates move, see <a href="earth-structure-lab-test.html">Earth Structure Lab</a>.</p>
+      </section>
+    </div>
+    <div class="cfoot"><button id="btnAbout">About and versions</button></div>
+  </aside>
+
+  <div id="chips" role="group" aria-label="Labels on the map or the cut"></div>
+
+  <section id="steps" class="glass" aria-labelledby="stepsTitle">
+    <div class="head">
+      <h2 id="stepsTitle" tabindex="-1"></h2>
+      <button class="iconbtn" id="stepsClose" aria-label="Close the explanation">✕</button>
+    </div>
+    <div id="stepsBody"></div>
+    <div class="navrow" id="stepsNav"></div>
+    <p class="src" id="stepsSrc"></p>
+  </section>
+
+  <div id="credit" class="glass"><b>Created by Jason Sawle</b></div>
+</div>
+
+<dialog id="about" aria-labelledby="aboutTitle">
+  <h2 id="aboutTitle">About Subduction Zones Lab</h2>
+  <p class="sub">Shows what happens where one plate sinks under another: the earthquakes on the map, then a slice down through the Earth with the sinking plate drawn through them. Uses ArcGIS 3D (global scene, slice analysis, mesh shapes).</p>
+  <table>
+    <caption class="sr-only">Versions</caption>
+    <thead><tr><th scope="col">Part</th><th scope="col">Version</th><th scope="col">What it does</th></tr></thead>
+    <tbody id="versionTable"></tbody>
+  </table>
+  <h3>Data sources</h3>
+  <ul>
+    <li>Earthquakes: USGS earthquake catalogue (FDSN event service), magnitude 4.5+, past 12 months, within 1,000 km of each trench point, loaded live.</li>
+    <li>Tonga: Horizon Deep position, plate speed (15–24 cm a year) and plate names from Wikipedia, "Tonga Trench"; Hunga Tonga–Hunga Haʻapai position from Wikipedia.</li>
+    <li>Japan: plate speed (7.9–9.2 cm a year), plate names and the 2011 earthquake from Wikipedia, "Japan Trench"; 2011 Tōhoku earthquake position, depth (29 km) and magnitude (9.1) from Wikipedia, "2011 Tōhoku earthquake and tsunami"; Zaō position from the map reference in Wikipedia, "Zaō Mountains". The point on the Japan Trench (38.1° N, 143.9° E) and both trench directions are approximate.</li>
+    <li>Subduction steps: Wikipedia, "Wadati–Benioff zone"; Earle, <i>Physical Geology</i>, chapter 10; WHOI <i>Oceanus</i>. Layer depths as in Earth Structure Lab (PREM, rounded).</li>
+    <li>Basemap: Esri World Imagery with World Boundaries and Places. On the sliced globe the same imagery is draped on a sphere (NASA Blue Marble if it can't load).</li>
+  </ul>
+  <button id="btnAboutClose">Close</button>
+</dialog>
+
+<script type="module">
+import * as E from "./subduction-engine.js";
+
+// ================= Versions (single source of truth) =================
+// Bump a model's number whenever its maths or data handling changes, and bump the app version on every release.
+const APP_VERSION = "0.1.0";
+const MODELS = {
+  places: { name: "Places", version: "1.0", desc: "Tonga: the cut passes through Horizon Deep (23.26° S, 174.73° W) at right angles to the trench, taken to run about 20° east of north; volcano Hunga Tonga–Hunga Haʻapai (20.545° S, 175.393° W). Japan: the cut passes through a point on the Japan Trench (38.1° N, 143.9° E) at right angles to it, taken to run about 15° east of north; volcano Zaō (38.144° N, 140.440° E); 2011 Tōhoku earthquake (38.322° N, 142.369° E, 29 km deep, magnitude 9.1)." },
+  cut:    { name: "Slice model", version: "1.0", desc: "The Earth is cut in half on the great circle through the trench point, at right angles to the trench (Esri SliceAnalysis plane 1 km from the Earth's centre, facing a point 90° from the trench along it). The half of the Earth in front of the cut is removed; the ground is swapped for a sphere with the same imagery that the cut slices. The layers on the cut are flat rings 40 km behind it (crust 0–35, upper mantle 35–660, lower mantle 660–2,891, outer core 2,891–5,150, inner core; km). Camera: 3,500 km in front of the cut, looking at a point given for each place; while sliced, the view draws everything from 20 km to 40,000 km from the camera. Labels show only while the cut faces the camera at less than 75°." },
+  quakes: { name: "Earthquake model", version: "1.0", desc: "USGS catalogue, magnitude 4.5+, past 12 months, within 1,000 km of the trench point. Map: dots on the surface, colour by depth (0–70, 70–300, 300 km and deeper), size 5 px + 2.5 px per magnitude above 4.5. Slice: earthquakes within 300 km of the cut moved straight onto it (12 km in front of the cut face) at true depth, spheres 14 km + 12 km per magnitude above 4.5." },
+  plate:  { name: "Plate model", version: "1.0", desc: "Going down in 40 km steps, the median position of the earthquakes near the cut in each step, counting only earthquakes within 1° east or 3° west of the step above (3° more for each empty step between), at least 3 per step. Joined to the ocean plate east of the trench, resampled every 15 km, smoothed (5-point moving average, 3 passes) and drawn 80 km thick (35 km above to 45 km below that line). Slope: the average between 60 and 200 km deep. White dots move along it once every 16 seconds. The melt line rises from the top of the plate under the volcano (the volcano is moved straight onto the cut)." }
+};
+const $ = (id) => document.getElementById(id);
+$("appVersion").textContent = "v" + APP_VERSION;
+for (const k of Object.keys(MODELS)) $("v-" + k).textContent = MODELS[k].name + " v" + MODELS[k].version;
+$("versionTable").innerHTML = `<tr><td>App</td><td>${APP_VERSION}</td><td>Whole app</td></tr>` +
+  Object.values(MODELS).map(m => `<tr><td>${m.name}</td><td>${m.version}</td><td>${m.desc}</td></tr>`).join("");
+$("quakeKey").innerHTML = E.QUAKE_CLASSES.map(([, , c, t]) => `<span><i style="background:${c}"></i>${t}</span>`).join("");
+const about = $("about");
+$("btnAbout").addEventListener("click", () => about.showModal());
+$("btnAboutClose").addEventListener("click", () => about.close());
+const setStatus = (msg) => { $("status").textContent = msg; };
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const km = (n) => Math.round(n).toLocaleString("en-US");
+
+// ================= Places =================
+// Step text: {dip}, {deepest}, {under} and {volcanoKm} are filled in from the earthquakes once they load.
+const PLACES = {
+  tonga: {
+    name: "Tonga", trench: "Tonga trench", q: { longitude: -174.7267, latitude: -23.2583 }, strike: 20,
+    overriding: "Tonga plate", speed: "15–24 cm a year",
+    volcano: { name: "Hunga Tonga–Hunga Haʻapai", longitude: -175.3925, latitude: -20.545 },
+    notable: null,
+    intro: "In the South Pacific, the Pacific plate sinks under the Tonga plate at one of the fastest rates on Earth. It has the most deep earthquakes of anywhere in this lab.",
+    mapAlt: 2800000, mapThW: 2.5, cam: { thW: 1.5, depth: 330 },
+    steps: [
+      "<b>The Pacific plate moves west</b>, about 15–24 cm a year here, one of the fastest plates on Earth. It is old, cold and dense.",
+      "<b>At the Tonga trench it bends down</b> and sinks under the Tonga plate. The trench is the second-deepest place in the oceans.",
+      "<b>Shallow earthquakes</b> happen where the two plates grind past each other: they stick, then slip suddenly.",
+      "<b>Earthquakes carry on inside the sinking plate.</b> It stays cold and brittle as it sinks, so it keeps breaking. The earthquakes make a sloping line that shows where the plate is. {dip}",
+      "<b>Volcanoes form above it.</b> Where the plate is about 100 km down, water squeezed out of it rises into the hot mantle above. Water makes rock melt at a lower temperature, so some melts and the magma rises to make a line of volcanoes. The red cone is Hunga Tonga–Hunga Haʻapai, which erupted in January 2022. {volcano}",
+      "<b>Deeper down, the plate keeps sinking.</b> {deepest} Below about 700 km there are no earthquakes anywhere on Earth, but plates can sink further. The sinking plate's weight pulls the rest of the plate along behind it (<i>slab pull</i>)."
+    ],
+    src: "Wikipedia, \"Tonga Trench\", \"Wadati–Benioff zone\", \"Hunga Tonga–Hunga Haʻapai\"; Earle, <i>Physical Geology</i>, chapter 10; USGS earthquake catalogue."
+  },
+  japan: {
+    name: "Japan", trench: "Japan Trench", q: { longitude: 143.9, latitude: 38.1 }, strike: 15,
+    overriding: "northern Japan (Okhotsk plate)", speed: "8–9 cm a year",
+    volcano: { name: "Zaō", longitude: 140.440, latitude: 38.144 },
+    notable: { name: "2011 Tōhoku earthquake", longitude: 142.369, latitude: 38.322, depth: 29, mag: 9.1 },
+    intro: "Off northern Japan, the Pacific plate sinks under the plate that northern Japan sits on. The magnitude 9.1 Tōhoku earthquake of 2011 happened here.",
+    mapAlt: 2600000, mapThW: 3, cam: { thW: 3, depth: 260 },
+    steps: [
+      "<b>The Pacific plate moves west towards Japan</b>, about 8–9 cm a year. It is old, cold and dense.",
+      "<b>At the Japan Trench it bends down</b> and sinks under northern Japan (the Okhotsk plate).",
+      "<b>Shallow earthquakes</b> happen where the plates stick, then slip suddenly. The yellow diamond is the 2011 Tōhoku earthquake (magnitude 9.1), 29 km down. Its tsunami reached up to about 40 m high on parts of the coast, and about 16,000 people died.",
+      "<b>Earthquakes carry on inside the sinking plate</b>, making a sloping line under Japan. {dip} Compare the slope with Tonga's in the table.",
+      "<b>Volcanoes form above it.</b> Where the plate is about 100 km down, water squeezed out of it rises into the hot mantle above and makes some of the rock melt. The magma rises to make a line of volcanoes down the middle of northern Japan. The red cone is Zaō. {volcano}",
+      "<b>Deeper down, the plate keeps sinking</b> under the Sea of Japan. {deepest} Compare this with Tonga in the table."
+    ],
+    src: "Wikipedia, \"Japan Trench\", \"2011 Tōhoku earthquake and tsunami\", \"Zaō Mountains\", \"Wadati–Benioff zone\"; Earle, <i>Physical Geology</i>, chapter 10; USGS earthquake catalogue."
+  }
+};
+const MAP_TEXT = (P) => [
+  `Each dot is an earthquake of magnitude 4.5 or more from the past year. Light blue ones were shallow (0–70 km down), dark blue ones 70–300 km and purple ones deeper still.`,
+  `Look at where each colour is. The shallow earthquakes are near the ${P.trench}; the deeper ones are further west. That is because the Pacific plate slopes down under ${P.name === "Tonga" ? "the Tonga plate" : "Japan"}: the further west, the deeper it is.`,
+  `The dashed line is where the Earth will be sliced. Choose "Slice through the Earth" to see the plate from the side.`
+];
+const STEP_LABELS = (P) => [
+  ["s1", `1 · Pacific plate moves west, ${P.speed}`, "#ffffff"],
+  ["s2", `2 · ${P.trench}: the plate bends down`, "#ffffff"],
+  ["s3", "3 · Shallow earthquakes: the plates stick and slip", "#66e3ff"],
+  ["s4", "4 · Earthquakes inside the cold, sinking plate", "#a78bfa"],
+  ["s5", "5 · Volcano: water from the plate melts rock above", "#ff6b3d"],
+  ["s6", "6 · The plate keeps sinking", "#a5d8ff"]
+];
+const LAYERS = [
+  { name: "Crust", top: 0, bottom: 35, color: "#9c7b5b" },
+  { name: "Upper mantle", top: 35, bottom: 660, color: "#f4a259" },
+  { name: "Lower mantle", top: 660, bottom: 2891, color: "#c0504d" },
+  { name: "Outer core", top: 2891, bottom: 5150, color: "#f59f00" },
+  { name: "Inner core", top: 5150, bottom: 6371, color: "#fff3bf" }
+];
+const BAND_KM = 300, RADIUS_KM = 1000, PLATE_ABOVE = 35, PLATE_BELOW = 45;
+
+// ================= SDK =================
+if (typeof $arcgis === "undefined") { setStatus("The 3D globe could not load."); throw new Error("ArcGIS Maps SDK not available"); }
+const [ArcGISMap, Basemap, TileLayer, GraphicsLayer, Graphic, Mesh, MeshComponent, MeshMaterial, MeshMaterialMetallicRoughness, MeshTexture,
+       MeshLocalVertexSpace, Point, SliceAnalysis, SlicePlane, reactiveUtils] = await $arcgis.import([
+  "@arcgis/core/Map.js", "@arcgis/core/Basemap.js", "@arcgis/core/layers/TileLayer.js", "@arcgis/core/layers/GraphicsLayer.js",
+  "@arcgis/core/Graphic.js", "@arcgis/core/geometry/Mesh.js", "@arcgis/core/geometry/support/MeshComponent.js",
+  "@arcgis/core/geometry/support/MeshMaterial.js", "@arcgis/core/geometry/support/MeshMaterialMetallicRoughness.js",
+  "@arcgis/core/geometry/support/MeshTexture.js", "@arcgis/core/geometry/support/MeshLocalVertexSpace.js", "@arcgis/core/geometry/Point.js",
+  "@arcgis/core/analysis/SliceAnalysis.js", "@arcgis/core/analysis/SlicePlane.js", "@arcgis/core/core/reactiveUtils.js"
+]);
+const ESRI_SERVICES = "https://services.arcgisonline.com/arcgis/rest/services/";
+const LABELS_URL = ESRI_SERVICES + "Reference/World_Boundaries_and_Places/MapServer";
+const map = new ArcGISMap({
+  basemap: new Basemap({ title: "Imagery with labels", baseLayers: [new TileLayer({ url: ESRI_SERVICES + "World_Imagery/MapServer" })], referenceLayers: [new TileLayer({ url: LABELS_URL })] }),
+  ground: "world-elevation"
+});
+map.ground.navigationConstraint = { type: "none" };
+const sceneEl = $("scene");
+sceneEl.map = map;
+await sceneEl.viewOnReady();
+const view = sceneEl.view;
+view.popupEnabled = false;
+const setPadding = () => {
+  const open = !$("steps").hidden;
+  view.padding = window.innerWidth > 820 ? { left: 400, right: open ? 410 : 0, top: 0, bottom: 0 }
+                                         : { left: 0, right: 0, top: 0, bottom: Math.round(window.innerHeight * 0.46) };
+};
+setPadding(); window.addEventListener("resize", setPadding);
+try { view.environment.background = { type: "color", color: [8, 10, 22, 1] }; view.environment.starsEnabled = true; view.environment.atmosphereEnabled = true; }
+catch (e) { console.warn("Environment settings not applied:", e); }
+const pointAt = (longitude, latitude, z = 0) => new Point({ longitude, latitude, z, spatialReference: { wkid: 4326 } });
+const camAt = (longitude, latitude, z, heading, tilt) => ({ position: pointAt(longitude, latitude, z), heading, tilt });
+const goTo = (target, ms = 1800) => view.goTo(target, { animate: !reduceMotion, duration: ms }).catch(e => { if (e?.name !== "AbortError") console.warn(e); });
+
+// ---------- the surface on the sliced globe (same approach as Earth Structure Lab) ----------
+// ArcGIS's own sliced ground leaves a faint copy of the removed part over the cut, so while sliced the ground is swapped
+// for a sphere with the same imagery, boundaries and names, which the cut slices.
+function imageryGlobe(radiusM, material, segLon = 180, segLat = 90) {
+  const pos = [], nrm = [], uv = [], faces = [], r = Math.PI / 180;
+  for (let i = 0; i <= segLat; i++) {
+    const lat = (90 - (180 * i) / segLat) * r;
+    for (let j = 0; j <= segLon; j++) {
+      const lon = (-180 + (360 * j) / segLon) * r;
+      const x = Math.cos(lat) * Math.sin(lon), y = Math.sin(lat), z = Math.cos(lat) * Math.cos(lon);
+      pos.push(radiusM * x, radiusM * y, radiusM * z - radiusM); nrm.push(x, y, z); uv.push(j / segLon, i / segLat);
+    }
+  }
+  for (let i = 0; i < segLat; i++) for (let j = 0; j < segLon; j++) { const a = i * (segLon + 1) + j, b = a + segLon + 1; faces.push(a, b, a + 1, b, b + 1, a + 1); }
+  return new Mesh({ spatialReference: { wkid: 4326 }, vertexSpace: new MeshLocalVertexSpace({ origin: [0, 0, 0] }),
+    vertexAttributes: { position: new Float64Array(pos), normal: new Float32Array(nrm), uv: new Float32Array(uv) },
+    components: [new MeshComponent({ faces: new Uint32Array(faces), shading: "smooth", material })] });
+}
+const loadImage = (url) => new Promise((res, rej) => { const im = new Image(); im.crossOrigin = "anonymous"; im.onload = () => res(im); im.onerror = rej; im.src = url; });
+async function labelTiles(level = 3) {
+  const n = 2 ** level, c = document.createElement("canvas"); c.width = c.height = n * 256;
+  const g = c.getContext("2d"), jobs = [];
+  for (let row = 0; row < n; row++) for (let col = 0; col < n; col++)
+    jobs.push(loadImage(`${LABELS_URL}/tile/${level}/${row}/${col}`).then(im => { g.drawImage(im, col * 256, row * 256); return 1; }, () => 0));
+  return (await Promise.all(jobs)).reduce((a, b) => a + b, 0) ? c : null;
+}
+function surfaceTexture(img, merc) {
+  const W = img.naturalWidth, H = Math.round(W / 2), c = document.createElement("canvas"); c.width = W; c.height = H;
+  const g = c.getContext("2d"); g.drawImage(img, 0, 0, W, H);
+  if (merc) { const N = merc.width;
+    for (let j = 0; j < H; j++) { const lat = 90 - (j + 0.5) * 180 / H; if (Math.abs(lat) > 85.0511) continue;
+      const y = (1 - Math.log(Math.tan(Math.PI / 4 + lat * Math.PI / 360)) / Math.PI) / 2 * N;
+      g.drawImage(merc, 0, Math.min(N - 1, Math.max(0, Math.floor(y))), N, 1, 0, j, W, 1); } }
+  return c;
+}
+const R_M = E.R * 1000;
+const surfaceLayer = new GraphicsLayer({ title: "Sliced surface", elevationInfo: { mode: "absolute-height" } });
+const surfaceShell = new Graphic({ geometry: imageryGlobe(R_M, new MeshMaterial({ color: "#9c7b5b", doubleSided: true })), symbol: { type: "mesh-3d", symbolLayers: [{ type: "fill" }] }, visible: false });
+surfaceLayer.add(surfaceShell);
+(async () => {
+  const labelsJob = labelTiles().catch(() => null);
+  for (const url of [ESRI_SERVICES + "World_Imagery/MapServer/export?bbox=-180,-90,180,90&bboxSR=4326&imageSR=4326&size=4096,2048&format=jpg&f=image",
+                     ESRI_SERVICES + "World_Imagery/MapServer/export?bbox=-180,-90,180,90&bboxSR=4326&imageSR=4326&size=2048,1024&format=jpg&f=image",
+                     "https://cdn.jsdelivr.net/npm/three-globe@2.45.2/example/img/earth-blue-marble.jpg"]) {
+    try { const img = await loadImage(url); if (img.naturalWidth < 512) throw new Error("image too small");
+      surfaceShell.geometry = imageryGlobe(R_M, new MeshMaterial({ colorTexture: new MeshTexture({ data: surfaceTexture(img, await labelsJob) }), doubleSided: true })); return; }
+    catch (e) { console.warn("Surface imagery not loaded from", url, e); }
+  }
+})();
+
+// ---------- layers ----------
+const mapLayer = new GraphicsLayer({ title: "Map: earthquakes and the slice line", elevationInfo: { mode: "on-the-ground" } });
+const capsLayer = new GraphicsLayer({ title: "Layers on the cut", elevationInfo: { mode: "absolute-height" } });
+const plateLayer = new GraphicsLayer({ title: "The sinking plate", elevationInfo: { mode: "absolute-height" } });
+const cutLayer = new GraphicsLayer({ title: "Earthquakes and markers on the cut", elevationInfo: { mode: "absolute-height" } });
+map.addMany([surfaceLayer, mapLayer, capsLayer, plateLayer, cutLayer]);
+const slice = new SliceAnalysis({ tiltEnabled: true });
+slice.excludedLayers.addMany([capsLayer, plateLayer, cutLayer, mapLayer]); // drawn on the cut (or on the map), so the cut must not hide them
+view.analyses.add(slice);
+const sliceView = await view.whenAnalysisView(slice);
+try { sliceView.interactive = false; } catch (e) { console.warn(e); }
+
+// ================= state =================
+let placeId = "tonga", viewMode = "map", F = null, data = {}, parcels = [], line = null;
+const P = () => PLACES[placeId];
+const frameFor = (p) => E.makeFrame(E.anchorThrough(p.q, p.strike + 90), p.q);
+
+// ---------- earthquakes (USGS) ----------
+async function loadQuakes(id) {
+  if (data[id]) return data[id];
+  const p = PLACES[id], start = new Date(Date.now() - 365 * 864e5).toISOString().slice(0, 10);
+  const url = "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&minmagnitude=4.5&orderby=magnitude-asc" +
+    `&starttime=${start}&latitude=${p.q.latitude}&longitude=${p.q.longitude}&maxradiuskm=${RADIUS_KM}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  const feats = (await res.json()).features;
+  const Fp = frameFor(p);
+  const quakes = feats.map(f => { const [lon, lat, depth] = f.geometry.coordinates; return { lon, lat, depth, mag: f.properties.mag || 4.5, ...E.onSection(Fp, lon, lat, depth) }; });
+  const near = quakes.filter(q => Math.abs(q.dist) <= BAND_KM);
+  const bins = E.fitSlab(near);
+  const ln = bins.length >= 3 ? E.plateLine(bins, { above: PLATE_ABOVE }) : null;
+  const vo = E.onSection(Fp, p.volcano.longitude, p.volcano.latitude);
+  const d = { quakes, near, bins, line: ln, dip: ln ? E.dipBetween(ln, 60, 200) : null,
+    deepest: near.length ? Math.max(...near.map(q => q.depth)) : null,
+    under: ln ? E.plateTopAt(ln, vo.thW, PLATE_ABOVE) : null, volcano: vo };
+  data[id] = d;
+  renderCompare();
+  return d;
+}
+function renderCompare() {
+  $("compareRows").innerHTML = Object.entries(PLACES).map(([id, p]) => { const d = data[id];
+    return `<tr><th scope="row">${p.name}</th><td>${p.speed}</td><td>${d ? (d.dip != null ? `about ${Math.round(d.dip)}°` : "not enough earthquakes") : "…"}</td>` +
+      `<td>${d ? (d.deepest != null ? `${km(d.deepest)} km` : "none") : "…"}</td></tr>`; }).join("");
+}
+renderCompare();
+
+// ---------- labels pinned to the map or the cut ----------
+const chipsEl = $("chips");
+let chips = []; // [{ text, color, pt, small, onCut }]
+function setChips(list) {
+  chips = list;
+  chipsEl.innerHTML = list.map((c, i) => `<span class="lbl${c.small ? " small" : ""}" data-i="${i}" style="--c:${c.color}">${c.text}</span>`).join("");
+  placeChips();
+}
+function placeChips() {
+  const show = $("showLabels").checked && !(viewMode === "slice" && F && view.camera && E.faceCos(F, view.camera.position) < 0.26);
+  chipsEl.hidden = !show;
+  if (!show) return;
+  const items = [];
+  for (const b of chipsEl.querySelectorAll(".lbl")) {
+    const sp = view.toScreen(chips[b.dataset.i].pt);
+    const ok = sp && sp.x > 0 && sp.y > 0 && sp.x < view.width && sp.y < view.height;
+    b.hidden = !ok;
+    if (ok) { b.style.left = sp.x + "px"; b.style.top = sp.y + "px"; items.push({ b, x: sp.x, y: sp.y, w: b.offsetWidth, h: b.offsetHeight }); }
+  }
+  // nudge overlapping labels down until they clear
+  items.sort((a, b) => a.y - b.y);
+  for (let pass = 0; pass < 2; pass++) for (let i = 1; i < items.length; i++) for (let j = 0; j < i; j++) {
+    const a = items[j], c = items[i], gap = (a.h + c.h) / 2 + 3;
+    if (Math.abs(a.x - c.x) < (a.w + c.w) / 2 + 4 && c.y - a.y < gap && c.y >= a.y) c.y = a.y + gap;
+  }
+  for (const it of items) it.b.style.top = it.y + "px";
+}
+let raf = 0;
+reactiveUtils.watch(() => [view.camera, view.width, view.height, view.padding], () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(placeChips); });
+$("showLabels").addEventListener("change", placeChips);
+
+// ---------- map view ----------
+function drawMap(p, d) {
+  mapLayer.removeAll();
+  const Fp = frameFor(p);
+  const linePts = Array.from({ length: 61 }, (_, i) => { const s = E.surfaceAlong(Fp, -12 + 26 * i / 60); return [s.longitude, s.latitude]; });
+  mapLayer.add(new Graphic({ geometry: { type: "polyline", paths: [unwrap(linePts)], spatialReference: { wkid: 4326 } },
+    symbol: { type: "simple-line", color: [255, 255, 255, 0.95], width: 2.5, style: "dash" } }));
+  if (d) for (const q of d.quakes) mapLayer.add(new Graphic({ geometry: pointAt(q.lon, q.lat),
+    symbol: { type: "simple-marker", style: "circle", size: 5 + Math.max(0, q.mag - 4.5) * 2.5, color: E.quakeColor(q.depth), outline: { color: [0, 0, 0, 0.6], width: 0.5 } } }));
+  mapLayer.add(new Graphic({ geometry: pointAt(p.volcano.longitude, p.volcano.latitude), symbol: { type: "simple-marker", style: "triangle", size: 14, color: "#ff4d2e", outline: { color: "#ffffff", width: 1 } } }));
+  if (p.notable) mapLayer.add(new Graphic({ geometry: pointAt(p.notable.longitude, p.notable.latitude), symbol: { type: "simple-marker", style: "diamond", size: 16, color: "#ffd43b", outline: { color: "#000000", width: 1 } } }));
+  const lineEnd = E.surfaceAlong(Fp, 13);
+  setChips([
+    { text: p.trench, color: "#ffffff", pt: pointAt(p.q.longitude, p.q.latitude) },
+    { text: `Volcano: ${p.volcano.name}`, color: "#ff4d2e", pt: pointAt(p.volcano.longitude, p.volcano.latitude) },
+    ...(p.notable ? [{ text: `${p.notable.name}, magnitude ${p.notable.mag}`, color: "#ffd43b", pt: pointAt(p.notable.longitude, p.notable.latitude) }] : []),
+    { text: "Line of the slice", color: "#ffffff", small: true, pt: pointAt(lineEnd.longitude, lineEnd.latitude) }
+  ]);
+}
+
+// ---------- slice view ----------
+function ringMesh(top, bottom, color) {
+  const pos = [], faces = [], n = 180;
+  for (let i = 0; i <= n; i++) { const th = -180 + 360 * i / n; pos.push(...E.secCoords(F, th, top, -40), ...E.secCoords(F, th, bottom, -40)); }
+  for (let i = 0; i < n; i++) { const a = 2 * i; faces.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
+  return new Mesh({ spatialReference: { wkid: 4326 }, vertexAttributes: { position: new Float64Array(pos) },
+    components: [new MeshComponent({ faces: new Uint32Array(faces), shading: "flat",
+      material: new MeshMaterialMetallicRoughness({ color: [0, 0, 0], emissiveColor: color, metallic: 0, roughness: 1, doubleSided: true }) })] });
+}
+function drawCaps() {
+  capsLayer.removeAll();
+  if (viewMode !== "slice" || !$("showLayers").checked) return;
+  for (const l of LAYERS) capsLayer.add(new Graphic({ geometry: ringMesh(l.top, Math.min(l.bottom, E.R - 1), l.color), symbol: { type: "mesh-3d", symbolLayers: [{ type: "fill" }] } }));
+}
+// keep longitudes continuous along a line, so a line crossing 180° (as at Tonga) is not drawn the long way round
+const unwrap = (pts) => { let prev = null; return pts.map(p => { let lon = p[0]; if (prev != null) { while (lon - prev > 180) lon -= 360; while (lon - prev < -180) lon += 360; } prev = lon; return [lon, ...p.slice(1)]; }); };
+const cutPt = (thW, depth, front = 0) => { const c = E.secCoords(F, thW, depth, front); return pointAt(c[0], c[1], c[2]); };
+const polyOnCut = (pts, front) => ({ type: "polyline", hasZ: true, spatialReference: { wkid: 4326 }, paths: [unwrap(pts.map(([t, d]) => E.secCoords(F, t, d, front)))] });
+const lineSym = (color, size, { arrow = false, dash = false } = {}) => ({ type: "line-3d", symbolLayers: [{ type: "line", size, material: { color }, cap: dash ? "butt" : "round",
+  ...(dash ? { pattern: { type: "style", style: "dash" } } : {}), ...(arrow ? { marker: { type: "style", style: "arrow", placement: "end", color } } : {}) }] });
+const sphere = (size, color) => ({ type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "sphere" }, width: size, height: size, depth: size, material: { color } }] });
+function plateMesh(ln) {
+  const pos = [], faces = [];
+  for (const p of ln) { const t = E.offsetAt(p, -PLATE_ABOVE), b = E.offsetAt(p, PLATE_BELOW); pos.push(...E.secCoords(F, t.thW, t.depth, 4), ...E.secCoords(F, b.thW, b.depth, 4)); }
+  for (let i = 0; i < ln.length - 1; i++) { const a = 2 * i; faces.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
+  return new Mesh({ spatialReference: { wkid: 4326 }, vertexAttributes: { position: new Float64Array(pos) },
+    components: [new MeshComponent({ faces: new Uint32Array(faces), shading: "flat",
+      material: new MeshMaterialMetallicRoughness({ color: [30, 90, 170, 0.6], emissiveColor: "#1d5fa8", metallic: 0, roughness: 1, doubleSided: true }) })] });
+}
+function drawSlice(p, d) {
+  cutLayer.removeAll(); plateLayer.removeAll(); parcels = []; line = null;
+  const list = [];
+  // depth guides and the layer names
+  for (const dep of [100, 300, 660]) {
+    cutLayer.add(new Graphic({ geometry: polyOnCut(Array.from({ length: 41 }, (_, i) => [-11 + 22 * i / 40, dep]), 2),
+      symbol: { type: "line-3d", symbolLayers: [{ type: "line", size: 1, material: { color: [255, 255, 255, 0.35] }, pattern: { type: "style", style: "dash" } }] } }));
+    list.push({ text: `${dep} km`, color: "#ffffff", small: true, pt: cutPt(-8, dep - 25) });
+  }
+  if ($("showLayers").checked) list.push({ text: "Upper mantle", color: "#f4a259", small: true, pt: cutPt(9, 450) }, { text: "Lower mantle", color: "#c0504d", small: true, pt: cutPt(9, 850) });
+  // the plate arriving from the east, above the surface
+  cutLayer.add(new Graphic({ geometry: polyOnCut(Array.from({ length: 12 }, (_, i) => [-10 + 8.5 * i / 11, -110]), 0), symbol: lineSym("#ffffff", 4, { arrow: true }) }));
+  const S = Object.fromEntries(STEP_LABELS(p).map(([id, text, color]) => [id, { text, color }]));
+  list.push({ text: `West: ${p.overriding}`, color: "#ffffff", pt: cutPt(8, -260) },
+            { ...S.s1, pt: cutPt(-6, -260) }, { ...S.s2, pt: cutPt(0, -430) }, { ...S.s3, pt: cutPt(-3.4, 120) });
+  // earthquakes near the cut, moved onto it
+  if (d) for (const q of d.near) cutLayer.add(new Graphic({ geometry: cutPt(q.thW, q.depth, 12), symbol: sphere(1000 * (14 + Math.max(0, q.mag - 4.5) * 12), E.quakeColor(q.depth)) }));
+  // the sinking plate, with rock moving along it
+  if (d?.line && $("showPlate").checked) {
+    line = d.line;
+    plateLayer.add(new Graphic({ geometry: plateMesh(line), symbol: { type: "mesh-3d", symbolLayers: [{ type: "fill" }] } }));
+    plateLayer.add(new Graphic({ geometry: polyOnCut(line.map(pp => { const t = E.offsetAt(pp, -PLATE_ABOVE); return [t.thW, t.depth]; }), 5), symbol: lineSym("#a5d8ff", 2) }));
+    const tail = line.slice(Math.floor(line.length * 0.55)).map(pp => { const c = E.fromXY(pp.xy); return [c.thW, c.depth]; });
+    plateLayer.add(new Graphic({ geometry: polyOnCut(tail, 6), symbol: lineSym("#a5d8ff", 3, { arrow: true }) }));
+    for (let k = 0; k < 9; k++) { const g = new Graphic({ symbol: sphere(26000, "#ffffff") }); parcels.push({ g, k }); plateLayer.add(g); }
+    placeParcels();
+  }
+  if (d?.bins.length) {
+    const deepBin = d.bins[d.bins.length - 1], mid = d.bins[Math.floor(d.bins.length * 0.6)];
+    list.push({ ...S.s4, pt: cutPt(mid.thW - 2.6, mid.depth + 40) }, { ...S.s6, pt: cutPt(deepBin.thW, deepBin.depth + 90) });
+  }
+  // the volcano, and water and melt rising to it from the plate below
+  const vo = E.onSection(F, p.volcano.longitude, p.volcano.latitude);
+  cutLayer.add(new Graphic({ geometry: cutPt(vo.thW, -25, 10), symbol: { type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "cone" }, width: 70000, height: 60000, depth: 70000, material: { color: "#ff4d2e" } }] } }));
+  if (d?.under != null && $("showPlate").checked) cutLayer.add(new Graphic({ geometry: polyOnCut(Array.from({ length: 10 }, (_, i) => [vo.thW, (d.under - 8) * (1 - i / 9) + 10 * i / 9]), 7), symbol: lineSym("#ff6b3d", 3, { arrow: true, dash: true }) }));
+  list.push({ ...S.s5, pt: cutPt(vo.thW + 0.5, -170) });
+  // a famous earthquake
+  if (p.notable) { const o = E.onSection(F, p.notable.longitude, p.notable.latitude, p.notable.depth);
+    cutLayer.add(new Graphic({ geometry: cutPt(o.thW, p.notable.depth, 16), symbol: { type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "diamond" }, width: 90000, height: 90000, depth: 90000, material: { color: "#ffd43b" } }] } }));
+    list.push({ text: `${p.notable.name}, magnitude ${p.notable.mag}`, color: "#ffd43b", pt: cutPt(o.thW + 0.3, p.notable.depth - 150) }); }
+  setChips(list);
+}
+let phase = 0, paused = reduceMotion, last = 0;
+function placeParcels() {
+  if (!line || !F) return;
+  const total = line[line.length - 1].len;
+  for (const pc of parcels) { const c = E.alongLine(line, ((phase + pc.k / parcels.length) % 1) * total); pc.g.geometry = cutPt(c.thW, c.depth, 8); }
+}
+function tick(ts) {
+  if (ts - last > 60) { if (!paused && parcels.length && viewMode === "slice") { phase = (phase + Math.min(0.2, (ts - last) / 1000) / 16) % 1; placeParcels(); } last = ts; }
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+
+// ---------- switching views ----------
+function setDeepClip(on) {
+  try { const cd = view.constraints.clipDistance; if (on) { cd.near = 20000; cd.far = 40000000; } else cd.mode = "auto"; }
+  catch (e) { console.warn("Clip distance not changed:", e); }
+}
+function setSliced(on) {
+  if (on) {
+    const a = F.anchor;
+    slice.shape = new SlicePlane({ position: pointAt(a.longitude, a.latitude, -(E.R - 1) * 1000), heading: a.heading, tilt: 0, width: 120000000, height: 120000000 });
+    sliceView.active = true;
+  } else { sliceView.active = false; if (slice.clear) slice.clear(); else slice.shape = null; }
+  try { sliceView.interactive = false; } catch (e) { console.warn(e); }
+  map.ground.opacity = on ? 0 : 1;
+  surfaceShell.visible = on;
+  try { view.environment.atmosphereEnabled = !on; } catch (e) { console.warn(e); }
+  setDeepClip(on);
+  mapLayer.visible = !on; capsLayer.visible = cutLayer.visible = plateLayer.visible = on;
+}
+function fill(text, d) {
+  const dip = d?.dip != null ? `In this model the plate slopes down at about ${Math.round(d.dip)}° (worked out from the earthquakes).` : "";
+  const deepest = d?.deepest != null ? `The deepest earthquake near this cut in the past year was ${km(d.deepest)} km down.` : "";
+  const volcano = d ? `It is about ${km(Math.abs(d.volcano.dist))} km from the cut along the line of volcanoes${d.under != null ? `, and in this model the top of the plate is about ${km(Math.round(d.under / 10) * 10)} km below it` : ""}.` : "";
+  return text.replace("{dip}", dip).replace("{deepest}", deepest).replace("{volcano}", volcano);
+}
+function renderSteps() {
+  const p = P(), d = data[placeId];
+  if (viewMode === "map") {
+    $("stepsTitle").textContent = `Earthquakes around ${p.name}`;
+    $("stepsBody").innerHTML = MAP_TEXT(p).map(t => `<p>${t}</p>`).join("");
+    $("stepsNav").innerHTML = `<button class="primary" id="goSlice">Slice through the Earth</button>`;
+    $("goSlice").addEventListener("click", () => setView("slice"));
+  } else {
+    $("stepsTitle").textContent = `What happens at the ${p.trench}?`;
+    $("stepsBody").innerHTML = `<p style="margin:8px 0">This slice runs west–east across the trench. The numbers match the labels on the cut.</p><ol>${p.steps.map(s => `<li>${fill(s, d)}</li>`).join("")}</ol>` +
+      `<div class="key" aria-label="Key to the drawing"><i style="background:#1d5fa8;height:10px"></i><span>Sinking Pacific plate (drawn through the earthquakes)</span>` +
+      `<i style="background:#fff;height:8px;width:8px;border-radius:50%"></i><span>Rock moving with the plate</span>` +
+      `<i style="background:repeating-linear-gradient(90deg,#ff6b3d 0 5px,transparent 5px 8px)"></i><span>Water and melt rising to the volcano</span>` +
+      `<i style="background:#ff4d2e;height:10px;width:10px;clip-path:polygon(50% 0,100% 100%,0 100%);border-radius:0"></i><span>Volcano</span>` +
+      (p.notable ? `<i style="background:#ffd43b;height:10px;width:10px;transform:rotate(45deg);border-radius:0"></i><span>${p.notable.name}</span>` : "") + `</div>` +
+      `<p class="note">The plate is drawn 80 km thick through the middle of the earthquakes: going down in 40 km steps, it passes through the middle (median) of the earthquakes in each step. The real plate's thickness and shape are estimates. Earthquakes from up to 300 km either side of the cut are shown on it.</p>`;
+    $("stepsNav").innerHTML = `<button id="btnPause" aria-pressed="${paused}">${paused ? "Play movement" : "Pause movement"}</button><button id="goMap">Back to the map</button>`;
+    $("btnPause").addEventListener("click", (e) => { paused = !paused; e.currentTarget.setAttribute("aria-pressed", String(paused)); e.currentTarget.textContent = paused ? "Play movement" : "Pause movement"; });
+    $("goMap").addEventListener("click", () => setView("map"));
+  }
+  $("stepsSrc").innerHTML = "Sources: " + p.src;
+}
+$("stepsClose").addEventListener("click", () => { $("steps").hidden = true; setPadding(); $(viewMode === "map" ? "viewMap" : "viewSlice").focus(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !document.querySelector("dialog[open]") && !$("steps").hidden) $("stepsClose").click(); });
+
+async function setView(m, { fly = true } = {}) {
+  viewMode = m;
+  $("viewMap").setAttribute("aria-pressed", String(m === "map")); $("viewSlice").setAttribute("aria-pressed", String(m === "slice"));
+  const p = P(), id = placeId;
+  F = frameFor(p);
+  setSliced(m === "slice");
+  $("steps").hidden = false; setPadding();
+  const d = data[id];
+  const draw = (dd) => { if (m === "map") drawMap(p, dd); else { drawCaps(); drawSlice(p, dd); } renderSteps(); };
+  draw(d);
+  if (fly) {
+    if (m === "map") { const c = E.surfaceAlong(F, p.mapThW); goTo(camAt(c.longitude, c.latitude, p.mapAlt, 0, 0)); }
+    else { const c = E.cameraLookingAt(F, p.cam.thW, p.cam.depth, 3500); goTo(camAt(c.longitude, c.latitude, c.z, c.heading, c.tilt), 2000); }
+  }
+  if (!d) {
+    setStatus(`Loading a year of earthquakes around ${p.name}…`);
+    try {
+      const dd = await loadQuakes(id);
+      if (placeId !== id || viewMode !== m) return; // the viewer has moved on
+      draw(dd);
+    } catch (e) { console.error(e); setStatus("The earthquakes could not be loaded from USGS. The rest of the lab still works."); return; }
+  }
+  const dd = data[id];
+  $("quakeCount").textContent = `${km(dd.quakes.length)} earthquakes around ${p.name}; ${km(dd.near.length)} within ${BAND_KM} km of the slice.`;
+  setStatus(m === "map" ? `${p.name}: where the earthquakes are. Then choose "Slice through the Earth".`
+    : `${p.name}, sliced across the ${p.trench}.` + (dd.line ? " The blue band is the sinking Pacific plate, drawn through the middle of the earthquakes." : " There were too few earthquakes to draw the sinking plate."));
+}
+function setPlace(id) {
+  placeId = id;
+  document.querySelectorAll("[data-place]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.place === id)));
+  $("placeIntro").textContent = P().intro;
+  setView(viewMode);
+}
+document.querySelectorAll("[data-place]").forEach(b => b.addEventListener("click", () => setPlace(b.dataset.place)));
+$("viewMap").addEventListener("click", () => setView("map"));
+$("viewSlice").addEventListener("click", () => setView("slice"));
+$("showLayers").addEventListener("change", () => setView(viewMode, { fly: false }));
+$("showPlate").addEventListener("change", () => setView(viewMode, { fly: false }));
+
+// ---------- start ----------
+setPlace("tonga");
+loadQuakes("japan").catch(() => {}); // fill in the comparison table
+</script>
+</body>
+</html>
