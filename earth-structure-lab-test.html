@@ -80,12 +80,12 @@
 
   /* right info panel for the selected layer */
   #info, #conv, #waves { position: absolute; right: 64px; top: 16px; width: 340px; max-height: calc(100% - 120px); overflow-y: auto; padding: 14px 16px 12px; z-index: 6; scrollbar-width: thin; }
-  #conv .head, #waves .head .head { display: flex; align-items: center; gap: 10px; }
-  #conv h2, #waves h2 h2 { font-size: 20px; margin: 0; flex: 1; font-weight: 800; line-height: 1.2; }
-  #conv ol, #waves ol ol { padding-left: 20px; margin: 10px 0; font-size: 13.5px; }
-  #conv li, #waves li li { margin-bottom: 7px; }
-  #conv .how, #waves .how .how { font-size: 13.5px; border-left: 3px solid var(--rule); padding-left: 10px; margin: 8px 0 6px; }
-  #conv .src, #waves .src .src { font-size: 11.5px; color: var(--muted); margin: 8px 0 0; }
+  #conv .head, #waves .head { display: flex; align-items: center; gap: 10px; }
+  #conv h2, #waves h2 { font-size: 20px; margin: 0; flex: 1; font-weight: 800; line-height: 1.2; }
+  #conv ol, #waves ol { padding-left: 20px; margin: 10px 0; font-size: 13.5px; }
+  #conv li, #waves li { margin-bottom: 7px; }
+  #conv .how, #waves .how { font-size: 13.5px; border-left: 3px solid var(--rule); padding-left: 10px; margin: 8px 0 6px; }
+  #conv .src, #waves .src { font-size: 11.5px; color: var(--muted); margin: 8px 0 0; }
   #waves fieldset { border: 1px solid var(--rule); border-radius: 12px; padding: 4px 10px; margin: 8px 0; }
   #waveClock { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--accent); }
   .key { display: grid; grid-template-columns: auto 1fr; gap: 6px 10px; font-size: 13.5px; line-height: 1.3; margin: 6px 0; align-items: center; }
@@ -118,7 +118,10 @@
   .lbl.small { font-size: 11px; font-weight: 600; padding: 1px 7px; opacity: .85; }
   .lbl.small::before { display: none; }
   /* numbered markers (convection view): the numbers match the list in the panel */
-  span.lbl.num { pointer-events: auto; cursor: help; } /* so pointing at a number shows its text */
+  #schematicBadge { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); z-index: 5; padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 700; color: var(--warn); border-color: rgba(253, 186, 116, .5); }
+  span.lbl.num { pointer-events: auto; cursor: help; } /* pointing at, or tabbing to, a number shows its text */
+  .lbl.num:hover::after, .lbl.num:focus-visible::after { content: attr(data-text); position: absolute; left: 50%; top: calc(100% + 6px); transform: translateX(-50%);
+    background: rgba(11, 18, 33, 0.95); border: 1px solid var(--c, #fff); color: #fff; font-size: 12.5px; font-weight: 600; padding: 4px 9px; border-radius: 8px; white-space: nowrap; z-index: 2; }
   .lbl.num { width: 28px; height: 28px; padding: 0; display: grid; place-items: center; border-radius: 50%; font-size: 14px; font-weight: 800; border-width: 2.5px; }
   .lbl.num::before { display: none; }
   .lbl[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
@@ -195,6 +198,7 @@
           <button id="modeConv" aria-pressed="false">How it moves</button>
           <button id="modeWaves" aria-pressed="false">Earthquake waves</button>
         </div>
+        <p class="sub" style="margin:6px 0 0">"How it moves" and "Earthquake waves" cut the Earth in half through the centre.</p>
         <button id="btnWhy" hidden style="width:100%;margin-top:8px">Why do the plates move?</button>
       </section>
 
@@ -206,12 +210,13 @@
           <label class="row"><input type="radio" name="scheme" value="behaves" /> How it behaves</label>
           <label class="row"><input type="radio" name="scheme" value="both" /> Both (left: made of · right: behaves)</label>
         </fieldset>
+        <p class="sub" style="margin:0 0 4px">Tick box: show or hide a layer. Layer name: find out about it.</p>
         <ul class="layers" id="layerList"></ul>
         <label class="stack" for="groundOpacity">Surface: <span id="groundOpacityVal">100% visible</span>
           <input id="groundOpacity" type="range" min="0" max="100" step="5" value="100" aria-describedby="crustHint" />
         </label>
         <label class="row"><input type="checkbox" id="hideSurface" checked /> Keep the countries on the uncut part</label>
-        <p class="sub" id="crustHint">Lower the slider to see through the surface. Untick a layer to peel it away.</p>
+        <p class="sub" id="crustHint">Lower the slider to see through the surface. Untick a layer to peel it away. Colours show which layer is which; they do not show temperature.</p>
       </section>
 
       <section class="sec" aria-labelledby="hBounds">
@@ -284,6 +289,7 @@
         <input id="cutDepth" type="range" min="0" max="6370" step="10" value="0" aria-labelledby="cutTitle" aria-valuetext="0 km: the whole Earth, not cut" />
         <div id="cutStrip" aria-hidden="true"></div>
         <div class="ends" aria-hidden="true"><span>Surface</span><span>Centre</span></div>
+        <p class="sub" id="ringNote" style="margin:4px 2px 0" hidden>This cut doesn't reach the centre, so each ring's width is not the layer's thickness. Cut in half to compare thicknesses.</p>
       </div>
       <button id="btnHalf" class="primary" aria-pressed="false">Cut in half</button>
     </div>
@@ -292,13 +298,14 @@
   <div id="labelsOverlay" role="group" aria-label="Layer names on the cut" hidden></div>
   <div id="convOverlay" role="group" aria-label="Labels for the convection model" hidden></div>
   <div id="wavesOverlay" role="group" aria-label="Labels for the earthquake waves" hidden></div>
+  <div id="schematicBadge" class="glass" role="note" hidden>Schematic model: not the real flow under these places</div>
 
   <section id="waves" class="glass" aria-labelledby="wavesTitle" hidden>
     <div class="head">
       <h2 id="wavesTitle" tabindex="-1">How do we know what's inside?</h2>
       <button class="iconbtn" id="wavesClose" aria-label="Close the explanation">✕</button>
     </div>
-    <p style="font-size:13.5px;margin:8px 0">Nobody has drilled through even the crust: the deepest hole ever drilled is about 12 km. Instead, scientists use the waves that earthquakes send through the Earth, recorded by seismometers all round the world. (The earthquakes themselves happen only in the top 700 km or so.)</p>
+    <p style="font-size:13.5px;margin:8px 0">Nobody has drilled through the crust, not even under the oceans, where it is thinnest: the deepest hole ever drilled is about 12 km, and the deepest into ocean crust about 2 km. Instead, scientists use the waves that earthquakes send through the Earth, recorded by seismometers all round the world. (The earthquakes themselves almost all happen in the top 700 km.)</p>
     <fieldset>
       <legend class="sub">Show</legend>
       <label class="row"><input type="radio" name="wshow" value="both" checked /> P-waves (right) and S-waves (left)</label>
@@ -310,23 +317,24 @@
     <div class="keybox">
       <h3>Key</h3>
       <div class="key" aria-label="Key to the colours">
-        <i style="background:#4dabf7"></i><span>P-wave path (solid line)</span>
-        <i style="background:#e7f5ff;height:4px"></i><span>P-wave path through the inner core (thin, pale)</span>
-        <i style="background:repeating-linear-gradient(90deg,#ff922b 0 5px,transparent 5px 8px)"></i><span>S-wave path (dashed line)</span>
-        <i style="background:repeating-linear-gradient(90deg,#ff922b 0 5px,transparent 5px 8px);height:14px"></i><span>S-wave shadow zone (dashed band)</span>
-        <i style="background:#4dabf7;height:14px;opacity:.85"></i><span>P-wave shadow zone (solid band)</span>
+        <i style="background:#4dabf7"></i><span>Calculated P-wave path (solid line)</span>
+        <i style="background:#e7f5ff;height:4px"></i><span>Calculated P-wave path through the inner core (thin, pale)</span>
+        <i style="background:repeating-linear-gradient(90deg,#ff922b 0 5px,transparent 5px 8px)"></i><span>Calculated S-wave path (dashed line)</span>
+        <i style="background:repeating-linear-gradient(90deg,#ff922b 0 5px,transparent 5px 8px);height:14px"></i><span>Observed S-wave shadow zone, from seismometer records (dashed band)</span>
+        <i style="background:#4dabf7;height:14px;opacity:.85"></i><span>Observed P-wave shadow zone, from seismometer records (solid band)</span>
       </div>
+      <p class="sub" style="margin:6px 0 0">The moving dots show how far along each path the wave has got. They are not pieces of rock travelling through the Earth: the rock only shakes as the wave passes.</p>
     </div>
     <ol>
       <li><b>P-waves</b> (primary) are <i>longitudinal</i>: the rock is pushed and pulled along the direction the wave travels. They are the fastest, and they travel through solids <b>and</b> liquids.</li>
       <li><b>S-waves</b> (secondary) are <i>transverse</i>: the rock shakes from side to side. They are slower, and they can only travel through <b>solids</b>.</li>
       <li><b>The paths curve.</b> Waves speed up as they go deeper, so they bend back up towards the surface. Where they cross a sudden change, such as the edge of the core, they bend sharply (refraction).</li>
       <li><b>S-wave shadow zone.</b> Beyond about 104° from an earthquake, no S-waves arrive. They are stopped by the outer core, so it must be liquid. In 1914 Beno Gutenberg worked out that the core starts about 2,900 km down.</li>
-      <li><b>P-wave shadow zone.</b> Between about 104° and 140°, almost no P-waves arrive, because they bend sharply where they enter the slower, liquid core.</li>
+      <li><b>P-wave shadow zone.</b> Between about 104° and 140°, no <i>direct</i> P-waves arrive, because they bend sharply where they enter the slower, liquid core. Weaker waves that take other paths can still be detected there.</li>
       <li><b>The inner core.</b> In 1936 Inge Lehmann noticed faint P-waves arriving inside the P-wave shadow zone. She showed they had been bent by a boundary deep inside the core: there is an inner core, where the waves travel faster. Scientists later argued that it is solid (1940s–1950s), and in 1971 this was confirmed from the way the whole Earth "rings" after very large earthquakes.</li>
     </ol>
     <p class="note" id="waveModelNote">The paths come from a simplified model of how fast waves travel at each depth, so they land a few degrees from the measured shadow-zone edges, which are drawn from real seismometer records.</p>
-    <p class="src">Sources: USGS, "Shadow zone"; Earle, <i>Physical Geology</i> 9.1; AQA GCSE Physics 4.6.1.5; NGSS HS-ESS2-3. Wave speeds rounded from PREM (Dziewonski &amp; Anderson, 1981). Inner core history: Wikipedia, "Earth's inner core"; Dziewoński &amp; Gilbert (1971), <i>Nature</i> 234.</p>
+    <p class="src">Sources: USGS, "Shadow zone"; Earle, <i>Physical Geology</i> 9.1; AQA GCSE Physics 4.6.1.5; NGSS HS-ESS2-3. Wave speeds rounded from PREM (Dziewonski &amp; Anderson, 1981). Deepest earthquake (about 750 km): Kiser et al. (2021), <i>Geophysical Research Letters</i>. Deepest drilling into ocean crust: Hole 504B, about 2 km (Ocean Drilling Program). Inner core history: Wikipedia, "Earth's inner core"; Dziewoński &amp; Gilbert (1971), <i>Nature</i> 234.</p>
   </section>
 
   <section id="conv" class="glass" aria-labelledby="convTitle" hidden>
@@ -348,7 +356,7 @@
         <i style="background:#ffffff;height:4px"></i><span>Moving arrows: the mantle flowing, very slowly</span>
       </div>
     </div>
-    <p class="sub" style="margin:8px 0 0">The numbers on the cut match this list. Point at a number to see what it shows.</p>
+    <p class="sub" style="margin:8px 0 0">The numbers on the cut match this list. Point at a number, or press Tab to reach it, to see what it shows.</p>
     <ol>
       <li><b>Heat escapes from inside the Earth.</b> It comes from the core, from heat left over from when the Earth formed, and from radioactive elements in the rocks.</li>
       <li><b>The mantle is solid rock, but it flows very slowly,</b> like extremely stiff putty, over millions of years.</li>
@@ -406,13 +414,13 @@
 <script type="module">
 // ================= Versions (single source of truth) =================
 // Bump a model's number whenever its maths or data handling changes, and bump the app version on every release.
-const APP_VERSION = "0.12.4"; // test copy of earth-structure-lab.html (0.8.1)
+const APP_VERSION = "0.13.0"; // test copy of earth-structure-lab.html (0.8.1)
 const MODELS = {
-  layers: { name: "Layer model", version: "2.3", desc: "Two ways of dividing the Earth: by what it is made of (crust 0–35, upper mantle 35–660, lower mantle 660–2,891, outer core, inner core) and by how it behaves (lithosphere 0–100, asthenosphere 100–250, mesosphere 250–2,891, outer core, inner core; km). On a slider cut each layer the cut reaches is a flat filled ring where the cut plane meets that layer's shell (ring radius √(r² − h²), where h is the plane's distance from the centre), 2 km behind the cut, or 40 km behind it when the Earth is cut in half so the models drawn on the cut stay in front. Shells: concentric spheres for mantle and core at PREM depths, scaled to the globe's radius. Facts per layer for the information panel (2.2: lower mantle and mesosphere flow slowly; core temperatures made consistent, rising with depth; inner-core history corrected; 2.3: where earthquakes happen added to the mantle layers). While a model ('How it moves', 'Earthquake waves') is showing, the rings are darkened to 40% so the model lines stand out." },
-  waves:  { name: "Seismic wave model", version: "1.2", desc: "Wave paths traced through wave speeds rounded from PREM (crust and the low-speed zone smoothed out; PREM's 400 and 670 km boundaries moved to the 410 and 660 km used in the rest of the app): each path bends with the speed change and refracts with Snell's law at 410 km, 660 km, the core–mantle boundary and the inner-core boundary; S-waves stop at the liquid outer core. Shadow zones are drawn at the measured edges (USGS: 104°–140°), not the model's. The animation runs 30 real minutes in 15 seconds. P-waves blue and solid, S-waves orange and dashed (readable with red–green colour blindness). (1.2: the option to start from a real earthquake is removed.)" },
-  conv:   { name: "Convection model", version: "2.2", desc: "Schematic mantle convection on the centre cut, the same on any cut (ridges, trenches and plume are not the real ones under that cut). Five loops between 3,730 km and 6,090 km from the centre (core–mantle boundary 3,480 km), turning in alternate directions, so broad rising return flow (under ridges at 30°, 150° and 270°) and sinking rock (at trenches at 90°, 210° and 330°) alternate; the sixth loop position (180°) holds a plume rising from the core–mantle boundary to the base of the plate under the middle of a plate. Under each ridge a short, shallow upwelling from 200 km deep, pulled up by the plates (WHOI MELT experiment: melting from 150–200 km). Plates drawn as arrows 220 km above the surface from ridge to trench; a sinking slab from each trench to 1,500 km deep. White arrows (each 0.55 of the way round a loop parameter, 5 per loop) move round each loop once in 12 seconds (in reality hundreds of millions of years); 2.1: arrows instead of moving dots, so the rock is seen to flow as a whole rather than as separate lumps. 2.2: the text labels on the cut are replaced by numbered markers matching the numbered list in the panel (the text is on each marker for pointing and screen readers)." },
+  layers: { name: "Layer model", version: "2.4", desc: "Two ways of dividing the Earth: by what it is made of (crust 0–35, upper mantle 35–660, lower mantle 660–2,891, outer core, inner core) and by how it behaves (lithosphere 0–100, asthenosphere 100–250, mesosphere 250–2,891, outer core, inner core; km). On a slider cut each layer the cut reaches is a flat filled ring where the cut plane meets that layer's shell (ring radius √(r² − h²), where h is the plane's distance from the centre), 2 km behind the cut, or 40 km behind it when the Earth is cut in half so the models drawn on the cut stay in front. Shells: concentric spheres for mantle and core at PREM depths, scaled to the globe's radius. Facts per layer for the information panel (2.2: lower mantle and mesosphere flow slowly; core temperatures made consistent, rising with depth; inner-core history corrected; 2.3: where earthquakes happen added to the mantle layers). While a model ('How it moves', 'Earthquake waves') is showing, the rings are darkened to 40% so the model lines stand out. (2.4: earthquake depths reworded: usually no deeper than about 700 km, rare deeper ones reported; labels of peeled-away layers are removed.)" },
+  waves:  { name: "Seismic wave model", version: "1.3", desc: "Wave paths traced through wave speeds rounded from PREM (crust and the low-speed zone smoothed out; PREM's 400 and 670 km boundaries moved to the 410 and 660 km used in the rest of the app): each path bends with the speed change and refracts with Snell's law at 410 km, 660 km, the core–mantle boundary and the inner-core boundary; S-waves stop at the liquid outer core. Shadow zones are drawn at the measured edges (USGS: 104°–140°), not the model's. The animation runs 30 real minutes in 15 seconds. P-waves blue and solid, S-waves orange and dashed (readable with red–green colour blindness). (1.2: the option to start from a real earthquake is removed.) (1.3: a ray that bounces off a boundary uses its own side's speed for the rest of that step; rays that neither surface nor stop, or have non-finite points, are left out; key marks calculated paths and observed shadow zones.)" },
+  conv:   { name: "Convection model", version: "2.3", desc: "Schematic mantle convection on the centre cut, the same on any cut (ridges, trenches and plume are not the real ones under that cut). Five loops between 3,730 km and 6,090 km from the centre (core–mantle boundary 3,480 km), turning in alternate directions, so broad rising return flow (under ridges at 30°, 150° and 270°) and sinking rock (at trenches at 90°, 210° and 330°) alternate; the sixth loop position (180°) holds a plume rising from the core–mantle boundary to the base of the plate under the middle of a plate. Under each ridge a short, shallow upwelling from 200 km deep, pulled up by the plates (WHOI MELT experiment: melting from 150–200 km). Plates drawn as arrows 220 km above the surface from ridge to trench; a sinking slab from each trench to 1,500 km deep. White arrows (each 0.55 of the way round a loop parameter, 5 per loop) move round each loop once in 12 seconds (in reality hundreds of millions of years); 2.1: arrows instead of moving dots, so the rock is seen to flow as a whole rather than as separate lumps. 2.2: the text labels on the cut are replaced by numbered markers matching the numbered list in the panel (the text is on each marker for pointing and screen readers). (2.3: a \"Schematic model\" badge shows while this model is on; numbered markers can be reached with the keyboard and show their text on focus.)" },
   dims:   { name: "Depth label model", version: "1.3", desc: "Depth lines (Esri DimensionAnalysis) only when the Earth is cut in half: boundaries follow the chosen way of dividing the Earth (hidden when both are shown), drawn from the surface to each boundary at true depth on a radius 90° from the cut's anchor (to the right of the cut), spaced 650 km apart. Layer names on any slider cut: on-screen buttons pinned to the middle of each ring the cut reaches (rings under 120 km wide get their name just outside the cut), fanned around the left half; a name pulses when the cut first reaches its layer. Shown while the cut face is turned towards the camera at less than 75° (seen from the side or face-on)." },
-  slice:  { name: "Slice model", version: "3.2", desc: "Starts with the whole Earth. The slider sets the cut depth from 0 to 6,371 km (step 10 km; 6,350 km or more snaps to the centre, with the plane 1 km off the exact centre, where its direction is undefined): an Esri SliceAnalysis plane (tilt 0°) that far below the surface point in the middle of the view, facing that point, so it removes the cap of the Earth nearest the viewer. When a new cut starts, the camera turns 50° to the left round the globe's screen-up axis (to at least 16,000 km up), so the cut is seen from the side. The cut stays fixed to the Earth; it moves to the middle of the view only when the slider starts a new cut from the whole Earth or the cut face has been turned out of sight (more than 75° away). 'Cut in half' takes the same cut to the centre. While cut, the ground is swapped for a sphere with the same imagery, boundaries and names (Esri World Imagery export with World Boundaries and Places level-3 tiles re-projected onto it; NASA Blue Marble if the imagery can't load), which the cut slices with the layers, so the countries stay on the uncut part (viewer can turn this off). ArcGIS's own sliced ground leaves a faint copy of the removed part over the cut face, and the atmosphere's haze washes over it, so the atmosphere is off while cut. (3.2: cuts through a chosen place removed; real places are now in Subduction Zones Lab.)" },
+  slice:  { name: "Slice model", version: "3.3", desc: "Starts with the whole Earth. The slider sets the cut depth from 0 to 6,371 km (step 10 km; 6,350 km or more snaps to the centre, with the plane 1 km off the exact centre, where its direction is undefined): an Esri SliceAnalysis plane (tilt 0°) that far below the surface point in the middle of the view, facing that point, so it removes the cap of the Earth nearest the viewer. When a new cut starts, the camera turns 50° to the left round the globe's screen-up axis (to at least 16,000 km up), so the cut is seen from the side. The cut stays fixed to the Earth; it moves to the middle of the view only when the slider starts a new cut from the whole Earth or the cut face has been turned out of sight (more than 75° away). 'Cut in half' takes the same cut to the centre. While cut, the ground is swapped for a sphere with the same imagery, boundaries and names (Esri World Imagery export with World Boundaries and Places level-3 tiles re-projected onto it; NASA Blue Marble if the imagery can't load), which the cut slices with the layers, so the countries stay on the uncut part (viewer can turn this off). ArcGIS's own sliced ground leaves a faint copy of the removed part over the cut face, and the atmosphere's haze washes over it, so the atmosphere is off while cut. (3.2: cuts through a chosen place removed; real places are now in Subduction Zones Lab.) (3.3: while dragging, the cut is redrawn at most once per screen frame; cuts that miss the centre show a note that ring widths are not layer thicknesses.)" },
   bounds: { name: "Plate boundary model", version: "1.1", desc: "Plate boundaries from Hasterok et al. (2022), loaded live from ArcGIS Online (Tectonic Plates and Boundaries, layer 9), coloured by type: convergent, divergent, transform, inferred (dashed). Drawn as lines 2 km above the ground, so they show on the uncut part of the globe; the slice removes them with the part it cuts away. Shown only with 'Layers and depths'. (1.1: the walls going 100 km down and the labels on the cut were removed, as they cluttered the cut.)" }
 };
 const $ = (id) => document.getElementById(id);
@@ -440,14 +448,14 @@ const LAYERS = [
     thick: "About 5–10 km under the oceans, 30–70 km under continents. This model uses a 35 km average.",
     how: "In 1909 Andrija Mohorovičić noticed that earthquake waves speed up suddenly at a certain depth. That boundary, the base of the crust, is called the Moho." },
   { id: "upperMantle", name: "Upper mantle", top: 35, bottom: 660, color: "#f4a259", mesh: true, fan: 300, state: "Solid, but flows very slowly",
-    text: "Hot rock that is solid, but soft enough in places to creep a few centimetres a year. Together with the sinking plates, this slow flow is mantle convection (choose \"How it moves\"). Most earthquakes happen in the cold, brittle rock near the surface; the deep ones in the mantle happen only inside cold plates that are sinking, never below about 700 km.",
+    text: "Hot rock that is solid, but soft enough in places to creep a few centimetres a year. Together with the sinking plates, this slow flow is mantle convection (choose \"How it moves\"). Most earthquakes happen in the cold, brittle rock near the surface; deep earthquakes usually happen inside cold plates that are sinking, down to about 700 km (rare deeper ones have been reported).",
     made: "Rock rich in the green mineral olivine (peridotite).",
     temp: "About 1,000 °C at the top, about 1,700 °C at 250 km down",
     density: "about 3.4–4.0 g/cm³",
     thick: "About 625 km",
     how: "Earthquake waves change speed at about 410 km and 660 km, where the minerals are squeezed into denser forms." },
   { id: "lowerMantle", name: "Lower mantle", top: 660, bottom: 2891, color: "#c0504d", mesh: true, fan: 255, state: "Solid, but flows very slowly",
-    text: "The thickest layer. The pressure is so high that the rock is squeezed into dense minerals, even though it is very hot. It is solid, but over millions of years it flows slowly too: sinking plates and rising plumes pass through it, so it is part of mantle convection. There are no earthquakes this deep: below about 700 km the rock is too hot to snap, so it flows instead.",
+    text: "The thickest layer. The pressure is so high that the rock is squeezed into dense minerals, even though it is very hot. It is solid, but over millions of years it flows slowly too: sinking plates and rising plumes pass through it, so it is part of mantle convection. Earthquakes are rare this deep. Deep earthquakes happen inside cold, sinking plates, usually no deeper than about 700 km; one about 750 km down has been reported. Deeper still, the rock is too hot to snap, so it flows instead.",
     made: "Dense minerals of magnesium, iron, silicon and oxygen.",
     temp: "About 2,600 °C at 2,000 km, about 3,500 °C at its base",
     density: "about 4.4–5.6 g/cm³",
@@ -485,7 +493,7 @@ const MECH_ONLY = [
     thick: "About 100–250 km down in this model. Its depth varies from place to place, and some scientists extend it deeper.",
     how: "Earthquake waves slow down between about 100 and 250 km (the 'low-velocity zone'), a sign that the rock is hot, soft and slightly molten in places." },
   { id: "mesosphere", name: "Mesosphere", top: 250, bottom: 2891, color: "#b9614f", mesh: true, fan: 255, fanR: 105, state: "Solid, but flows very slowly",
-    text: "The rest of the mantle, down to the core (not the same as the mesosphere in the atmosphere). The pressure makes the rock stronger than in the asthenosphere, but over millions of years it still flows slowly. It includes the transition zone (410–660 km), where minerals are squeezed into denser forms. Earthquakes happen in it only inside cold, sinking plates, and never below about 700 km.",
+    text: "The rest of the mantle, down to the core (not the same as the mesosphere in the atmosphere). The pressure makes the rock stronger than in the asthenosphere, but over millions of years it still flows slowly. It includes the transition zone (410–660 km), where minerals are squeezed into denser forms. Earthquakes happen in it only inside cold, sinking plates, usually no deeper than about 700 km (rare deeper ones have been reported).",
     made: "Mantle rock, changing into denser minerals with depth.",
     temp: "About 1,700 °C near the top, about 3,500 °C at its base",
     density: "about 3.5–5.6 g/cm³",
@@ -769,7 +777,7 @@ onSelect = (id) => {
 
 document.getElementById("layerList").addEventListener("change", (e) => {
   const id = e.target.dataset.layer; if (!id) return;
-  peeled[id] = !e.target.checked; applyShells(); drawCaps();
+  peeled[id] = !e.target.checked; applyShells(); drawCaps(); drawLabels();
 });
 document.querySelectorAll('input[name="scheme"]').forEach(r => r.addEventListener("change", () => {
   scheme = document.querySelector('input[name="scheme"]:checked').value;
@@ -894,7 +902,7 @@ function drawLabels() {
     labelPts = {};
     for (const [l, fan] of shown) {
       const rOut = (R_TRUE_KM - l.top) * SCALE, rIn = (R_TRUE_KM - l.bottom) * SCALE;
-      if (rOut <= Math.abs(h)) continue; // the cut doesn't reach this layer
+      if (rOut <= Math.abs(h) || peeled[l.id]) continue; // the cut doesn't reach this layer, or it has been peeled away
       const pOut = ringRadius(rOut, h), pIn = ringRadius(rIn, h);
       const thin = pIn > 0 && pOut - pIn < 120; // a band too thin to hold a label: put the name just outside the cut
       const [lon, lat, z] = cutPoint(fan, thin ? pOut + 350 * SCALE : (pOut + pIn) / 2, h);
@@ -938,7 +946,7 @@ const CONV_CHIPS = [
   { id: "plate",  n: 6, text: "6: The plate moves 2–10 cm a year",           c: "#f1f3f5", th: 0,   r: 6371 + 420 }
 ];
 const convOverlay = $("convOverlay");
-convOverlay.innerHTML = CONV_CHIPS.map(c => `<span class="lbl num" data-pt="${c.id}" style="--c:${c.c}" role="img" aria-label="${c.text}" title="${c.text}">${c.n}</span>`).join("");
+convOverlay.innerHTML = CONV_CHIPS.map(c => `<span class="lbl num" data-pt="${c.id}" style="--c:${c.c}" data-text="${c.text}" role="img" tabindex="0" aria-label="${c.text}">${c.n}</span>`).join("");
 let convPts = null;
 let raf = 0;
 function placeGroup(container, pts, key) {
@@ -1050,6 +1058,7 @@ function updateCutBar() {
   r.setAttribute("aria-valuetext", t.long);
   $("btnWhole").setAttribute("aria-pressed", String(!freeCut && cutDepth === 0));
   $("btnHalf").setAttribute("aria-pressed", String(!freeCut && cutDepth >= R_TRUE_KM));
+  $("ringNote").hidden = freeCut || cutDepth <= 0 || cutDepth >= R_TRUE_KM;
   // the strip under the slider: the layers by true depth, surface on the left, centre on the right
   const rows = scheme === "both" ? [LAYERS, MECH] : [schemeLayers()];
   $("cutStrip").innerHTML = rows.map(list => `<div class="strip">${list.map(l => `<i style="flex:${l.bottom - l.top};background:${l.color}"></i>`).join("")}</div>`).join("");
@@ -1089,7 +1098,9 @@ function setCutDepth(d) {
   drawCaps(); drawDims(); drawLabels(); drawConvection(); drawWaves();
   if (started && mode === "layers") setStatus("Cutting into the Earth under the middle of your view. The globe turns so you can see the cut from the side.");
 }
-cutRange.addEventListener("input", () => setCutDepth(Number(cutRange.value)));
+// while dragging, redraw at most once per screen frame, with the latest position
+let sliderRaf = 0;
+cutRange.addEventListener("input", () => { if (!sliderRaf) sliderRaf = requestAnimationFrame(() => { sliderRaf = 0; setCutDepth(Number(cutRange.value)); }); });
 $("btnHalf").addEventListener("click", () => { setCutDepth(R_TRUE_KM); setStatus("The Earth is cut in half through the centre."); });
 $("btnWhole").addEventListener("click", () => { setCutDepth(0); setStatus("The whole Earth. Drag the slider to cut into it."); });
 $("btnPlace").addEventListener("click", async () => {
@@ -1211,7 +1222,7 @@ const seisV = (r, c) => { const d = SEIS.R - r, i = seisSeg(d), a = SEIS.model[i
 const seisG = (r, c) => { const i = seisSeg(SEIS.R - r), a = SEIS.model[i], b = SEIS.model[i + 1]; return -(b[c] - a[c]) / (b[0] - a[0]); };
 function shootRay(takeoffDeg, wave, ds = 4) {
   const c = wave === "P" ? 1 : 2, R = SEIS.R, JR = SEIS.jumps.map(d => R - d);
-  let x = 0, y = R, ex = Math.sin(takeoffDeg * Math.PI / 180), ey = -Math.cos(takeoffDeg * Math.PI / 180), t = 0, minR = R, blocked = false, reflected = false;
+  let x = 0, y = R, ex = Math.sin(takeoffDeg * Math.PI / 180), ey = -Math.cos(takeoffDeg * Math.PI / 180), t = 0, minR = R, blocked = false, reflected = false, surfaced = false;
   const path = [[0, R, 0]];
   for (let step = 1; step < 20000; step++) {
     const r = Math.hypot(x, y), v = seisV(r, c);
@@ -1225,18 +1236,22 @@ function shootRay(takeoffDeg, wave, ds = 4) {
       if (v2 <= 0) { x = xi; y = yi; blocked = true; path.push([Math.atan2(x, y) * 180 / Math.PI, jr, t]); break; }
       const rxi = xi / jr, ryi = yi / jr, cosi = nx * rxi + ny * ryi, sg = Math.sign(cosi);
       const tx = nx - cosi * rxi, ty = ny - cosi * ryi, sini = Math.hypot(tx, ty), sin2 = sini * v2 / v1;
-      if (sin2 >= 1) { nx -= 2 * cosi * rxi; ny -= 2 * cosi * ryi; reflected = true; } // bounces off the boundary
+      const bounce = sin2 >= 1;
+      if (bounce) { nx -= 2 * cosi * rxi; ny -= 2 * cosi * ryi; reflected = true; } // bounces off the boundary
       else { const cos2 = Math.sqrt(1 - sin2 * sin2), k = sini > 1e-12 ? sin2 / sini : 0; nx = tx * k + sg * cos2 * rxi; ny = ty * k + sg * cos2 * ryi; }
-      const rest = (1 - f) * ds; x2 = xi + rest * nx; y2 = yi + rest * ny; t += rest / v2;
+      // a bounced ray stays on the side it came from, so the rest of the step is at that side's speed (v1), not v2
+      const rest = (1 - f) * ds; x2 = xi + rest * nx; y2 = yi + rest * ny; t += rest / (bounce ? v1 : v2);
     } else t += ds / v;
     x = x2; y = y2; ex = nx; ey = ny;
     const rn = Math.hypot(x, y); minR = Math.min(minR, rn);
     if (step % 6 === 0) path.push([Math.atan2(x, y) * 180 / Math.PI, rn, t]);
-    if (rn >= R) { path.push([Math.atan2(x, y) * 180 / Math.PI, R, t]); break; }
+    if (rn >= R) { path.push([Math.atan2(x, y) * 180 / Math.PI, R, t]); surfaced = true; break; }
   }
   const end = path[path.length - 1];
-  let delta = blocked ? null : (end[0] < 0 ? end[0] + 360 : end[0]);
-  const type = blocked ? "blocked" : reflected ? "reflected" : minR > R - 2891 ? "mantle" : minR > R - 5150 ? "outer" : "inner";
+  // a ray that neither came back to the surface nor was stopped is left out of the drawing and the summary
+  const finished = (blocked || surfaced) && path.every(q => q.every(Number.isFinite));
+  let delta = blocked || !finished ? null : (end[0] < 0 ? end[0] + 360 : end[0]);
+  const type = !finished ? "incomplete" : blocked ? "blocked" : reflected ? "reflected" : minR > R - 2891 ? "mantle" : minR > R - 5150 ? "outer" : "inner";
   return { wave, blocked, delta, land: delta == null ? null : Math.min(delta, 360 - delta), type, path, time: end[2] };
 }
 let seisRays = null, seisSummary = "";
@@ -1253,7 +1268,7 @@ function computeRays() {
   seisSummary = `In this model, P-waves through the mantle reach ${Math.round(maxLand(P, "mantle"))}°, S-waves ${Math.round(maxLand(S, "mantle"))}°. ` +
     `P-waves through the liquid core land from ${Math.round(minLand(P, "outer"))}°, and through the inner core from ${Math.round(minLand(P, "inner"))}°.`;
   // S-waves that hit the liquid outer core never land, so pick those by take-off angle instead
-  const blockedS = S.map((r, i) => ({ r, a: 0.25 + i * 0.25 })).filter(o => o.r.blocked);
+  const blockedS = S.map((r, i) => ({ r, a: 0.25 + i * 0.25 })).filter(o => o.r.type === "blocked");
   const nearestBlocked = (a) => blockedS.reduce((b, o) => (b == null || Math.abs(o.a - a) < Math.abs(b.a - a) ? o : b), null)?.r;
   seisRays = {
     P: [...pick(P, "mantle", [12, 25, 40, 55, 70, 85, "max"]), ...pick(P, "outer", [146, 158, 170]), ...pick(P, "inner", [130, 140, 165, 178])],
@@ -1359,6 +1374,7 @@ $("convClose").addEventListener("click", () => { hidePanels(); $("btnWhy").focus
 $("wavesClose").addEventListener("click", () => { hidePanels(); $("btnWhy").focus(); });
 $("btnWhy").addEventListener("click", () => showPanel(mode, { focus: true }));
 function setMode(m) {
+  $("schematicBadge").hidden = m !== "conv";
   mode = m;
   for (const [id, k] of [["modeLayers", "layers"], ["modeConv", "conv"], ["modeWaves", "waves"]]) $(id).setAttribute("aria-pressed", String(m === k));
   $("btnWhy").hidden = !PANELS[m]; if (PANELS[m]) $("btnWhy").textContent = PANELS[m].why;
@@ -1388,7 +1404,7 @@ $("btnHome").addEventListener("click", async () => { setCutDepth(0); await view.
 
 // ---------- Start: the whole Earth ----------
 setCutDepth(0);
-setStatus("Ready. Drag the slider under the globe to cut into the Earth.");
+setStatus("Start here: select \"Cut in half\" under the globe, then select the outer core to find out about it.");
 // work out the earthquake-wave paths while the page is idle, so "Earthquake waves" opens without a pause
 (window.requestIdleCallback || ((f) => setTimeout(f, 1500)))(() => computeRays());
 </script>
