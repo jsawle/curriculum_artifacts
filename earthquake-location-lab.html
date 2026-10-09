@@ -77,7 +77,7 @@
   .think { font-size: 13.5px; border-left: 3px solid var(--accent); padding: 4px 0 4px 10px; margin: 10px 0 4px; color: var(--ink); }
   .think b { color: var(--accent); }
   .formula { font-size: 17px !important; font-weight: 800; text-align: center; padding: 8px; border-radius: 12px; background: rgba(125, 211, 252, .1); border: 1px solid rgba(125, 211, 252, .3); }
-  .key { display: grid; grid-template-columns: 22px 1fr; gap: 5px 8px; font-size: 12.5px; margin: 8px 0; align-items: center; color: var(--muted); }
+  .key { display: grid; grid-template-columns: minmax(22px, auto) 1fr; gap: 5px 8px; font-size: 12.5px; margin: 8px 0; align-items: center; color: var(--muted); }
   .sw { display: inline-block; width: 16px; height: 16px; justify-self: center; }
   .sw.dot { border-radius: 50%; width: 12px; height: 12px; }
   .sw.ring { border-radius: 50%; width: 14px; height: 14px; border: 3px solid var(--hypo); }
@@ -312,7 +312,7 @@ import * as E from "./earthquake-location-engine.js";
 
 // ================= Versions (single source of truth) =================
 // Bump a model's number whenever its maths or data handling changes, and bump the app version on every release.
-const APP_VERSION = "0.1.0";
+const APP_VERSION = "0.1.1"; // 0.1.1: key swatches no longer overlap the text
 const MODELS = {
   events:  { name: "Earthquakes", version: "1.0", desc: "Three real earthquakes from the USGS catalogue (time, epicentre, depth, magnitude): L'Aquila 2009 (usp000gvtu), Loma Prieta 1989 (nc216859), Nisqually 2001 (uw10530748). Seismographs placed at the centres of three nearby towns for each (Wikipedia coordinates)." },
   waves:   { name: "Wave model", version: "1.0", desc: "Waves travel in straight lines at steady speeds: P-waves 6.0 km/s, S-waves 3.5 km/s, so each second of S − P gap means 8.4 km (1 ÷ (1/3.5 − 1/6)). Distances are in a flat local frame centred on the epicentre (km east and north; within 1% of the curved Earth here). Wave fronts are drawn as the underground part of growing spheres; the line on the ground is where each front reaches the surface." },
