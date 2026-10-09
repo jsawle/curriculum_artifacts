@@ -1,0 +1,180 @@
+  /* Ice Age app engine styles, TEST COPY for ice-age-ks3-test.html and ice-age-gcse-test.html (live pages use ice-age-engine.css).
+     Dark "glass" theme (same family as the Helene app). Text colours meet WCAG AA on the panel colour. */
+  :root {
+    --bg: #0b1220; --panel: #0f172a; --glass: rgba(11, 18, 33, 0.88); --glass-edge: rgba(255, 255, 255, 0.10);
+    --ink: #eef3fa; --muted: #a8b6c9; --rule: rgba(255, 255, 255, 0.13); --chip: rgba(255, 255, 255, 0.08); --chip-hover: rgba(255, 255, 255, 0.14);
+    --accent: #7dd3fc; --accent-ink: #04121f; --go1: #2563eb; --go2: #0e7490;
+    --ice: #e6f0f7; --sea: #3b82c4; --lake: #5fb4d9; --cold: #93c5fd; --warm: #fdba74; --brit: #f59e0b; --llr: #f472b6;
+    --radius: 18px; --shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font: 15px/1.5 Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  #app { position: relative; height: 100%; overflow: hidden; }
+  #mapwrap { position: absolute; inset: 0; }
+  arcgis-scene { display: block; width: 100%; height: 100%; }
+  .glass { background: var(--glass); border: 1px solid var(--glass-edge); border-radius: var(--radius); box-shadow: var(--shadow); backdrop-filter: blur(14px) saturate(1.2); -webkit-backdrop-filter: blur(14px) saturate(1.2); }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-visible, .panes:focus-visible, #chart:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  button { font: inherit; font-weight: 600; border-radius: 12px; padding: 9px 14px; cursor: pointer; border: 1px solid var(--glass-edge); background: var(--chip); color: var(--ink); transition: background .15s; }
+  button:hover:not(:disabled) { background: var(--chip-hover); }
+  button.primary { background: linear-gradient(135deg, var(--go1), var(--go2)); border-color: transparent; color: #fff; box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45); }
+  button:disabled { opacity: 0.4; cursor: default; }
+  .iconbtn { width: 40px; height: 40px; padding: 0; display: inline-grid; place-items: center; font-size: 18px; flex: none; }
+  .ghost { background: transparent; border-color: transparent; color: var(--accent); padding: 4px 8px; font-size: 12.5px; }
+  select { padding: 6px 8px; border-radius: 10px; border: 1px solid var(--glass-edge); background: var(--panel); color: var(--ink); font: inherit; font-size: 13px; }
+
+  /* story card */
+  #card { position: absolute; left: 16px; top: 16px; bottom: 16px; width: 384px; display: flex; flex-direction: column; padding: 16px 18px 12px; z-index: 6; }
+  .brand { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; row-gap: 4px; font-size: 11.5px; color: var(--muted); }
+  .brand .kicker { text-transform: uppercase; letter-spacing: .12em; font-weight: 700; color: var(--accent); }
+  .brand .sp { flex: 1; }
+  .brand .kicker, #teachBtn, #verTop { white-space: nowrap; }
+  h1 { font-size: 22px; line-height: 1.15; margin: 6px 0 2px; font-weight: 800; letter-spacing: -0.01em; }
+  .lede { color: var(--muted); margin: 4px 0 10px; font-size: 13.5px; line-height: 1.45; }
+  @media (max-height: 800px) { .lede { display: none; } }
+  .stepnav ol { list-style: none; display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; padding: 0; margin: 2px 0 10px; }
+  .stepnav button { width: 100%; height: 30px; padding: 0; border-radius: 9px; font-size: 13px; }
+  .stepnav button.done { background: rgba(125, 211, 252, 0.16); color: var(--accent); }
+  .stepnav button[aria-current="step"] { background: linear-gradient(135deg, var(--go1), var(--go2)); color: #fff; border-color: transparent; }
+  #chapter { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .stepof { font-size: 11.5px; text-transform: uppercase; letter-spacing: .1em; font-weight: 700; color: var(--muted); }
+  #chTitle { font-size: 20px; line-height: 1.2; margin: 2px 0 6px; font-weight: 800; }
+  .when { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
+  .chip { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; background: var(--chip); color: var(--ink); border: 1px solid var(--glass-edge); }
+  .chip.cold { background: rgba(147, 197, 253, 0.16); border-color: rgba(147, 197, 253, 0.45); color: #cfe3ff; }
+  .chip.warm { background: rgba(253, 186, 116, 0.16); border-color: rgba(253, 186, 116, 0.5); color: #ffdcb8; }
+  .panes { flex: 1; min-height: 0; overflow-y: auto; padding: 2px 2px 8px; scrollbar-width: thin; font-size: 15px; }
+  .panes p { margin: 0 0 10px; }
+  .panes b { color: #fff; }
+  .note { font-size: 13px; color: var(--muted); border-left: 3px solid var(--rule); padding-left: 10px; margin: 6px 0 10px; }
+  .src { font-size: 12px; color: var(--muted); }
+  #nowBox { border-radius: 14px; padding: 10px 12px; margin: 4px 0 10px; background: linear-gradient(135deg, rgba(37, 99, 235, 0.18), rgba(14, 116, 144, 0.16)); border: 1px solid rgba(125, 211, 252, 0.3); font-size: 13.5px; display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; }
+  #nowBox dt { color: var(--muted); }
+  #nowBox dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .mv { font-size: 10.5px; font-weight: 600; color: var(--muted); border: 1px solid var(--rule); border-radius: 999px; padding: 0 6px; margin-left: 4px; white-space: nowrap; text-transform: none; letter-spacing: 0; }
+  #mapDescBox summary { font-size: 13px; color: var(--muted); cursor: pointer; }
+  #mapDesc { font-size: 14px; margin: 6px 0 0; }
+  .cfoot { flex: none; padding-top: 10px; border-top: 1px solid var(--rule); }
+  .actions { display: flex; gap: 8px; }
+  #goBtn { flex: 1; font-size: 15.5px; padding: 11px 16px; border-radius: 14px; }
+  #status { font-size: 12px; color: var(--muted); margin-top: 6px; min-height: 1.2em; }
+  #status:empty { display: none; }
+  /* readouts pinned above the Play button on steps that set watch (e.g. the Doggerland flood) */
+  #watch { display: flex; flex-wrap: wrap; gap: 2px 14px; margin: 0 0 8px; padding: 7px 10px; border-radius: 10px; font-size: 13.5px; font-variant-numeric: tabular-nums;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.18), rgba(14, 116, 144, 0.16)); border: 1px solid rgba(125, 211, 252, 0.3); }
+  #watch .wl { color: var(--muted); }
+  #watch b { color: #fff; }
+  .testchip { font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: rgba(250, 204, 21, 0.16); color: #fde68a; border: 1px solid rgba(250, 204, 21, 0.5); white-space: nowrap; }
+  .phone-only { display: none; }
+
+  /* time bar with climate chart */
+  #timebar { position: absolute; left: 416px; right: 16px; bottom: 16px; padding: 10px 16px 8px; z-index: 4; }
+  .trow { display: grid; grid-template-columns: auto 1fr auto auto; gap: 4px 12px; align-items: center; }
+  #tLabel { font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 15px; min-width: 190px; }
+  #tStage { font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #chart { display: block; width: 100%; height: 92px; cursor: crosshair; margin-top: 4px; touch-action: none; }
+  #tSlider { width: 100%; accent-color: var(--accent); height: 20px; margin: 0; }
+  .ckey { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+  .ckey i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: 3px; margin-right: 5px; }
+
+  /* --tbh is the time bar's height, set from the page script, so the credit always sits just above the time bar */
+  #credit { position: absolute; right: 16px; bottom: calc(var(--tbh, 202px) + 26px); z-index: 4; padding: 6px 12px; border-radius: 12px; font-size: 11.5px; line-height: 1.35; color: #fff; text-align: right; }
+  #credit b { color: #fff; font-weight: 600; }
+  #legend { position: absolute; right: 16px; top: 16px; padding: 10px 12px; font-size: 12.5px; width: 270px; z-index: 4; border-radius: 14px; max-height: calc(100% - var(--tbh, 202px) - 96px); overflow-y: auto; }
+  #legend .t { width: 100%; display: flex; justify-content: space-between; align-items: center; border: 0; background: none; padding: 0 0 4px; font-weight: 700; font-size: 13px; color: var(--ink); }
+  #legend .t::after { content: "▾"; color: var(--muted); }
+  #legend.collapsed .t::after { content: "▸"; }
+  #legend.collapsed > :not(.t) { display: none !important; }
+  #legend.collapsed { width: auto; }
+  #legend.collapsed .t { gap: 10px; }
+  #legend h3 { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 8px 0 2px; }
+  #legend button.k { display: flex; align-items: center; gap: 8px; width: 100%; border: 0; background: none; font: inherit; font-weight: 500; color: inherit; text-align: left; padding: 3px 4px; margin: 1px -4px; border-radius: 8px; }
+  #legend button.k:hover { background: var(--chip); }
+  #legend .tick { width: 14px; height: 14px; border: 1.5px solid var(--muted); border-radius: 4px; flex: none; display: grid; place-items: center; font-size: 11px; }
+  #legend button.k[aria-pressed="true"] .tick { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  #legend button.k[aria-pressed="true"] .tick::after { content: "✓"; }
+  #legend .sw { width: 16px; height: 12px; border-radius: 3px; flex: none; }
+  #legend .sub { color: var(--muted); font-size: 11.5px; margin: 0 0 4px 26px; }
+  #legend .band { display: flex; height: 8px; border-radius: 4px; overflow: hidden; margin: 2px 0 2px 26px; }
+  #legend .band i { flex: 1; }
+  #legend .bandlbl { display: flex; justify-content: space-between; margin: 0 0 4px 26px; color: var(--muted); font-size: 11px; }
+  #exag { position: absolute; left: calc(50% + 200px); top: 16px; transform: translateX(-50%); padding: 5px 6px 5px 14px; font-size: 13px; font-weight: 700; display: flex; gap: 4px; align-items: center; border-radius: 999px; z-index: 4; }
+  #exag button { padding: 4px 10px; border-radius: 999px; font-size: 12.5px; }
+  #exag button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  #loading { position: absolute; left: calc(50% + 200px); top: 50%; transform: translate(-50%, -50%); padding: 14px 20px; z-index: 7; font-weight: 600; }
+
+  dialog#teachDlg { max-width: 700px; width: calc(100% - 32px); max-height: calc(100% - 48px); border: 1px solid var(--glass-edge); border-radius: var(--radius); background: var(--panel); color: var(--ink); padding: 16px 20px; box-shadow: var(--shadow); }
+  dialog#teachDlg::backdrop { background: rgba(2, 6, 16, .6); }
+  dialog a { color: var(--accent); }
+  .dlghead { display: flex; justify-content: space-between; align-items: center; }
+  .dlghead h2 { margin: 0; font-size: 18px; }
+  dialog details { border-top: 1px solid var(--rule); padding: 8px 0; }
+  dialog details:last-of-type { border-bottom: 1px solid var(--rule); }
+  dialog summary { cursor: pointer; font-weight: 700; }
+  dialog li { margin-bottom: 6px; font-size: 14px; }
+  table.ver { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.ver td, table.ver th { text-align: left; padding: 4px 6px 4px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  table.ver th { font-size: 12px; color: var(--muted); font-weight: 600; }
+  table.ver caption { text-align: left; font-size: 12px; color: var(--muted); padding-bottom: 4px; }
+  table.ver td.v { font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 700; }
+
+  @media (max-width: 1280px), (max-height: 780px) {
+    #card { width: 340px; }
+    #timebar { left: 368px; }
+    #exag { left: calc(50% + 176px); }
+    #legend { width: 240px; }
+  }
+  @media (max-width: 1220px) { #exag .mv { display: none; } }   /* no room beside the map key; the version is in About and versions */
+  /* tablets and small laptops: the centred Heights control ran under the map key, so it sits beside the story card and the key drops below it */
+  @media (max-width: 1100px) and (min-width: 761px) {
+    #exag { left: 368px; transform: none; }
+    #legend { top: 66px; max-height: calc(100% - var(--tbh, 202px) - 146px); }
+  }
+  /* narrow time bar: the stage name gets its own line instead of being cut off */
+  @media (max-width: 1100px) {
+    .trow { grid-template-columns: 1fr auto auto; gap: 2px 8px; }
+    #tLabel { min-width: 0; }
+    #tStage { grid-row: 2; grid-column: 1 / -1; white-space: normal; line-height: 1.3; }
+  }
+  @media (max-width: 760px) {
+    #card { left: 8px; right: 8px; width: auto; top: auto; bottom: 8px; height: 50%; padding: 12px 14px 10px; }
+    /* Expand: the story takes the whole screen for reading (playing the timeline shrinks it again) */
+    #card.expanded { top: 8px; height: auto; z-index: 8; }
+    #timebar { left: 8px; right: 8px; bottom: calc(50% + 16px); padding: 8px 10px 6px; }
+    #tStage { font-size: 12px; }
+    #chart { height: 48px; }
+    .ckey { gap: 4px 12px; font-size: 11px; }
+    .ckey .kband, .ckey .kver { display: none; }   /* the band colours are explained in the stage label and Teacher notes */
+    #legend { right: 8px; top: 52px; width: 220px; max-height: 40%; }
+    #exag { left: 8px; top: 8px; transform: none; font-size: 11.5px; }
+    #credit { right: 8px; bottom: calc(50% + 24px + var(--tbh, 200px)); z-index: 3; font-size: 10.5px; }
+    #loading { left: 50%; }
+    /* level pages: keep the story readable on a phone */
+    .phone-only { display: inline-block; }
+    /* the time and stage chips repeat the time bar just above, and the step buttons show which step is open */
+    #card .lede, #card .brand .kicker, #card .levelchip, #story .spec, #card .stepof, #card .when { display: none; }
+    #card.expanded .when { display: flex; }   /* expanded, the card covers the time bar, so show the step's time again */
+    #card.expanded .stepof { display: block; }
+    #card h1 { font-size: 16px; margin: 2px 0 6px; }
+    #chTitle { font-size: 17px; margin: 0 0 4px; }
+    .when { margin-bottom: 6px; }
+    .stepnav ol { display: flex; overflow-x: auto; gap: 4px; margin-bottom: 6px; scrollbar-width: thin; }
+    .stepnav li { flex: 0 0 34px; }
+    .cfoot { padding-top: 8px; }
+    #watch { font-size: 12.5px; padding: 5px 8px; margin-bottom: 6px; }
+  }
+
+  /* added in the shared engine (1.2) */
+  .levelchip { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(125, 211, 252, 0.16); color: var(--accent); border: 1px solid rgba(125, 211, 252, 0.4); white-space: nowrap; }
+  .spec { display: flex; flex-wrap: wrap; gap: 5px; margin: 0 0 10px; }
+  .spec span { font-size: 11.5px; padding: 2px 8px; border-radius: 8px; background: rgba(255, 255, 255, 0.06); border: 1px dashed var(--rule); color: var(--muted); }
+  .alevel { border-radius: 12px; padding: 8px 12px; margin: 6px 0 10px; background: rgba(167, 139, 250, 0.12); border: 1px solid rgba(167, 139, 250, 0.45); font-size: 14px; }
+  .alevel .k { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #c4b5fd; display: block; margin-bottom: 2px; }
+  .howknow { border-radius: 12px; padding: 8px 12px; margin: 6px 0 10px; background: rgba(253, 186, 116, 0.10); border: 1px solid rgba(253, 186, 116, 0.4); font-size: 14px; }
+  .howknow .k { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #fdba74; display: block; margin-bottom: 2px; }
+  .panes a { color: var(--accent); }
+  #pointBox { margin: 0 0 10px; font-size: 13.5px; }
+  #pointBox label { display: block; color: var(--muted); font-size: 12.5px; margin-bottom: 4px; }
+  #pointBox select { width: 100%; }
+  #pointOut { margin: 6px 0 0; padding: 8px 10px; border-radius: 10px; background: var(--chip); min-height: 1.5em; }
