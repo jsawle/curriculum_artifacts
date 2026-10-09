@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+<title>Ice Age Britain · Key Stage 3 (test)</title>
+<meta name="robots" content="noindex" />
+<meta name="description" content="Key Stage 3: explore the last 80,000 years in 3D. Ice sheets over Britain, cold and warm stages, glacial lakes, and the drowning of Doggerland." />
+<script type="module" src="https://js.arcgis.com/5.1/"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="ice-age-engine-test.css" />
+</head>
+<body>
+<div id="app"></div>
+<script type="module">
+import { startIceAgeApp } from "./ice-age-engine-test.js";
+
+/* Key Stage 3 page, TEST COPY of ice-age-ks3.html: changes are tried here before they go into the live page.
+   Story steps, map-key layers and teacher notes are set here; the engine (ice-age-engine-test.js) does the rest.
+   App 1.6 test (1.2 first release; 1.3 wider Europe view; 1.4 smooth ice edges; 1.5 credit line; 1.6 review fixes). Bump "Story (KS3)" when the step text changes. */
+const steps = [
+  { t: 80, title: "Ice returns to the north", cam: "europe",
+    html: `<p>80,000 years ago Britain was in the middle of the last <b>glacial period</b>, a long cold spell. In Britain it is called the <b>Devensian</b>. Ice caps sat over the mountains of Scandinavia, and the sea was about 30 m lower than today.</p>
+<p class="note">Ice outlines this far back are based on only a few dates. They are scientists' best ideas, not maps.</p>` },
+  { t: 60, title: "A colder stage", cam: "europe",
+    html: `<p>Between about 71,000 and 57,000 years ago the ice grew again, and the sea was about 85 m lower than today. In the reconstruction used here, ice about 60,000 years ago covers Scandinavia, much of the North Sea, Scotland, northern England, much of Wales and the north and east of Ireland.</p>
+<p class="note">Scientists know much less about this cold stage than about the time 20,000 years ago, because later ice wiped out most of the evidence. Some scientists think the ice over Britain was smaller than this, so this outline is a best guess.</p>
+<p>Where did the water come from? It was locked up on land as ice. More ice on land means less water in the sea.</p>` },
+  { t: 40, title: "Swinging between cold and mild", cam: "europe",
+    html: `<p>From about 57,000 to 29,000 years ago the climate kept changing suddenly. Warm spells are called <b>interstadials</b>; the cold spells between them are <b>stadials</b>. You can see them as spikes on the orange line in the chart below.</p>
+<div class="howknow"><span class="k">How do we know?</span>Snow piles up on Greenland year after year and turns to ice. Scientists drill out <b>ice cores</b> about 3 km long. The oxygen in the ice changes slightly with how cold it was when the snow fell, so each layer records the temperature. The orange line comes from the GISP2 ice core.</div>
+<p>Drag the timeline between 57,000 and 30,000 years ago to watch the ice and the chart change.</p>` },
+  { t: 30, title: "The big freeze begins", cam: "europe",
+    html: `<p>The coldest part of the last glacial period in Britain is the <b>Dimlington Stadial</b>, about 31,000 to 14,700 years ago. It is named after cliffs on the Yorkshire coast where its deposits were studied. Ice builds up over Scotland, Ireland and Scandinavia.</p>` },
+  { t: 25, title: "Two ice sheets meet", cam: "northsea",
+    html: `<p>The <b>British–Irish</b> and <b>Scandinavian</b> ice sheets joined across the northern North Sea. In the outlines used here they are joined from 27,500 to 20,000 years ago.</p>
+<p>With ice blocking the north, water could not drain away, so the model fills a lake in the southern North Sea. Scientists still debate how big lakes like this were.</p>` },
+  { t: 20, title: "The ice at its biggest", cam: "britain", layers: { britExtent: true }, seeThrough: true,
+    html: `<p>Around 20,000 years ago the sea was about <b>120 m lower</b> than today. The floor of the North Sea was dry land joining Britain to Europe. We call this lost land <b>Doggerland</b>.</p>
+<p>The orange area is the furthest the British–Irish Ice Sheet reached, worked out from the landforms it left behind. It did not reach all these places at the same time.</p>
+<p>Try <b>Check a place</b> below: was London under ice? Was York?</p>
+<p class="note">The ice is see-through in this step so the orange area shows beneath it.</p>` },
+  { t: 16, title: "The ice melts back", cam: "europe",
+    html: `<p>As the climate warmed, the ice sheets thinned and shrank. By 15,000 years ago the North Sea was free of ice, but the sea was still about 85 m lower than today.</p>
+<p>Along the southern edge of the Scandinavian ice, meltwater was trapped between the ice and higher ground. Watch for lakes in the Baltic.</p>` },
+  { t: 14, title: "A warm spell: the Windermere Interstadial", cam: "britain",
+    html: `<p>About <b>14,700 years ago</b> the climate warmed suddenly. In Britain this warm spell is named after Windermere in the Lake District. The ice kept shrinking.</p>` },
+  { t: 12.5, title: "The cold comes back", cam: "scotland", layers: { llr: true, britLakes: true }, seeThrough: true,
+    html: `<p>About <b>12,900 years ago</b> the cold came back suddenly, for about 1,200 years. This is the <b>Loch Lomond Stadial</b>. Glaciers grew again in the Scottish Highlands; the pink area shows where.</p>
+<p>In the Baltic, ice and land trapped a huge lake, the <b>Baltic Ice Lake</b>. About 11,700 years ago, as the ice melted back in Sweden, the lake drained and its level fell about 25 m.</p>` },
+  { t: 11.7, title: "Our warm period begins", cam: "europe",
+    html: `<p>About <b>11,700 years ago</b> the climate warmed, and it has stayed warm since. This is the start of the <b>Holocene</b>, the warm period we still live in. The last ice in Britain melted away, but Britain was still joined to Europe by Doggerland.</p>` },
+  { t: 11, title: "Doggerland floods", cam: "dogger", play: { to: 8, speed: 0.25, label: "▶ Play the flood" }, watch: ["dry", "sea"],
+    html: `<p>As the ice sheets melted, the sea rose. In the North Sea it rose from about <b>50 m</b> below today 11,000 years ago to about <b>15 m</b> below by 8,000 years ago. Press <b>Play the flood</b> and watch the dry North Sea floor number just above the button.</p>
+<p><b>People lived here.</b> Mesolithic hunter-gatherers fished, hunted and gathered on Doggerland. One study found that the fastest loss of land, about 10,500 to 10,000 years ago, happened at the same time as changes in how people lived at Early Mesolithic sites in the Netherlands and north-west Germany (Hoebe et al. 2024).</p>` },
+  { t: 8, title: "An island, then the sea", cam: "dogger", play: { to: 7.5, speed: 0.06 }, watch: ["dry", "sea"],
+    html: `<p>About <b>8,150 years ago</b> a huge underwater landslide off Norway, the Storegga slide, sent a tsunami across the North Sea. By then <b>Dogger Bank</b> was an island, or a few low islands. One study finds it went completely under the sea between about 8,000 and 7,500 years ago (Hoebe et al. 2024). In this app its last dry land goes under about 7,800 years ago.</p>
+<div class="howknow"><span class="k">Then and now</span>About 10,300 years ago, water from melting ice sheets in North America and Antarctica made the North Sea rise by almost <b>9 mm a year</b> (Hijma et al. 2025), about 9 metres in 1,000 years. Today the world's oceans are rising by <b>3.7 mm a year</b> on average (2006 to 2018), up from 1.3 mm a year in 1901–1971 (IPCC 2021).</div>` },
+  { t: 0, title: "Today: what the ice left behind", cam: "northEngland", layers: { moraines: true, drumlins: true, eskers: true, meltwater: true },
+    html: `<p>In this app Britain is cut off from Europe by about 9,000 years ago. After that the sea rose more slowly to about today's level. The ice left its marks in the landscape:</p>
+<ul><li><b>Moraines</b>: ridges of rock and mud dumped at the edge of the ice.</li><li><b>Drumlins</b>: smooth, egg-shaped hills shaped under moving ice.</li><li><b>Eskers</b>: winding ridges of sand and gravel left by rivers inside or under the ice.</li><li><b>Meltwater channels</b>: valleys cut by water from the melting ice.</li></ul>
+<p>These lines are mapped by the BRITICE project. Zoom out and they disappear; zoom in anywhere in Britain or Ireland to find more.</p>` }
+];
+
+const teacherHtml = `<p class="note">Test copy: changes are tried here before they go into the main Key Stage 3 page.</p>
+<details open><summary>Using it in class</summary>
+  <ul>
+    <li>The 13 steps run in time order and take about 20 minutes if read through. The timeline and chart can also be used on their own to explore any time.</li>
+    <li><b>Check a place</b> reads the model at a place chosen from the list or clicked on the map. A local place, or one students know, can make the scale of the ice and the sea-level change easier to picture.</li>
+    <li>The <b>Doggerland floods</b> step plays the flood; the "Dry North Sea floor" line just above the Play button counts the land as it goes.</li>
+    <li>The links <code>?step=6</code> (or any step number) and <code>?t=20</code> (years ago, in thousands) open the page at a step or time, for setting tasks. A time on its own opens the step nearest that time.</li>
+  </ul>
+</details>
+<details><summary>Curriculum links (England)</summary>
+  <ul>
+    <li><b>KS3 geography, physical geography:</b> "weather and climate, including the change in climate from the Ice Age to the present; and glaciation, hydrology and coasts".</li>
+    <li><b>KS3 geography, skills:</b> using GIS "to view, analyse and interpret places and data".</li>
+    <li><b>Links to KS2 history:</b> "changes in Britain from the Stone Age to the Iron Age" (the Mesolithic people of Doggerland).</li>
+    <li><b>Not covered here:</b> glacial erosion and deposition as processes (the page shows the landforms, not how they form); the causes of ice ages. <a href="yosemite-valley.html" target="_blank" rel="noopener">How Yosemite Valley was made</a> and <a href="landforms-globe.html" target="_blank" rel="noopener">Landforms Uncovered</a> show glacial processes.</li>
+  </ul>
+</details>`;
+
+startIceAgeApp({
+  levelLabel: "Key Stage 3",
+  title: "Ice Age Britain",
+  lede: "80,000 years of ice and sea in 3D: the ice sheets over Britain and Scandinavia, and the flooding of Doggerland.",
+  appVersion: "1.6", appDate: "October 2026", test: true,
+  appNote: "Test copy of the Key Stage 3 page. First release 1.2, built on the shared Ice Age engine (same data and models as Ice Age Britain and Europe 1.1); adds Check a place and the dry North Sea floor count. 1.3: wider Europe view (the opening camera) for the whole-Europe steps. 1.4: smooth ice edges (Ice thickness, Sea surface and Lakes models 1.1). 1.5: copyright line removed from the credit box. 1.6: review fixes: Sea level model 1.1 (Holocene curve), story text 1.1, flood readouts kept in view, Heights control no longer under the map key, phone layout with Expand, Space and Page keys left to the story text, ?t= links open the nearest step, warm and cold stage key on the chart.",
+  storyModel: ["Story (KS3)", "1.1", "13 steps written for Key Stage 3; ice core and then-and-now boxes. 1.1: the 60,000-year step matches the outline shown and says it is a best guess; Holocene no longer 'warmed for good'; Dogger Bank dates from Hoebe et al. 2024; the 9 mm a year figure described as a North Sea rate; Britain cut off by about 9,000 years ago in the model"],
+  legendLayers: ["britExtent", "llr", "britLakes", "moraines", "drumlins", "eskers", "meltwater"],
+  steps, teacherHtml
+});
+</script>
+</body>
+</html>
