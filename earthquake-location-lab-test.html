@@ -157,6 +157,24 @@
   #pulse i + i { animation-delay: 1s; }
   @keyframes ping { from { transform: scale(.2); opacity: 1; } to { transform: scale(1.5); opacity: 0; } }
   .lbl.pop { animation: pop .5s ease-out 3; }
+  /* a wave reaching a seismograph: rings burst out from it with a short tag, its label jolts (P small and fast, S bigger
+     and slower, like the recordings), and its seismogram row flashes */
+  #bursts { position: absolute; inset: 0; pointer-events: none; z-index: 4; overflow: hidden; }
+  .burst { position: absolute; width: 0; height: 0; }
+  .burst i { position: absolute; left: -28px; top: -28px; width: 56px; height: 56px; border-radius: 50%; border: 4px solid var(--c); box-shadow: 0 0 14px var(--c); animation: burst 1.2s ease-out forwards; }
+  .burst i + i { animation-delay: .2s; }
+  .burst b { position: absolute; left: 0; top: -40px; transform: translateX(-50%); font-size: 13px; font-weight: 800; color: #04121f; background: var(--c); padding: 2px 8px; border-radius: 7px; white-space: nowrap; box-shadow: 0 4px 14px rgba(0,0,0,.45); animation: tag 1.8s ease-out forwards; }
+  .burst.s i { border-width: 6px; animation-duration: 1.6s; }
+  @keyframes burst { from { transform: scale(.25); opacity: 1; } to { transform: scale(2.6); opacity: 0; } }
+  @keyframes tag { 0% { opacity: 0; top: -26px; } 12% { opacity: 1; top: -40px; } 75% { opacity: 1; top: -46px; } 100% { opacity: 0; top: -60px; } }
+  .lbl.jolt-p { animation: joltP .45s linear; }
+  .lbl.jolt-s { animation: joltS 1s ease-in-out; }
+  @keyframes joltP { 0%, 100% { transform: translate(-50%, -50%); } 15%, 55% { transform: translate(calc(-50% - 3px), calc(-50% + 1px)); } 35%, 75% { transform: translate(calc(-50% + 3px), calc(-50% - 1px)); } }
+  @keyframes joltS { 0%, 100% { transform: translate(-50%, -50%); } 15%, 55% { transform: translate(calc(-50% - 9px), -50%) rotate(-3deg); } 35%, 75% { transform: translate(calc(-50% + 9px), -50%) rotate(3deg); } }
+  #seis tr.flash-p > * { animation: rowP 1.1s ease-out; }
+  #seis tr.flash-s > * { animation: rowS 1.4s ease-out; }
+  @keyframes rowP { from { background: rgba(86, 180, 233, .38); } to { background: transparent; } }
+  @keyframes rowS { from { background: rgba(255, 140, 66, .38); } to { background: transparent; } }
   @keyframes pop { 50% { transform: translate(-50%, -50%) scale(1.35); } }
   #dock[hidden] { display: none !important; }
   #credit { position: absolute; right: 16px; bottom: calc(var(--dock-h) + 28px); z-index: 4; padding: 6px 12px; border-radius: 12px; font-size: 11.5px; line-height: 1.35; color: #fff; text-align: right; }
@@ -190,7 +208,7 @@
     #credit { bottom: auto; top: 8px; right: 56px; }
     .lbl { font-size: 11px; padding: 1px 7px; }
   }
-  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } #pulse i, .lbl.pop { animation: none; } #pulse i { transform: scale(.7); } #pulse i + i { display: none; } }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } #pulse i, .lbl.pop, .lbl.jolt-p, .lbl.jolt-s, #seis tr > * { animation: none !important; } .burst i { animation: none; transform: scale(1); opacity: .9; } .burst i + i { display: none; } .burst b { animation: none; } #pulse i { transform: scale(.7); } #pulse i + i { display: none; } }
 </style>
 </head>
 <body>
@@ -205,6 +223,7 @@
   </main>
   <div id="chips" aria-hidden="true"></div>
   <div id="pulse" aria-hidden="true" hidden><i></i><i></i></div>
+  <div id="bursts" aria-hidden="true"></div>
 
   <aside id="card" class="glass" aria-label="Explanation and controls">
     <div class="brand"><span class="kicker">Thinking Spatially</span><span class="sp"></span><span class="labchip">Test <span id="appVersion"></span></span></div>
@@ -322,10 +341,10 @@ import * as E from "./earthquake-location-engine.js";
 
 // ================= Versions (single source of truth) =================
 // Bump a model's number whenever its maths or data handling changes, and bump the app version on every release.
-const APP_VERSION = "0.4.1-test"; // test copy of earthquake-location-lab.html (0.1.0)
+const APP_VERSION = "0.5.0-test"; // test copy of earthquake-location-lab.html (0.1.0)
 const MODELS = {
   events:  { name: "Earthquakes", version: "1.1", desc: "Three real earthquakes from the USGS catalogue (time, epicentre, depth, magnitude): L'Aquila 2009 (usp000gvtu), Loma Prieta 1989 (nc216859), Nisqually 2001 (uw10530748). Seismographs placed at the centres of three nearby towns for each (Wikipedia coordinates). (1.1: the seismographs are called A, B and C; the town names are not shown, as they are not real seismograph sites.)" },
-  waves:   { name: "Wave model", version: "1.1", desc: "Waves travel in straight lines at steady speeds: P-waves 6.0 km/s, S-waves 3.5 km/s, so each second of S − P gap means 8.4 km (1 ÷ (1/3.5 − 1/6)). Distances are in a flat local frame centred on the epicentre (km east and north; within 1% of the curved Earth here). Wave fronts are drawn as the underground part of growing spheres; the line on the ground is where each front reaches the surface. (1.1: the fronts are drawn inside the lifted block, cut off at its sides, with bright lines where they meet its sides and top.)" },
+  waves:   { name: "Wave model", version: "1.2", desc: "Waves travel in straight lines at steady speeds: P-waves 6.0 km/s, S-waves 3.5 km/s, so each second of S − P gap means 8.4 km (1 ÷ (1/3.5 − 1/6)). Distances are in a flat local frame centred on the epicentre (km east and north; within 1% of the curved Earth here). Wave fronts are drawn as the underground part of growing spheres; the line on the ground is where each front reaches the surface. (1.1: the fronts are drawn inside the lifted block, cut off at its sides, with bright lines where they meet its sides and top.) (1.2: when a wave reaches a seismograph, rings burst out of it with a tag, its triangle jumps and its label jolts (small and quick for P, bigger and slower for S), its seismogram row flashes, a P or S tag appears on its recording unless students are to measure, and screen readers hear which wave reached which seismograph.)" },
   seismo:  { name: "Seismogram model", version: "1.1", desc: "One combined trace of the shaking per seismograph (real seismographs record up–down and two side-to-side directions; seismologists usually pick the P-wave on the up–down record and the S-wave on a side-to-side one), 100 samples a second, made by the model rather than recorded: faint background noise; at the P arrival small, fast wobbles (4.5–8 a second) that die away; at the S arrival wobbles about three times bigger and slower (1.8–3.6 a second) that die away more slowly. Each trace is scaled so its biggest wobble fills the row, so sizes can't be compared between seismographs. The same earthquake always gives the same traces. Times are read to 0.01 s. (1.1: each recording shows from 1.5 s before the first P-wave to 4 s after the last S-wave, so there are no long empty stretches; the P-wave is drawn bigger, 0.6 of the S-wave before scaling instead of 0.32, over fainter background noise, so its arrival is easier to see.)" },
   locate:  { name: "Location model", version: "1.1", desc: "Distance = gap × 8.4 km. Map: a circle of that radius round each seismograph. Underground: a sphere of that radius. Epicentre: where the straight lines through each pair of circles' crossing points meet (with three seismographs they always meet at one point; with more, the best fit by least squares). Depth: √(distance² − distance across the map²), the same for all three seismographs (0 if the spheres don't reach each other underground). Start time: each P arrival minus distance ÷ 6 km/s, averaged. In the block, depths are drawn deeper as set by the Block model; labels give true depths. (1.1: the spheres, hypocentres and the circles in the answer check are drawn in the lifted block; spheres are cut off at its sides.)" },
   block:   { name: "Block model", version: "1.2", desc: "Steps 2–4, 11 and 12 lift a box of ground out of the Earth so its inside can be seen. It covers the three seismographs (and the hypocentre) with a margin of 22% of the area's size (at least 10 km), rounded out to whole 5 km. Depths are drawn deeper than real so the hypocentre stands clear of the seismographs: × (0.4 × the block's width ÷ the depth), rounded, from 1 to 4 (L'Aquila ×4, Loma Prieta ×2, Nisqually and mystery ×1); 'Stretch depths' off draws true depth. Block depth: the longest seismograph-to-hypocentre distance (or 1.4 × the hypocentre depth if more), rounded up to 5 km, but when stretched no deeper than the width ÷ the stretch (and at least 1.6 × the hypocentre depth); spheres are cut off at the bottom. Mystery: always 80 km, so the block gives nothing away. Drawn flat (east, north and up at the middle of the area; over 100 km the Earth curves by under 1 km) and lifted so its bottom is 0.6 × its width above the ground. Walls 20% and bottom 38% see-through rock, depth lines every 10 km (20 km if deeper than 60 km), a ruler on the south-west corner labelled at the bottom. Top: Esri imagery, 62% solid. Dashed lines join its corners to its outline on the ground. When a block step opens from a map step, the camera moves first, then the block rises out of the ground over 3.2 s ('Lift it out again' repeats it; skipped with reduced motion). (1.1: the earthquake comes first in plan view; stretch chosen for each earthquake; fewer labels; no names on the top; rise waits for the camera.) (1.2: the dashed line from each hypocentre across to the ruler is gone; only the line straight up to the epicentre remains.)" },
@@ -523,7 +542,7 @@ function stepHTML() {
          <ul><li><b style="color:var(--p)">P-waves</b> (primary) squash and stretch the rock. They are faster: about <b>${E.VP} km every second</b>.</li>
          <li><b style="color:var(--s)">S-waves</b> (secondary) shake the rock sideways, across the way they travel. They are slower: about <b>${E.VS} km every second</b>.</li></ul>
          <p>Both set off at the same moment, but the P-wave pulls ahead. The further they go, the bigger the gap between them. It's like lightning and thunder: the longer you wait for the thunder, the further away the storm.</p>
-         <p>${m ? "You can't see where the waves came from, only when they reach each seismograph. " : ""}Press <b>Play</b> above the seismograms to watch${reduceMotion ? "" : " again"}. Each recording draws as the waves arrive.</p>
+         <p>${m ? "You can't see where the waves came from, only when they reach each seismograph. " : ""}Press <b>Play</b> above the seismograms to watch${reduceMotion ? "" : " again"}. Watch each seismograph: when a wave reaches it, it flashes and shakes, and its recording starts to wobble.</p>
          ${m ? "" : keyRows([[SW.p, "P-wave front: a growing ball inside the block (the bright lines show where it meets the block's top and sides)"], [SW.s, "S-wave front"], [SW.hypo, "Hypocentre"]])}
          ${think("Which seismograph do the waves reach first? Why?")}`;
     case "read": return `<p>Each seismograph draws a line that wobbles when the ground shakes. Read each line from left to right:</p>
@@ -820,6 +839,14 @@ function drawTraces() {
       g.fillStyle = "rgba(11,18,33,0.85)"; g.fillRect(lx - 3 * dpr, h - 16 * dpr, tw + 6 * dpr, 14 * dpr);
       g.fillStyle = "#fff"; g.fillText(label, lx, h - 15 * dpr);
     }
+    // while the waves play: a P and an S tag on the trace as each wave arrives (left off when students will measure the gaps)
+    if (cfg.play && !ST.measure) for (const [tt, c, txt] of [[EV.arr[i].tP, COLORS.P, "P"], [EV.arr[i].tS, COLORS.S, "S"]]) if (tNow >= tt) {
+      const x = xFrac(tt) * w;
+      g.strokeStyle = c; g.lineWidth = 2 * dpr; g.beginPath(); g.moveTo(x, 0); g.lineTo(x, h); g.stroke();
+      g.font = `800 ${11 * dpr}px Inter, system-ui, sans-serif`; g.textBaseline = "top";
+      const tw = g.measureText(txt).width; g.fillStyle = c; g.fillRect(x - tw / 2 - 3 * dpr, 0, tw + 6 * dpr, 13 * dpr);
+      g.fillStyle = "#04121f"; g.fillText(txt, x - tw / 2, 1 * dpr);
+    }
     // the time cursor while the waves play
     if (cfg.play && tNow < EV.t1) { const x = xFrac(tNow) * w; g.strokeStyle = "rgba(125, 211, 252, 0.9)"; g.lineWidth = 2 * dpr; g.beginPath(); g.moveTo(x, 0); g.lineTo(x, h); g.stroke(); }
   });
@@ -866,10 +893,29 @@ function setT(t) {
 function flashArrivals(a, b) {
   if (b <= a) return;
   EV.arr.forEach((ar, i) => {
-    for (const [tt, cls] of [[ar.tP, "hit-p"], [ar.tS, "hit-s"]]) if (a < tt && b >= tt) {
-      for (const el of [$("stchip" + i), document.querySelector(`#chips [data-k="st${i}"]`)]) if (el) { el.classList.add(cls); setTimeout(() => el.classList.remove(cls), 900); }
-    }
+    for (const [tt, kind] of [[ar.tP, "p"], [ar.tS, "s"]]) if (a < tt && b >= tt) waveHits(i, kind);
   });
+}
+// restart a CSS animation class on an element
+const replay = (el, cls, ms) => { if (!el) return; el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); setTimeout(() => el.classList.remove(cls), ms); };
+function waveHits(i, kind) {
+  const s = EV.stations[i], P = kind === "p", color = P ? COLORS.P : COLORS.S, name = P ? "P-wave" : "S-wave";
+  replay($("stchip" + i), "hit-" + kind, 900);
+  replay(rowsEl.querySelector(`tr[data-i="${i}"]`), "flash-" + kind, P ? 1100 : 1400);
+  replay(document.querySelector(`#chips [data-k="st${i}"]`), "jolt-" + kind, P ? 450 : 1000);
+  $("announce").textContent = `The ${name} reaches seismograph ${s.letter}.`;
+  if (!G) return;
+  // rings bursting out of the seismograph on the map or the block, with a short tag
+  const pt = CFG().view === "block" ? bp(s.x, s.y, 0, 400) : fp(s.x, s.y), sp = G.view.toScreen(pt);
+  if (sp && sp.x > 0 && sp.y > 0 && sp.x < G.view.width && sp.y < G.view.height) {
+    const el = document.createElement("div");
+    el.className = "burst " + kind; el.style.setProperty("--c", color); el.style.left = sp.x + "px"; el.style.top = sp.y + "px";
+    el.innerHTML = `<i></i><i></i><b>${name} reaches ${s.letter}</b>`;
+    $("bursts").appendChild(el); setTimeout(() => el.remove(), 1900);
+  }
+  // the triangle itself jumps up in size for a moment
+  const g = G.stationG?.[i];
+  if (g) { g.symbol = icon("triangle", P ? 30 : 38, s.color, color, P ? 3 : 4); clearTimeout(g.__t); g.__t = setTimeout(() => { if (g.layer) g.symbol = icon("triangle", 22, s.color, "#0b1220", 1.5); }, P ? 450 : 900); }
 }
 function play(on) {
   ST.playing = on;
@@ -1146,6 +1192,7 @@ function drawScene() {
 function updateWaves(force) {
   if (!G || !EV) return;
   const cfg = STEPS[ST.step - 1], on = !!cfg.waves && EV.real && cfg.view === "block" && blockUp >= 1, L = G.layers;
+  if (on && !EV.box) sizeBlock(); // can be asked for before the block is first drawn
   L.waves.visible = on; L.rings.visible = false;
   const pc = $("chipP"), sc = $("chipS");
   if (!on) { if (pc) pc.remove(); if (sc) sc.remove(); return; }
@@ -1270,8 +1317,10 @@ function drawBlockContent(cfg) {
   add({ type: "polyline", hasZ: true, spatialReference: { wkid: 4326 }, paths: C.map(c => [bLLH(c[0], c[1], b.d1), ground(c)]) }, line3d([255, 255, 255, 0.45], 1.5, true));
   L.footprint.add(new G.Graphic({ geometry: groundLine([...C, C[0]]), symbol: { type: "simple-line", color: [255, 255, 255, 0.9], width: 2, style: "dash" } }));
   // seismographs on top, from the step that brings them in
+  G.stationG = [];
   if (showStations()) S.forEach((s, i) => {
-    add(bp(s.x, s.y, 0, 400), icon("triangle", 22, s.color, "#0b1220", 1.5));
+    const g = new G.Graphic({ geometry: bp(s.x, s.y, 0, 400), symbol: icon("triangle", 22, s.color, "#0b1220", 1.5) });
+    L.inBlock.add(g); G.stationG[i] = g;
     list.push({ text: `Seismograph ${s.letter}`, color: s.color, pt: bp(s.x, s.y, 0, 400), k: "st" + i, dy: -24, pop: cfg.id === "how" });
   });
   // a hypocentre: a ball and a line straight up to its epicentre on the top (its label gives the depth)
