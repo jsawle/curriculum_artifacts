@@ -172,3 +172,91 @@ export function mystery(stations, rand = Math.random) {
   const x = (b + k * u) * A.x + (b + k * v) * B.x + (b + k * w) * C.x, y = (b + k * u) * A.y + (b + k * v) * B.y + (b + k * w) * C.y;
   return { x, y, depth: Math.round(5 + rand() * 55) };
 }
+
+// ================= the lifted block (used by the test copy) =================
+// A box of ground (x0..x1 km east, y0..y1 km north of the frame centre, 0..d1 km deep) drawn lifted above where it came from.
+// Inside the box, positions are frame km and depth km; the page lifts and stretches them.
+
+// East-north-up at the frame centre, raised zM metres: the axes ArcGIS uses for a mesh whose local vertex space has its
+// origin there. Points drawn with this line up exactly with such meshes. Returns [lon, lat, height m] on the scene's sphere.
+export function enuToLLH(lon0, lat0, xKm, yKm, zM) {
+  const lo = lon0 * RAD, la = lat0 * RAD, Rm = R * 1000;
+  const up = [Math.cos(la) * Math.cos(lo), Math.cos(la) * Math.sin(lo), Math.sin(la)];
+  const east = [-Math.sin(lo), Math.cos(lo), 0];
+  const north = [-Math.sin(la) * Math.cos(lo), -Math.sin(la) * Math.sin(lo), Math.cos(la)];
+  const P = [0, 1, 2].map(i => up[i] * (Rm + zM) + east[i] * xKm * 1000 + north[i] * yKm * 1000);
+  const r = Math.hypot(P[0], P[1], P[2]);
+  return [Math.atan2(P[1], P[0]) / RAD, Math.asin(P[2] / r) / RAD, r - Rm];
+}
+
+// The box: round the seismographs (and any extra points) with a margin, rounded out to whole 5 km.
+export function blockBox(points, depthKm, marginKm) {
+  const xs = points.map(p => p.x), ys = points.map(p => p.y), r5 = (v, f) => f(v / 5) * 5;
+  return { x0: r5(Math.min(...xs) - marginKm, Math.floor), x1: r5(Math.max(...xs) + marginKm, Math.ceil),
+           y0: r5(Math.min(...ys) - marginKm, Math.floor), y1: r5(Math.max(...ys) + marginKm, Math.ceil), d1: depthKm };
+}
+const EPS = 1e-6;
+export const inBox = (b, x, y, d) => x >= b.x0 - EPS && x <= b.x1 + EPS && y >= b.y0 - EPS && y <= b.y1 + EPS && d >= -EPS && d <= b.d1 + EPS;
+
+// The part of a sphere (centre cx, cy, cd km deep; radius r km) inside the box, as a mesh: positions in metres
+// (x east, y north, z up from the top of the box, depths multiplied by `stretch`), normals and triangles.
+// Triangles wholly inside are kept, wholly outside dropped, and those crossing a face are cut along it, so the
+// edge of the shape lies exactly on the box's faces. Returns null if nothing is inside.
+const PLANES = (b) => [[0, b.x0, 1], [0, b.x1, -1], [1, b.y0, 1], [1, b.y1, -1], [2, 0, 1], [2, b.d1, -1]]; // inside: sign × (p[axis] − value) ≥ 0
+const lerp3 = (a, c, t) => [a[0] + (c[0] - a[0]) * t, a[1] + (c[1] - a[1]) * t, a[2] + (c[2] - a[2]) * t];
+export function sphereInBox(cx, cy, cd, r, box, stretch = 1, nA = 64, nD = 32) {
+  const P = [], Nv = [], inside = [];
+  for (let i = 0; i <= nD; i++) {
+    const ph = Math.PI * i / nD, sp = Math.sin(ph), cp = Math.cos(ph); // ph = 0 points straight down
+    for (let j = 0; j <= nA; j++) {
+      const th = 2 * Math.PI * j / nA, u = [sp * Math.cos(th), sp * Math.sin(th), cp]; // [east, north, down]
+      const p = [cx + r * u[0], cy + r * u[1], cd + r * u[2]];
+      P.push(p); Nv.push(u); inside.push(inBox(box, p[0], p[1], p[2]));
+    }
+  }
+  const pos = [], nrm = [], faces = [], idx = new Int32Array(P.length).fill(-1);
+  const emit = (p, u) => { pos.push(p[0] * 1000, p[1] * 1000, -p[2] * 1000 * stretch);
+    const nz = -u[2] / stretch, l = Math.hypot(u[0], u[1], nz) || 1; nrm.push(u[0] / l, u[1] / l, nz / l); return pos.length / 3 - 1; };
+  const get = (i) => idx[i] >= 0 ? idx[i] : (idx[i] = emit(P[i], Nv[i]));
+  const planes = PLANES(box), W = nA + 1;
+  for (let i = 0; i < nD; i++) for (let j = 0; j < nA; j++) {
+    const a = i * W + j, b = a + W, c = a + 1, e = b + 1;
+    for (const tri of [[a, b, c], [c, b, e]]) {
+      const n = tri.filter(k => inside[k]).length;
+      if (n === 3) { faces.push(get(tri[0]), get(tri[1]), get(tri[2])); continue; }
+      if (n === 0) continue;
+      let poly = tri.map(k => ({ p: P[k], u: Nv[k] }));
+      for (const [ax, val, sg] of planes) {
+        const out = [];
+        for (let k = 0; k < poly.length; k++) {
+          const A = poly[k], B = poly[(k + 1) % poly.length], da = sg * (A.p[ax] - val), db = sg * (B.p[ax] - val);
+          if (da >= 0) out.push(A);
+          if ((da >= 0) !== (db >= 0)) { const t = da / (da - db); out.push({ p: lerp3(A.p, B.p, t), u: lerp3(A.u, B.u, t) }); }
+        }
+        poly = out;
+        if (poly.length < 3) break;
+      }
+      if (poly.length < 3) continue;
+      const ids = poly.map(v => emit(v.p, v.u));
+      for (let k = 1; k < ids.length - 1; k++) faces.push(ids[0], ids[k], ids[k + 1]);
+    }
+  }
+  return faces.length ? { pos, nrm, faces } : null;
+}
+
+// Split a line (points [x, y, depth]) into the runs that are inside the box.
+export function runsInBox(pts, box) {
+  const runs = []; let cur = [];
+  for (const p of pts) { if (inBox(box, p[0], p[1], p[2])) cur.push(p); else { if (cur.length > 1) runs.push(cur); cur = []; } }
+  if (cur.length > 1) runs.push(cur);
+  return runs;
+}
+
+// Where a sphere meets the six faces of the box: circles on each face's plane, kept where they are on the face.
+export function sphereOnFaces(cx, cy, cd, r, box, n = 180) {
+  const out = [], circle = (fn) => runsInBox(Array.from({ length: n + 1 }, (_, k) => fn(2 * Math.PI * k / n)), box);
+  for (const k of [0, box.d1]) { const rho2 = r * r - (k - cd) ** 2; if (rho2 > 0) { const rho = Math.sqrt(rho2); out.push(...circle(t => [cx + rho * Math.cos(t), cy + rho * Math.sin(t), k])); } }
+  for (const X of [box.x0, box.x1]) { const rho2 = r * r - (X - cx) ** 2; if (rho2 > 0) { const rho = Math.sqrt(rho2); out.push(...circle(t => [X, cy + rho * Math.cos(t), cd + rho * Math.sin(t)])); } }
+  for (const Y of [box.y0, box.y1]) { const rho2 = r * r - (Y - cy) ** 2; if (rho2 > 0) { const rho = Math.sqrt(rho2); out.push(...circle(t => [cx + rho * Math.cos(t), Y, cd + rho * Math.sin(t)])); } }
+  return out;
+}
