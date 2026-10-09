@@ -12,7 +12,8 @@ export const SHARED_MODELS = [
   ["Lakes", "1.1", "Priority flood with the ice as a barrier; lakes over 2,000 km² touching the ice, and any lake over 25,000 km², filled to their overflow level; no isostatic sinking. 1.1: the lake surface may run one cell under the ice edge, so no gap shows against the ice"],
   ["Terrain", "1.0", "Esri TopoBathy 3D × 1, 5, 10 or 20; ground colour is an RTopo-2 height tint (a drawing, not past vegetation)"],
   ["Climate chart", "1.0", "GISP2 δ¹⁸O 0–80 ka; stage bands: Dimlington 31–14.7 ka, Windermere 14.692–12.896 ka, Loch Lomond 12.896–11.703 ka (GICC05), MIS boundaries 71, 57, 29, 14 ka (LR04)"],
-  ["BRITICE layers", "1.1", "Live University of Sheffield BRITICE v2 services (OGL v2) and Esri UK Education's Loch Lomond Readvance layer (from BRITICE, Clark et al. 2004); landforms drawn below 1:5,000,000. 1.1: adds cirques, crag and tails, erratic pathways and streamlined bedrock (pages choose which to offer)"],
+  ["BRITICE layers", "1.2", "Live University of Sheffield BRITICE v2 services (OGL v2) and Esri UK Education's Loch Lomond Readvance layer (from BRITICE, Clark et al. 2004); landforms drawn below 1:5,000,000. 1.1: adds cirques, crag and tails, erratic pathways and streamlined bedrock (pages choose which to offer). 1.2: moraines also drawn as areas (BRITICE moraine areas and large moraines), erratics with their source-rock areas; the drumlin and lineation lines are replaced by Drumlin fields and ice flow, and streamlined bedrock is folded into its flow lines"],
+  ["Drumlin fields and ice flow", "1.0", "New in 1.7 test. Worked out in the browser from the BRITICE generalised lines. Drumlin fields: subglacial lineations counted in a 0.05° × 0.03° grid (about 3 km), widened 2 cells and shrunk 1, groups of fewer than 4 lineations dropped, edges smoothed (3 × 3 blur, contour at 0.5). Ice-flow lines: the length-weighted mean direction (doubled-angle average) of lineations, streamlined bedrock and crag and tails in 0.3° × 0.18° squares (about 20 km) with at least 3 lines that agree (R ≥ 0.45), drawn 12 km long. A line shows the axis the ice flowed along, not which way along it"],
   ["Place check", "1.0", "New in 1.2. Reads the app's own grid at the clicked or chosen place (nearest 0.16° × 0.08° cell): ice thickness, sea depth, lake depth or height above the sea of that time, and today's ground height (RTopo-2)"],
   ["Dry North Sea floor", "1.0", "New in 1.2. Area of grid cells that are North Sea floor today (below 0 m in RTopo-2, not Natural Earth 50 m land, joined to the central North Sea, 4° W–9.5° E and 50.8–58.5° N) but dry, ice-free and not lake at the time shown"]
 ];
@@ -25,20 +26,144 @@ const CHECK_PLACES = [["Dogger Bank (middle of the North Sea)", 2.0, 54.8], ["Of
 
 const BRIT = "https://services2.arcgis.com/Dn40vzt2R38VJsSS/arcgis/rest/services/Gneralised_BRITICE/FeatureServer/";
 const LANDFORM_MIN_SCALE = 5000000;
+// BRITICE generalised layers: 0 cirques, 1 crag and tails, 2 erratic pathways, 3 eskers, 4 streamlined bedrock, 5 lake dams, 6 meltwater channels,
+// 7 moraine lines, 8 subglacial lineations (drumlins), 11 erratic source areas, 12 lake areas, 13 moraine areas, 14 large moraines (polygons)
+// lines: line layers drawn as they are; areas: polygon layers drawn under them; derived: worked out in the browser (drumlin fields and ice flow)
 const LAYER_DEFS = {
   britExtent: { label: "Furthest extent of the last ice sheet", sw: "background:rgba(245,158,11,.55)", desc: "the BRITICE furthest ice extent (orange)" },
   llr: { label: "Loch Lomond Readvance ice", sw: "background:rgba(244,114,182,.55);border:2px solid #f472b6;box-sizing:border-box", desc: "the Loch Lomond Readvance (pink)" },
   britLakes: { label: "Glacial lakes and ice dams", sw: "background:rgba(56,189,248,.6);border:2px solid #0ea5e9;box-sizing:border-box", desc: "BRITICE glacial lakes (blue)" },
-  moraines: { label: "Moraines", sw: "background:#fb923c;height:3px;margin-top:5px", line: [251, 146, 60, 1], width: 1.5, url: BRIT + "7", desc: "moraines" },
-  eskers: { label: "Eskers", sw: "background:#a3e635;height:3px;margin-top:5px", line: [163, 230, 53, 1], width: 1.5, url: BRIT + "3", desc: "eskers" },
-  meltwater: { label: "Meltwater channels", sw: "background:#22d3ee;height:3px;margin-top:5px", line: [34, 211, 238, 1], width: 1.2, url: BRIT + "6", desc: "meltwater channels" },
-  drumlins: { label: "Drumlins and lineations", sw: "background:#e9d5ff;height:3px;margin-top:5px", line: [233, 213, 255, 0.9], width: 1, url: BRIT + "8", desc: "drumlins" },
-  cirques: { label: "Cirques (corries)", sw: "background:#d08ae0;height:3px;margin-top:5px", line: [208, 138, 224, 1], width: 1.5, url: BRIT + "0", desc: "cirques (corries)" },
-  cragTails: { label: "Crag and tails", sw: "background:#ffaa00;height:3px;margin-top:5px", line: [255, 170, 0, 1], width: 1.5, url: BRIT + "1", desc: "crag and tails" },
-  erratics: { label: "Erratic pathways", sw: "background:#4ade80;height:3px;margin-top:5px", line: [74, 222, 128, 1], width: 1.3, url: BRIT + "2", desc: "erratic pathways" },
-  streamlined: { label: "Glacially streamlined bedrock", sw: "background:#cbd5e1;height:3px;margin-top:5px", line: [203, 213, 225, 0.9], width: 1, url: BRIT + "4", desc: "streamlined bedrock" }
+  moraines: { label: "Moraines", sw: "background:rgba(251,146,60,.4);border:2px solid #fb923c;box-sizing:border-box", line: [251, 146, 60, 1], width: 2, lines: [7], areas: [13, 14], fill: [251, 146, 60, 0.38], desc: "moraines (orange lines and areas)" },
+  eskers: { label: "Eskers", sw: "background:#a3e635;height:3px;margin-top:5px", line: [163, 230, 53, 1], width: 2, lines: [3], desc: "eskers (green)" },
+  meltwater: { label: "Meltwater channels", sw: "background:#22d3ee;height:3px;margin-top:5px", line: [34, 211, 238, 1], width: 1.6, lines: [6], desc: "meltwater channels (cyan)" },
+  drumlins: { label: "Drumlin fields and ice flow", sw: "background:rgba(196,181,253,.45);border:2px solid #c4b5fd;box-sizing:border-box", derived: true, desc: "drumlin fields (lilac areas) and ice-flow lines (white)" },
+  cirques: { label: "Cirques (corries)", sw: "background:#d08ae0;height:3px;margin-top:5px", line: [208, 138, 224, 1], width: 2, lines: [0], desc: "cirques (mauve)" },
+  cragTails: { label: "Crag and tails", sw: "background:#ffaa00;height:3px;margin-top:5px", line: [255, 170, 0, 1], width: 2, lines: [1], desc: "crag and tails (amber)" },
+  erratics: { label: "Erratics: source rock and pathways", sw: "background:rgba(74,222,128,.35);border:2px solid #4ade80;box-sizing:border-box", line: [74, 222, 128, 1], width: 1.6, lines: [2], areas: [11], fill: [74, 222, 128, 0.3], desc: "erratics (green source-rock areas and pathways)" },
+  streamlined: { label: "Glacially streamlined bedrock", sw: "background:#cbd5e1;height:3px;margin-top:5px", line: [203, 213, 225, 0.9], width: 1, lines: [4], desc: "streamlined bedrock" }
 };
-const LANDFORM_KEYS = ["moraines", "eskers", "meltwater", "drumlins", "cirques", "cragTails", "erratics", "streamlined"];
+const LANDFORM_KEYS = Object.keys(LAYER_DEFS).filter(k => LAYER_DEFS[k].lines || LAYER_DEFS[k].derived);
+const FLOW_SOURCES = [8, 4, 1];   // lineations, streamlined bedrock, crag and tails: all lie along the ice flow
+const FIELD_SOURCE = 8;           // drumlin fields come from the lineations only
+
+// ---------- drumlin fields and ice-flow lines: pure functions, so they can be tested without the map ----------
+// segs: array of [lon1, lat1, lon2, lat2] (each BRITICE line reduced to its two ends)
+export const FIELD_GRID = { lon0: -11, lat0: 49.8, dlon: 0.05, dlat: 0.03, W: 281, H: 381 };
+export function drumlinFieldRings(segs, g = FIELD_GRID, minLines = 4) {
+  const { lon0, lat0, dlon, dlat, W, H } = g, N = W * H;
+  const cnt = new Uint16Array(N);
+  for (const [a, b, c, d] of segs) {
+    const i = Math.round(((a + c) / 2 - lon0) / dlon), j = Math.round(((b + d) / 2 - lat0) / dlat);
+    if (i > 1 && i < W - 2 && j > 1 && j < H - 2) cnt[j * W + i]++;
+  }
+  const grow = (src, keepIf) => {   // one ring of 8-neighbour dilation (keepIf true) or erosion (keepIf false)
+    const out = new Uint8Array(N);
+    for (let j = 1; j < H - 1; j++) for (let i = 1; i < W - 1; i++) { const c = j * W + i; let any = false, all = true;
+      for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) { const v = src[c + dj * W + di]; if (v) any = true; else all = false; }
+      out[c] = keepIf ? (any ? 1 : 0) : (all ? 1 : 0); }
+    return out;
+  };
+  let m = new Uint8Array(N); for (let c = 0; c < N; c++) m[c] = cnt[c] ? 1 : 0;
+  m = grow(grow(grow(m, true), true), false);   // within about 6 km of a lineation, then trimmed back about 3 km
+  // drop groups with fewer than minLines lineations
+  const seen = new Uint8Array(N), stack = [];
+  for (let c0 = 0; c0 < N; c0++) {
+    if (!m[c0] || seen[c0]) continue;
+    const members = []; let lines = 0; stack.push(c0); seen[c0] = 1;
+    while (stack.length) { const c = stack.pop(); members.push(c); lines += cnt[c];
+      for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) { const q = c + dj * W + di; if (q >= 0 && q < N && m[q] && !seen[q]) { seen[q] = 1; stack.push(q); } } }
+    if (lines < minLines) for (const c of members) m[c] = 0;
+  }
+  // smooth the edge: 3 × 3 blur, then trace the 0.5 contour with marching squares
+  const v = new Float32Array(N);
+  for (let j = 1; j < H - 1; j++) for (let i = 1; i < W - 1; i++) { const c = j * W + i; let s = 0;
+    for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) s += m[c + dj * W + di];
+    v[c] = s / 9; }
+  for (let i = 0; i < W; i++) { v[i] = 0; v[(H - 1) * W + i] = 0; }
+  for (let j = 0; j < H; j++) { v[j * W] = 0; v[j * W + W - 1] = 0; }
+  return contourRings(v, g, 0.5);
+}
+// closed rings (lon/lat) round the cells of v that are >= level; outer rings clockwise, holes anticlockwise (ArcGIS polygon rule)
+export function contourRings(v, g, level) {
+  const { lon0, lat0, dlon, dlat, W, H } = g;
+  const pts = new Map(), adj = new Map();
+  const at = (p, q) => {   // crossing on the grid edge between points p and q
+    const key = p < q ? p + "_" + q : q + "_" + p;
+    if (!pts.has(key)) { const t = (level - v[p]) / (v[q] - v[p]), jp = (p / W) | 0, ip = p - jp * W, jq = (q / W) | 0, iq = q - jq * W;
+      pts.set(key, [lon0 + (ip + (iq - ip) * t) * dlon, lat0 + (jp + (jq - jp) * t) * dlat]); }
+    return key;
+  };
+  const link = (k1, k2) => { (adj.get(k1) || adj.set(k1, []).get(k1)).push(k2); (adj.get(k2) || adj.set(k2, []).get(k2)).push(k1); };
+  for (let j = 0; j < H - 1; j++) for (let i = 0; i < W - 1; i++) {
+    const a = j * W + i, b = a + 1, d = a + W, c = d + 1;   // a bottom-left, b bottom-right, c top-right, d top-left
+    const ia = v[a] >= level, ib = v[b] >= level, ic = v[c] >= level, id = v[d] >= level;
+    const k = (ia ? 1 : 0) | (ib ? 2 : 0) | (ic ? 4 : 0) | (id ? 8 : 0);
+    if (k === 0 || k === 15) continue;
+    const B = () => at(a, b), R = () => at(b, c), T = () => at(d, c), L = () => at(a, d);
+    const mid = (v[a] + v[b] + v[c] + v[d]) / 4 >= level;
+    switch (k) {
+      case 1: case 14: link(L(), B()); break;
+      case 2: case 13: link(B(), R()); break;
+      case 3: case 12: link(L(), R()); break;
+      case 4: case 11: link(R(), T()); break;
+      case 6: case 9: link(B(), T()); break;
+      case 7: case 8: link(T(), L()); break;
+      case 5: if (mid) { link(B(), R()); link(T(), L()); } else { link(L(), B()); link(R(), T()); } break;
+      case 10: if (mid) { link(L(), B()); link(R(), T()); } else { link(B(), R()); link(T(), L()); } break;
+    }
+  }
+  const rings = [], used = new Set();
+  for (const start of adj.keys()) {
+    if (used.has(start)) continue;
+    const ring = []; let prev = null, cur = start;
+    while (cur && !used.has(cur)) { used.add(cur); ring.push(pts.get(cur)); const nb = adj.get(cur); const nxt = nb[0] !== prev ? nb[0] : nb[1]; prev = cur; cur = nxt; }
+    if (ring.length >= 3) { ring.push(ring[0]); rings.push(ring); }
+  }
+  const area = (r) => { let s = 0; for (let n = 0; n < r.length - 1; n++) s += r[n][0] * r[n + 1][1] - r[n + 1][0] * r[n][1]; return s / 2; };
+  const inside = (pt, r) => { let k = false; for (let n = 0, m = r.length - 1; n < r.length; m = n++) { const [xi, yi] = r[n], [xj, yj] = r[m];
+    if ((yi > pt[1]) !== (yj > pt[1]) && pt[0] < (xj - xi) * (pt[1] - yi) / (yj - yi) + xi) k = !k; } return k; };
+  return rings.map((r, n) => {
+    const depth = rings.reduce((s, o, m) => s + (m !== n && inside(r[0], o) ? 1 : 0), 0);
+    const cw = area(r) < 0, wantCw = depth % 2 === 0;
+    return cw === wantCw ? r : r.slice().reverse();
+  });
+}
+// one line per 0.3° × 0.18° square: the length-weighted mean axis of the lines in it (axes have no head or tail, so angles are doubled)
+export function flowLines(segs, sq = { dlon: 0.3, dlat: 0.18 }, minN = 3, minR = 0.45, halfKm = 6) {
+  const cells = new Map(), rad = Math.PI / 180;
+  for (const [a, b, c, d] of segs) {
+    const latm = (b + d) / 2, dx = (c - a) * 111.32 * Math.cos(latm * rad), dy = (d - b) * 111.32, len = Math.hypot(dx, dy);
+    if (!len) continue;
+    const th = Math.atan2(dy, dx), key = Math.floor((a + c) / 2 / sq.dlon) + ":" + Math.floor(latm / sq.dlat);
+    let s = cells.get(key); if (!s) cells.set(key, s = { C: 0, S: 0, w: 0, x: 0, y: 0, n: 0 });
+    s.C += len * Math.cos(2 * th); s.S += len * Math.sin(2 * th); s.w += len; s.x += len * (a + c) / 2; s.y += len * latm; s.n++;
+  }
+  const out = [];
+  for (const s of cells.values()) {
+    if (s.n < minN || Math.hypot(s.C, s.S) / s.w < minR) continue;
+    const th = Math.atan2(s.S, s.C) / 2, x = s.x / s.w, y = s.y / s.w;
+    const ddx = halfKm * Math.cos(th) / (111.32 * Math.cos(y * rad)), ddy = halfKm * Math.sin(th) / 111.32;
+    out.push([[x - ddx, y - ddy], [x + ddx, y + ddy]]);
+  }
+  return out;
+}
+// every feature of a BRITICE line layer, reduced to [lon1, lat1, lon2, lat2] per path (the service pages 2,000 at a time)
+async function fetchSegments(layerId) {
+  const url = BRIT + layerId + "/query";
+  const cj = await (await fetch(`${url}?where=1%3D1&returnCountOnly=true&f=json`)).json();
+  if (!cj || typeof cj.count !== "number") throw new Error("BRITICE count failed for layer " + layerId);
+  const offsets = []; for (let o = 0; o < cj.count; o += 2000) offsets.push(o);
+  const segs = [];
+  for (let n = 0; n < offsets.length; n += 3) {
+    const pages = await Promise.all(offsets.slice(n, n + 3).map(o =>
+      fetch(`${url}?where=1%3D1&outFields=OBJECTID&returnGeometry=true&outSR=4326&maxAllowableOffset=0.005&geometryPrecision=4&resultOffset=${o}&resultRecordCount=2000&f=json`).then(r => r.json())));
+    for (const pj of pages) {
+      if (pj.error) throw new Error("BRITICE query failed for layer " + layerId);
+      for (const f of pj.features || []) for (const p of (f.geometry && f.geometry.paths) || []) if (p.length >= 2) segs.push([p[0][0], p[0][1], p[p.length - 1][0], p[p.length - 1][1]]);
+    }
+  }
+  return segs;
+}
 
 const CAM = {
   // the opening camera (over 6° E, 38° N, 2,600 km up, looking north): keeps all of Britain, the North Sea and Scandinavia in view
@@ -86,8 +211,9 @@ const TEACH_VIEW = `<details><summary>What the 3D view shows</summary>
     <li><b>Ice thickness.</b> Worked out by this app, not measured. It uses the "perfectly plastic" ice-sheet method also used by Gowan et al.: ice spreads under its own weight, so the surface rises from the edge towards the middle at a rate set by how easily the ice slides over the ground beneath (soft sediment lets it slide, giving thinner ice; hard rock gives thicker ice). The slipperiness values are Gowan's. The method ignores the earth sinking under the weight of the ice, so heights above sea level are too high in the middle of the ice sheets.</li>
     <li><b>Sea level.</b> One value for the whole map at each moment. For the last 11,000 years it follows sea level measured around the southern North Sea: about 50 m below today 11,000 years ago and about 15 m below 8,000 years ago (Hijma et al. 2025), then the curve from the northern Netherlands coast (Meijles et al. 2018), which rises fast to about 7,500 years ago and slowly after that. Before 13,000 years ago it follows a world-wide average (Spratt &amp; Lisiecki 2016). These North Sea numbers include the region's own slow sinking. In reality the land rose and sank by different amounts in different places (most near the ice), so coastlines near the ice are less reliable than in the southern North Sea.</li>
     <li><b>Lakes.</b> Worked out by this app: water fills hollows that the ice or the land blocks from draining, up to the lowest point where it could spill over. Lakes over 2,000 km² that touch the ice are drawn, plus any lake over 25,000 km² (such as the Baltic basin when it was cut off from the sea). The BRITICE glacial lakes layer shows lakes mapped from their deposits in Britain.</li>
-    <li><b>Check a place and dry North Sea floor.</b> Both read the app's own 9 km grid, so they give the model's answer for that grid cell, not a measurement at that exact spot.</li>
-    <li><b>BRITICE layers.</b> Mapped evidence of the last British–Irish Ice Sheet from the University of Sheffield's BRITICE Glacial Map, version 2 (Clark et al. 2018), shown live from ArcGIS Online. The furthest extent was not all reached at the same time. The Loch Lomond Readvance outline is a layer from Esri UK Education, drawn from the first BRITICE map (Clark et al. 2004). Mapped cirques are hollows carved over many glaciations, not only in the last one.</li>
+    <li><b>Check a place and dry North Sea floor.</b> Both read the app's own 9 km grid, so they give the model's answer for that grid cell, not a measurement at that exact spot. The answer for a checked place shows next to the yellow pin on the map, changes as the time changes, and is also written in the story card; ✕ on the label removes the pin.</li>
+    <li><b>BRITICE layers.</b> Mapped evidence of the last British–Irish Ice Sheet from the University of Sheffield's BRITICE Glacial Map, version 2 (Clark et al. 2018), shown live from ArcGIS Online. The furthest extent was not all reached at the same time. The Loch Lomond Readvance outline is a layer from Esri UK Education, drawn from the first BRITICE map (Clark et al. 2004). Mapped cirques are hollows carved over many glaciations, not only in the last one. Moraines are drawn as lines, and as areas where BRITICE maps large moraines or many ridges close together; erratics are drawn with the outcrops their boulders came from.</li>
+    <li><b>Drumlin fields and ice flow.</b> Worked out by this app from BRITICE's mapped lines, to replace thousands of short lines with something easier to read. The lilac areas are drumlin fields: places within a few kilometres of mapped drumlins and other streamlined ridges. The white lines show the average direction of the drumlins, streamlined bedrock and crag and tails in squares about 20 km across, drawn only where they agree. A line shows the direction the ice moved along, not which way it was going. If the BRITICE service cannot be reached, the original lines are shown instead.</li>
     <li><b>Chart.</b> The orange line is oxygen isotopes (δ¹⁸O) in the GISP2 Greenland ice core: higher means warmer. Its fast jumps are the interstadials. The blue line is the app's sea level. Shaded bands mark the named warm and cold stages used in Britain; the last warm band is the Holocene, today's interglacial, not an interstadial.</li>
   </ul>
 </details>`;
@@ -135,8 +261,9 @@ const TEACH_A11Y = `<details><summary>Accessibility</summary>
   </ul>
 </details>`;
 
+const offeredHas = (cfg, k) => cfg.legendLayers.includes(k);
 function chromeHTML(cfg) {
-  const key = (k) => { const d = LAYER_DEFS[k]; return `<button class="k" data-l="${k}" aria-pressed="false"><span class="tick"></span><span class="sw" style="${d.sw}"></span>${d.label}</button>`; };
+  const key = (k) => { const d = LAYER_DEFS[k]; return `<button class="k" data-l="${k}" aria-pressed="false"><span class="tick"></span><span class="sw" style="${d.sw}"></span><span>${d.label}${d.derived ? ` <span class="mv" data-mv="Drumlin fields and ice flow"></span><span class="knote"></span>` : ""}</span></button>`; };
   const hasLandforms = cfg.legendLayers.some(k => LANDFORM_KEYS.includes(k));
   return `
   <section id="mapwrap" aria-label="3D map of Britain, the North Sea and Scandinavia during the last ice age. A written description is under Describe the map, in the story card.">
@@ -146,6 +273,7 @@ function chromeHTML(cfg) {
       <arcgis-compass slot="top-right"></arcgis-compass>
     </arcgis-scene>
     <div id="loading" class="glass" role="status">Loading the ice sheets…</div>
+    <div id="pinLabel" class="glass" hidden><div class="pl-text" aria-hidden="true"></div><button id="pinClose" aria-label="Remove the checked place" title="Remove the checked place">✕</button></div>
     <div id="exag" class="glass" role="group" aria-label="Height exaggeration">Heights <span class="mv" data-mv="Terrain"></span> <button data-x="1" aria-pressed="false" aria-label="1× (true scale)" title="True scale: no exaggeration">1×</button><button data-x="5" aria-pressed="false">5×</button><button data-x="10" aria-pressed="true">10×</button><button data-x="20" aria-pressed="false">20×</button></div>
     <div id="legend" class="glass" role="group" aria-labelledby="legendTitle">
       <button class="t" id="legendTitle" aria-expanded="true">Map key</button>
@@ -160,9 +288,10 @@ function chromeHTML(cfg) {
       <div class="sub">Modelled: water trapped by ice or land, filled to its overflow</div>
       <button class="k" data-l="coast" aria-pressed="true"><span class="tick"></span><span class="sw" style="background:none;border-top:2px solid rgba(255,255,255,.8);height:0;margin-top:6px"></span>Today's coastline</button>
       <button class="k" data-l="labels" aria-pressed="true"><span class="tick"></span>Place names</button>
+      <div class="kpin"><span class="pinsw" aria-hidden="true"></span>Checked place: click the map or use Check a place</div>
       <h3>BRITICE evidence (University of Sheffield) <span class="mv" data-mv="BRITICE layers"></span></h3>
       ${cfg.legendLayers.map(key).join("\n      ")}
-      ${hasLandforms ? `<div class="sub">Landforms show when zoomed in to Britain or Ireland.</div>` : ""}
+      ${hasLandforms ? `<div class="sub">Landform lines show when zoomed in to Britain or Ireland${offeredHas(cfg, "drumlins") ? "; drumlin fields show at any distance" : ""}.</div>` : ""}
     </div>
     <div id="credit" class="glass"><b>Created by Jason Sawle</b></div>
     <section id="timebar" class="glass" aria-label="Timeline">
@@ -246,12 +375,12 @@ export async function startIceAgeApp(cfg) {
   const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   // ---------- SDK ----------
-  const [Graphic, GraphicsLayer, FeatureLayer, TileLayer, ElevationLayer, BaseElevationLayer, Mesh, MeshComponent, MediaLayer, ImageElement, ExtentAndRotationGeoreference, Extent] = await $arcgis.import([
+  const [Graphic, GraphicsLayer, FeatureLayer, TileLayer, ElevationLayer, BaseElevationLayer, Mesh, MeshComponent, MediaLayer, ImageElement, ExtentAndRotationGeoreference, Extent, reactiveUtils] = await $arcgis.import([
     "@arcgis/core/Graphic.js", "@arcgis/core/layers/GraphicsLayer.js", "@arcgis/core/layers/FeatureLayer.js", "@arcgis/core/layers/TileLayer.js",
     "@arcgis/core/layers/ElevationLayer.js", "@arcgis/core/layers/BaseElevationLayer.js",
     "@arcgis/core/geometry/Mesh.js", "@arcgis/core/geometry/support/MeshComponent.js",
     "@arcgis/core/layers/MediaLayer.js", "@arcgis/core/layers/support/ImageElement.js", "@arcgis/core/layers/support/ExtentAndRotationGeoreference.js",
-    "@arcgis/core/geometry/Extent.js"
+    "@arcgis/core/geometry/Extent.js", "@arcgis/core/core/reactiveUtils.js"
   ]);
   const sceneEl = document.querySelector("arcgis-scene");
   await sceneEl.viewOnReady();
@@ -550,20 +679,60 @@ export async function startIceAgeApp(cfg) {
   }
 
   // ---------- BRITICE layers (only the ones this page offers) ----------
+  // sets[key] holds every map layer behind one map-key entry; areas are added before lines so lines draw on top
   const line = (color, width) => ({ type: "simple", symbol: { type: "simple-line", color, width } });
-  const layers = {};
+  const fill = (color, outline, width = 1) => ({ type: "simple", symbol: { type: "simple-fill", color, outline: { color: outline, width } } });
+  const sets = {}, areaLayers = [], lineLayers = [];
   const offered = new Set(cfg.legendLayers);
-  if (offered.has("britExtent")) layers.britExtent = new TileLayer({ url: "https://tiles.arcgis.com/tiles/Dn40vzt2R38VJsSS/arcgis/rest/services/extent1_tif/MapServer", title: "BRITICE: furthest ice extent", opacity: 0.55, visible: false });
-  if (offered.has("llr")) layers.llr = new FeatureLayer({ url: "https://services.arcgis.com/XSeYKQzfXnEgju9o/arcgis/rest/services/Loch_Lomond_Readvance/FeatureServer/0", title: "Loch Lomond Readvance", visible: false, elevationInfo: { mode: "on-the-ground" },
-    renderer: { type: "simple", symbol: { type: "simple-fill", color: [244, 114, 182, 0.45], outline: { color: [244, 114, 182, 1], width: 1.5 } } } });
+  if (offered.has("britExtent")) areaLayers.push(sets.britExtent = [new TileLayer({ url: "https://tiles.arcgis.com/tiles/Dn40vzt2R38VJsSS/arcgis/rest/services/extent1_tif/MapServer", title: "BRITICE: furthest ice extent", opacity: 0.55, visible: false })]);
+  if (offered.has("llr")) areaLayers.push(sets.llr = [new FeatureLayer({ url: "https://services.arcgis.com/XSeYKQzfXnEgju9o/arcgis/rest/services/Loch_Lomond_Readvance/FeatureServer/0", title: "Loch Lomond Readvance", visible: false, elevationInfo: { mode: "on-the-ground" },
+    renderer: fill([244, 114, 182, 0.45], [244, 114, 182, 1], 1.5) })]);
   if (offered.has("britLakes")) {
-    layers.britLakesArea = new FeatureLayer({ url: BRIT + "12", title: "BRITICE glacial lakes", visible: false, elevationInfo: { mode: "on-the-ground" },
-      renderer: { type: "simple", symbol: { type: "simple-fill", color: [56, 189, 248, 0.5], outline: { color: [14, 165, 233, 1], width: 1 } } } });
-    layers.britLakesDam = new FeatureLayer({ url: BRIT + "5", title: "BRITICE ice dams", visible: false, elevationInfo: { mode: "on-the-ground" }, renderer: line([14, 165, 233, 1], 2) });
+    areaLayers.push(sets.britLakes = [new FeatureLayer({ url: BRIT + "12", title: "BRITICE glacial lakes", visible: false, elevationInfo: { mode: "on-the-ground" }, renderer: fill([56, 189, 248, 0.5], [14, 165, 233, 1]) }),
+      new FeatureLayer({ url: BRIT + "5", title: "BRITICE ice dams", visible: false, elevationInfo: { mode: "on-the-ground" }, renderer: line([14, 165, 233, 1], 2) })]);
   }
-  for (const k of LANDFORM_KEYS) if (offered.has(k)) { const d = LAYER_DEFS[k];
-    layers[k] = new FeatureLayer({ url: d.url, title: "BRITICE " + d.label.toLowerCase(), visible: false, minScale: LANDFORM_MIN_SCALE, maxScale: 0, elevationInfo: { mode: "on-the-ground" }, renderer: line(d.line, d.width) }); }
-  map.addMany(Object.values(layers));
+  for (const k of LANDFORM_KEYS) if (offered.has(k) && !LAYER_DEFS[k].derived) { const d = LAYER_DEFS[k], set = sets[k] = [];
+    const common = { visible: false, minScale: LANDFORM_MIN_SCALE, maxScale: 0, elevationInfo: { mode: "on-the-ground" } };
+    for (const id of d.areas || []) { const l = new FeatureLayer({ url: BRIT + id, title: "BRITICE " + d.label.toLowerCase() + " (areas)", renderer: fill(d.fill, d.line, 1), ...common }); set.push(l); areaLayers.push([l]); }
+    for (const id of d.lines || []) { const l = new FeatureLayer({ url: BRIT + id, title: "BRITICE " + d.label.toLowerCase(), renderer: line(d.line, d.width), ...common }); set.push(l); lineLayers.push(l); }
+  }
+  // drumlin fields and ice flow: worked out here from the BRITICE lines when first needed (see drumlinFieldRings and flowLines)
+  let flowLayer = null, flowState = "idle";
+  if (offered.has("drumlins")) {
+    flowLayer = new GraphicsLayer({ title: "Drumlin fields and ice flow (worked out from BRITICE)", visible: false, elevationInfo: { mode: "on-the-ground" } });
+    sets.drumlins = [flowLayer];
+  }
+  async function loadFlow() {
+    if (!flowLayer || flowState !== "idle") return;
+    flowState = "loading"; flowNote();
+    try {
+      const bySource = await Promise.all(FLOW_SOURCES.map(id => fetchSegments(id)));
+      const fieldSegs = bySource[FLOW_SOURCES.indexOf(FIELD_SOURCE)];
+      const rings = drumlinFieldRings(fieldSegs), lines = flowLines(bySource.flat());
+      if (rings.length) flowLayer.add(new Graphic({ geometry: { type: "polygon", rings, spatialReference: { wkid: 4326 } },
+        symbol: { type: "simple-fill", color: [196, 181, 253, 0.32], outline: { color: [196, 181, 253, 0.95], width: 1.2 } } }));
+      if (lines.length) {
+        const g = { type: "polyline", paths: lines, spatialReference: { wkid: 4326 } };
+        flowLayer.addMany([new Graphic({ geometry: g, symbol: { type: "simple-line", color: [15, 23, 42, 0.8], width: 4.5 } }),
+          new Graphic({ geometry: g, symbol: { type: "simple-line", color: [255, 255, 255, 1], width: 2.2 } })]);
+      }
+      window.__flow = { segs: bySource.map(s => s.length), rings: rings.length, lines: lines.length };
+      flowState = "ready";
+    } catch (e) {
+      // fall back to the plain lineation lines, so the drumlins still show
+      console.warn("Drumlin fields could not be worked out:", e);
+      const l = new FeatureLayer({ url: BRIT + FIELD_SOURCE, title: "BRITICE drumlins and lineations", visible: !!vis.drumlins, minScale: LANDFORM_MIN_SCALE, maxScale: 0,
+        elevationInfo: { mode: "on-the-ground" }, renderer: line([233, 213, 255, 0.9], 1) });
+      map.add(l); sets.drumlins.push(l);
+      flowState = "failed";
+    }
+    flowNote();
+  }
+  function flowNote() {
+    const el = document.querySelector('#legend button.k[data-l="drumlins"] .knote');
+    if (el) el.textContent = flowState === "loading" ? " (loading…)" : flowState === "failed" ? " (showing the mapped lines)" : "";
+  }
+  map.addMany([...areaLayers.flat(), ...(flowLayer ? [flowLayer] : []), ...lineLayers]);
 
   // today's coastline, place names, checked-place marker
   const coastLayer = new GraphicsLayer({ title: "Today's coastline", elevationInfo: { mode: "on-the-ground" } });
@@ -586,27 +755,59 @@ export async function startIceAgeApp(cfg) {
 
   // ---------- check a place ----------
   let checked = null;   // { lon, lat, name }
-  function checkText() {
-    if (!checked) return "Pick a place to see what it was like at the time shown.";
+  function checkParts() {   // the model's answer at the checked place, in parts for the card text and the label on the pin
     const { lon, lat, name } = checked, c = cellOf(lon, lat);
     const where = name || `${Math.abs(lat).toFixed(2)}° ${lat >= 0 ? "N" : "S"}, ${Math.abs(lon).toFixed(2)}° ${lon < 0 ? "W" : "E"}`;
-    if (c < 0) return `${where}: outside the area this app models.`;
-    const today = bed[c] >= 0 ? `today the ground there is about ${nf(bed[c])} m above sea level` : `today the sea floor there is about ${nf(-bed[c])} m deep`;
-    let then;
-    if (iceMask[c]) then = `under ice about ${nf(Math.round(Hcur[c] / 10) * 10)} m thick (modelled)`;
-    else if (water[c] === 1) then = `under the sea, about ${nf(Math.max(1, Scur - bed[c]))} m deep`;
-    else if (water[c] === 2) then = `under a lake (modelled), about ${nf(Math.max(1, lvl[c] - bed[c]))} m deep`;
-    else if (!land[c] && bed[c] < 0) then = `dry land where the sea is today, about ${nf(bed[c] - Scur)} m above the sea of that time`;
-    else then = `dry land, about ${nf(bed[c] - Scur)} m above the sea of that time`;
-    return `${where}, ${fmtAgo(T).toLowerCase()}: ${then}; ${today}. (App's 9 km grid.)`;
+    if (c < 0) return { where, outside: true };
+    const today = bed[c] >= 0 ? `the ground there is about ${nf(bed[c])} m above sea level` : `the sea floor there is about ${nf(-bed[c])} m deep`;
+    let then, kind;
+    if (iceMask[c]) { then = `under ice about ${nf(Math.round(Hcur[c] / 10) * 10)} m thick (modelled)`; kind = "ice"; }
+    else if (water[c] === 1) { then = `under the sea, about ${nf(Math.max(1, Scur - bed[c]))} m deep`; kind = "sea"; }
+    else if (water[c] === 2) { then = `under a lake (modelled), about ${nf(Math.max(1, lvl[c] - bed[c]))} m deep`; kind = "lake"; }
+    else if (!land[c] && bed[c] < 0) { then = `dry land where the sea is today, about ${nf(bed[c] - Scur)} m above the sea of that time`; kind = "dry"; }
+    else { then = `dry land, about ${nf(bed[c] - Scur)} m above the sea of that time`; kind = "land"; }
+    return { where, then, today, kind };
   }
+  function checkText() {
+    if (!checked) return "Pick a place to see what it was like at the time shown.";
+    const p = checkParts();
+    if (p.outside) return `${p.where}: outside the area this app models.`;
+    return `${p.where}, ${fmtAgo(T).toLowerCase()}: ${p.then}; today ${p.today}. (App's 9 km grid.)`;
+  }
+  // the label on the pin: same answer, short, kept next to the pin as the camera moves and the time changes
+  const esc = (s) => String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+  function pinLabelHTML() {
+    const p = checkParts(), cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+    if (p.outside) return `<b>${esc(p.where)}</b><span class="pl-then">Outside the area this app models</span>`;
+    return `<b>${esc(p.where)}</b><span class="pl-when">${fmtAgo(T)}</span><span class="pl-then pl-${p.kind}">${cap(p.then)}</span><span class="pl-today">Today ${p.today}</span>`;
+  }
+  let pinRaf = 0;
+  function placePinLabel() {
+    pinRaf = 0;
+    const el = $("pinLabel"), g = markG.geometry;
+    if (!checked || !g || !view.toScreen) { el.hidden = true; return; }
+    const sp = view.toScreen(g), r = $("mapwrap").getBoundingClientRect();
+    if (!sp || !isFinite(sp.x) || !isFinite(sp.y) || sp.x < 0 || sp.y < 0 || sp.x > r.width || sp.y > r.height) { el.hidden = true; return; }
+    el.hidden = false;
+    el.style.left = Math.round(sp.x) + "px"; el.style.top = Math.round(sp.y) + "px";   // the box sits above the pin (see the CSS)
+  }
+  const queuePinLabel = () => { if (!pinRaf) pinRaf = requestAnimationFrame(placePinLabel); };
+  function updatePinLabel() {
+    if (!checked) { $("pinLabel").hidden = true; return; }
+    $("pinLabel").querySelector(".pl-text").innerHTML = pinLabelHTML();
+    queuePinLabel();
+  }
+  if (reactiveUtils && reactiveUtils.watch) reactiveUtils.watch(() => view.camera, queuePinLabel);
+  addEventListener("resize", queuePinLabel);
   function updateMark() {
-    if (!checked) { markG.geometry = null; return; }
+    if (!checked) { markG.geometry = null; updatePinLabel(); return; }
     const c = cellOf(checked.lon, checked.lat);
     markG.geometry = { type: "point", x: checked.lon, y: checked.lat, z: c < 0 ? 0 : surfaceZ(c, Scur), spatialReference: { wkid: 4326 } };
+    updatePinLabel();
   }
   function setChecked(p) { checked = p; $("pointOut").textContent = checkText(); updateMark(); }
   $("placeSel").addEventListener("change", (e) => { const v = e.target.value; if (v === "") { setChecked(null); return; } const [name, lon, lat] = CHECK_PLACES[+v]; setChecked({ lon, lat, name }); });
+  $("pinClose").onclick = () => { $("placeSel").value = ""; setChecked(null); };
   if (view.on) view.on("click", (e) => { const p = e.mapPoint; if (!p || p.longitude == null) return; $("placeSel").value = ""; setChecked({ lon: p.longitude, lat: p.latitude }); });
 
   // ---------- state and redraw ----------
@@ -630,10 +831,8 @@ export async function startIceAgeApp(cfg) {
   }
   function applyVis() {
     iceG.visible = vis.ice; seaG.visible = vis.sea; lakeG.visible = vis.lakes; coastLayer.visible = vis.coast; labelLayer.visible = vis.labels;
-    for (const k of cfg.legendLayers) {
-      if (k === "britLakes") { layers.britLakesArea.visible = vis.britLakes; layers.britLakesDam.visible = vis.britLakes; }
-      else if (layers[k]) layers[k].visible = !!vis[k];
-    }
+    for (const k of cfg.legendLayers) for (const l of sets[k] || []) l.visible = !!vis[k];
+    if (vis.drumlins) loadFlow();
     if (seeThrough !== vis.seeThrough) { seeThrough = vis.seeThrough; requestRedraw(); }
     document.querySelectorAll("#legend button.k").forEach(b => b.setAttribute("aria-pressed", String(!!vis[b.dataset.l])));
   }
@@ -819,6 +1018,7 @@ export async function startIceAgeApp(cfg) {
     CH.forEach((c, i) => { if (Math.abs(c.t - tq) < Math.abs(CH[k0].t - tq)) k0 = i; });
   }
   goChapter(k0, false);
+  if (flowLayer) setTimeout(loadFlow, 2500);   // fetch the BRITICE lines early, so the drumlin step opens ready
   if (tq !== null) {   // keep the time in the address, so a reload or a shared link opens at the same time
     setTime(tq);
     const u = new URL(location); u.searchParams.set("t", String(tq)); history.replaceState(null, "", u);
