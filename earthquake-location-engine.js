@@ -44,7 +44,8 @@ export const hashStr = (s) => { let h = 2166136261; for (const c of s) { h ^= c.
 
 // One combined trace of the shaking from t0 to t1 (s after the rock broke), `fs` samples a second, scaled so the biggest wobble is 1.
 // Background noise, then the P-wave (small, fast wobbles that die away) and the S-wave (bigger, slower wobbles).
-export function seismogram({ seed, tP, tS, t0, t1, fs = 100 }) {
+// pAmp: size of the P-wave before scaling (S-wave 1.0); noise: size of the background wobble.
+export function seismogram({ seed, tP, tS, t0, t1, fs = 100, pAmp = 0.32, noise: noiseAmp = 0.035 }) {
   const n = Math.max(2, Math.round((t1 - t0) * fs)), out = new Float32Array(n), rand = rng(seed);
   // smoothed noise (two passes of a one-pole filter on white noise)
   let a1 = 0, a2 = 0;
@@ -58,9 +59,9 @@ export function seismogram({ seed, tP, tS, t0, t1, fs = 100 }) {
   const osc = (ws, t) => ws.reduce((acc, c) => acc + c.a * Math.sin(2 * Math.PI * c.f * t + c.ph), 0) / ws.length;
   for (let i = 0; i < n; i++) {
     const t = t0 + i / fs;
-    let v = 0.035 * noise[i] / 0.35;
+    let v = noiseAmp * noise[i] / 0.35;
     const tp = t - tP, ts = t - tS;
-    if (tp > 0) v += 0.32 * (1 - Math.exp(-tp / 0.04)) * (0.7 * Math.exp(-tp / 0.9) + 0.3 * Math.exp(-tp / 5)) * osc(pW, t) * wob[i] * 1.6;
+    if (tp > 0) v += pAmp * (1 - Math.exp(-tp / 0.04)) * (0.7 * Math.exp(-tp / 0.9) + 0.3 * Math.exp(-tp / 5)) * osc(pW, t) * wob[i] * 1.6;
     if (ts > 0) v += 1.0 * (1 - Math.exp(-ts / 0.12)) * (0.65 * Math.exp(-ts / 2.2) + 0.35 * Math.exp(-ts / 8)) * osc(sW, t) * wob[i] * 1.6;
     out[i] = v;
   }
