@@ -1,0 +1,1210 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Earthquake Location Lab</title>
+<!-- ArcGIS Maps SDK for JavaScript 5.1 (core + components) -->
+<script type="module" src="https://js.arcgis.com/5.1/"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  /* Same dark "glass" theme as the other labs. Text colours meet WCAG AA on the panel colour. */
+  :root {
+    --bg: #0b1220; --panel: #0f172a; --glass: rgba(11, 18, 33, 0.88); --glass-edge: rgba(255, 255, 255, 0.10);
+    --ink: #eef3fa; --muted: #a8b6c9; --rule: rgba(255, 255, 255, 0.13); --chip: rgba(255, 255, 255, 0.08); --chip-hover: rgba(255, 255, 255, 0.14);
+    --accent: #7dd3fc; --accent-ink: #04121f; --go1: #2563eb; --go2: #0e7490; --warn: #fdba74; --good: #86efac;
+    --p: #56b4e9; --s: #ff8c42; --hypo: #ff4d4d; --stA: #ffd84d; --stB: #c084fc; --stC: #2dd4bf;
+    --radius: 18px; --shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+    --card-w: 392px; --dock-h: 250px;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font: 15px/1.5 Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  #app { position: relative; height: 100%; overflow: hidden; }
+  #mapwrap { position: absolute; inset: 0; }
+  arcgis-scene { display: block; width: 100%; height: 100%; }
+  .glass { background: var(--glass); border: 1px solid var(--glass-edge); border-radius: var(--radius); box-shadow: var(--shadow); backdrop-filter: blur(14px) saturate(1.2); -webkit-backdrop-filter: blur(14px) saturate(1.2); }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .skip { position: absolute; left: -9999px; top: 0; z-index: 20; background: var(--accent); color: var(--accent-ink); padding: 8px 12px; border-radius: 10px; font-weight: 700; }
+  .skip:focus { left: 16px; top: 16px; }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  a { color: var(--accent); }
+  button { font: inherit; font-weight: 600; border-radius: 12px; padding: 8px 13px; cursor: pointer; border: 1px solid var(--glass-edge); background: var(--chip); color: var(--ink); transition: background .15s; }
+  button:hover:not(:disabled) { background: var(--chip-hover); }
+  button:disabled { opacity: .45; cursor: default; }
+  button.primary { background: linear-gradient(135deg, var(--go1), var(--go2)); border-color: transparent; color: #fff; box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45); }
+  button.primary:hover:not(:disabled) { background: linear-gradient(135deg, #3b82f6, #0891b2); }
+  button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  button[aria-pressed="true"]:hover:not(:disabled) { background: #a5e4ff; }
+  input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--accent); flex: none; margin: 0; }
+  input[type=range] { accent-color: var(--accent); }
+  select { font: inherit; color: var(--ink); background: var(--panel); border: 1px solid var(--glass-edge); border-radius: 10px; padding: 6px 8px; }
+
+  /* ---------- left card: the steps ---------- */
+  #card { position: absolute; left: 16px; top: 16px; bottom: 16px; width: var(--card-w); display: flex; flex-direction: column; padding: 14px 16px 10px; z-index: 6; }
+  .brand { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); }
+  .brand .kicker { text-transform: uppercase; letter-spacing: .12em; font-weight: 700; color: var(--accent); }
+  .brand .sp { flex: 1; }
+  .labchip { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; border: 1px dashed rgba(253, 186, 116, .6); color: #ffdcb8; }
+  h1 { font-size: 21px; line-height: 1.15; margin: 6px 0 4px; font-weight: 800; letter-spacing: -0.01em; }
+  #status { font-size: 12.5px; color: var(--accent); min-height: 1.3em; margin: 0 0 6px; }
+  .mv { font-size: 10.5px; font-weight: 600; color: var(--muted); border: 1px solid var(--rule); border-radius: 999px; padding: 0 6px; white-space: nowrap; text-transform: none; letter-spacing: 0; }
+  .sec-h { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-weight: 700; }
+  .quakes { display: grid; grid-template-columns: repeat(4, auto); gap: 5px; }
+  .quakes button { padding: 6px 4px; font-size: 13px; line-height: 1.2; border-radius: 10px; }
+  #quakeInfo { margin: 5px 0 0; min-height: 1.4em; }
+  #mysteryRow { display: flex; gap: 6px; align-items: center; margin-top: 6px; font-size: 13px; }
+  #mysteryRow select { flex: 1; min-width: 0; font-size: 13px; }
+  #mysteryRow button { font-size: 13px; padding: 6px 10px; }
+
+  .stepper { list-style: none; display: flex; gap: 4px; margin: 10px 0 6px; padding: 0; flex-wrap: nowrap; }
+  .stepper li { flex: 1; }
+  .stepper button { width: 100%; height: 30px; padding: 0; font-size: 12.5px; border-radius: 8px; }
+  .stepper button.done { background: rgba(125, 211, 252, .16); border-color: rgba(125, 211, 252, .35); }
+  .stepper button[aria-current="step"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 2px 6px 8px 2px; margin-right: -6px; scrollbar-width: thin; border-top: 1px solid var(--rule); }
+  .stepno { font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-weight: 700; margin: 10px 0 0; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  #stepTitle { font-size: 19px; line-height: 1.2; margin: 2px 0 8px; font-weight: 800; }
+  #stepBody p, #stepBody li { font-size: 14.5px; }
+  #stepBody p { margin: 0 0 9px; }
+  #stepBody ul, #stepBody ol { padding-left: 20px; margin: 0 0 9px; }
+  #stepBody li { margin-bottom: 4px; }
+  .sub { color: var(--muted); font-size: 12.5px; }
+  .note { font-size: 13px; color: var(--warn); }
+  .good { color: var(--good); }
+  .think { font-size: 13.5px; border-left: 3px solid var(--accent); padding: 4px 0 4px 10px; margin: 10px 0 4px; color: var(--ink); }
+  .think b { color: var(--accent); }
+  .formula { font-size: 17px !important; font-weight: 800; text-align: center; padding: 8px; border-radius: 12px; background: rgba(125, 211, 252, .1); border: 1px solid rgba(125, 211, 252, .3); }
+  .key { display: grid; grid-template-columns: 22px 1fr; gap: 5px 8px; font-size: 12.5px; margin: 8px 0; align-items: center; color: var(--muted); }
+  .sw { display: inline-block; width: 16px; height: 16px; justify-self: center; }
+  .sw.dot { border-radius: 50%; width: 12px; height: 12px; }
+  .sw.ring { border-radius: 50%; width: 14px; height: 14px; border: 3px solid var(--hypo); }
+  .sw.tri { width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-bottom: 14px solid var(--c); }
+  .sw.line { height: 4px; border-radius: 2px; width: 20px; }
+  .sw.dash { height: 3px; width: 20px; background: repeating-linear-gradient(90deg, var(--c) 0 5px, transparent 5px 8px); }
+  .sw.circ { border-radius: 50%; width: 16px; height: 16px; border: 2.5px solid var(--c); background: color-mix(in srgb, var(--c) 18%, transparent); }
+  .sw.cross { position: relative; }
+  .sw.cross::before, .sw.cross::after { content: ""; position: absolute; left: 7px; top: 0; width: 3px; height: 16px; background: #fff; box-shadow: 0 0 0 1px #000; }
+  .sw.cross::after { transform: rotate(90deg); }
+  .seg { display: flex; gap: 6px; }
+  .seg button { flex: 1; font-size: 13.5px; padding: 8px 6px; line-height: 1.2; }
+  .btnrow { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+  .btnrow button { font-size: 13px; padding: 6px 10px; }
+  .fb { list-style: none; padding: 0 !important; margin: 6px 0 !important; }
+  .fb li { font-size: 13px !important; margin-bottom: 3px; }
+  .stc { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 6px; background: var(--c); color: #111; font-weight: 800; font-size: 12px; margin-right: 4px; vertical-align: -3px; }
+  table.cmp { width: 100%; border-collapse: collapse; font-size: 13px; margin: 6px 0 10px; }
+  table.cmp th, table.cmp td { text-align: left; padding: 4px 6px 4px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  table.cmp thead th { color: var(--muted); font-weight: 600; }
+  .chart { margin: 4px 0 2px; }
+  .chart svg { width: 100%; height: auto; display: block; touch-action: none; }
+  .explore { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; align-items: center; font-size: 13px; margin: 4px 0 8px; }
+  .explore output { grid-column: 1 / -1; color: var(--muted); font-size: 12.5px; min-height: 2.6em; }
+  .navrow { display: flex; gap: 8px; padding-top: 8px; border-top: 1px solid var(--rule); }
+  .navrow button { flex: 1; font-size: 14.5px; padding: 9px 8px; }
+  .cfoot { flex: none; padding-top: 8px; display: flex; gap: 4px 12px; flex-wrap: wrap; align-items: center; }
+  label.row { display: flex; align-items: center; gap: 7px; cursor: pointer; font-size: 13px; color: var(--muted); }
+  .cfoot button { margin-left: auto; font-size: 12.5px; padding: 5px 10px; }
+
+  /* ---------- bottom dock: the seismograms ---------- */
+  #dock { position: absolute; left: calc(var(--card-w) + 28px); right: 16px; bottom: 16px; z-index: 5; padding: 10px 14px 6px; }
+  .dhead { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+  .dhead h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0; display: flex; gap: 8px; align-items: center; }
+  .dnote, .dnote-short { font-size: 11.5px; color: var(--muted); }
+  .dnote-short { display: none; }
+  .play { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .play button { font-size: 13px; padding: 5px 10px; }
+  .play .seg button { padding: 5px 8px; flex: none; }
+  .play input[type=range] { width: 150px; }
+  .clock { margin-left: auto; font-size: 12.5px; font-variant-numeric: tabular-nums; color: var(--ink); }
+  .clock span { color: var(--muted); }
+  #seis { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  #seis th, #seis td { padding: 2px 6px; border-bottom: 1px solid var(--rule); font-size: 12.5px; text-align: left; vertical-align: middle; }
+  #seis thead th { color: var(--muted); font-weight: 600; font-size: 11.5px; padding-bottom: 3px; }
+  #seis .c-st { width: 132px; } #seis .c-t { width: 98px; } #seis .c-gap { width: 84px; } #seis .c-d { width: 78px; }
+  #seis tbody th { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #seis td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  #seis td.num.strong { font-weight: 700; }
+  #seis tfoot td { border-bottom: 0; padding-top: 0; }
+  .rec { position: relative; height: 52px; user-select: none; -webkit-user-select: none; touch-action: none; }
+  .rec canvas, #axis { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .axiswrap { position: relative; height: 22px; }
+  .rec.measuring { cursor: crosshair; }
+  .hdl { position: absolute; top: -2px; bottom: -2px; width: 20px; margin-left: -10px; cursor: ew-resize; touch-action: none; }
+  .hdl::before { content: ""; position: absolute; left: 9px; top: 0; bottom: 0; width: 2px; background: var(--c); }
+  .hdl b { position: absolute; top: -1px; left: 50%; transform: translateX(-50%); font-size: 10.5px; line-height: 1; padding: 2px 4px; border-radius: 5px; background: var(--c); color: #04121f; font-weight: 800; }
+  .hdl.parked::before { background: repeating-linear-gradient(180deg, var(--c) 0 4px, transparent 4px 7px); }
+  .hdl.parked b { opacity: .8; }
+  .hdl.locked { cursor: default; pointer-events: none; }
+  .hdl:focus-visible { outline: 3px solid #fff; outline-offset: 0; border-radius: 4px; }
+  .prompt { position: absolute; right: 4px; top: 1px; font-size: 11px; color: var(--accent); background: rgba(11, 18, 33, .85); padding: 1px 6px; border-radius: 6px; pointer-events: none; }
+  .stchip { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; background: var(--c); color: #111; font-weight: 800; margin-right: 6px; transition: box-shadow .2s; }
+  .stchip.hit-p { box-shadow: 0 0 0 4px var(--p); }
+  .stchip.hit-s { box-shadow: 0 0 0 4px var(--s); }
+
+  /* labels pinned to points in the 3D view */
+  #chips { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+  .lbl { position: absolute; transform: translate(-50%, -50%); font-size: 12.5px; font-weight: 700; padding: 2px 9px; border-radius: 999px;
+    background: rgba(11, 18, 33, 0.84); border: 1.5px solid var(--c, #fff); color: #fff; white-space: nowrap; box-shadow: 0 4px 14px rgba(0,0,0,.4); transition: box-shadow .2s; }
+  .lbl.small { font-size: 11px; font-weight: 600; padding: 1px 7px; }
+  .lbl.hit-p { box-shadow: 0 0 0 4px var(--p); }
+  .lbl.hit-s { box-shadow: 0 0 0 4px var(--s); }
+  #credit { position: absolute; right: 16px; bottom: calc(var(--dock-h) + 28px); z-index: 4; padding: 6px 12px; border-radius: 12px; font-size: 11.5px; line-height: 1.35; color: #fff; text-align: right; }
+  #credit b { font-weight: 600; }
+
+  dialog { max-width: 720px; width: calc(100% - 32px); max-height: calc(100% - 48px); border: 1px solid var(--glass-edge); border-radius: var(--radius); background: var(--panel); color: var(--ink); padding: 16px 20px; box-shadow: var(--shadow); }
+  dialog::backdrop { background: rgba(2, 6, 16, .6); }
+  dialog h2 { margin: 0 0 6px; font-size: 18px; }
+  dialog h3 { font-size: 14px; margin: 14px 0 4px; }
+  dialog li, dialog p { font-size: 13.5px; }
+  dialog li { margin-bottom: 4px; }
+  dialog table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  dialog th, dialog td { text-align: left; padding: 4px 6px 4px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+
+  @media (max-width: 1360px) { #seis .c-st { width: 112px; } #seis .c-t { width: 88px; } }
+  @media (max-width: 1180px) { #seis .col-t { display: none; } }
+  @media (max-width: 820px) {
+    :root { --card-w: auto; }
+    #card { left: 8px; right: 8px; top: auto; bottom: 8px; width: auto; height: 52%; padding: 8px 12px 8px; }
+    #quakeInfo, .brand { display: none; }
+    h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
+    #status:empty { display: none; }
+    .sec-h { display: none; }
+    .stepper { margin: 6px 0 4px; } .stepper button { height: 26px; font-size: 12px; }
+    #dock { left: 8px; right: 8px; bottom: calc(52% + 14px); padding: 6px 8px 4px; }
+    #seis thead th { font-size: 10px; padding: 0 4px 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .dnote, .play input[type=range] { display: none; }
+    .dnote-short { display: inline; }
+    #seis .c-st { width: 34px; } #seis .c-gap { width: 58px; } #seis .c-d { width: 62px; } .stname { display: none; }
+    .rec { height: 38px; }
+    #credit { bottom: auto; top: 8px; right: 56px; }
+    .lbl { font-size: 11px; padding: 1px 7px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<a class="skip" href="#stepTitle">Skip to the steps</a>
+<div id="app">
+  <main id="mapwrap" aria-label="3D map of the earthquake area. It shows the seismographs, the waves, the distance circles and spheres, and where the earthquake started, depending on the step. The panels give the same information as text and tables.">
+    <arcgis-scene id="scene" viewing-mode="global">
+      <arcgis-zoom slot="top-right"></arcgis-zoom>
+      <arcgis-navigation-toggle slot="top-right"></arcgis-navigation-toggle>
+      <arcgis-compass slot="top-right"></arcgis-compass>
+    </arcgis-scene>
+  </main>
+  <div id="chips" aria-hidden="true"></div>
+
+  <aside id="card" class="glass" aria-label="Explanation and controls">
+    <div class="brand"><span class="kicker">Thinking Spatially</span><span class="sp"></span><span class="labchip">Lab <span id="appVersion"></span></span></div>
+    <h1>Where did the earthquake start?</h1>
+    <div id="status" role="status" aria-live="polite">Loading the 3D map…</div>
+    <div id="announce" class="sr-only" aria-live="polite"></div>
+
+    <section aria-labelledby="hQuake">
+      <h2 class="sec-h" id="hQuake">Earthquake <span class="mv" id="v-events"></span></h2>
+      <div class="quakes" role="group" aria-labelledby="hQuake">
+        <button data-quake="laquila" aria-pressed="true" title="L'Aquila, Italy, 2009">L'Aquila</button>
+        <button data-quake="loma" aria-pressed="false" title="Loma Prieta, California, 1989">Loma Prieta</button>
+        <button data-quake="nisqually" aria-pressed="false" title="Nisqually, Washington, 2001">Nisqually</button>
+        <button data-quake="mystery" aria-pressed="false" title="A made-up earthquake for you to find">Mystery</button>
+      </div>
+      <p class="sub" id="quakeInfo"></p>
+      <div id="mysteryRow" hidden>
+        <label for="mysteryRegion" class="sr-only">Seismographs to use</label>
+        <select id="mysteryRegion">
+          <option value="laquila">Seismographs in central Italy</option>
+          <option value="loma">Seismographs in California</option>
+          <option value="nisqually">Seismographs in Washington</option>
+        </select>
+        <button id="btnNewMystery">New mystery</button>
+      </div>
+    </section>
+
+    <nav aria-label="Steps"><ol class="stepper" id="stepper"></ol></nav>
+
+    <div class="scroll" id="stepScroll">
+      <section aria-labelledby="stepTitle">
+        <p class="stepno"><span id="stepNo"></span><span class="mv" id="stepModel"></span></p>
+        <h2 id="stepTitle" tabindex="-1"></h2>
+        <div id="stepBody"></div>
+      </section>
+    </div>
+    <div class="navrow">
+      <button id="btnBack">◀ Back</button>
+      <button id="btnNext" class="primary">Next ▶</button>
+    </div>
+    <div class="cfoot">
+      <label class="row"><input type="checkbox" id="optLabels" checked /> Labels</label>
+      <label class="row"><input type="checkbox" id="optGround" /> See-through ground</label>
+      <label class="row"><input type="checkbox" id="optStretch" /> Stretch depths ×3</label>
+      <button id="btnAbout">About and versions</button>
+    </div>
+  </aside>
+
+  <section id="dock" class="glass" aria-labelledby="dockTitle">
+    <div class="dhead">
+      <h2 id="dockTitle">Seismograms <span class="mv" id="v-seismo"></span></h2>
+      <span class="dnote">Made by this lab's model, not real recordings. Each line is scaled to fit.</span><span class="dnote-short">Model, not real recordings</span>
+      <div class="play" id="playCtl" hidden>
+        <button id="btnPlay" class="primary">▶ Play</button>
+        <button id="btnReplay" aria-label="Start the waves again">↺ Again</button>
+        <div class="seg" role="group" aria-label="Speed">
+          <button data-speed="0.5" aria-pressed="false">½×</button><button data-speed="1" aria-pressed="true">1×</button><button data-speed="2" aria-pressed="false">2×</button>
+        </div>
+        <label class="sr-only" for="timeSlider">Time</label>
+        <input type="range" id="timeSlider" min="0" max="1" step="0.05" value="0" />
+      </div>
+      <div class="clock" id="clock"></div>
+    </div>
+    <table id="seis">
+      <caption class="sr-only">Seismograph readings: when each wave arrived, the gap between them, and the distance worked out from the gap</caption>
+      <thead><tr>
+        <th scope="col" class="c-st">Seismograph</th><th scope="col">Recording (time runs left to right)</th>
+        <th scope="col" class="c-t col-t">P-wave arrives</th><th scope="col" class="c-t col-t">S-wave arrives</th><th scope="col" class="c-gap">Gap (S − P)</th><th scope="col" class="c-d">Distance</th>
+      </tr></thead>
+      <tbody id="seisRows"></tbody>
+      <tfoot><tr><td></td><td><div class="axiswrap"><canvas id="axis" aria-hidden="true"></canvas></div></td><td colspan="2" class="sub col-t">Clock time (UTC)</td><td colspan="2"></td></tr></tfoot>
+    </table>
+  </section>
+
+  <div id="credit" class="glass"><b>Created by Jason Sawle</b></div>
+</div>
+
+<dialog id="about" aria-labelledby="aboutTitle">
+  <h2 id="aboutTitle">About Earthquake Location Lab</h2>
+  <p class="sub">Shows how scientists work out where an earthquake started (its epicentre and depth) and when, from the gap between the P-wave and the S-wave at three seismographs: first circles on the map, then spheres underground. Uses ArcGIS 3D (global scene, meshes and 3D lines).</p>
+  <table>
+    <caption class="sr-only">Versions</caption>
+    <thead><tr><th scope="col">Part</th><th scope="col">Version</th><th scope="col">What it does</th></tr></thead>
+    <tbody id="versionTable"></tbody>
+  </table>
+  <h3>What is simplified</h3>
+  <ul>
+    <li>The seismograms are made by the model from the real earthquake's position and time, not recorded. Real ones are messier, and the start of each wave can be hard to spot.</li>
+    <li>Waves travel in straight lines at one speed each. In the real Earth deeper rock is usually faster, so the paths bend; seismologists use travel-time tables built from many earthquakes.</li>
+    <li>The seismographs are placed at the centres of real towns. Real networks have many more seismographs, at other sites.</li>
+    <li>Three seismographs are the fewest that can pin down an earthquake this way. With more, a computer finds the place that fits them all best.</li>
+  </ul>
+  <h3>Some ways it could be used</h3>
+  <ul>
+    <li>Stepping through it together on a big screen (Page Down and Page Up also move between steps, so a presentation clicker works).</li>
+    <li>Students measuring the gaps themselves in step 4, then seeing how small reading mistakes move the answer, especially the depth of a shallow earthquake such as L'Aquila.</li>
+    <li>The mystery earthquake as a challenge: nobody sees where it is until step 10.</li>
+    <li>Comparing the three real earthquakes: the deeper the start, the more the circles overlap.</li>
+  </ul>
+  <p class="sub">Links to a step: add <code>?quake=loma&amp;step=8</code> to the address (quake can be laquila, loma, nisqually or mystery).</p>
+  <h3>Data sources</h3>
+  <ul>
+    <li>Earthquakes: USGS earthquake catalogue (time, epicentre, depth, magnitude). L'Aquila 2009: event usp000gvtu (location by INGV). Loma Prieta 1989: nc216859. Nisqually 2001: uw10530748.</li>
+    <li>Background facts: Wikipedia, "2009 L'Aquila earthquake", "1989 Loma Prieta earthquake", "2001 Nisqually earthquake".</li>
+    <li>Town positions for the seismographs: Wikipedia (Rieti, Teramo, Avezzano; San Jose, Hollister, Santa Cruz; Olympia, Bremerton, Eatonville).</li>
+    <li>Method: the S − P method as taught in school activities, for example Oregon State University CEETEP, "Earthquake location", and University of Bergen SEIS-SCHOOL, "Earthquake location".</li>
+    <li>Basemap: Esri World Imagery with World Boundaries and Places; Esri world elevation.</li>
+  </ul>
+  <button id="btnAboutClose">Close</button>
+</dialog>
+
+<script type="module">
+import * as E from "./earthquake-location-engine.js";
+
+// ================= Versions (single source of truth) =================
+// Bump a model's number whenever its maths or data handling changes, and bump the app version on every release.
+const APP_VERSION = "0.1.0";
+const MODELS = {
+  events:  { name: "Earthquakes", version: "1.0", desc: "Three real earthquakes from the USGS catalogue (time, epicentre, depth, magnitude): L'Aquila 2009 (usp000gvtu), Loma Prieta 1989 (nc216859), Nisqually 2001 (uw10530748). Seismographs placed at the centres of three nearby towns for each (Wikipedia coordinates)." },
+  waves:   { name: "Wave model", version: "1.0", desc: "Waves travel in straight lines at steady speeds: P-waves 6.0 km/s, S-waves 3.5 km/s, so each second of S − P gap means 8.4 km (1 ÷ (1/3.5 − 1/6)). Distances are in a flat local frame centred on the epicentre (km east and north; within 1% of the curved Earth here). Wave fronts are drawn as the underground part of growing spheres; the line on the ground is where each front reaches the surface." },
+  seismo:  { name: "Seismogram model", version: "1.0", desc: "One combined trace of the shaking per seismograph (real seismographs record up–down and two side-to-side directions; seismologists usually pick the P-wave on the up–down record and the S-wave on a side-to-side one), 100 samples a second, made by the model rather than recorded: faint background noise; at the P arrival small, fast wobbles (4.5–8 a second) that die away; at the S arrival wobbles about three times bigger and slower (1.8–3.6 a second) that die away more slowly. Each trace is scaled so its biggest wobble fills the row, so sizes can't be compared between seismographs. The same earthquake always gives the same traces. Times are read to 0.01 s." },
+  locate:  { name: "Location model", version: "1.0", desc: "Distance = gap × 8.4 km. Map: a circle of that radius round each seismograph. Underground: a sphere of that radius. Epicentre: where the straight lines through each pair of circles' crossing points meet (with three seismographs they always meet at one point; with more, the best fit by least squares). Depth: √(distance² − distance across the map²), the same for all three seismographs (0 if the spheres don't reach each other underground). Start time: each P arrival minus distance ÷ 6 km/s, averaged. 'Stretch depths ×3' draws everything underground three times deeper; labels give true depths." },
+  mystery: { name: "Mystery earthquake", version: "1.0", desc: "A random hypocentre inside the triangle of the chosen seismographs (pulled 40% towards its middle so it is not right on an edge), 5–60 km deep in whole km, starting about 2 minutes before it was made. Arrival times and seismograms come from the wave and seismogram models." }
+};
+const $ = (id) => document.getElementById(id);
+$("appVersion").textContent = "v" + APP_VERSION;
+$("v-events").textContent = `${MODELS.events.name} v${MODELS.events.version}`;
+$("v-seismo").textContent = `${MODELS.seismo.name} v${MODELS.seismo.version}`;
+$("versionTable").innerHTML = `<tr><td>App</td><td>${APP_VERSION}</td><td>Whole app</td></tr>` +
+  Object.values(MODELS).map(m => `<tr><td>${m.name}</td><td>${m.version}</td><td>${m.desc}</td></tr>`).join("");
+const about = $("about");
+$("btnAbout").addEventListener("click", () => about.showModal());
+$("btnAboutClose").addEventListener("click", () => about.close());
+const setStatus = (msg) => { $("status").textContent = msg; };
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+// ================= the earthquakes =================
+const COLORS = { P: "#56b4e9", S: "#ff8c42", hypo: "#ff4d4d", st: ["#ffd84d", "#c084fc", "#2dd4bf"] };
+const EVENTS = {
+  laquila: {
+    name: "L'Aquila", place: "L'Aquila, Italy", info: "Central Italy · 6 April 2009 · magnitude 6.3", usgs: "usp000gvtu", time: "2009-04-06T01:32:39.000Z", lon: 13.334, lat: 42.334, depth: 8.8, mag: "6.3",
+    intro: "Abruzzo, central Italy, 6 April 2009, at 3:32 in the morning local time (01:32 UTC, the time the seismograph clocks use). Magnitude 6.3. It badly damaged the old city of L'Aquila, and 308 people died.",
+    towns: "Rieti, Teramo and Avezzano", heading: 20,
+    stations: [{ name: "Rieti", lon: 12.867, lat: 42.400 }, { name: "Teramo", lon: 13.702167, lat: 42.659109 }, { name: "Avezzano", lon: 13.43972, lat: 42.04111 }]
+  },
+  loma: {
+    name: "Loma Prieta", place: "Loma Prieta, California", info: "California · 17 October 1989 · magnitude 6.9", usgs: "nc216859", time: "1989-10-18T00:04:15.190Z", lon: -121.8798333, lat: 37.0361667, depth: 17.214, mag: "6.9",
+    intro: "Santa Cruz Mountains, California, 17 October 1989, at 5:04 in the evening local time (00:04 UTC on 18 October, the time the seismograph clocks use), just before a World Series baseball game in San Francisco. Magnitude 6.9. 63 people died.",
+    towns: "San Jose, Hollister and Santa Cruz", heading: 15,
+    stations: [{ name: "San Jose", lon: -121.89056, lat: 37.33611 }, { name: "Hollister", lon: -121.40167, lat: 36.85250 }, { name: "Santa Cruz", lon: -122.02639, lat: 36.97194 }]
+  },
+  nisqually: {
+    name: "Nisqually", place: "Nisqually, Washington", info: "Washington · 28 February 2001 · magnitude 6.8", usgs: "uw10530748", time: "2001-02-28T18:54:32.830Z", lon: -122.7266667, lat: 47.149, depth: 51.798, mag: "6.8",
+    intro: "Near Olympia, Washington, 28 February 2001, at 10:54 in the morning local time (18:54 UTC, the time the seismograph clocks use). Magnitude 6.8. It started inside the Juan de Fuca plate, which is sinking under North America. About 400 people were hurt.",
+    towns: "Olympia, Bremerton and Eatonville", heading: 10,
+    depthNote: " For Nisqually, the USGS catalogue gives 52 km; other published estimates give 57 km.",
+    stations: [{ name: "Olympia", lon: -122.90083, lat: 47.03778 }, { name: "Bremerton", lon: -122.74444, lat: 47.53889 }, { name: "Eatonville", lon: -122.26806, lat: 46.87389 }]
+  }
+};
+const FS = 100; // samples a second
+
+// ================= state =================
+const ST = { quake: "laquila", region: "laquila", step: 1, measure: false, picks: [{}, {}, {}], t: 0, playing: false, speed: 1, stretch: 1, labels: true, ground: false, explore: 30 };
+let EV = null;
+const visited = new Set([1]);
+
+function buildEvent(id) {
+  const real = id !== "mystery";
+  const base = EVENTS[real ? id : ST.region];
+  const F = E.makeFrame(base.lon, base.lat);
+  const stations = base.stations.map((s, i) => { const [x, y] = F.toXY(s.lon, s.lat); return { ...s, x, y, letter: "ABC"[i], color: COLORS.st[i] }; });
+  let hypo, originMs, pre;
+  if (real) { hypo = { x: 0, y: 0, depth: base.depth }; originMs = Date.parse(base.time); pre = 3; }
+  else { hypo = E.mystery(stations); originMs = Math.round((Date.now() - 120000) / 10) * 10; pre = 2 + Math.random() * 4; }
+  const ll = F.toLL(hypo.x, hypo.y); hypo.lon = ll.longitude; hypo.lat = ll.latitude;
+  const arr = E.arrivals(stations, hypo);
+  const t0 = -pre, t1 = Math.ceil(Math.max(...arr.map(a => a.tS)) + 10);
+  const seed = real ? E.hashStr(id) : (Math.random() * 4294967296) >>> 0;
+  const traces = arr.map((a, i) => E.seismogram({ seed: seed + i * 7919, tP: a.tP, tS: a.tS, t0, t1, fs: FS }));
+  const span = Math.max(...stations.map(s => Math.hypot(s.x - hypo.x, s.y - hypo.y)));
+  return { id, real, base, F, stations, hypo, originMs, arr, t0, t1, traces, span };
+}
+
+// ---------- the readings: exact ("Show me") or the student's marks ----------
+const r2 = (v) => Math.round(v * 100) / 100; // times read to 0.01 s
+function readings() {
+  return EV.stations.map((s, i) => {
+    let p, sT;
+    if (!ST.measure) { p = r2(EV.arr[i].tP); sT = r2(EV.arr[i].tS); }
+    else { const k = ST.picks[i] || {}; p = k.p ?? null; sT = k.s ?? null; }
+    const gap = p != null && sT != null ? r2(sT - p) : null;
+    const km = gap != null && gap > 0 ? gap * E.KM_PER_S : null;
+    return { p, s: sT, gap, km };
+  });
+}
+function solution() {
+  const R = readings();
+  if (R.some(r => r.km == null)) return null;
+  const circles = EV.stations.map((s, i) => ({ x: s.x, y: s.y, r: R[i].km }));
+  const L = E.locate(circles);
+  if (!L) return null;
+  const ll = EV.F.toLL(L.x, L.y);
+  const cs = E.crossingSpread(circles, L);
+  const meanR = circles.reduce((a, c) => a + c.r, 0) / circles.length;
+  const origin = R.reduce((a, r) => a + E.originFrom(r.p, r.km), 0) / R.length; // s after the true start
+  // h2 < 0: the circles are too small to share a middle (the readings disagree); a big h2 (depth²) makes them overlap
+  return { ...L, lon: ll.longitude, lat: ll.latitude, circles, spread: cs.spread, missing: cs.missing, gapMid: L.h2 < 0, overlap: L.h2 > (0.3 * meanR) ** 2, origin, R };
+}
+
+// ---------- formatting ----------
+const pad = (n, w = 2) => String(n).padStart(w, "0");
+function clock(ms, dec = 2) {
+  const unit = 10 ** dec, total = Math.round(ms / 1000 * unit), secs = Math.floor(total / unit), d = new Date(secs * 1000);
+  return `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}${dec ? "." + pad(total - secs * unit, dec) : ""}`;
+}
+const clk = (t, dec = 2) => clock(EV.originMs + t * 1000, dec);
+const f1 = (n) => (Math.round(n * 10) / 10).toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const f2 = (n) => n.toFixed(2);
+const latlon = (lat, lon) => `${Math.abs(lat).toFixed(3)}° ${lat >= 0 ? "N" : "S"}, ${Math.abs(lon).toFixed(3)}° ${lon >= 0 ? "E" : "W"}`;
+const stc = (s) => `<span class="stc" style="--c:${s.color}">${s.letter}</span>`;
+
+// ================= the steps =================
+// view: "side" (looking underground from the side) or "map" (looking down). truth: show where it really started.
+// circles: how many distance circles to draw. waves: animate the wave fronts. marks: show the P and S marks on the seismograms.
+const STEPS = [
+  { title: (m) => m ? "A mystery earthquake" : "Where did it start?", view: "side", truth: true, ground: true, model: "events" },
+  { title: (m) => m ? "The waves arrive" : "Two waves race outwards", view: "side", truth: true, ground: true, waves: true, play: true, model: "waves" },
+  { title: () => "Read the seismograms", view: "map", model: "seismo" },
+  { title: () => "Measure the gap: S − P", view: "map", marks: true, model: "seismo" },
+  { title: () => "Turn the gap into a distance", view: "map", marks: true, dist: true, model: "waves" },
+  { title: () => "One seismograph: a circle", view: "map", marks: true, dist: true, circles: 1, model: "locate" },
+  { title: () => "Two seismographs: two places", view: "map", marks: true, dist: true, circles: 2, model: "locate" },
+  { title: () => "Three seismographs: the epicentre", view: "map", marks: true, dist: true, circles: 3, found: "epi", model: "locate" },
+  { title: () => "How deep? Circles become balls", view: "side", ground: true, marks: true, dist: true, circles: 3, found: "hypo", bowls: true, model: "locate" },
+  { title: (m) => m ? "Reveal the answer" : "Check the answer", view: "side", ground: true, marks: true, dist: true, circles: 3, found: "hypo", truth: true, model: "locate" },
+  { title: () => "How scientists do it today", view: "map", marks: true, dist: true, truth: true, model: "events" }
+];
+const N = STEPS.length;
+const truthShown = (cfg) => cfg.truth && (EV.real || ST.step >= 10);
+
+$("stepper").innerHTML = STEPS.map((s, i) => `<li><button data-step="${i + 1}"></button></li>`).join("");
+function renderStepper() {
+  const m = !EV.real;
+  document.querySelectorAll("#stepper button").forEach((b, i) => {
+    const n = i + 1, t = STEPS[i].title(m);
+    b.textContent = n; b.title = `Step ${n}: ${t}`; b.setAttribute("aria-label", `Step ${n}: ${t}`);
+    if (n === ST.step) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current");
+    b.classList.toggle("done", visited.has(n) && n !== ST.step);
+  });
+}
+$("stepper").addEventListener("click", (e) => { const b = e.target.closest("button[data-step]"); if (b) go(+b.dataset.step); });
+
+function think(q) { return q ? `<p class="think"><b>Think:</b> ${q}</p>` : ""; }
+function keyRows(rows) { return `<div class="key" aria-label="Key">${rows.map(([sw, t]) => `${sw}<span>${t}</span>`).join("")}</div>`; }
+const SW = {
+  hypo: `<i class="sw dot" style="background:var(--hypo)"></i>`, epi: `<i class="sw ring"></i>`,
+  st: () => EV.stations.map(s => `<i class="sw tri" style="--c:${s.color}"></i>`).join(""),
+  p: `<i class="sw line" style="background:var(--p)"></i>`, s: `<i class="sw line" style="background:var(--s)"></i>`,
+  circ: (s) => `<i class="sw circ" style="--c:${s.color}"></i>`, found: `<i class="sw cross"></i>`,
+  foundDot: `<i class="sw dot" style="background:#fff;box-shadow:0 0 0 2px #000"></i>`, meet: `<i class="sw line" style="background:#fff"></i>`,
+  chord: `<i class="sw dash" style="--c:#fff"></i>`
+};
+const stationsKey = () => [`<span style="display:flex;gap:2px">${SW.st()}</span>`, `Seismographs ${EV.stations.map(s => `${s.letter} (${esc(s.name)})`).join(", ")}`];
+function missingNote(R) {
+  const miss = EV.stations.filter((s, i) => R[i].km == null);
+  if (!miss.length) return "";
+  return `<p class="note">${miss.map(s => stc(s)).join("")} ${miss.length === 1 ? "This gap hasn't" : "These gaps haven't"} been measured yet. Go back to step 4 and place both marks, or choose <b>Show me</b> there.</p>`;
+}
+const usingYours = () => ST.measure ? `<p class="sub">Using your measurements from step 4.</p>` : "";
+
+function stepHTML() {
+  const m = !EV.real, b = EV.base, R = readings(), S = EV.stations, sol = solution();
+  const dep = EV.hypo.depth;
+  switch (ST.step) {
+    case 1: return m
+      ? `<p>An earthquake has just happened somewhere near ${esc(b.towns)}. Nobody knows yet where it started, how deep, or exactly when.</p>
+         <p>The place underground where the rock broke is the <b>hypocentre</b> (or focus). The point on the surface straight above it is the <b>epicentre</b>.</p>
+         <p>All you have are three <b>seismographs</b> (the triangles). Work through the steps to find the epicentre, the depth and the start time. Then see how close you got.</p>
+         ${keyRows([stationsKey()])}${think("What clues could the seismographs give you?")}`
+      : `<p>${esc(b.intro)}</p>
+         <p>An earthquake starts when rock underground suddenly breaks and slips. The place where it starts is the <b>hypocentre</b> (or focus). The point on the surface straight above it is the <b>epicentre</b>.</p>
+         <p>Here the rock broke <b>${f1(dep)} km</b> below the surface.</p>
+         <p>Nobody can see that far underground. Scientists work out where an earthquake started from its waves, recorded by <b>seismographs</b> (the triangles). This lab shows how, using three.</p>
+         ${keyRows([[SW.hypo, "Hypocentre: where the rock broke"], [SW.epi, "Epicentre: on the surface above it"], stationsKey()])}
+         ${think("What would you need to know to find where it started?")}`;
+    case 2: return `<p>The breaking rock ${m ? "sent" : "sends"} waves out in every direction, like a ball growing bigger and bigger. Two kinds matter here:</p>
+         <ul><li><b style="color:var(--p)">P-waves</b> (primary) squash and stretch the rock. They are faster: about <b>${E.VP} km every second</b>.</li>
+         <li><b style="color:var(--s)">S-waves</b> (secondary) shake the rock sideways, across the way they travel. They are slower: about <b>${E.VS} km every second</b>.</li></ul>
+         <p>Both set off at the same moment, but the P-wave pulls ahead. The further they go, the bigger the gap between them. It's like lightning and thunder: the longer you wait for the thunder, the further away the storm.</p>
+         <p>${m ? "You can't see where the waves came from, only when they reach each seismograph. " : ""}Press <b>Play</b> above the seismograms to watch${reduceMotion ? "" : " again"}. Each recording draws as the waves arrive.</p>
+         ${m ? "" : keyRows([[SW.p, "P-wave front (a growing ball underground; the line on the ground is where it reaches the surface)"], [SW.s, "S-wave front"], [SW.hypo, "Hypocentre"]])}
+         ${think("Which seismograph do the waves reach first? Why?")}`;
+    case 3: return `<p>Each seismograph draws a line that wobbles when the ground shakes. Read each line from left to right:</p>
+         <ol><li>A nearly flat line: the waves haven't arrived yet.</li><li>Small, fast wobbles: the <b style="color:var(--p)">P-wave</b> arrives.</li><li>Bigger, slower wobbles: the <b style="color:var(--s)">S-wave</b> arrives.</li></ol>
+         ${m ? "" : `<p><b>From now on, imagine you don't know where the earthquake was.</b> The recordings are all you have.</p>`}
+         <p>The clock shows when each wave arrived, but not when the rock broke, so you can't tell how long the waves took to travel. What you can measure is the <b>gap</b> between the P-wave and the S-wave.</p>
+         ${think("Which seismograph has the shortest gap between the two waves? What does that tell you?")}`;
+    case 4: {
+      const seg = `<div class="seg" role="group" aria-label="How to measure"><button id="mAuto" aria-pressed="${!ST.measure}">Show me</button><button id="mYou" aria-pressed="${ST.measure}">Measure it yourself</button></div>`;
+      if (!ST.measure) return `${seg}<p style="margin-top:10px">The gap is the time from the start of the P-wave to the start of the S-wave: <b>gap = S − P</b>.</p>
+         <p>The marks on each recording show where each wave starts, and the table beside them works out each gap.</p>
+         <p>Seismograph ${stc(S[0])} ${esc(S[0].name)}: ${clk(R[0].s)} − ${clk(R[0].p)} = <b>${f2(R[0].gap)} s</b>.</p>
+         ${think("Why is the gap more useful than the arrival time on its own?")}`;
+      return `${seg}<p style="margin-top:10px">On each recording, <b>click where the P-wave starts</b> (the first wobbles), then <b>where the S-wave starts</b> (the bigger wobbles). Drag a mark to move it.</p>
+         <p class="sub">With a keyboard: Tab to a mark, then use ← and → to move it 0.1 s (Shift or Page Up/Down for 1 s).</p>
+         <p>The table works out each <b>gap = S − P</b>.</p>
+         <div class="btnrow"><button id="btnCheck">Check my marks</button><button id="btnClear">Clear my marks</button></div>
+         <ul class="fb" id="feedback" aria-live="polite"></ul>
+         ${think("Why is the gap more useful than the arrival time on its own?")}`;
+    }
+    case 5: {
+      const i0 = R.findIndex(r => r.km != null);
+      return `<p>For every ${E.KM_PER_S.toFixed(1)} km the waves travel, the S-wave falls another second behind the P-wave. So:</p>
+         <p class="formula">distance = gap × ${E.KM_PER_S.toFixed(1)} km</p>
+         ${i0 >= 0 ? `<p>Seismograph ${stc(S[i0])} ${esc(S[i0].name)}: ${f2(R[i0].gap)} s × ${E.KM_PER_S.toFixed(1)} = <b>${f1(R[i0].km)} km</b>.</p>` : ""}
+         <p>The graph shows the same idea. The gap is the space between the P line and the S line, and it grows with distance. Each seismograph's gap fits between the lines at just one distance.</p>
+         <div class="chart" id="chart"></div>
+         <div class="explore"><label for="exploreKm">Try a distance</label><input type="range" id="exploreKm" min="0" max="100" step="1" value="${ST.explore}" /><output id="exploreOut" for="exploreKm"></output></div>
+         ${missingNote(R)}${usingYours()}
+         <p class="sub">Many books round ${E.KM_PER_S.toFixed(1)} to 8. Real wave speeds depend on the rock, so seismologists use graphs and tables made from many past earthquakes.</p>
+         ${think("If the gap were twice as long, how far away would the earthquake be?")}`;
+    }
+    case 6: return R[0].km == null ? missingNote(R) : `<p>Seismograph ${stc(S[0])} ${esc(S[0].name)} knows the earthquake started <b>${f1(R[0].km)} km</b> away, but not in which direction. So it could be anywhere on a circle ${f1(R[0].km)} km around ${S[0].letter}.</p>
+         <p class="sub">For now, imagine the earthquake started right at the surface. Step 9 adds the depth.</p>
+         ${usingYours()}${keyRows([[SW.circ(S[0]), `Every place ${f1(R[0].km)} km from ${S[0].letter}`]])}${think("How could you narrow it down?")}`;
+    case 7: {
+      if (R[0].km == null || R[1].km == null) return missingNote(R);
+      const x = E.circleCross({ x: S[0].x, y: S[0].y, r: R[0].km }, { x: S[1].x, y: S[1].y, r: R[1].km });
+      return `<p>Add seismograph ${stc(S[1])} ${esc(S[1].name)}'s circle (${f1(R[1].km)} km). The earthquake must be on both circles, so it can only be where they cross.</p>
+         ${x.length === 2 ? `<p>That leaves just <b>two possible places</b> (the question marks).</p>` : x.length === 1 ? `<p>They just touch, at one place.</p>` : `<p class="note">These two circles don't cross. One of the gaps must be a little out: go back to step 4 and check the marks.</p>`}
+         ${usingYours()}${keyRows([[SW.circ(S[0]), `${f1(R[0].km)} km from ${S[0].letter}`], [SW.circ(S[1]), `${f1(R[1].km)} km from ${S[1].letter}`]])}
+         ${think("What extra information would help you choose between the two places?")}`;
+    }
+    case 8: {
+      if (!sol) return missingNote(R);
+      const tri = `<p>Finding a place from its distances to three points like this is usually called <b>triangulation</b>. (Mathematicians call it <i>trilateration</i>, because it uses distances rather than angles.)</p>`;
+      const chords = sol.overlap || sol.gapMid;
+      const keys = keyRows([...S.map((s, i) => [SW.circ(s), `${f1(R[i].km)} km from ${s.letter}`]), ...(chords ? [[SW.chord, "Lines through each pair's crossing points"]] : []), [SW.found, "Epicentre found"]]);
+      const bad = sol.missing ? `<p class="note">Some of the circles don't cross at all, so the readings don't agree. Go back to step 4 to check the marks.</p>` : "";
+      if (sol.gapMid || sol.missing) return `<p>Add seismograph ${stc(S[2])} ${esc(S[2].name)}'s circle (${f1(R[2].km)} km). ${sol.missing ? "Some of the circles don't even cross each other" : "The three circles don't all reach the middle"}, so the readings don't quite agree: real circles always meet at one point or overlap.</p>
+         <p>${sol.missing ? "The best guess for the epicentre is marked" : "The straight lines through each pair's crossing points (dashed) still meet at one point, used here as the best guess for the epicentre"}: ${latlon(sol.lat, sol.lon)}. Check the marks in step 4 to make the circles meet.</p>${tri}${usingYours()}${keys}${think("What might have gone wrong with the measurements?")}`;
+      if (!sol.overlap) return `<p>Add seismograph ${stc(S[2])} ${esc(S[2].name)}'s circle (${f1(R[2].km)} km). All three circles cross at (almost) one point. That's the <b>epicentre</b>: ${latlon(sol.lat, sol.lon)}.</p>${bad}${tri}${usingYours()}${keys}${think("Why do you need at least three seismographs?")}`;
+      return `<p>Add seismograph ${stc(S[2])} ${esc(S[2].name)}'s circle (${f1(R[2].km)} km). This time the circles <b>overlap</b> instead of crossing at one point. That's a clue: the earthquake started a long way down (see the next step).</p>
+         <p>To find the epicentre, draw a straight line through the two crossing points of each pair of circles (dashed). The three lines meet at the <b>epicentre</b>: ${latlon(sol.lat, sol.lon)}.</p>${bad}${tri}${usingYours()}${keys}${think("Why do you need at least three seismographs?")}`;
+    }
+    case 9: {
+      if (!sol) return missingNote(R);
+      const d = sol.depth;
+      return `<p>Each distance is a straight line through the ground to where the rock broke, in any direction: down as well as across. So the hypocentre is somewhere on a <b>ball</b> (a sphere) around each seismograph. The circles on the map are just where the balls meet the surface.</p>
+         ${sol.h2 > 0 ? `<p>Underground, the three balls meet at one point, where the white lines meet: the <b>hypocentre</b>, <b>${f1(d)} km</b> down.</p>` : `<p class="note">The three balls don't quite reach each other underground, so the readings disagree. The best guess is right at the surface (0 km). Check the marks in step 4.</p>`}
+         ${sol.gapMid ? "" : sol.overlap ? `<p>That's why the circles on the map overlapped: the rock broke a long way down compared with the distances to the seismographs, so each distance was longer than the distance across the map.</p>` : `<p>The rock broke only a little way down compared with the distances to the seismographs, which is why the circles on the map crossed at almost one point.</p>`}
+         <p class="sub">The balls also meet at a point the same distance up in the sky. Earthquakes don't start in the air, so the underground point is the answer.${ST.stretch === 1 ? " Tick <b>Stretch depths ×3</b> to see the depths more clearly." : ""}</p>
+         ${usingYours()}${keyRows([[`<span style="display:flex;gap:2px">${S.map(s => SW.circ(s)).join("")}</span>`, "Underground half of each ball"], [SW.meet, "Where two balls meet"], [SW.foundDot, "Hypocentre found"]])}
+         ${think("If the rock had broken right at the surface, how would the circles look?")}`;
+    }
+    case 10: {
+      if (!sol) return missingNote(R);
+      const off = Math.hypot(sol.x - EV.hypo.x, sol.y - EV.hypo.y), dz = sol.depth - EV.hypo.depth;
+      const who = m ? "Mystery earthquake" : "USGS";
+      const rows = `<table class="cmp"><caption class="sr-only">Found compared with ${who}</caption><thead><tr><th scope="col"></th><th scope="col">Found</th><th scope="col">${who}</th></tr></thead><tbody>
+        <tr><th scope="row">Epicentre</th><td>${latlon(sol.lat, sol.lon).replace(", ", "<br>")}</td><td>${latlon(EV.hypo.lat, EV.hypo.lon).replace(", ", "<br>")}</td></tr>
+        <tr><th scope="row">Depth</th><td>${f1(sol.depth)} km</td><td>${f1(EV.hypo.depth)} km</td></tr>
+        <tr><th scope="row">Started at (UTC)</th><td>${clk(sol.origin, 1)}</td><td>${clk(0, 1)}</td></tr></tbody></table>`;
+      const exact = !ST.measure;
+      const t0A = `<p><b>When did it start?</b> The P-wave reached ${stc(S[0])} ${esc(S[0].name)} at ${clk(R[0].p)}. It had travelled ${f1(R[0].km)} km at ${E.VP} km a second, which takes ${f2(R[0].km / E.VP)} s. So the rock broke at about <b>${clk(R[0].p - R[0].km / E.VP, 1)}</b>. (The table averages all three seismographs.)</p>`;
+      const shallowish = EV.hypo.depth < 0.3 * EV.span;
+      const score = `<p>Your epicentre is <b>${f1(off)} km</b> from ${m ? "the real one" : "the USGS one"}, and your depth is <b>${f1(Math.abs(dz))} km ${dz >= 0 ? "too deep" : "too shallow"}</b>.` +
+        (shallowish ? ` When an earthquake starts close to the surface compared with the distances to the seismographs, depth is the hardest part to get right: a small slip in a mark moves it a long way.` : ` This earthquake started a long way down compared with the distances to the seismographs, which helps pin down its depth.`) + `</p>`;
+      return `<p>${m ? "Here is where the mystery earthquake really started" : "The red dot and ring show where the USGS (United States Geological Survey) says this earthquake started"}. The white ones are what you found.</p>${rows}
+         ${exact ? `<p class="good">They agree to within ${f1(Math.max(0.1, off, Math.abs(dz)))} km. This lab made the recordings from ${m ? "the mystery" : "the USGS"} location using the same wave speeds, so the only difference comes from reading the times to the nearest hundredth of a second. Real readings are rarely that exact, and real wave speeds vary. Choose <b>Measure it yourself</b> in step 4 and see how far small mistakes move the answer.</p>` : score}
+         ${t0A}
+         ${m ? `<div class="btnrow"><button id="btnAgain" class="primary">New mystery earthquake</button></div>` : ""}
+         ${keyRows([[SW.hypo, `Hypocentre (${who})`], [SW.foundDot, "Hypocentre found"]])}`;
+    }
+    case 11: return `<ul>
+         <li><b>Many more seismographs.</b> Real networks use dozens or hundreds, not three. A computer finds the place, depth and start time that fit all the arrival times best.</li>
+         <li><b>Waves don't travel at one speed.</b> Deeper rock is usually faster, so the waves' paths bend. Seismologists use travel-time tables worked out from many past earthquakes.</li>
+         <li><b>Depth is the hardest part.</b> It is pinned down best when a seismograph is close to the epicentre, and different organisations often give slightly different depths.${!m && b.depthNote ? b.depthNote : ""}</li>
+         <li><b>It's fast.</b> Computers now locate large earthquakes within minutes.</li></ul>
+         <p>Find out more:</p><ul>
+         ${m ? "" : `<li><a href="https://earthquake.usgs.gov/earthquakes/eventpage/${b.usgs}" target="_blank" rel="noopener">USGS page for the ${esc(b.name)} earthquake</a></li>`}
+         <li><a href="earth-structure-lab.html">Earth Structure Lab</a>: how seismic waves travel through the whole Earth.</li>
+         <li><a href="subduction-lab.html">Subduction Zones Lab</a>: why some earthquakes start deep inside sinking plates.</li></ul>`;
+  }
+  return "";
+}
+
+function renderStep() {
+  const cfg = STEPS[ST.step - 1];
+  $("stepNo").textContent = `Step ${ST.step} of ${N}`;
+  const md = MODELS[cfg.model]; $("stepModel").textContent = md ? `${md.name} v${md.version}` : "";
+  $("stepTitle").textContent = cfg.title(!EV.real);
+  $("stepBody").innerHTML = stepHTML();
+  $("btnBack").disabled = ST.step === 1;
+  $("btnNext").disabled = ST.step === N;
+  renderStepper();
+  wireStep();
+}
+function wireStep() {
+  const on = (id, ev, fn) => { const el = $(id); if (el) el.addEventListener(ev, fn); };
+  on("mAuto", "click", () => setMeasure(false));
+  on("mYou", "click", () => setMeasure(true));
+  on("btnCheck", "click", checkMarks);
+  on("btnClear", "click", () => { ST.picks = [[], [], []].map(() => ({})); refreshReadings(); $("feedback").innerHTML = ""; setStatus("Marks cleared."); });
+  on("btnAgain", "click", newMystery);
+  if ($("chart")) renderChart();
+}
+
+// ---------- step 4: measuring ----------
+function setMeasure(on) {
+  ST.measure = on;
+  if (on && !ST.picks.some(k => k && (k.p != null || k.s != null))) ST.picks = [{}, {}, {}];
+  renderStep(); renderDock(); drawScene();
+  setStatus(on ? "Click where each wave starts on the recordings." : "Showing the exact marks.");
+  $(on ? "mYou" : "mAuto")?.focus();
+}
+function checkMarks() {
+  const out = EV.stations.map((s, i) => {
+    const k = ST.picks[i] || {}, a = EV.arr[i];
+    const one = (v, truth, w) => {
+      if (v == null) return `${w}: not placed yet`;
+      const d = v - truth;
+      if (Math.abs(d) <= 0.2) return `${w} ✓ spot on`;
+      if (Math.abs(d) <= 0.6) return `${w} close (a little ${d > 0 ? "late" : "early"})`;
+      return `${w}: look again, the ${w}-wave starts ${d > 0 ? "earlier" : "later"}`;
+    };
+    return `<li>${stc(s)} ${esc(s.name)}: ${one(k.p, a.tP, "P")} · ${one(k.s, a.tS, "S")}</li>`;
+  });
+  $("feedback").innerHTML = out.join("");
+}
+
+// ================= the seismogram dock =================
+const rowsEl = $("seisRows");
+let recs = []; // per station: { wrap, canvas, hP, hS, prompt, cells }
+function buildDock() {
+  rowsEl.innerHTML = EV.stations.map((s, i) => `<tr data-i="${i}">
+      <th scope="row"><span class="stchip" id="stchip${i}" style="--c:${s.color}">${s.letter}</span><span class="stname">${esc(s.name)}</span></th>
+      <td><div class="rec" id="rec${i}"><canvas role="img" id="cv${i}"></canvas>
+        <div class="hdl" id="hP${i}" style="--c:${COLORS.P}" role="slider" aria-orientation="horizontal"><b>P</b></div>
+        <div class="hdl" id="hS${i}" style="--c:${COLORS.S}" role="slider" aria-orientation="horizontal"><b>S</b></div>
+        <span class="prompt" id="pr${i}" hidden></span></div></td>
+      <td class="num col-t" id="cP${i}"></td><td class="num col-t" id="cS${i}"></td><td class="num strong" id="cG${i}"></td><td class="num strong" id="cD${i}"></td>
+    </tr>`).join("");
+  recs = EV.stations.map((s, i) => ({ wrap: $("rec" + i), canvas: $("cv" + i), hP: $("hP" + i), hS: $("hS" + i), prompt: $("pr" + i) }));
+  recs.forEach((r, i) => {
+    for (const [h, w] of [[r.hP, "p"], [r.hS, "s"]]) {
+      h.setAttribute("aria-label", `${w.toUpperCase()}-wave mark on seismograph ${EV.stations[i].letter}, ${EV.stations[i].name}`);
+      h.setAttribute("aria-valuemin", "0"); h.setAttribute("aria-valuemax", String(Math.round((EV.t1 - EV.t0) * 100) / 100));
+      h.addEventListener("pointerdown", (e) => startDrag(e, i, w));
+      h.addEventListener("keydown", (e) => keyMark(e, i, w));
+    }
+    r.wrap.addEventListener("pointerdown", (e) => { if (e.target.closest(".hdl")) return; clickTrace(e, i); });
+  });
+}
+const editable = () => ST.measure && ST.step >= 4 && STEPS[ST.step - 1].marks;
+const tAtX = (wrap, clientX) => { const b = wrap.getBoundingClientRect(); const f = Math.min(1, Math.max(0, (clientX - b.left) / b.width)); return EV.t0 + f * (EV.t1 - EV.t0); };
+const xFrac = (t) => (t - EV.t0) / (EV.t1 - EV.t0);
+function setPick(i, w, t) {
+  t = Math.min(EV.t1, Math.max(EV.t0, Math.round(t * 100) / 100));
+  ST.picks[i] = { ...(ST.picks[i] || {}), [w]: t };
+  refreshReadings();
+}
+function clickTrace(e, i) {
+  if (!editable()) return;
+  const k = ST.picks[i] || {}, t = tAtX(recs[i].wrap, e.clientX);
+  let w = k.p == null ? "p" : k.s == null ? "s" : (Math.abs(t - k.p) < Math.abs(t - k.s) ? "p" : "s");
+  setPick(i, w, t);
+  startDrag(e, i, w);
+}
+function startDrag(e, i, w) {
+  if (!editable()) return;
+  e.preventDefault();
+  const wrap = recs[i].wrap, h = w === "p" ? recs[i].hP : recs[i].hS;
+  h.focus({ preventScroll: true });
+  const move = (ev) => setPick(i, w, tAtX(wrap, ev.clientX));
+  const up = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); window.removeEventListener("pointercancel", up); drawScene(); };
+  window.addEventListener("pointermove", move); window.addEventListener("pointerup", up); window.addEventListener("pointercancel", up);
+}
+function keyMark(e, i, w) {
+  if (!editable()) return;
+  const step = e.shiftKey ? 1 : 0.1;
+  const k = ST.picks[i] || {}, cur = k[w] ?? EV.t0;
+  let t = null;
+  if (e.key === "ArrowRight" || e.key === "ArrowUp") t = cur + step;
+  else if (e.key === "ArrowLeft" || e.key === "ArrowDown") t = cur - step;
+  else if (e.key === "PageUp") t = cur + 1; else if (e.key === "PageDown") t = cur - 1;
+  else if (e.key === "Home") t = EV.t0; else if (e.key === "End") t = EV.t1;
+  if (t == null) return;
+  e.preventDefault(); e.stopPropagation();
+  setPick(i, w, t); scheduleScene();
+}
+let sceneTimer = 0;
+const scheduleScene = () => { clearTimeout(sceneTimer); sceneTimer = setTimeout(drawScene, 250); };
+
+// refresh everything that depends on the readings, without rebuilding the step's controls
+function refreshReadings() {
+  updateTable(); positionMarks(); drawTraces();
+  if (ST.step >= 5) renderStepKeepFocus(); // the step text quotes the readings
+  if (ST.step >= 6) scheduleScene();
+}
+function renderStepKeepFocus() {
+  // the step text quotes the readings; rebuild it but keep keyboard focus where it was
+  const a = document.activeElement, id = a?.id;
+  $("stepBody").innerHTML = stepHTML(); wireStep();
+  if (id && $(id) && a !== $(id) && !a.closest?.("#dock")) $(id).focus({ preventScroll: true });
+}
+
+function updateTable() {
+  const cfg = STEPS[ST.step - 1], R = readings();
+  EV.stations.forEach((s, i) => {
+    const r = R[i], show = cfg.marks;
+    $("cP" + i).textContent = show && r.p != null ? clk(r.p) : "—";
+    $("cS" + i).textContent = show && r.s != null ? clk(r.s) : "—";
+    $("cG" + i).textContent = show && r.gap != null ? `${f2(r.gap)} s` : "—";
+    $("cD" + i).textContent = cfg.dist && r.km != null ? `${f1(r.km)} km` : (cfg.dist && r.gap != null && r.gap <= 0 ? "S must be after P" : "—");
+    const c = recs[i].canvas;
+    c.setAttribute("aria-label", `Recording from seismograph ${s.letter}, ${s.name}: ` + (ST.step >= 3 || ST.t >= EV.t1 ? "a nearly flat line, then small fast wobbles when the P-wave arrives, then bigger, slower wobbles when the S-wave arrives." : "recording as the waves arrive.") +
+      (show && r.p != null && r.s != null ? ` P-wave mark at ${clk(r.p)}, S-wave mark at ${clk(r.s)}, gap ${f2(r.gap ?? 0)} seconds.` : ""));
+  });
+}
+function positionMarks() {
+  const cfg = STEPS[ST.step - 1], R = readings(), ed = editable();
+  recs.forEach((r, i) => {
+    r.wrap.classList.toggle("measuring", ed);
+    const k = ST.picks[i] || {};
+    for (const [h, w] of [[r.hP, "p"], [r.hS, "s"]]) {
+      const v = R[i][w];
+      const parked = ed && v == null;
+      h.hidden = !cfg.marks || (!ed && v == null);
+      h.classList.toggle("parked", parked); h.classList.toggle("locked", !ed);
+      h.tabIndex = ed ? 0 : -1;
+      if (ed) h.removeAttribute("aria-hidden"); else h.setAttribute("aria-hidden", "true");
+      const t = v ?? (w === "p" ? EV.t0 : EV.t0 + 0.04 * (EV.t1 - EV.t0));
+      h.style.left = (xFrac(t) * 100) + "%";
+      h.querySelector("b").textContent = parked ? w.toUpperCase() + "?" : w.toUpperCase();
+      h.setAttribute("aria-valuenow", String(Math.round((t - EV.t0) * 100) / 100));
+      h.setAttribute("aria-valuetext", v == null ? "not placed" : `${clk(v)}` + (R[i].gap != null ? `, gap ${f2(R[i].gap)} seconds` : ""));
+    }
+    const pr = r.prompt;
+    if (ed && ST.step === 4 && (k.p == null || k.s == null)) { pr.hidden = false; pr.textContent = k.p == null ? "Click where the P-wave starts" : "Now click where the S-wave starts"; }
+    else pr.hidden = true;
+  });
+}
+
+// ---------- drawing the traces ----------
+function sizeCanvas(c) {
+  const dpr = Math.min(2, window.devicePixelRatio || 1), b = c.getBoundingClientRect();
+  const w = Math.max(10, Math.round(b.width * dpr)), h = Math.max(10, Math.round(b.height * dpr));
+  if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }
+  return { g: c.getContext("2d"), w, h, dpr };
+}
+function drawTraces() {
+  if (!EV) return;
+  const cfg = STEPS[ST.step - 1], R = readings();
+  const tNow = cfg.play || ST.step === 1 ? ST.t : EV.t1;
+  recs.forEach((r, i) => {
+    const { g, w, h, dpr } = sizeCanvas(r.canvas);
+    g.clearRect(0, 0, w, h);
+    const mid = h / 2, amp = h * 0.44, tr = EV.traces[i], n = tr.length;
+    // baseline across the whole window
+    g.strokeStyle = "rgba(255,255,255,0.14)"; g.lineWidth = 1 * dpr; g.beginPath(); g.moveTo(0, mid); g.lineTo(w, mid); g.stroke();
+    // the recording so far (min/max of the samples under each pixel column)
+    const iMax = Math.min(n - 1, Math.floor((tNow - EV.t0) * FS));
+    g.strokeStyle = "#e6edf7"; g.lineWidth = Math.max(1, 1 * dpr); g.beginPath();
+    for (let px = 0; px < w; px++) {
+      const a = Math.floor(px / w * n), b = Math.min(iMax, Math.max(a, Math.floor((px + 1) / w * n) - 1));
+      if (a > iMax) break;
+      let lo = Infinity, hi = -Infinity; for (let k = a; k <= b; k++) { const v = tr[k]; if (v < lo) lo = v; if (v > hi) hi = v; }
+      g.moveTo(px + 0.5, mid - hi * amp); g.lineTo(px + 0.5, mid - lo * amp + 0.5 * dpr);
+    }
+    g.stroke();
+    // the gap between the marks
+    const rr = R[i];
+    if (cfg.marks && rr.p != null && rr.s != null && w / dpr > 220) {
+      const xp = xFrac(rr.p) * w, xs = xFrac(rr.s) * w, y = 5 * dpr;
+      g.fillStyle = "rgba(125, 211, 252, 0.10)"; g.fillRect(Math.min(xp, xs), 0, Math.abs(xs - xp), h);
+      g.strokeStyle = "rgba(255,255,255,0.75)"; g.lineWidth = 1.5 * dpr; g.beginPath(); g.moveTo(xp, y); g.lineTo(xs, y); g.stroke();
+      g.font = `600 ${11 * dpr}px Inter, system-ui, sans-serif`; g.fillStyle = "#fff"; g.textBaseline = "top";
+      const label = `gap ${f2(rr.s - rr.p)} s`, tw = g.measureText(label).width;
+      const lx = Math.min(w - tw - 4 * dpr, Math.max(4 * dpr, (xp + xs) / 2 - tw / 2));
+      g.fillStyle = "rgba(11,18,33,0.85)"; g.fillRect(lx - 3 * dpr, h - 16 * dpr, tw + 6 * dpr, 14 * dpr);
+      g.fillStyle = "#fff"; g.fillText(label, lx, h - 15 * dpr);
+    }
+    // the time cursor while the waves play
+    if (cfg.play && tNow < EV.t1) { const x = xFrac(tNow) * w; g.strokeStyle = "rgba(125, 211, 252, 0.9)"; g.lineWidth = 2 * dpr; g.beginPath(); g.moveTo(x, 0); g.lineTo(x, h); g.stroke(); }
+  });
+  drawAxis();
+}
+function drawAxis() {
+  const c = $("axis"), { g, w, h, dpr } = sizeCanvas(c);
+  g.clearRect(0, 0, w, h);
+  const span = EV.t1 - EV.t0, every = span > 40 ? 10 : 5;
+  g.strokeStyle = "rgba(255,255,255,0.4)"; g.fillStyle = "#a8b6c9"; g.font = `500 ${10.5 * dpr}px Inter, system-ui, sans-serif`; g.textBaseline = "top";
+  const startMs = EV.originMs + EV.t0 * 1000;
+  let lastRight = -1e9;
+  for (let sec = Math.ceil(startMs / 1000); sec * 1000 <= EV.originMs + EV.t1 * 1000; sec++) {
+    const t = (sec * 1000 - EV.originMs) / 1000, x = xFrac(t) * w, major = sec % every === 0;
+    g.lineWidth = dpr; g.beginPath(); g.moveTo(x, 0); g.lineTo(x, (major ? 6 : 3) * dpr); g.stroke();
+    if (major) { const lab = clock(sec * 1000, 0), tw = g.measureText(lab).width, lx = Math.min(w - tw, Math.max(0, x - tw / 2));
+      if (lx > lastRight + 6 * dpr) { g.fillText(lab, lx, 8 * dpr); lastRight = lx + tw; } }
+  }
+}
+function renderDock() {
+  const cfg = STEPS[ST.step - 1];
+  $("playCtl").hidden = !cfg.play;
+  updateTable(); positionMarks(); drawTraces(); updateClock();
+}
+function updateClock() {
+  const cfg = STEPS[ST.step - 1];
+  const t = cfg.play || ST.step === 1 ? ST.t : null;
+  if (t == null) { $("clock").innerHTML = `<span>Times are clock times (UTC)</span>`; return; }
+  const since = truthShown(cfg) ? ` <span>· ${t < 0 ? `${f1(-t)} s before` : `${f1(t)} s after`} the rock broke</span>` : "";
+  $("clock").innerHTML = `Clock ${clk(t, 1)} UTC${since}`;
+}
+
+// ---------- playback ----------
+let raf = 0, lastTs = 0, lastWaveDraw = 0, lastTimes = null;
+function setT(t) {
+  const prev = ST.t; ST.t = Math.min(EV.t1, Math.max(EV.t0, t));
+  $("timeSlider").value = String(ST.t);
+  $("timeSlider").setAttribute("aria-valuetext", `${clk(ST.t, 1)} UTC`);
+  flashArrivals(prev, ST.t);
+  drawTraces(); updateClock(); updateWaves(false);
+}
+function flashArrivals(a, b) {
+  if (b <= a) return;
+  EV.arr.forEach((ar, i) => {
+    for (const [tt, cls] of [[ar.tP, "hit-p"], [ar.tS, "hit-s"]]) if (a < tt && b >= tt) {
+      for (const el of [$("stchip" + i), document.querySelector(`#chips [data-k="st${i}"]`)]) if (el) { el.classList.add(cls); setTimeout(() => el.classList.remove(cls), 900); }
+    }
+  });
+}
+function play(on) {
+  ST.playing = on;
+  $("btnPlay").textContent = on ? "⏸ Pause" : "▶ Play";
+  $("btnPlay").setAttribute("aria-label", on ? "Pause" : "Play");
+  cancelAnimationFrame(raf);
+  if (on) { if (ST.t >= EV.t1) setT(EV.t0); lastTs = 0; raf = requestAnimationFrame(tick); }
+  else updateWaves(true);
+}
+function tick(ts) {
+  if (!ST.playing) return;
+  if (lastTs) setT(ST.t + Math.min(0.1, (ts - lastTs) / 1000) * ST.speed);
+  lastTs = ts;
+  if (ST.t >= EV.t1) { play(false); setStatus("The waves have reached all three seismographs."); return; }
+  raf = requestAnimationFrame(tick);
+}
+$("btnPlay").addEventListener("click", () => play(!ST.playing));
+$("btnReplay").addEventListener("click", () => { setT(EV.t0); play(true); });
+document.querySelectorAll("[data-speed]").forEach(b => b.addEventListener("click", () => {
+  ST.speed = +b.dataset.speed; document.querySelectorAll("[data-speed]").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+}));
+$("timeSlider").addEventListener("input", (e) => { play(false); setT(+e.target.value); });
+
+// ================= step 5: the travel-time graph =================
+function renderChart() {
+  const host = $("chart"); if (!host) return;
+  const R = readings();
+  const kms = R.map(r => r.km).filter(v => v != null);
+  const X = Math.max(40, Math.ceil((Math.max(0, ...kms) + 12) / 20) * 20), Y = Math.ceil(X / E.VS / 5) * 5;
+  const W = 340, H = 236, m = { l: 34, r: 12, t: 14, b: 36 };
+  const sx = (d) => m.l + (W - m.l - m.r) * d / X, sy = (t) => H - m.b - (H - m.t - m.b) * t / Y;
+  const ex = $("exploreKm"); ex.max = String(X); ex.value = String(Math.min(X, ST.explore));
+  let grid = "";
+  for (let d = 0; d <= X; d += X > 80 ? 20 : 10) grid += `<line x1="${sx(d)}" x2="${sx(d)}" y1="${sy(0)}" y2="${sy(Y)}" stroke="rgba(255,255,255,.08)"/><text x="${sx(d)}" y="${sy(0) + 13}" text-anchor="middle">${d}</text>`;
+  for (let t = 0; t <= Y; t += 5) grid += `<line x1="${sx(0)}" x2="${sx(X)}" y1="${sy(t)}" y2="${sy(t)}" stroke="rgba(255,255,255,.08)"/><text x="${sx(0) - 5}" y="${sy(t) + 3.5}" text-anchor="end">${t}</text>`;
+  const lift = {}; let prevX = -99, prevLift = 0;
+  EV.stations.map((s, i) => [i, R[i].km]).filter(([, k]) => k != null).sort((a, b) => a[1] - b[1]).forEach(([i, k]) => {
+    const x = sx(k); lift[i] = x - prevX < 14 ? prevLift + 13 : 0; prevX = x; prevLift = lift[i]; });
+  const bars = EV.stations.map((s, i) => { const k = R[i].km; if (k == null) return "";
+    return `<line x1="${sx(k)}" x2="${sx(k)}" y1="${sy(0)}" y2="${sy(k / E.VP)}" stroke="${s.color}" stroke-dasharray="3 3" stroke-width="1.2" opacity=".7"/>
+      <line x1="${sx(k)}" x2="${sx(k)}" y1="${sy(k / E.VP)}" y2="${sy(k / E.VS)}" stroke="${s.color}" stroke-width="5" stroke-linecap="round"/>
+      <text x="${sx(k)}" y="${sy(k / E.VS) - 7 - lift[i]}" text-anchor="middle" fill="${s.color}" font-weight="800" font-size="12">${s.letter}</text>`; }).join("");
+  const xe = +ex.value; ST.explore = xe;
+  host.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Graph of travel time against distance. The P-wave line rises slowly and the S-wave line rises faster, so the gap between them grows with distance. ${EV.stations.map((s, i) => R[i].km != null ? `Seismograph ${s.letter}'s gap of ${f2(R[i].gap)} seconds fits at ${f1(R[i].km)} km.` : "").join(" ")}" font-family="Inter, system-ui, sans-serif" font-size="10" fill="#a8b6c9">
+    ${grid}
+    <line x1="${sx(0)}" x2="${sx(X)}" y1="${sy(0)}" y2="${sy(0)}" stroke="rgba(255,255,255,.45)"/><line x1="${sx(0)}" x2="${sx(0)}" y1="${sy(0)}" y2="${sy(Y)}" stroke="rgba(255,255,255,.45)"/>
+    <text x="${(sx(0) + sx(X)) / 2}" y="${H - 6}" text-anchor="middle" fill="#cfd8e6">Distance from the seismograph (km)</text>
+    <text x="${sx(0) + 4}" y="${m.t - 3}" fill="#cfd8e6">Travel time (s)</text>
+    <line x1="${sx(0)}" y1="${sy(0)}" x2="${sx(X)}" y2="${sy(X / E.VS)}" stroke="${COLORS.S}" stroke-width="2"/>
+    <line x1="${sx(0)}" y1="${sy(0)}" x2="${sx(X)}" y2="${sy(X / E.VP)}" stroke="${COLORS.P}" stroke-width="2"/>
+    <text x="${sx(X) - 2}" y="${sy(X / E.VS) + 14}" text-anchor="end" fill="${COLORS.S}" font-weight="700" font-size="11">S-wave</text>
+    <text x="${sx(X) - 2}" y="${sy(X / E.VP) - 6}" text-anchor="end" fill="${COLORS.P}" font-weight="700" font-size="11">P-wave</text>
+    <g id="xh"><line x1="${sx(xe)}" x2="${sx(xe)}" y1="${sy(0)}" y2="${sy(Y)}" stroke="rgba(255,255,255,.55)" stroke-dasharray="2 3"/>
+      <line x1="${sx(xe)}" x2="${sx(xe)}" y1="${sy(xe / E.VP)}" y2="${sy(xe / E.VS)}" stroke="#fff" stroke-width="2"/>
+      <circle cx="${sx(xe)}" cy="${sy(xe / E.VP)}" r="3.5" fill="${COLORS.P}" stroke="#0b1220"/><circle cx="${sx(xe)}" cy="${sy(xe / E.VS)}" r="3.5" fill="${COLORS.S}" stroke="#0b1220"/></g>
+    ${bars}
+    <rect id="hit" x="${sx(0)}" y="${sy(Y)}" width="${sx(X) - sx(0)}" height="${sy(0) - sy(Y)}" fill="transparent"/>
+  </svg>`;
+  const out = $("exploreOut");
+  out.textContent = `At ${xe} km: the P-wave takes ${f1(xe / E.VP)} s and the S-wave ${f1(xe / E.VS)} s, so the gap is ${f1(xe / E.VS - xe / E.VP)} s.`;
+  const svg = host.querySelector("svg");
+  const fromPointer = (e) => { const b = svg.getBoundingClientRect(); const px = (e.clientX - b.left) / b.width * W; const d = Math.round(Math.min(X, Math.max(0, (px - m.l) / (W - m.l - m.r) * X))); ST.explore = d; renderChart(); };
+  svg.addEventListener("pointermove", (e) => { if (e.pointerType === "mouse" || e.buttons) fromPointer(e); });
+  svg.addEventListener("pointerdown", fromPointer);
+  ex.oninput = () => { ST.explore = +ex.value; renderChart(); };
+}
+
+// ================= the 3D view =================
+let G = null; // ArcGIS classes, view and layers, once loaded
+async function initScene() {
+  if (typeof $arcgis === "undefined") throw new Error("ArcGIS Maps SDK not available");
+  const [ArcGISMap, Basemap, TileLayer, GraphicsLayer, Graphic, Mesh, MeshComponent, MeshMaterialMetallicRoughness, MeshLocalVertexSpace, Point, Multipoint, reactiveUtils] = await $arcgis.import([
+    "@arcgis/core/Map.js", "@arcgis/core/Basemap.js", "@arcgis/core/layers/TileLayer.js", "@arcgis/core/layers/GraphicsLayer.js", "@arcgis/core/Graphic.js",
+    "@arcgis/core/geometry/Mesh.js", "@arcgis/core/geometry/support/MeshComponent.js", "@arcgis/core/geometry/support/MeshMaterialMetallicRoughness.js",
+    "@arcgis/core/geometry/support/MeshLocalVertexSpace.js", "@arcgis/core/geometry/Point.js", "@arcgis/core/geometry/Multipoint.js", "@arcgis/core/core/reactiveUtils.js"
+  ]);
+  const ESRI = "https://services.arcgisonline.com/arcgis/rest/services/";
+  const map = new ArcGISMap({
+    basemap: new Basemap({ title: "Imagery with labels", baseLayers: [new TileLayer({ url: ESRI + "World_Imagery/MapServer" })], referenceLayers: [new TileLayer({ url: ESRI + "Reference/World_Boundaries_and_Places/MapServer" })] }),
+    ground: "world-elevation"
+  });
+  map.ground.navigationConstraint = { type: "none" }; // so the camera can look underground
+  const el = $("scene");
+  el.map = map;
+  await el.viewOnReady();
+  const view = el.view;
+  view.popupEnabled = false;
+  try { view.environment.lighting = { type: "virtual" }; } catch (e) { console.warn("Lighting not set:", e); }
+  const mk = (title, mode) => new GraphicsLayer({ title, elevationInfo: { mode } });
+  const layers = { circles: mk("Distance circles", "on-the-ground"), rings: mk("Wave fronts at the surface", "on-the-ground"), waves: mk("Wave fronts underground", "absolute-height"),
+    deep: mk("Underground: hypocentre and spheres", "absolute-height"), surf: mk("Seismographs and epicentres", "relative-to-ground") };
+  map.addMany([layers.circles, layers.rings, layers.waves, layers.deep, layers.surf]);
+  G = { view, map, Graphic, Mesh, MeshComponent, MeshMaterialMetallicRoughness, MeshLocalVertexSpace, Point, Multipoint, reactiveUtils, layers, waveG: null };
+  reactiveUtils.watch(() => [view.camera, view.width, view.height, view.padding], () => scheduleChips());
+  setPadding();
+}
+
+const pt = (lon, lat, z = 0) => new G.Point({ longitude: lon, latitude: lat, z, spatialReference: { wkid: 4326 } });
+const zOf = (depthKm) => -depthKm * 1000 * ST.stretch;
+const fp = (x, y, depthKm = 0) => { const ll = EV.F.toLL(x, y); return pt(ll.longitude, ll.latitude, zOf(depthKm)); };
+const llOf = (x, y) => { const ll = EV.F.toLL(x, y); return [ll.longitude, ll.latitude]; };
+const hexRGB = (h) => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const dimHex = (h, k) => "#" + hexRGB(h).map(v => pad(Math.round(v * k).toString(16))).join("");
+const groundLine = (pts) => ({ type: "polyline", paths: [pts.map(([x, y]) => llOf(x, y))], spatialReference: { wkid: 4326 } });
+const deepLine = (pts) => ({ type: "polyline", hasZ: true, paths: [pts.map(([x, y, d]) => [...llOf(x, y), zOf(d)])], spatialReference: { wkid: 4326 } });
+const line3d = (color, size, dash = false) => ({ type: "line-3d", symbolLayers: [{ type: "line", size, material: { color }, cap: dash ? "butt" : "round", ...(dash ? { pattern: { type: "style", style: "dash" } } : {}) }] });
+const icon = (primitive, size, color, outline = "#ffffff", oSize = 1.5) => ({ type: "point-3d", symbolLayers: [{ type: "icon", resource: { primitive }, size, material: { color }, outline: { color: outline, size: oSize } }] });
+const ball = (sizeM, color) => ({ type: "point-3d", symbolLayers: [{ type: "object", resource: { primitive: "sphere" }, width: sizeM, height: sizeM, depth: sizeM, anchor: "center", material: { color } }] });
+function bowlMesh(cx, cy, cDepth, r, color, alpha, light = false) {
+  const b = light ? E.bowl(cx, cy, cDepth, r, ST.stretch, 32, 10) : E.bowl(cx, cy, cDepth, r, ST.stretch);
+  return new G.Mesh({ spatialReference: { wkid: 4326 }, vertexSpace: new G.MeshLocalVertexSpace({ origin: [EV.F.lon0, EV.F.lat0, 0] }),
+    vertexAttributes: { position: new Float64Array(b.pos), normal: new Float32Array(b.nrm) },
+    components: [new G.MeshComponent({ faces: new Uint32Array(b.faces), shading: "smooth",
+      material: new G.MeshMaterialMetallicRoughness({ color: [...hexRGB(color), alpha], emissiveColor: dimHex(color, 0.35), metallic: 0, roughness: 1, doubleSided: true, alphaMode: "blend" }) })] });
+}
+const meshSym = { type: "mesh-3d", symbolLayers: [{ type: "fill" }] };
+
+function setPadding() {
+  if (!G) return;
+  const wide = window.innerWidth > 820, dockH = $("dock").offsetHeight;
+  G.view.padding = wide ? { left: $("card").offsetWidth + 24, right: 56, top: 0, bottom: dockH + 24 }
+                        : { left: 0, right: 0, top: 0, bottom: $("card").offsetHeight + dockH + 24 };
+}
+function layoutVars() {
+  document.documentElement.style.setProperty("--dock-h", $("dock").offsetHeight + "px");
+  setPadding();
+}
+new ResizeObserver(() => { layoutVars(); if (EV) drawTraces(); }).observe($("dock"));
+window.addEventListener("resize", layoutVars);
+
+// ---------- labels pinned to points (same approach as the other labs) ----------
+const chipsEl = $("chips");
+let chips = [];
+function setChips(list) {
+  chips = list;
+  chipsEl.innerHTML = list.map((c, i) => `<span class="lbl${c.small ? " small" : ""}" data-i="${i}" ${c.k ? `data-k="${c.k}"` : ""} style="--c:${c.color}">${esc(c.text)}</span>`).join("");
+  placeChips();
+}
+function placeChips() {
+  if (!G) return;
+  chipsEl.hidden = !ST.labels;
+  if (!ST.labels) return;
+  const items = [];
+  for (const b of chipsEl.querySelectorAll(".lbl[data-i]")) { // the moving wave labels are placed by updateWaves
+    const c = chips[b.dataset.i]; if (!c?.pt) { b.hidden = true; continue; }
+    const sp = G.view.toScreen(c.pt);
+    const ok = sp && sp.x > 0 && sp.y > 0 && sp.x < G.view.width && sp.y < G.view.height;
+    b.hidden = !ok;
+    if (ok) { const x = sp.x + (c.dx || 0), y = sp.y + (c.dy ?? -16); b.style.left = x + "px"; b.style.top = y + "px"; items.push({ b, x, y, w: b.offsetWidth, h: b.offsetHeight }); }
+  }
+  items.sort((a, b) => a.y - b.y);
+  for (let pass = 0; pass < 2; pass++) for (let i = 1; i < items.length; i++) for (let j = 0; j < i; j++) {
+    const a = items[j], c = items[i], gap = (a.h + c.h) / 2 + 3;
+    if (Math.abs(a.x - c.x) < (a.w + c.w) / 2 + 4 && c.y - a.y < gap && c.y >= a.y) c.y = a.y + gap;
+  }
+  for (const it of items) it.b.style.top = it.y + "px";
+}
+let chipRaf = 0;
+const scheduleChips = () => { cancelAnimationFrame(chipRaf); chipRaf = requestAnimationFrame(placeChips); };
+
+// ---------- what each step shows ----------
+function drawScene() {
+  if (!G || !EV) return;
+  try {
+    const cfg = STEPS[ST.step - 1], L = G.layers, R = readings(), S = EV.stations;
+    for (const k of ["circles", "deep", "surf"]) L[k].removeAll();
+    applyGround();
+    const list = [];
+    const big = EV.span * 1000 * 0.045; // marker size, about 4.5% of the area
+
+    // seismographs
+    S.forEach((s, i) => {
+      L.surf.add(new G.Graphic({ geometry: fp(s.x, s.y), symbol: icon("triangle", 20, s.color, "#0b1220", 1.5) }));
+      list.push({ text: `${s.letter} · ${s.name}`, color: s.color, pt: fp(s.x, s.y), k: "st" + i, dy: -22 });
+    });
+
+    // where it really started
+    if (truthShown(cfg)) {
+      const h = EV.hypo;
+      L.deep.add(new G.Graphic({ geometry: fp(h.x, h.y, h.depth), symbol: ball(big, COLORS.hypo) }));
+      L.deep.add(new G.Graphic({ geometry: deepLine([[h.x, h.y, 0], [h.x, h.y, h.depth]]), symbol: line3d(COLORS.hypo, 2.5, true) }));
+      L.surf.add(new G.Graphic({ geometry: fp(h.x, h.y), symbol: icon("circle", 22, [0, 0, 0, 0], COLORS.hypo, 3.5) }));
+      list.push({ text: `Hypocentre: ${f1(h.depth)} km down`, color: COLORS.hypo, pt: fp(h.x, h.y, h.depth), dy: 18 });
+      list.push({ text: ST.step >= 10 ? (EV.real ? "Epicentre (USGS)" : "Epicentre (real)") : "Epicentre", color: COLORS.hypo, pt: fp(h.x, h.y), dy: -24, small: ST.step >= 10 });
+    }
+
+    // distance circles
+    const nC = cfg.circles || 0;
+    for (let i = 0; i < nC; i++) {
+      const s = S[i], k = R[i].km; if (k == null) continue;
+      const ring = E.ringXY(s.x, s.y, k, 160);
+      const [r, g, b] = hexRGB(s.color);
+      L.circles.add(new G.Graphic({ geometry: { type: "polygon", rings: [ring.map(([x, y]) => llOf(x, y))], spatialReference: { wkid: 4326 } },
+        symbol: { type: "simple-fill", color: [r, g, b, cfg.bowls ? 0.04 : 0.10], outline: { color: [r, g, b, 1], width: 3 } } }));
+      list.push({ text: `${s.letter}: ${f1(k)} km`, color: s.color, small: true, pt: fp(s.x + k * Math.sin(-0.5), s.y + k * Math.cos(-0.5)), dy: 0 });
+    }
+    // step 7: the two places where A and B cross
+    if (nC === 2 && R[0].km != null && R[1].km != null) {
+      for (const p of E.circleCross({ x: S[0].x, y: S[0].y, r: R[0].km }, { x: S[1].x, y: S[1].y, r: R[1].km })) {
+        L.surf.add(new G.Graphic({ geometry: fp(p.x, p.y), symbol: icon("circle", 12, "#ffffff", "#0b1220", 2) }));
+        list.push({ text: "?", color: "#ffffff", pt: fp(p.x, p.y), dy: -18 });
+      }
+    }
+    const sol = cfg.found ? solution() : null;
+    // step 8: epicentre found, and the lines through each pair's crossing points when the circles overlap
+    if (sol && cfg.found) {
+      if (cfg.found === "epi" && (sol.overlap || sol.gapMid)) {
+        for (let i = 0; i < 3; i++) for (let j = i + 1; j < 3; j++) {
+          const p = E.circleCross(sol.circles[i], sol.circles[j]); if (p.length < 2) continue;
+          const dx = p[1].x - p[0].x, dy = p[1].y - p[0].y;
+          L.circles.add(new G.Graphic({ geometry: groundLine([[p[0].x - 0.15 * dx, p[0].y - 0.15 * dy], [p[1].x + 0.15 * dx, p[1].y + 0.15 * dy]]), symbol: { type: "simple-line", color: [255, 255, 255, 0.95], width: 2, style: "dash" } }));
+        }
+      }
+      L.surf.add(new G.Graphic({ geometry: fp(sol.x, sol.y), symbol: { type: "point-3d", symbolLayers: [
+        { type: "icon", resource: { primitive: "cross" }, size: 26, outline: { color: "#0b1220", size: 7 } },
+        { type: "icon", resource: { primitive: "cross" }, size: 24, outline: { color: "#ffffff", size: 3.5 } }] } }));
+      if (cfg.found === "epi") list.push({ text: "Epicentre found", color: "#ffffff", pt: fp(sol.x, sol.y), dy: 22 });
+      else {
+        L.deep.add(new G.Graphic({ geometry: fp(sol.x, sol.y, sol.depth), symbol: ball(big, "#ffffff") }));
+        L.deep.add(new G.Graphic({ geometry: deepLine([[sol.x, sol.y, 0], [sol.x, sol.y, sol.depth]]), symbol: line3d("#ffffff", 2.5, true) }));
+        list.push({ text: `Hypocentre found: ${f1(sol.depth)} km down`, color: "#ffffff", pt: fp(sol.x, sol.y, sol.depth), dy: -20 });
+      }
+    }
+    // step 9: the underground half of each ball, and where each pair of balls meet
+    if (cfg.bowls && sol) {
+      S.forEach((s, i) => L.deep.add(new G.Graphic({ geometry: bowlMesh(s.x, s.y, 0, R[i].km, s.color, 0.16), symbol: meshSym })));
+      for (let i = 0; i < 3; i++) for (let j = i + 1; j < 3; j++) {
+        const arc = E.sphereMeet(sol.circles[i], sol.circles[j], 64);
+        if (arc) L.deep.add(new G.Graphic({ geometry: deepLine(arc), symbol: line3d("#ffffff", 3) }));
+      }
+    }
+    setChips(list);
+    updateWaves(true);
+  } catch (e) { console.error("Drawing the 3D view failed:", e); }
+}
+
+// ---------- the growing wave fronts (step 2) ----------
+function updateWaves(force) {
+  if (!G || !EV) return;
+  const cfg = STEPS[ST.step - 1], on = !!cfg.waves && EV.real, L = G.layers;
+  L.waves.visible = L.rings.visible = on;
+  const pc = $("chipP"), sc = $("chipS");
+  if (!on) { if (pc) pc.remove(); if (sc) sc.remove(); return; }
+  const now = performance.now();
+  if (!force && now - lastWaveDraw < 100) return;
+  lastWaveDraw = now;
+  try {
+    if (!G.waveG) {
+      G.waveG = { pB: new G.Graphic({ symbol: meshSym }), sB: new G.Graphic({ symbol: meshSym }),
+        pR: new G.Graphic({ symbol: { type: "simple-line", color: COLORS.P, width: 3.5 } }), sR: new G.Graphic({ symbol: { type: "simple-line", color: COLORS.S, width: 3.5 } }) };
+    }
+    const W = G.waveG, h = EV.hypo, t = Math.max(0, ST.t), maxR = EV.span + 40;
+    if (!L.waves.graphics.length) L.waves.addMany([W.sB, W.pB]);
+    if (!L.rings.graphics.length) L.rings.addMany([W.sR, W.pR]);
+    const heading = G.view.camera ? G.view.camera.heading : 0;
+    const setFront = (B, Rg, r, color, alpha, chipId, label) => {
+      r = Math.min(r, maxR);
+      B.visible = r > 0.3; Rg.visible = r > h.depth;
+      if (B.visible) B.geometry = bowlMesh(h.x, h.y, h.depth, r, color, alpha, true);
+      let chip = $(chipId);
+      if (Rg.visible) {
+        const rs = Math.sqrt(r * r - h.depth * h.depth);
+        Rg.geometry = groundLine(E.ringXY(h.x, h.y, rs, 120));
+        // label the front where it is nearest the camera
+        const a = (heading + 180) * Math.PI / 180, p = fp(h.x + rs * Math.sin(a), h.y + rs * Math.cos(a));
+        if (!chip) { chip = document.createElement("span"); chip.id = chipId; chip.className = "lbl small"; chip.style.setProperty("--c", color); chip.textContent = label; chipsEl.appendChild(chip); }
+        const sp = G.view.toScreen(p);
+        chip.hidden = !ST.labels || !sp; if (sp) { chip.style.left = sp.x + "px"; chip.style.top = (sp.y + 14) + "px"; }
+      } else if (chip) chip.hidden = true;
+    };
+    setFront(W.pB, W.pR, E.VP * t, COLORS.P, 0.16, "chipP", "P-wave");
+    setFront(W.sB, W.sR, E.VS * t, COLORS.S, 0.22, "chipS", "S-wave");
+  } catch (e) { console.error("Wave fronts failed:", e); }
+}
+
+// ---------- camera for each step ----------
+function frameCamera() {
+  if (!G || !EV) return;
+  const cfg = STEPS[ST.step - 1], R = readings(), S = EV.stations, pts = [];
+  S.forEach(s => pts.push([s.x, s.y, 0]));
+  const nC = cfg.circles || 0;
+  for (let i = 0; i < nC; i++) if (R[i].km != null) { const s = S[i], k = R[i].km; pts.push([s.x - k, s.y - k, 0], [s.x + k, s.y + k, 0]); }
+  if (cfg.view === "side") {
+    // a hidden (mystery) hypocentre must not change the framing, so use a fixed depth until it is revealed
+    const known = truthShown(cfg) ? EV.hypo.depth : 0;
+    const deepest = cfg.bowls ? Math.max(...R.map(r => r.km || 0)) : Math.max(known, solution()?.depth || 0, EV.real ? 0 : 30) * 1.3;
+    pts.push([EV.hypo.x, EV.hypo.y, deepest]);
+  }
+  const target = new G.Multipoint({ points: pts.map(([x, y, d]) => [...llOf(x, y), zOf(d)]), hasZ: true, spatialReference: { wkid: 4326 } });
+  const side = cfg.view === "side";
+  G.view.goTo({ target, heading: side ? EV.base.heading - 25 : 0, tilt: side ? 68 : 6 }, { animate: !reduceMotion, duration: 1600 })
+    .catch(e => { if (e?.name !== "AbortError") console.warn("Camera move failed:", e); });
+}
+
+// ================= moving between steps and earthquakes =================
+function go(n, { camera = true } = {}) {
+  n = Math.max(1, Math.min(N, n));
+  const prevView = STEPS[ST.step - 1].view, prevStep = ST.step;
+  play(false);
+  ST.step = n; visited.add(n);
+  const cfg = STEPS[n - 1];
+  ST.ground = !!cfg.ground; $("optGround").checked = ST.ground;
+  ST.t = cfg.play || (n === 1 && !EV.real) ? EV.t0 : n === 1 ? 0 : EV.t1;
+  $("timeSlider").min = String(EV.t0); $("timeSlider").max = String(EV.t1); $("timeSlider").value = String(ST.t);
+  $("timeSlider").setAttribute("aria-valuetext", `${clk(ST.t, 1)} UTC`);
+  renderStep(); renderDock(); drawScene();
+  if (camera && (prevView !== cfg.view || [6, 7, 8, 9, 10].includes(n))) frameCamera();
+  $("stepScroll").scrollTop = 0;
+  $("announce").textContent = `Step ${n} of ${N}: ${cfg.title(!EV.real)}.`;
+  if (G) setStatus("");
+  if (cfg.play && !reduceMotion) setTimeout(() => { if (ST.step === n) play(true); }, 900);
+  saveUrl();
+}
+$("btnBack").addEventListener("click", () => go(ST.step - 1));
+$("btnNext").addEventListener("click", () => go(ST.step + 1));
+document.addEventListener("keydown", (e) => {
+  if (document.querySelector("dialog[open]")) return;
+  const tag = e.target?.tagName;
+  if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA" || e.target?.closest?.(".hdl")) return;
+  if (e.key === "PageDown") { e.preventDefault(); go(ST.step + 1); }
+  else if (e.key === "PageUp") { e.preventDefault(); go(ST.step - 1); }
+});
+
+function setQuake(id, { step = 1 } = {}) {
+  play(false);
+  ST.quake = id;
+  if (id === "mystery") ST.measure = true;
+  else if (EV && !EV.real) ST.measure = false;
+  EV = buildEvent(id);
+  ST.picks = [{}, {}, {}];
+  visited.clear(); visited.add(1);
+  document.querySelectorAll("[data-quake]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.quake === id)));
+  $("mysteryRow").hidden = id !== "mystery";
+  $("quakeInfo").innerHTML = EV.real ? `${EV.base.info} · started ${f1(EV.base.depth)} km down` : `A made-up earthquake for you to find <span class="mv">${MODELS.mystery.name} v${MODELS.mystery.version}</span>`;
+  buildDock();
+  go(step, { camera: false });
+  frameCamera();
+}
+function newMystery() { setQuake("mystery"); setStatus(`A new mystery earthquake near ${EVENTS[ST.region].towns}. Step 1 of ${N}.`); }
+document.querySelectorAll("[data-quake]").forEach(b => b.addEventListener("click", () => {
+  if (b.dataset.quake === "mystery") { if (ST.quake !== "mystery") newMystery(); return; }
+  ST.region = b.dataset.quake; $("mysteryRegion").value = ST.region;
+  setQuake(b.dataset.quake);
+}));
+$("mysteryRegion").addEventListener("change", (e) => { ST.region = e.target.value; newMystery(); });
+$("btnNewMystery").addEventListener("click", newMystery);
+
+$("optLabels").addEventListener("change", (e) => { ST.labels = e.target.checked; placeChips(); updateWaves(true); });
+function applyGround() {
+  if (!G) return;
+  G.map.ground.opacity = ST.ground ? 0.4 : 1;
+  try { G.map.basemap.referenceLayers.forEach(l => { l.opacity = ST.ground ? 0.4 : 1; }); } catch (e) { console.warn(e); }
+}
+$("optGround").addEventListener("change", (e) => { ST.ground = e.target.checked; applyGround(); });
+$("optStretch").addEventListener("change", (e) => { ST.stretch = e.target.checked ? 3 : 1; drawScene(); frameCamera(); if (ST.step === 9) renderStepKeepFocus(); });
+
+function saveUrl() {
+  try { const u = new URL(location.href); u.searchParams.set("quake", ST.quake); u.searchParams.set("step", String(ST.step)); history.replaceState(null, "", u); } catch (e) { /* ignore */ }
+}
+
+// ================= start =================
+const q = new URLSearchParams(location.search);
+const startQuake = ["laquila", "loma", "nisqually", "mystery"].includes(q.get("quake")) ? q.get("quake") : "laquila";
+const startStep = Math.max(1, Math.min(N, parseInt(q.get("step") || "1", 10) || 1));
+if (startQuake !== "mystery") ST.region = startQuake;
+$("mysteryRegion").value = ST.region;
+setQuake(startQuake, { step: startStep });
+layoutVars();
+try {
+  await initScene();
+  layoutVars();
+  drawScene(); frameCamera();
+  setStatus("");
+} catch (e) {
+  console.error(e);
+  setStatus("The 3D map couldn't load. The steps, seismograms and graph still work.");
+}
+</script>
+</body>
+</html>
