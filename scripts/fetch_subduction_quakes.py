@@ -15,6 +15,7 @@ YEARS = 5
 PLACES = {
     # middle of the block (see subduction-engine.js makeBlock); radius covers the whole block
     "tonga": {"latitude": -19.0560, "longitude": -177.1549, "maxradiuskm": 1300},
+    "guatemala": {"latitude": 14.8837, "longitude": -87.0679, "maxradiuskm": 1300},
 }
 URL = "https://earthquake.usgs.gov/fdsnws/event/1/query"
 
