@@ -24,16 +24,26 @@ body{background:#cfe0ea;color:var(--ink);font:16px/1.5 var(--sans)}
 .skip{position:absolute;left:8px;top:-60px;z-index:100;background:var(--amber);color:#000;padding:8px 12px;border-radius:6px;font-weight:700}
 .skip:focus{top:8px}
 #viewDiv{position:absolute;inset:0}
-.crosshair{position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;pointer-events:none;z-index:4}
+.crosshair{position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;pointer-events:none;z-index:4;display:none}
+.crosshair.show{display:block}
 .crosshair::before,.crosshair::after{content:"";position:absolute;background:var(--ink);box-shadow:0 0 0 2px #fff}
 .crosshair::before{left:14px;top:0;width:2px;height:30px}
 .crosshair::after{top:14px;left:0;height:2px;width:30px}
 /* floating panels */
 .float{background:rgba(251,247,238,.97);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
-#leftCol{position:absolute;top:12px;left:12px;width:370px;max-height:calc(100% - 24px);display:flex;flex-direction:column;gap:10px;z-index:10;overflow:auto;padding-bottom:2px}
+#leftCol{position:absolute;top:var(--bar-h,104px);left:12px;width:370px;max-height:calc(100% - var(--bar-h,104px) - 12px);display:flex;flex-direction:column;gap:10px;z-index:10;overflow:auto;padding-bottom:2px}
 .card{padding:14px 16px}
-.title h1{font:700 1.32rem/1.22 var(--serif);margin:0;color:var(--moss-dark)}
-.title p{margin:6px 0 0;font-size:.9rem;color:var(--muted)}
+.title-bar{position:absolute;top:12px;left:12px;right:12px;z-index:11;display:flex;align-items:center;gap:14px;padding:10px 18px 10px 12px}
+.title-bar .twig{flex:none;width:64px;height:64px;transform-origin:30% 70%;animation:bob 3.2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:rotate(-4deg) translateY(0)}50%{transform:rotate(5deg) translateY(-3px)}}
+.title-text{flex:1;min-width:0}
+.title-bar h1{font:700 clamp(1.5rem,3vw,2.6rem)/1.08 var(--serif);margin:0;color:var(--moss-dark);letter-spacing:.005em}
+.title-bar p{margin:4px 0 0;font-size:1rem;color:var(--muted)}
+.bar-actions{flex:none;display:flex;gap:8px;align-items:center}
+.zoom-box{position:absolute;right:12px;top:var(--bar-h,104px);z-index:10;display:flex;flex-direction:column;overflow:hidden}
+.zoom-box button{width:44px;height:44px;border:0;background:transparent;color:var(--moss-dark);font:700 1.5rem/1 var(--sans);cursor:pointer}
+.zoom-box button+button{border-top:1px solid var(--line)}
+.zoom-box button:hover{background:#eef3ec}
 .card h2{font:700 1.2rem/1.25 var(--serif);margin:0 0 8px}
 .card p{margin:0 0 10px}
 .intro{font-size:.92rem}
@@ -74,8 +84,7 @@ summary{cursor:pointer;font-weight:700;min-height:28px}
 details ul{margin:8px 0 0;padding-left:1.2em;font-size:.92rem}
 .ver{display:inline-block;font:700 .75rem var(--sans);background:var(--river-tint);color:var(--river-dark);border-radius:999px;padding:1px 8px;margin-left:4px;white-space:nowrap}
 .real{border-left:5px solid var(--river);background:var(--river-tint);padding:8px 12px;border-radius:6px;font-size:.95rem;margin:0 0 12px}
-.topRight{position:absolute;top:12px;right:62px;z-index:10;display:flex;gap:8px;align-items:center}
-.chip{padding:8px 12px;font-weight:700;font-size:.95rem;border-radius:999px}
+.chip{padding:8px 12px;font-weight:700;font-size:.95rem;border-radius:999px;margin:0;background:var(--card);border:1px solid var(--line)}
 .chip.btn{min-height:40px;padding:6px 14px;border-radius:999px;font-size:.95rem}
 .credit-tag{position:absolute;right:8px;bottom:30px;z-index:5;background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:6px;padding:3px 9px;font-size:12px;color:var(--ink)}
 .foot{font-size:.8rem;color:var(--muted);margin:8px 0 0}
@@ -87,42 +96,54 @@ dialog table{border-collapse:collapse;width:100%;margin:6px 0 12px;font-size:.9r
 dialog th,dialog td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
 dialog th{background:#f1ead9}
 .dialog-close{float:right}
-@media (prefers-reduced-motion: reduce){.spin{animation:none;border-right-color:var(--river)}}
+@media (prefers-reduced-motion: reduce){.spin{animation:none;border-right-color:var(--river)}.title-bar .twig{animation:none}}
 @media (max-width:700px){
   #viewDiv{bottom:46%}
   .crosshair{top:27%}
+  .title-bar{top:0;left:0;right:0;border-radius:0;padding:6px 10px;gap:8px}
+  .title-bar .twig{width:40px;height:40px}
+  .title-bar h1{font-size:1.15rem}
+  .title-bar p,.intro{display:none}
+  .chip{padding:6px 10px;font-size:.85rem}
   #leftCol{top:auto;bottom:0;left:0;right:0;width:auto;height:46%;max-height:46%;gap:0;border-radius:0}
   #leftCol .float{border-radius:0;box-shadow:none;border-width:1px 0 0}
-  #leftCol .title{border-radius:14px 14px 0 0}
-  .title h1{font-size:1.1rem}
-  .title p,.intro{display:none}
-  .topRight{right:56px;top:10px}
   .credit-tag{bottom:calc(46% + 30px)}
 }
 </style>
 </head>
 <body>
 <a class="skip" href="#leftCol">Skip to the game panel</a>
-<div id="viewDiv" role="region" aria-label="Map. Tab to the map, then use the arrow keys to move it and plus or minus to zoom."></div>
-<div class="crosshair" aria-hidden="true"></div>
+<div id="viewDiv" role="region" aria-label="Map. Use the arrow keys to move it, plus or minus to zoom, and Enter to drop your stick at the cross in the middle."></div>
+<div class="crosshair" id="crosshair" aria-hidden="true"></div>
 
-<div id="leftCol" tabindex="-1">
-  <header class="float card title">
+<header class="float title-bar" id="titleBar">
+  <img class="twig" id="titleTwig" alt="" width="64" height="64">
+  <div class="title-text">
     <h1 id="appTitle"></h1>
     <p id="appTag">Drop a stick in a stream. Where will the water take it?</p>
-  </header>
+  </div>
+  <div class="bar-actions">
+    <p class="chip" id="score" aria-live="off">Score: 0 / 0</p>
+    <button class="chip btn secondary" id="aboutBtn" type="button" aria-haspopup="dialog">About</button>
+  </div>
+</header>
+<div class="float zoom-box" id="zoomBox" role="group" aria-label="Zoom the map">
+  <button type="button" id="zoomIn" aria-label="Zoom in">+</button>
+  <button type="button" id="zoomOut" aria-label="Zoom out">&minus;</button>
+</div>
+
+<div id="leftCol" tabindex="-1">
 
   <!-- STEP: ready -->
   <section class="float card" id="stepReady" aria-labelledby="readyTitle">
     <h2 id="readyTitle" tabindex="-1">Drop your stick</h2>
     <div class="intro" id="intro"></div>
     <p id="readyMsg" class="notice" hidden></p>
-    <p style="margin-top:10px"><strong>Find a river or stream on the map and click right on it.</strong></p>
+    <p style="margin-top:10px"><strong>Find a river or stream on the map and click right on it to drop your stick in.</strong></p>
     <div class="row">
-      <button class="btn" id="dropCentreBtn" type="button">Drop at the +</button>
-      <button class="btn secondary" id="locateBtn" type="button">Use my location</button>
+      <button class="btn secondary" id="locateBtn" type="button">Standing by a stream? Use my location</button>
     </div>
-    <p class="hint">Keyboard: Tab to the map, move it with the arrow keys and + / &minus; until the + in the middle is on a stream, then press <em>Drop at the +</em>.</p>
+    <p class="hint">Keyboard: Tab to the map and a cross appears in the middle. Move the map with the arrow keys and + / &minus; until the cross is on a stream, then press Enter.</p>
     <label class="field" for="placeSelect">Or start somewhere famous</label>
     <div class="inline">
       <select id="placeSelect"></select>
@@ -183,10 +204,6 @@ dialog th{background:#f1ead9}
   </section>
 </div>
 
-<div class="topRight">
-  <p class="float chip" id="score" aria-live="off">Score: 0 / 0</p>
-  <button class="float chip btn secondary" id="aboutBtn" type="button" aria-haspopup="dialog">About</button>
-</div>
 <div class="credit-tag">Created by Jason Sawle</div>
 
 <div id="sr" class="sr-only" aria-live="polite" aria-atomic="true"></div>
