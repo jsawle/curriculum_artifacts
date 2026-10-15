@@ -3,7 +3,7 @@
   'use strict';
 
   // ------------------------------------------------------------------ settings
-  const APP_VERSION = '0.6.0';
+  const APP_VERSION = '0.6.1';
   const APP_TITLE = '“I wonder where my stick goes,” said Pooh';
   const INTRO_HTML =
     '<p>In <cite>The House at Pooh Corner</cite> (1928), Pooh drops a fir-cone off a bridge and watches it float out ' +
@@ -11,7 +11,6 @@
     '<p>Drop a stick in any stream in the world and follow the water downhill, all the way to where it ends.</p>';
   const TOPOBATHY_URL = 'https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/TopoBathy3D/ImageServer';
   const BASEMAP_URL = 'https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer';
-  const MAX_CACHED_TILES = 350;
 
   const FE = window.FlowEngine;
   const L = window.RiverLogic;
@@ -26,7 +25,7 @@
     ...window.LAKES_DATA.map(l => ({ name: l.n, kind: l.k, polys: l.p }))
   ]);
   const MODELS = [
-    { name: 'Flow model', version: FE.VERSION.flow, what: 'Our own flow direction from Esri TopoBathy3D elevation. The stick steps to the lowest of the 8 squares around it; hollows, lakes and reservoirs are filled until they overflow. Squares are about 20 m across near the stick and grow to about 300 m on long rivers (bigger only to cross very large lakes).' },
+    { name: 'Flow model', version: FE.VERSION.flow, what: 'Our own flow direction from Esri TopoBathy3D elevation. The stick steps to the lowest of the 8 squares around it; hollows, lakes and reservoirs are filled until they overflow. Squares are about 20 m across near the stick and grow to about 300 m on long rivers (bigger only to cross very large lakes). v1.1: every stick starts with fresh map squares, and a square that fails to download is tried again instead of being treated as a hole.' },
     { name: 'Inland ending rule', version: FE.VERSION.inland, what: 'The water stops in a lake with no outlet (from Natural Earth), or when getting out would mean the water rising more than 15 m over more than 3,000 km² of dry land.' },
     { name: MV.sea.name, version: MV.sea.version, what: MV.sea.what },
     { name: MV.options.name, version: MV.options.version, what: MV.options.what }
@@ -200,23 +199,31 @@
     // elevation tiles (the same service as the elevation profile tool's "world-topobathymetry" ground)
     const elevLayer = new ElevationLayer({ url: TOPOBATHY_URL });
     const elevReady = elevLayer.load();
+    // One elevation tile. A download that fails for a moment (network blip, busy server, timeout) is tried
+    // again twice; only a tile that really isn't there (404/400) or keeps failing counts as "no data".
+    const wait = ms => new Promise(r => setTimeout(r, ms));
     async function fetchElev(Lv, tx, ty, signal) {
       await elevReady;
-      try {
-        const d = await elevLayer.fetchTile(Lv, ty, tx, { noDataValue: -99999, signal });
-        const out = new Float32Array(65536), w = d.width;
-        for (let j = 0; j < 256; j++) {
-          const row = j * w;
-          for (let i = 0; i < 256; i++) { const v = d.values[row + i]; out[j * 256 + i] = (v === d.noDataValue || v <= -99998) ? NaN : v; }
+      for (let attempt = 0; ; attempt++) {
+        try {
+          const d = await elevLayer.fetchTile(Lv, ty, tx, { noDataValue: -99999, signal });
+          const out = new Float32Array(65536), w = d.width;
+          for (let j = 0; j < 256; j++) {
+            const row = j * w;
+            for (let i = 0; i < 256; i++) { const v = d.values[row + i]; out[j * 256 + i] = (v === d.noDataValue || v <= -99998) ? NaN : v; }
+          }
+          return out;
+        } catch (e) {
+          if ((e && e.name === 'AbortError') || (signal && signal.aborted)) throw e;
+          const status = e && e.details && e.details.httpStatus;
+          if (attempt >= 2 || status === 404 || status === 400) { console.warn('elevation tile', Lv, tx, ty, e); return null; }
+          await wait(attempt ? 1200 : 400);
         }
-        return out;
-      } catch (e) {
-        if (e && e.name === 'AbortError') throw e;
-        console.warn('elevation tile', Lv, tx, ty, e);
-        return null;
       }
     }
+    // a new store for every stick: each go starts fresh, like the first one
     let store = new FE.TileStore(fetchElev, FEATURES);
+    function freshStore() { store.close(); store = new FE.TileStore(fetchElev, FEATURES); }
 
     const seaLayer = new GraphicsLayer({ title: 'Where it ended' });
     const routeLayer = new GraphicsLayer({ title: 'Route' });
@@ -272,6 +279,7 @@
     let abortCtl = null;
     let chosenPlace = PLACES[0];   // set when a place from the list is used (the map opens on Poohsticks Bridge)
     let rafId = null, skipAnim = false;
+    let lastDrop = null;           // where the last stick went in, and how far the map was zoomed in then
 
     function clearMap() {
       if (rafId) cancelAnimationFrame(rafId);
@@ -284,6 +292,7 @@
     view.on('click', e => { if (state === 'Ready' || state === 'Reveal') dropAt(e.mapPoint); });
     $('#cancelBtn').addEventListener('click', () => {
       if (abortCtl) abortCtl.abort();
+      freshStore();
       clearMap(); show('Ready', true); readyMessage('Cancelled. Drop your stick somewhere else whenever you like.');
     });
     $('#locateBtn').addEventListener('click', () => {
@@ -447,7 +456,8 @@
       if (abortCtl) abortCtl.abort();
       abortCtl = new AbortController();
       const signal = abortCtl.signal;
-      if (store.tiles.size > MAX_CACHED_TILES) store = new FE.TileStore(fetchElev, FEATURES);
+      freshStore();
+      lastDrop = { x: m[0], y: m[1], scale: view.scale };
       const dropPt = pt(m[0], m[1]);
       stickG.geometry = dropPt; startG.geometry = dropPt.clone();
       stickLayer.addMany([startG, stickG]);
@@ -461,6 +471,7 @@
           $('#traceStatus').textContent = 'The water has flowed about ' + fmtKm(p.km) + ' km so far…';
           if (Date.now() - lastSaid > 8000) { lastSaid = Date.now(); announce('About ' + nf0.format(p.km) + ' kilometres so far.'); }
         }, signal);
+        if (signal.aborted) return;        // a newer stick (or Cancel) has taken over
         if (route.coords.length < 3 || route.km < 0.05) {
           clearMap(); show('Ready', true);
           readyMessage(route.end.type === 'lost' ? 'We couldn\'t read the land at that spot. Try somewhere else.' : 'The water doesn\'t go anywhere from that spot. Try clicking right on a stream.');
@@ -482,7 +493,7 @@
         show('Predict', true);
         announce('We know where the water goes. Make your guess: four choices.');
       } catch (err) {
-        if (err && err.name === 'AbortError') return;
+        if ((err && err.name === 'AbortError') || signal.aborted) return;
         console.error(err);
         clearMap(); show('Ready', true);
         readyMessage('Sorry, we couldn\'t load the elevation data just now. Check your internet connection and try again.');
@@ -706,7 +717,22 @@
       announce((guessed ? (right ? 'You got it! Plus ' + POINTS + ' points. ' : 'Not this time. ') : '') + p1.textContent);
     }
 
-    $('#againBtn').addEventListener('click', () => { clearMap(); current = null; readyMessage(''); show('Ready', true); });
+    // A fresh go: everything from the last stick is cleared except the score, and the map goes back to
+    // where that stick went in, zoomed in as it was, ready for the next drop.
+    function freshGo() {
+      if (abortCtl) abortCtl.abort();
+      freshStore();
+      splashToken++; skipAnim = false;
+      clearMap();
+      stickG.symbol = stickSym(STICK_PX, 0);
+      current = null;
+      readyMessage('');
+      show('Ready', true);
+    }
+    $('#againBtn').addEventListener('click', () => {
+      freshGo();
+      if (lastDrop) view.goTo({ target: pt(lastDrop.x, lastDrop.y), scale: lastDrop.scale }, { animate: !reduceMotion }).catch(() => {});
+    });
     $('#replayBtn').addEventListener('click', () => { if (current) startJourney(); });
     $('#toStartBtn').addEventListener('click', () => {
       if (current) { const m = FE.toMerc(current.drop[0], current.drop[1]); view.goTo({ target: pt(m[0], m[1]), zoom: 14 }).catch(() => {}); }
@@ -719,7 +745,7 @@
       if (v === '') { readyMessage('Choose a place from the list first.'); if (state !== 'Ready') announce('Choose a place from the list first.'); return; }
       const p = PLACES[Number(v)];
       chosenPlace = p;
-      if (state !== 'Ready') { clearMap(); current = null; show('Ready', false); $('#placeSelect').value = v; }
+      if (state !== 'Ready') { freshGo(); $('#placeSelect').value = v; }
       readyMessage('');
       view.goTo({ center: [p.lon, p.lat], zoom: p.zoom }, { animate: !reduceMotion }).catch(() => {});
       announce('Map moved to ' + p.label + '. Click on the river to drop your stick, or Tab to the map and press Enter.');
