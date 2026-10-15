@@ -27,6 +27,7 @@ body{background:#cfe0ea;color:var(--ink);font:16px/1.5 var(--sans)}
 #viewDiv{position:absolute;inset:0}
 .crosshair{position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;pointer-events:none;z-index:4;display:none}
 .crosshair.show{display:block}
+.splash-fx{position:fixed;z-index:4;pointer-events:none}
 .crosshair::before,.crosshair::after{content:"";position:absolute;background:var(--ink);box-shadow:0 0 0 2px #fff}
 .crosshair::before{left:14px;top:0;width:2px;height:30px}
 .crosshair::after{top:14px;left:0;height:2px;width:30px}
@@ -1206,7 +1207,7 @@ dialog th{background:#f1ead9}
   'use strict';
 
   // ------------------------------------------------------------------ settings
-  const APP_VERSION = '0.5.3';
+  const APP_VERSION = '0.6.0';
   const APP_TITLE = '“I wonder where my stick goes,” said Pooh';
   const INTRO_HTML =
     '<p>In <cite>The House at Pooh Corner</cite> (1928), Pooh drops a fir-cone off a bridge and watches it float out ' +
@@ -1334,12 +1335,11 @@ dialog th{background:#f1ead9}
   });
 
   // -------------------------------------------------------------------- score
-  const SCORE_KEY = 'poohSticks.score.v1';
+  // the score starts at 0 every time the app opens or is refreshed; nothing is saved
   let score = { right: 0, played: 0 };
-  try { const s = JSON.parse(localStorage.getItem(SCORE_KEY) || 'null'); if (s && typeof s.right === 'number') score = s; } catch (e) { /* storage unavailable */ }
+  try { localStorage.removeItem('poohSticks.score.v1'); } catch (e) { /* tidy away the score older versions saved */ }
   const POINTS = 100;   // for each right guess
   const showScore = () => { $('#score').textContent = 'Score: ' + nf0.format(score.right * POINTS) + ' points'; $('#score').title = score.right + ' right out of ' + score.played; };
-  const saveScore = () => { try { localStorage.setItem(SCORE_KEY, JSON.stringify(score)); } catch (e) { /* ignore */ } showScore(); };
   showScore();
   sizeBar();
 
@@ -1382,7 +1382,7 @@ dialog th{background:#f1ead9}
     `<li>This is a model. It follows the shape of the land only, so it knows nothing about dams, canals, pumps or water taken out for farms and cities. Very flat land and narrow gorges are the hardest places, and sometimes the model takes a different way from the real river. When you start from the list, the app tells you where the real river goes.</li>` +
     `<li>Your stick may not follow every bend of the blue stream on the map. It is steered by an elevation model: a grid of squares, each with a height, that tells the stick which way is downhill. Most squares are about 10 to 300 metres across (bigger over wide lakes and very flat land), and a little stream can be narrower than one square. The blue lines on the map and the heights were also made separately, so they don't always line up. Think of the stick's path as the way the land leads the water: usually right about the big journey, a bit rough on the small wiggles. After each journey, "Map squares used" shows how big the squares were for your stick.</li>` +
     `<li>Distances follow the model's path. Real rivers wiggle more, so they are longer.</li>` +
-    `<li>Each right guess scores 100 points. The score is kept only in this browser, on this device.</li>` +
+    `<li>Each right guess scores 100 points. The score starts at 0 each time the app opens.</li>` +
     `<li>"Use my location" keeps your location on your device. The app only asks Esri for elevation and map tiles around that spot.</li>` +
     `<li>Keyboard: Tab to the map and a cross appears in the middle. Use the arrow keys to move and + / &minus; to zoom, then press Enter to drop your stick at the cross.</li></ul>` +
     `<p>Created by Jason Sawle</p>`;
@@ -1471,7 +1471,6 @@ dialog th{background:#f1ead9}
     const routeG = new Graphic({ symbol: { type: 'simple-line', color: [13, 74, 122, 1], width: 3.5, cap: 'round', join: 'round' } });
     const stickG = new Graphic({ symbol: { type: 'picture-marker', url: STICK_URL, width: STICK_PX, height: STICK_PX, angle: 0 } });
     const startG = new Graphic({ symbol: { type: 'simple-marker', style: 'circle', size: 12, color: [242, 183, 5, 1], outline: { color: [30, 42, 34, 1], width: 2 } } });
-    const rippleG = new Graphic({ symbol: { type: 'simple-marker', style: 'circle', size: 10, color: [0, 0, 0, 0], outline: { color: [27, 106, 165, 1], width: 2 } } });
 
     let current = null;            // the game in progress
     let abortCtl = null;
@@ -1501,20 +1500,119 @@ dialog th{background:#f1ead9}
       }, () => readyMessage('We couldn\'t get your location. You can still find your spot on the map and click on the stream.'), { enableHighAccuracy: true, timeout: 15000 });
     });
 
+    // The stick drops in: it falls (big to normal size), hits the water with a splash, then bobs.
+    let splashToken = 0;
+    const stickSym = (size, angle) => ({ type: 'picture-marker', url: STICK_URL, width: size, height: size, angle });
     function splash(p, keepStick) {
       if (reduceMotion) return;
       if (keepStick) { endSplash(p); return; }
-      rippleG.geometry = p;
-      stickLayer.add(rippleG);
-      const t0 = performance.now();
+      const token = ++splashToken, t0 = performance.now(), FALL = 320, BOB = 1000;
+      let hit = false;
       const step = now => {
-        const f = Math.min(1, (now - t0) / 700);
-        rippleG.symbol = { type: 'simple-marker', style: 'circle', size: 10 + 50 * f, color: [0, 0, 0, 0], outline: { color: [27, 106, 165, 1 - f], width: 2 } };
-        const sz = STICK_PX * (1.6 - 0.6 * f);
-        stickG.symbol = { type: 'picture-marker', url: STICK_URL, width: sz, height: sz, angle: Math.sin(f * 9) * 14 * (1 - f) };
-        if (f < 1) requestAnimationFrame(step); else { stickLayer.remove(rippleG); stickG.symbol = { type: 'picture-marker', url: STICK_URL, width: STICK_PX, height: STICK_PX, angle: 0 }; }
+        if (token !== splashToken) return;              // a newer drop has taken over
+        const t = now - t0;
+        if (t < FALL) {
+          const f = t / FALL;
+          stickG.symbol = stickSym(STICK_PX * (2.4 - 1.4 * f * f), -28 * (1 - f));
+        } else {
+          if (!hit) { hit = true; waterSplash(p); }
+          const f = Math.min(1, (t - FALL) / BOB);
+          stickG.symbol = stickSym(STICK_PX, Math.sin(f * 15) * 13 * (1 - f));
+        }
+        if (t < FALL + BOB) requestAnimationFrame(step); else stickG.symbol = stickSym(STICK_PX, 0);
       };
       requestAnimationFrame(step);
+    }
+
+    // Water splash drawn on a small canvas over the map: a crown of water, flying droplets
+    // that make little rings where they land, and ripples spreading out.
+    function waterSplash(p) {
+      let sp = null;
+      try { sp = view.toScreen(p); } catch (e) { /* view not ready */ }
+      if (!sp) return;
+      const box = $('#viewDiv').getBoundingClientRect();
+      const W = 300, H = 230, cx = W / 2, cy = 160;           // impact point inside the canvas
+      const cv = document.createElement('canvas');
+      cv.className = 'splash-fx'; cv.setAttribute('aria-hidden', 'true');
+      let ctx = null;
+      try { ctx = cv.getContext('2d'); } catch (e) { /* no canvas */ }
+      if (!ctx) return;
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + 'px'; cv.style.height = H + 'px';
+      cv.style.left = Math.round(box.left + sp.x - cx) + 'px'; cv.style.top = Math.round(box.top + sp.y - cy) + 'px';
+      document.body.appendChild(cv);
+      ctx.scale(dpr, dpr);
+      const rnd = (a, b) => a + Math.random() * (b - a);
+      const drops = Array.from({ length: 22 }, () => {
+        const a = -Math.PI / 2 + rnd(-1.05, 1.05), v = rnd(200, 380);
+        return { x: cx + Math.cos(a) * 6, y: cy - 2, vx: Math.cos(a) * v * 0.8, vy: Math.sin(a) * v, r: rnd(2.8, 5.8), land: cy + rnd(-8, 10), done: false };
+      });
+      const rings = [{ x: cx, y: cy, t0: 0, dur: 1100, max: 70, w: 1 }, { x: cx, y: cy, t0: 150, dur: 1100, max: 96, w: 1 }, { x: cx, y: cy, t0: 320, dur: 1050, max: 120, w: 0.85 }];
+      const ellipse = (x, y, rx, ry) => { ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); };
+      const drawDrop = (x, y, r, vx, vy) => {
+        const ang = Math.atan2(vy, vx) + Math.PI / 2;        // a teardrop pointing the way it moves
+        ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
+        ctx.beginPath(); ctx.moveTo(0, -r * 1.9);
+        ctx.bezierCurveTo(r * 0.9, -r * 0.6, r, r * 0.9, 0, r);
+        ctx.bezierCurveTo(-r, r * 0.9, -r * 0.9, -r * 0.6, 0, -r * 1.9);
+        ctx.fillStyle = '#5fb4ec'; ctx.fill();
+        ctx.lineWidth = 1.2; ctx.strokeStyle = 'rgba(13,74,122,.85)'; ctx.stroke();
+        ctx.beginPath(); ctx.arc(-r * 0.3, -r * 0.1, r * 0.32, 0, Math.PI * 2); ctx.fillStyle = 'rgba(255,255,255,.95)'; ctx.fill();
+        ctx.restore();
+      };
+      const t0 = performance.now();
+      let last = t0;
+      const frame = now => {
+        const t = now - t0, dt = Math.min(0.05, (now - last) / 1000);
+        last = now;
+        ctx.clearRect(0, 0, W, H);
+        // ripples (white with a blue edge, so they show on any map colour)
+        for (const g of rings) {
+          const f = (t - g.t0) / g.dur;
+          if (f < 0 || f > 1) continue;
+          const rx = 4 + g.max * (1 - (1 - f) * (1 - f)), ry = rx * 0.42;
+          ctx.globalAlpha = (1 - f) * g.w;
+          ellipse(g.x, g.y, rx, ry); ctx.lineWidth = 4.5; ctx.strokeStyle = 'rgba(13,74,122,.6)'; ctx.stroke();
+          ellipse(g.x, g.y, rx, ry); ctx.lineWidth = 2.2; ctx.strokeStyle = '#ffffff'; ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+        // a white burst of foam right where the stick goes in
+        const ff = t / 280;
+        if (ff < 1) {
+          const rx = 8 + 30 * ff;
+          ellipse(cx, cy, rx, rx * 0.45); ctx.fillStyle = 'rgba(255,255,255,' + (0.95 * (1 - ff)) + ')'; ctx.fill();
+          ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(13,74,122,' + (0.7 * (1 - ff)) + ')'; ctx.stroke();
+        }
+        // the crown of water thrown up where the stick went in
+        const fc = t / 500;
+        if (fc < 1) {
+          const h = 46 * Math.sin(Math.PI * Math.min(1, fc * 1.15)), rx = 9 + 20 * fc, ry = rx * 0.42, n = 12;
+          const spikes = [];
+          for (let k = 0; k < n; k++) { const th = (k / n) * Math.PI * 2 + 0.3; spikes.push({ th, s: Math.sin(th) }); }
+          spikes.sort((a, b) => a.s - b.s);                    // back ones first
+          ctx.globalAlpha = fc > 0.7 ? (1 - fc) / 0.3 : 1;
+          for (const sk of spikes) {
+            const bx = cx + rx * Math.cos(sk.th), by = cy + ry * sk.s;
+            const tall = h * (0.75 + 0.25 * Math.abs(Math.cos(sk.th * 2)));
+            const tx = cx + (rx * 1.35) * Math.cos(sk.th), ty = by - tall;
+            ctx.beginPath(); ctx.moveTo(bx - 4.5, by); ctx.quadraticCurveTo(tx, by - tall * 0.45, tx, ty); ctx.quadraticCurveTo(tx, by - tall * 0.45, bx + 4.5, by); ctx.closePath();
+            ctx.fillStyle = sk.s < 0 ? '#9fd6f7' : '#7cc5f2'; ctx.fill();
+            ctx.lineWidth = 1.1; ctx.strokeStyle = 'rgba(13,74,122,.7)'; ctx.stroke();
+            ctx.beginPath(); ctx.arc(tx, ty, 3.2, 0, Math.PI * 2); ctx.fillStyle = '#e9f6ff'; ctx.fill(); ctx.stroke();
+          }
+          ctx.globalAlpha = 1;
+        }
+        // droplets fly up and fall back, each making a little ring where it lands
+        for (const d of drops) {
+          if (d.done) continue;
+          if (t < 60) { drawDrop(d.x, d.y, d.r * 0.6, d.vx, d.vy); continue; }
+          d.vy += 820 * dt; d.x += d.vx * dt; d.y += d.vy * dt;
+          if (d.vy > 0 && d.y >= d.land) { d.done = true; rings.push({ x: d.x, y: d.land, t0: t, dur: 520, max: 9 + d.r * 1.6, w: 0.9 }); continue; }
+          drawDrop(d.x, d.y, d.r, d.vx, d.vy);
+        }
+        if (t < 1500) requestAnimationFrame(frame); else cv.remove();
+      };
+      requestAnimationFrame(frame);
     }
 
     // a few rings spreading out where the stick reaches the end
@@ -1620,7 +1718,7 @@ dialog th{background:#f1ead9}
       current.choice = current.options[Number(sel.value)];
       score.played += 1;
       if (current.choice.correct) score.right += 1;
-      saveScore();
+      showScore();
       startJourney();
     });
 
