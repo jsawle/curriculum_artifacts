@@ -3,7 +3,7 @@
   'use strict';
 
   // ------------------------------------------------------------------ settings
-  const APP_VERSION = '0.2.0';
+  const APP_VERSION = '0.3.0';
   const APP_TITLE = '“I wonder where my stick goes,” said Pooh';
   const INTRO_HTML =
     '<p>In <cite>The House at Pooh Corner</cite> (1928), Pooh drops a fir-cone off a bridge and watches it float out ' +
@@ -34,7 +34,7 @@
   const reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const nf0 = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
   const $ = s => document.querySelector(s);
-  const fmtKm = k => (k < 10 ? (Math.round(k * 10) / 10).toString() : nf0.format(k));
+  const fmtKm = k => (k < 10 ? (Math.round(k * 10) / 10).toString() : nf0.format(k < 100 ? k : k < 1000 ? Math.round(k / 10) * 10 : Math.round(k / 100) * 100));
   const the = name => (/^(Lake|Lago|Lac|Ozero|Laguna) /.test(name) ? name : 'the ' + name);
   const kmBetween = (a, b) => Math.hypot((a[0] - b[0]) * 111.32 * Math.cos((a[1] + b[1]) / 2 * Math.PI / 180), (a[1] - b[1]) * 110.57);
   const nearSeaKm = (lon, lat) => {
@@ -43,14 +43,12 @@
     return best;
   };
 
-  const STICK_SVG = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'>" +
-    "<path d='M8 40 56 24' stroke='#fff' stroke-width='12' stroke-linecap='round'/>" +
-    "<path d='M34 32l9 9' stroke='#fff' stroke-width='7' stroke-linecap='round'/>" +
-    "<path d='M8 40 56 24' stroke='#4a2f17' stroke-width='7' stroke-linecap='round'/>" +
-    "<path d='M8 40 56 24' stroke='#a8733f' stroke-width='4' stroke-linecap='round'/>" +
-    "<path d='M34 32l9 9' stroke='#7a5230' stroke-width='3' stroke-linecap='round'/>" +
-    "<ellipse cx='45' cy='43' rx='5' ry='3' fill='#4f8a3a' stroke='#fff' stroke-width='1.5' transform='rotate(35 45 43)'/></svg>";
+  // a twig with two little leaves (drawn for this app); the white edge keeps it visible on any map
+  const STICK_SVG = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'> <g fill='none' stroke-linecap='round' stroke-linejoin='round'> <path d='M5 49C15 45 24 41 31 37S45 29 55 23' stroke='#fff' stroke-width='11'/> <path d='M31 37C34 42 37 46 40 49' stroke='#fff' stroke-width='8'/> <path d='M43 31C44 26 45 22 47 19' stroke='#fff' stroke-width='7.5'/> <path d='M5 49C15 45 24 41 31 37S45 29 55 23' stroke='#3b2412' stroke-width='7.5'/> <path d='M31 37C34 42 37 46 40 49' stroke='#3b2412' stroke-width='5'/> <path d='M43 31C44 26 45 22 47 19' stroke='#3b2412' stroke-width='4.5'/> <path d='M5 49C15 45 24 41 31 37S45 29 55 23' stroke='#a8713c' stroke-width='4.6'/> <path d='M31 37C34 42 37 46 40 49' stroke='#a8713c' stroke-width='2.4'/> <path d='M43 31C44 26 45 22 47 19' stroke='#a8713c' stroke-width='2'/> <path d='M8 46.6C16 43.4 23 40.4 29.5 36' stroke='#dcaa70' stroke-width='1.2'/> <path d='M36 33.2C42 30.2 47 27.4 52 24.6' stroke='#dcaa70' stroke-width='1'/> </g> <ellipse cx='20' cy='43.4' rx='1.7' ry='1.1' fill='#5a3518' transform='rotate(-22 20 43.4)'/> <ellipse cx='40' cy='33.6' rx='1.3' ry='.9' fill='#5a3518' transform='rotate(-25 40 33.6)'/> <path d='M47 19C43 10 50 1.5 62 1.5C63 11 57 19 47 19Z' fill='#fff' stroke='#fff' stroke-width='4.5' stroke-linejoin='round'/> <path d='M47 19C43 10 50 1.5 62 1.5C63 11 57 19 47 19Z' fill='#6cc04a' stroke='#2f6d1f' stroke-width='1.5' stroke-linejoin='round'/> <path d='M48.5 17.5C52.5 12.5 56.5 7.5 61 2.6' fill='none' stroke='#2f6d1f' stroke-width='1.1' stroke-linecap='round'/> <path d='M52.6 12.4l4 .6M51 14.4l-.6-4M55.6 8.6l3.4.4' fill='none' stroke='#2f6d1f' stroke-width='.8' stroke-linecap='round'/> <path d='M40 49C35 54 38 62 46 63C48 56 46 51 40 49Z' fill='#fff' stroke='#fff' stroke-width='4.5' stroke-linejoin='round'/> <path d='M40 49C35 54 38 62 46 63C48 56 46 51 40 49Z' fill='#8fd16a' stroke='#2f6d1f' stroke-width='1.4' stroke-linejoin='round'/> <path d='M40.8 50.4C42.4 54.4 44.2 58.4 45.6 62' fill='none' stroke='#2f6d1f' stroke-width='.9' stroke-linecap='round'/> </svg>";
   const STICK_URL = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(STICK_SVG);
+  const STICK_PX = 56;
+  const STICK_AXIS = 27.5;   // the twig is drawn pointing up and to the right at this angle
+  $('#titleTwig').src = STICK_URL;
 
   // -------------------------------------------------------------------- text
   document.title = APP_TITLE;
@@ -112,7 +110,7 @@
     `<li>This is a model. It follows the shape of the land only, so it knows nothing about dams, canals, pumps or water taken out for farms and cities. Very flat land and narrow gorges are the hardest places, and sometimes the model takes a different way from the real river. When you start from the list, the app tells you where the real river goes.</li>` +
     `<li>Distances follow the model's path. Real rivers wiggle more, so they are longer.</li>` +
     `<li>"Use my location" keeps your location on your device. The app only asks Esri for elevation and map tiles around that spot.</li>` +
-    `<li>Keyboard: Tab to the map, use the arrow keys to move and + / &minus; to zoom, then press "Drop at the +".</li></ul>` +
+    `<li>Keyboard: Tab to the map and a cross appears in the middle. Use the arrow keys to move and + / &minus; to zoom, then press Enter to drop your stick at the cross.</li></ul>` +
     `<p>Created by Jason Sawle</p>`;
   const dlg = $('#aboutDlg');
   $('#aboutBtn').addEventListener('click', () => { if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', ''); $('#aboutClose').focus(); });
@@ -160,12 +158,44 @@
       constraints: { minZoom: 2, rotationEnabled: false, snapToZoom: false },
       popupEnabled: false
     });
-    view.ui.components = ['zoom', 'attribution'];
-    view.ui.move('zoom', 'top-right');
+    view.ui.components = ['attribution'];
+    $('#zoomIn').addEventListener('click', () => view.goTo({ zoom: Math.round(view.zoom) + 1 }).catch(() => {}));
+    $('#zoomOut').addEventListener('click', () => view.goTo({ zoom: Math.max(2, Math.round(view.zoom) - 1) }).catch(() => {}));
+
+    // keep the map's centre (and the stick) clear of the floating panels
+    function layout() {
+      const bar = $('#titleBar').getBoundingClientRect();
+      const barH = Math.round(bar.bottom + 12);
+      document.documentElement.style.setProperty('--bar-h', barH + 'px');
+      const wide = window.innerWidth > 700;
+      view.padding = { top: barH, left: wide ? 394 : 0, right: wide ? 64 : 0, bottom: 0 };
+      placeCross();
+    }
+    function placeCross() {
+      const pad = view.padding || { top: 0, left: 0, right: 0, bottom: 0 };
+      const ch = $('#crosshair');
+      ch.style.left = (pad.left + (view.width - pad.left - pad.right) / 2) + 'px';
+      ch.style.top = (pad.top + (view.height - pad.top - pad.bottom) / 2) + 'px';
+    }
+    window.addEventListener('resize', () => layout());
+    if (window.ResizeObserver) new ResizeObserver(() => layout()).observe($('#titleBar'));
+
+    // Keyboard: the cross shows only while the map has keyboard focus; Enter drops the stick there
+    let keyboardUser = false;
+    document.addEventListener('keydown', e => { if (e.key === 'Tab') keyboardUser = true; }, true);
+    document.addEventListener('pointerdown', () => { keyboardUser = false; $('#crosshair').classList.remove('show'); }, true);
+    $('#viewDiv').addEventListener('focusin', () => { if (keyboardUser) { placeCross(); $('#crosshair').classList.add('show'); } });
+    $('#viewDiv').addEventListener('focusout', () => $('#crosshair').classList.remove('show'));
+    view.on('key-down', e => {
+      if ((e.key === 'Enter' || e.key === ' ') && (state === 'Ready' || state === 'Reveal')) {
+        if (e.stopPropagation) e.stopPropagation();
+        dropAt(view.center);
+      }
+    });
 
     const casingG = new Graphic({ symbol: { type: 'simple-line', color: [255, 255, 255, 0.95], width: 7, cap: 'round', join: 'round' } });
     const routeG = new Graphic({ symbol: { type: 'simple-line', color: [13, 74, 122, 1], width: 3.5, cap: 'round', join: 'round' } });
-    const stickG = new Graphic({ symbol: { type: 'picture-marker', url: STICK_URL, width: 42, height: 42, angle: 0 } });
+    const stickG = new Graphic({ symbol: { type: 'picture-marker', url: STICK_URL, width: STICK_PX, height: STICK_PX, angle: 0 } });
     const startG = new Graphic({ symbol: { type: 'simple-marker', style: 'circle', size: 12, color: [242, 183, 5, 1], outline: { color: [30, 42, 34, 1], width: 2 } } });
     const rippleG = new Graphic({ symbol: { type: 'simple-marker', style: 'circle', size: 10, color: [0, 0, 0, 0], outline: { color: [27, 106, 165, 1], width: 2 } } });
 
@@ -183,7 +213,6 @@
 
     // ------------------------------------------------------------- dropping
     view.on('click', e => { if (state === 'Ready' || state === 'Reveal') dropAt(e.mapPoint); });
-    $('#dropCentreBtn').addEventListener('click', () => dropAt(view.center));
     $('#cancelBtn').addEventListener('click', () => {
       if (abortCtl) abortCtl.abort();
       clearMap(); show('Ready', true); readyMessage('Cancelled. Drop your stick somewhere else whenever you like.');
@@ -198,16 +227,34 @@
       }, () => readyMessage('We couldn\'t get your location. You can still find your spot on the map and click on the stream.'), { enableHighAccuracy: true, timeout: 15000 });
     });
 
-    function splash(p) {
+    function splash(p, keepStick) {
       if (reduceMotion) return;
+      if (keepStick) { endSplash(p); return; }
       rippleG.geometry = p;
       stickLayer.add(rippleG);
       const t0 = performance.now();
       const step = now => {
         const f = Math.min(1, (now - t0) / 700);
         rippleG.symbol = { type: 'simple-marker', style: 'circle', size: 10 + 50 * f, color: [0, 0, 0, 0], outline: { color: [27, 106, 165, 1 - f], width: 2 } };
-        stickG.symbol = { type: 'picture-marker', url: STICK_URL, width: 64 - 22 * f, height: 64 - 22 * f, angle: 0 };
-        if (f < 1) requestAnimationFrame(step); else { stickLayer.remove(rippleG); stickG.symbol = { type: 'picture-marker', url: STICK_URL, width: 42, height: 42, angle: 0 }; }
+        const sz = STICK_PX * (1.6 - 0.6 * f);
+        stickG.symbol = { type: 'picture-marker', url: STICK_URL, width: sz, height: sz, angle: Math.sin(f * 9) * 14 * (1 - f) };
+        if (f < 1) requestAnimationFrame(step); else { stickLayer.remove(rippleG); stickG.symbol = { type: 'picture-marker', url: STICK_URL, width: STICK_PX, height: STICK_PX, angle: 0 }; }
+      };
+      requestAnimationFrame(step);
+    }
+
+    // a few rings spreading out where the stick reaches the end
+    function endSplash(p) {
+      const rings = [0, 1, 2].map(() => new Graphic({ geometry: p, symbol: { type: 'simple-marker', size: 0, color: [0, 0, 0, 0], outline: { color: [27, 106, 165, 0], width: 2.5 } } }));
+      stickLayer.addMany(rings);
+      const t0 = performance.now();
+      const step = now => {
+        const t = (now - t0) / 1600;
+        rings.forEach((g, i) => {
+          const f = Math.max(0, Math.min(1, t * 1.6 - i * 0.3));
+          g.symbol = { type: 'simple-marker', size: 8 + 70 * f, color: [0, 0, 0, 0], outline: { color: [27, 106, 165, f > 0 ? 1 - f : 0], width: 2.5 } };
+        });
+        if (t < 1.4) requestAnimationFrame(step); else rings.forEach(g => stickLayer.remove(g));
       };
       requestAnimationFrame(step);
     }
@@ -323,7 +370,8 @@
       const pad = Math.max(1500, (x1 - x0) * 0.12, (y1 - y0) * 0.12);
       const ext = new Extent({ xmin: x0 - pad, ymin: y0 - pad, xmax: x1 + pad, ymax: y1 + pad, spatialReference: SR });
       current.extent = ext;
-      const vw = Math.max(200, view.width - (view.width > 700 ? 400 : 0)), vh = Math.max(200, view.height * (view.width > 700 ? 1 : 0.5));
+      const vp = view.padding || { top: 0, left: 0, right: 0, bottom: 0 };
+      const vw = Math.max(200, view.width - vp.left - vp.right), vh = Math.max(200, view.height - vp.top - vp.bottom);
       const PX = 96 / 0.0254;                                   // scale = metres per pixel × this
       const sFit = Math.max((ext.xmax - ext.xmin) / vw, (ext.ymax - ext.ymin) / vh) * PX;
       const s0 = Math.min(view.scale, Math.max(20000, sFit / 50));
@@ -347,8 +395,8 @@
         const line = new Polyline({ paths: [part], spatialReference: SR });
         casingG.geometry = line; routeG.geometry = line;
         stickG.geometry = pt(a.p[0], a.p[1]);
-        const ang = -Math.atan2(a.dir[1], a.dir[0]) * 180 / Math.PI + 18 + (wobble || 0);
-        stickG.symbol = { type: 'picture-marker', url: STICK_URL, width: 42, height: 42, angle: ang };
+        const ang = STICK_AXIS - Math.atan2(a.dir[1], a.dir[0]) * 180 / Math.PI + (wobble || 0);
+        stickG.symbol = { type: 'picture-marker', url: STICK_URL, width: STICK_PX, height: STICK_PX, angle: ang };
         return a.p;
       };
       const finish = () => { draw(total, 0); reveal(); };
@@ -396,6 +444,7 @@
       if (rafId) cancelAnimationFrame(rafId);
       const c = current, r = c.route, e = c.ending;
       const endPt = pt(r.end.x, r.end.y);
+      if (e.kind !== 'lost') splash(endPt, true);
       if (e.kind === 'sea' && e.sea) {
         seaLayer.add(new Graphic({
           geometry: new Polygon({ rings: ringsOf(e.sea), spatialReference: { wkid: 4326 } }),
@@ -437,12 +486,14 @@
         const real = c.place.real;
         const realName = real.name || 'an inland basin';
         const realText = real.name ? the(realName) : realName;
+        const base = c.place.label.split(' (')[0];
+        const from = c.place.group === 'Pooh Sticks' ? 'water from ' + base : 'the ' + base.replace(/^River /, 'River ');
         const modelName = e.kind === 'sea' ? e.name : e.kind === 'terminal' ? e.name : null;
         const same = (real.type === 'sea' && e.kind === 'sea' && e.name === real.name) || (real.type === 'inland' && (e.kind === 'terminal' || e.kind === 'inland') && (!real.name || real.name === modelName || e.kind === 'inland'));
         const via = real.via ? ', by way of ' + real.via : '';
         rb.textContent = same
-          ? 'In real life, water from ' + c.place.label + ' also ends up in ' + realText + via + '.'
-          : 'In real life, water from ' + c.place.label + ' ends up in ' + realText + via + '. Our model only follows the shape of the land, and here it took a different way.';
+          ? 'In real life, ' + from + ' also ends up in ' + realText + via + '.'
+          : 'In real life, ' + from + ' ends up in ' + realText + via + '. Our model only follows the shape of the land, and here it took a different way.';
         rb.hidden = false;
       } else rb.hidden = true;
 
@@ -495,10 +546,10 @@
       chosenPlace = p;
       readyMessage('');
       view.goTo({ center: [p.lon, p.lat], zoom: p.zoom }, { animate: !reduceMotion }).catch(() => {});
-      announce('Map moved to ' + p.label + '. Click on the river, or press Drop at the +.');
+      announce('Map moved to ' + p.label + '. Click on the river to drop your stick, or Tab to the map and press Enter.');
     });
 
-    view.when(() => { show('Ready', false); }).catch(err => {
+    view.when(() => { layout(); show('Ready', false); }).catch(err => {
       console.error(err);
       readyMessage('The map could not load. Please refresh the page.');
     });

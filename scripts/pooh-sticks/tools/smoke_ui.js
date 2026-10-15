@@ -60,7 +60,7 @@ function fakeSDK(win) {
       win.__view = this;
     }
     on(ev, fn) { this.handlers[ev] = fn; return { remove() {} }; }
-    goTo(t) { if (t && t.center) { const m = FE.toMerc(t.center[0], t.center[1]); this.center = new Point({ x: m[0], y: m[1] }); } return Promise.resolve(); }
+    goTo(t) { if (t && t.center) { const m = FE.toMerc(t.center[0], t.center[1]); this.center = new Point({ x: m[0], y: m[1] }); } if (t && t.zoom !== undefined) this.zoom = t.zoom; return Promise.resolve(); }
     when(fn) { return Promise.resolve().then(fn); }
     set viewpoint(vp) { this._vp = vp; win.__viewpoints = (win.__viewpoints || 0) + 1; }
     get viewpoint() { return this._vp; }
@@ -100,10 +100,13 @@ async function until(fn, label, ms = 60000) { const t = Date.now(); while (!fn()
   await wait(50);
   assert.ok($('#appTitle').textContent.includes('I wonder where my stick goes'));
   assert.ok(!$('#stepReady').hidden);
-  assert.ok($('#foot').textContent.includes('0.2.0'));
+  assert.ok($('#foot').textContent.includes('0.3.0'));
+  assert.ok($('#titleTwig').src.startsWith('data:image/svg+xml'), 'twig in the title');
+  assert.ok(!$('#crosshair').classList.contains('show'), 'no cross unless using the keyboard');
   const opts = [...win.document.querySelectorAll('#placeSelect option')].map(o => o.textContent);
   assert.ok(opts.some(o => o.includes('Poohsticks Bridge')) && opts.some(o => o.includes('Volga')));
-  $('#dropCentreBtn').click();
+  assert.ok(!$('#dropCentreBtn'), 'no drop-at-the-cross button any more');
+  win.__view.handlers['key-down']({ key: 'Enter', stopPropagation() {} });
   await until(() => !$('#stepPredict').hidden || !$('#readyMsg').hidden || !$('#stepReveal').hidden, 'predict');
   assert.ok($('#readyMsg').hidden, 'no error: ' + $('#readyMsg').textContent);
   const labels = [...win.document.querySelectorAll('#choices label')].map(l => l.textContent);
@@ -120,6 +123,9 @@ async function until(fn, label, ms = 60000) { const t = Date.now(); while (!fn()
   console.log('facts:', $('#facts').textContent);
   assert.ok($('#resultBox').textContent.includes('You got it') && $('#resultBox').textContent.includes('English Channel'));
   assert.ok(!$('#realBox').hidden && $('#realBox').textContent.includes('North Sea') && $('#realBox').textContent.includes('different way'));
+  assert.ok($('#realBox').textContent.startsWith('In real life, water from Poohsticks Bridge, Ashdown Forest ends up'));
+  const z0 = win.__view.zoom; $('#zoomIn').click(); await wait(20);
+  assert.ok(win.__view.zoom === Math.round(z0) + 1, 'zoom in button');
   assert.strictEqual($('#score').textContent, 'Score: 1 / 1');
   assert.ok($('#howList').textContent.includes('Flow model') && $('#howList').textContent.includes('v1.0'));
   assert.strictEqual(win.document.activeElement.id, 'revealTitle');
@@ -149,7 +155,7 @@ async function until(fn, label, ms = 60000) { const t = Date.now(); while (!fn()
   $('#aboutBtn').click();
   assert.ok($('#aboutDlg').hasAttribute('open'));
   const about = $('#aboutBody').textContent;
-  assert.ok(about.includes('Flow model') && about.includes('Inland ending rule') && about.includes('v0.2.0') && about.includes('TopoBathy3D'));
+  assert.ok(about.includes('Flow model') && about.includes('Inland ending rule') && about.includes('v0.3.0') && about.includes('TopoBathy3D'));
   assert.ok(!/©|Copyright/i.test(about), 'no copyright line');
   $('#aboutClose').click();
   const sel = $('#placeSelect');
@@ -166,7 +172,7 @@ async function until(fn, label, ms = 60000) { const t = Date.now(); while (!fn()
   ({ win, $, errors } = load(false));
   await until(() => win.__view, 'view b');
   await wait(50);
-  $('#dropCentreBtn').click();
+  win.__view.handlers.click({ mapPoint: win.__view.center });
   await until(() => !$('#stepPredict').hidden, 'predict b');
   $('#skipGuessBtn').click();
   await until(() => !$('#stepJourney').hidden, 'journey');
