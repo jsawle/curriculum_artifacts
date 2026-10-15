@@ -3,7 +3,7 @@
   'use strict';
 
   // ------------------------------------------------------------------ settings
-  const APP_VERSION = '0.3.0';
+  const APP_VERSION = '0.4.0';
   const APP_TITLE = '“I wonder where my stick goes,” said Pooh';
   const INTRO_HTML =
     '<p>In <cite>The House at Pooh Corner</cite> (1928), Pooh drops a fir-cone off a bridge and watches it float out ' +
@@ -55,21 +55,23 @@
   $('#appTitle').textContent = APP_TITLE;
   $('#intro').innerHTML = INTRO_HTML;
   $('#foot').textContent = 'Version ' + APP_VERSION;
-  {
-    const sel = $('#placeSelect');
+  // the famous places list appears at the start and again when a turn ends
+  ['#placeSelect', '#placeSelect2'].forEach(id => {
+    const sel = $(id);
     const first = document.createElement('option'); first.value = ''; first.textContent = 'Choose a place…'; sel.appendChild(first);
     const groups = new Map();
     PLACES.forEach((p, i) => {
       if (!groups.has(p.group)) { const g = document.createElement('optgroup'); g.label = p.group; groups.set(p.group, g); sel.appendChild(g); }
       const o = document.createElement('option'); o.value = String(i); o.textContent = p.label; groups.get(p.group).appendChild(o);
     });
-  }
+  });
 
   // -------------------------------------------------------------------- score
   const SCORE_KEY = 'poohSticks.score.v1';
   let score = { right: 0, played: 0 };
   try { const s = JSON.parse(localStorage.getItem(SCORE_KEY) || 'null'); if (s && typeof s.right === 'number') score = s; } catch (e) { /* storage unavailable */ }
-  const showScore = () => { $('#score').textContent = 'Score: ' + score.right + ' / ' + score.played; };
+  const POINTS = 100;   // for each right guess
+  const showScore = () => { $('#score').textContent = 'Score: ' + nf0.format(score.right * POINTS) + ' points'; $('#score').title = score.right + ' right out of ' + score.played; };
   const saveScore = () => { try { localStorage.setItem(SCORE_KEY, JSON.stringify(score)); } catch (e) { /* ignore */ } showScore(); };
   showScore();
 
@@ -109,6 +111,7 @@
     `<h3>Good to know</h3><ul>` +
     `<li>This is a model. It follows the shape of the land only, so it knows nothing about dams, canals, pumps or water taken out for farms and cities. Very flat land and narrow gorges are the hardest places, and sometimes the model takes a different way from the real river. When you start from the list, the app tells you where the real river goes.</li>` +
     `<li>Distances follow the model's path. Real rivers wiggle more, so they are longer.</li>` +
+    `<li>Each right guess scores 100 points. The score is kept only in this browser, on this device.</li>` +
     `<li>"Use my location" keeps your location on your device. The app only asks Esri for elevation and map tiles around that spot.</li>` +
     `<li>Keyboard: Tab to the map and a cross appears in the middle. Use the arrow keys to move and + / &minus; to zoom, then press Enter to drop your stick at the cross.</li></ul>` +
     `<p>Created by Jason Sawle</p>`;
@@ -477,7 +480,13 @@
         p1.textContent = 'We lost track of the stick after about ' + fmtKm(km) + ' km (' + (e.reason || 'the trail went cold') + '). Try another spot.';
       }
       const parts = [p1];
-      if (guessed) { const p2 = document.createElement('p'); p2.textContent = 'You guessed: ' + c.choice.label + '.'; parts.push(p2); }
+      if (guessed) {
+        const p2 = document.createElement('p'); p2.textContent = 'You guessed: ' + c.choice.label + '.'; parts.push(p2);
+        const p3 = document.createElement('p');
+        p3.className = right ? 'points' : 'points none';
+        p3.textContent = right ? '+' + POINTS + ' points!' : 'No points this time. Drop another stick and try again!';
+        parts.push(p3);
+      }
       $('#resultText').replaceChildren(...parts);
 
       // compare with the real river, when the stick started from the list
@@ -528,7 +537,7 @@
       hl.appendChild(src);
 
       show('Reveal', true);
-      announce((guessed ? (right ? 'You got it! ' : 'Not this time. ') : '') + p1.textContent);
+      announce((guessed ? (right ? 'You got it! Plus ' + POINTS + ' points. ' : 'Not this time. ') : '') + p1.textContent);
     }
 
     $('#againBtn').addEventListener('click', () => { clearMap(); current = null; readyMessage(''); show('Ready', true); });
@@ -539,15 +548,18 @@
     $('#toEndBtn').addEventListener('click', () => { if (current) view.goTo({ target: pt(current.route.end.x, current.route.end.y), zoom: 9 }).catch(() => {}); });
 
     // ------------------------------------------------------------- places
-    $('#placeGo').addEventListener('click', () => {
-      const v = $('#placeSelect').value;
-      if (v === '') { readyMessage('Choose a place from the list first.'); return; }
+    function goToPlace(selectId) {
+      const v = $(selectId).value;
+      if (v === '') { readyMessage('Choose a place from the list first.'); if (state !== 'Ready') announce('Choose a place from the list first.'); return; }
       const p = PLACES[Number(v)];
       chosenPlace = p;
+      if (state !== 'Ready') { clearMap(); current = null; show('Ready', false); $('#placeSelect').value = v; }
       readyMessage('');
       view.goTo({ center: [p.lon, p.lat], zoom: p.zoom }, { animate: !reduceMotion }).catch(() => {});
       announce('Map moved to ' + p.label + '. Click on the river to drop your stick, or Tab to the map and press Enter.');
-    });
+    }
+    $('#placeGo').addEventListener('click', () => goToPlace('#placeSelect'));
+    $('#placeGo2').addEventListener('click', () => goToPlace('#placeSelect2'));
 
     view.when(() => { layout(); show('Ready', false); }).catch(err => {
       console.error(err);

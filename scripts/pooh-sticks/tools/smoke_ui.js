@@ -100,7 +100,7 @@ async function until(fn, label, ms = 60000) { const t = Date.now(); while (!fn()
   await wait(50);
   assert.ok($('#appTitle').textContent.includes('I wonder where my stick goes'));
   assert.ok(!$('#stepReady').hidden);
-  assert.ok($('#foot').textContent.includes('0.3.0'));
+  assert.ok($('#foot').textContent.includes('0.4.0'));
   assert.ok($('#titleTwig').src.startsWith('data:image/svg+xml'), 'twig in the title');
   assert.ok(!$('#crosshair').classList.contains('show'), 'no cross unless using the keyboard');
   const opts = [...win.document.querySelectorAll('#placeSelect option')].map(o => o.textContent);
@@ -126,7 +126,8 @@ async function until(fn, label, ms = 60000) { const t = Date.now(); while (!fn()
   assert.ok($('#realBox').textContent.startsWith('In real life, water from Poohsticks Bridge, Ashdown Forest ends up'));
   const z0 = win.__view.zoom; $('#zoomIn').click(); await wait(20);
   assert.ok(win.__view.zoom === Math.round(z0) + 1, 'zoom in button');
-  assert.strictEqual($('#score').textContent, 'Score: 1 / 1');
+  assert.strictEqual($('#score').textContent, 'Score: 100 points');
+  assert.ok($('#resultBox').textContent.includes('+100 points!'));
   assert.ok($('#howList').textContent.includes('Flow model') && $('#howList').textContent.includes('v1.0'));
   assert.strictEqual(win.document.activeElement.id, 'revealTitle');
 
@@ -143,7 +144,15 @@ async function until(fn, label, ms = 60000) { const t = Date.now(); while (!fn()
   console.log('result 2:', $('#resultBox').textContent);
   assert.ok($('#resultBox').textContent.includes('Great Salt Lake'));
   assert.ok($('#realBox').hidden, 'no real-river note away from the chosen place');
-  assert.strictEqual($('#score').textContent, 'Score: 1 / 1', 'skipping does not score');
+  assert.strictEqual($('#score').textContent, 'Score: 100 points', 'skipping does not score');
+  // the famous-places list is on the results panel too
+  const sel2 = $('#placeSelect2');
+  sel2.value = String([...sel2.querySelectorAll('option')].findIndex(o => o.textContent.startsWith('Nile')) - 1);
+  $('#placeGo2').click();
+  await wait(30);
+  assert.ok(!$('#stepReady').hidden, 'back to the start panel');
+  assert.ok(Math.abs(win.__view.center.longitude - 29.83) < 0.05, 'zoomed to the Nile headwaters');
+  console.log('reveal list → Nile:', FE.toLonLat(win.__view.center.x, win.__view.center.y).map(v => v.toFixed(2)).join(','));
 
   // ---- 3. a sea click is refused; About dialog; place list
   $('#againBtn').click();
@@ -155,7 +164,7 @@ async function until(fn, label, ms = 60000) { const t = Date.now(); while (!fn()
   $('#aboutBtn').click();
   assert.ok($('#aboutDlg').hasAttribute('open'));
   const about = $('#aboutBody').textContent;
-  assert.ok(about.includes('Flow model') && about.includes('Inland ending rule') && about.includes('v0.3.0') && about.includes('TopoBathy3D'));
+  assert.ok(about.includes('Flow model') && about.includes('Inland ending rule') && about.includes('v0.4.0') && about.includes('100 points') && about.includes('TopoBathy3D'));
   assert.ok(!/©|Copyright/i.test(about), 'no copyright line');
   $('#aboutClose').click();
   const sel = $('#placeSelect');
