@@ -27,6 +27,7 @@ body{background:#cfe0ea;color:var(--ink);font:16px/1.5 var(--sans)}
 #viewDiv{position:absolute;inset:0}
 .crosshair{position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;pointer-events:none;z-index:4;display:none}
 .crosshair.show{display:block}
+.splash-fx{position:fixed;z-index:4;pointer-events:none}
 .crosshair::before,.crosshair::after{content:"";position:absolute;background:var(--ink);box-shadow:0 0 0 2px #fff}
 .crosshair::before{left:14px;top:0;width:2px;height:30px}
 .crosshair::after{top:14px;left:0;height:2px;width:30px}

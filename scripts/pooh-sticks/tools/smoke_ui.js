@@ -63,6 +63,7 @@ function fakeSDK(win) {
       win.__view = this;
     }
     on(ev, fn) { this.handlers[ev] = fn; return { remove() {} }; }
+    toScreen() { win.__toScreen = (win.__toScreen || 0) + 1; return { x: 600, y: 400 }; }
     goTo(t) { if (t && t.center) { const m = FE.toMerc(t.center[0], t.center[1]); this.center = new Point({ x: m[0], y: m[1] }); } if (t && t.zoom !== undefined) this.zoom = t.zoom; return Promise.resolve(); }
     when(fn) { return Promise.resolve().then(fn); }
     set viewpoint(vp) { this._vp = vp; win.__viewpoints = (win.__viewpoints || 0) + 1; }
@@ -84,6 +85,8 @@ function load(reduce) {
     runScripts: 'dangerously', pretendToBeVisual: true, url: 'https://example.github.io/pooh/',
     beforeParse(win) {
       fakeSDK(win);
+      win.localStorage.setItem('poohSticks.score.v1', JSON.stringify({ right: 7, played: 9 }));   // a score an older version saved
+      win.HTMLCanvasElement.prototype.getContext = () => null;   // jsdom has no canvas; the page skips the splash drawing
       win.matchMedia = q => ({ matches: reduce && q.includes('reduce'), addEventListener() {} });
       win.HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', ''); };
       win.HTMLDialogElement.prototype.close = function () { this.removeAttribute('open'); };
@@ -103,7 +106,9 @@ async function until(fn, label, ms = 60000) { const t = Date.now(); while (!fn()
   await wait(50);
   assert.ok($('#appTitle').textContent.includes('I wonder where my stick goes'));
   assert.ok(!$('#stepReady').hidden);
-  assert.ok($('#foot').textContent.includes('0.5.3'));
+  assert.ok($('#foot').textContent.includes('0.6.0'));
+  assert.strictEqual($('#score').textContent, 'Score: 0 points', 'the score starts at 0, whatever an older version saved');
+  assert.strictEqual(win.localStorage.getItem('poohSticks.score.v1'), null, 'the old saved score is cleared');
   assert.strictEqual($('#appTag').textContent, 'Celebrating 100 years of Winnie the Pooh');
   assert.ok(win.document.body.classList.contains('can-drop'), 'twig cursor on while a stick can be dropped');
   assert.ok(!$('#dropTip').hidden && $('#dropTip').textContent.includes('Drop me in a stream!'), 'drop-me tip shows at the start of a turn');
@@ -181,7 +186,7 @@ async function until(fn, label, ms = 60000) { const t = Date.now(); while (!fn()
   $('#aboutBtn').click();
   assert.ok($('#aboutDlg').hasAttribute('open'));
   const about = $('#aboutBody').textContent;
-  assert.ok(about.includes('Flow model') && about.includes('Inland ending rule') && about.includes('v0.5.3') && about.includes('v1.2') && about.includes('may not follow every bend') && about.includes('100 points') && about.includes('TopoBathy3D'));
+  assert.ok(about.includes('Flow model') && about.includes('Inland ending rule') && about.includes('v0.6.0') && about.includes('starts at 0') && about.includes('v1.2') && about.includes('may not follow every bend') && about.includes('100 points') && about.includes('TopoBathy3D'));
   assert.ok(!/©|Copyright/i.test(about), 'no copyright line');
   $('#aboutClose').click();
   const sel = $('#placeSelect');
@@ -212,12 +217,14 @@ async function until(fn, label, ms = 60000) { const t = Date.now(); while (!fn()
   ({ win, $, errors } = load(false));
   await until(() => win.__view, 'view b');
   await wait(50);
+  assert.strictEqual($('#score').textContent, 'Score: 0 points', 'back to 0 after a refresh');
   win.__view.handlers.click({ mapPoint: win.__view.center });
   await until(() => !$('#stepPredict').hidden, 'predict b');
   const any = win.document.querySelector('#choices input'); any.checked = true; any.dispatchEvent(new win.Event('change', { bubbles: true }));
   $('#goBtn').click();
   await until(() => !$('#stepJourney').hidden, 'journey');
   await wait(800);
+  assert.ok(win.__toScreen > 0, 'the splash found where the stick hit the water');
   const vp = win.__viewpoints || 0;
   console.log('viewpoint updates during 0.8 s of journey:', vp, '| status:', $('#journeyStatus').textContent);
   assert.ok(vp > 5, 'camera follows the stick');
