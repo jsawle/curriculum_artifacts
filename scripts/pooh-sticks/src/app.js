@@ -3,7 +3,7 @@
   'use strict';
 
   // ------------------------------------------------------------------ settings
-  const APP_VERSION = '0.5.2';
+  const APP_VERSION = '0.5.3';
   const APP_TITLE = '“I wonder where my stick goes,” said Pooh';
   const INTRO_HTML =
     '<p>In <cite>The House at Pooh Corner</cite> (1928), Pooh drops a fir-cone off a bridge and watches it float out ' +
@@ -373,7 +373,7 @@
         let ending;
         if (route.end.type === 'sea') {
           const s = L.findSea(SEA_INDEX, endLL[0], endLL[1], { coastKm: 150 });
-          ending = s.inland ? { kind: 'sea', sea: null, name: 'the sea' } : { kind: 'sea', sea: s.sea, name: s.sea.name };
+          ending = s.inland ? { kind: 'sea', sea: null, name: 'the sea' } : { kind: 'sea', sea: s.sea, name: s.sea.name, via: s.via ? s.via.name : null };
         } else if (route.end.type === 'terminal') ending = { kind: 'terminal', name: route.end.feature.name };
         else if (route.end.type === 'inland') ending = { kind: 'inland', name: null };
         else ending = { kind: 'lost', reason: route.end.reason };
@@ -522,7 +522,7 @@
           symbol: { type: 'simple-fill', color: [27, 106, 165, 0.16], outline: { color: [13, 74, 122, 0.9], width: 1.5 } }
         }));
       }
-      const label = e.kind === 'sea' ? e.name : e.kind === 'terminal' ? e.name : e.kind === 'inland' ? 'Water ends here' : 'We lost the stick here';
+      const label = e.kind === 'sea' ? (e.via ? 'Mouth of ' + the(e.via) : e.name) : e.kind === 'terminal' ? e.name : e.kind === 'inland' ? 'Water ends here' : 'We lost the stick here';
       if (c.endLabel) stickLayer.remove(c.endLabel);
       c.endLabel = new Graphic({
         geometry: endPt,
@@ -537,7 +537,8 @@
       const p1 = document.createElement('p');
       const km = r.km;
       if (e.kind === 'sea') {
-        p1.append('Your stick floated about ' + fmtKm(km) + ' km and reached the ');
+        // a river so wide that the map draws it as open water (the Amazon, Yangtze, Columbia, St Lawrence)
+        p1.append('Your stick floated about ' + fmtKm(km) + ' km ' + (e.via ? 'into the wide mouth of ' + the(e.via) + ', which opens into the ' : 'and reached the '));
         const b = document.createElement('strong'); b.textContent = e.name; p1.append(b, '.');
       } else if (e.kind === 'terminal') {
         p1.append('Your stick floated about ' + fmtKm(km) + ' km and ended in ' + (the(e.name) === e.name ? '' : 'the '));

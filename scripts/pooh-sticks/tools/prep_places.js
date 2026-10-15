@@ -50,7 +50,8 @@ const SPECS = [
   ['North America', 'Yukon (Canada)', ['Yukon'], 30],
   ['South America', 'Amazon (Ucayali, Peru)', ['Ucayali'], 40, { from: [-71.67, -15.34], real: { type: 'sea', name: 'Atlantic Ocean' } }],
   ['South America', 'Paraná (Paranaíba, Brazil)', ['Paranaíba'], 30, { from: [-46.31, -19.17], real: { type: 'sea', name: 'Río de la Plata' } }],
-  ['South America', 'Orinoco (Venezuela)', ['Orinoco'], 30],
+  // the Natural Earth line ends in a western delta channel by the Gulf of Paria; the river's mouth is the Atlantic Ocean (Wikipedia, Orinoco)
+  ['South America', 'Orinoco (Venezuela)', ['Orinoco'], 30, { real: { type: 'sea', name: 'Atlantic Ocean' } }],
   ['Oceania', 'Murray (Australia)', ['Murray'], 20]
 ];
 
