@@ -15,7 +15,7 @@
   --serif:"Iowan Old Style","Palatino Linotype","Book Antiqua",Palatino,Georgia,serif;
   --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   --shadow:0 6px 24px rgba(20,30,24,.20);
-  --honey:#ffe27a; --honey-edge:#d9a520; --honey-soft:#fff3c4;
+  --honey:#ffdda6; --honey-edge:#c98f3d; --honey-soft:#fff1da;
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;overflow:hidden}
@@ -34,13 +34,14 @@ body{background:#cfe0ea;color:var(--ink);font:16px/1.5 var(--sans)}
 .float{background:var(--honey);border:2px solid var(--honey-edge);border-radius:14px;box-shadow:var(--shadow)}
 #leftCol{position:absolute;top:var(--bar-h,104px);left:12px;width:370px;max-height:calc(100% - var(--bar-h,104px) - 12px);display:flex;flex-direction:column;gap:10px;z-index:10;overflow:auto;padding-bottom:2px}
 .card{padding:14px 16px}
-.title-bar{position:absolute;top:12px;left:12px;right:12px;z-index:11;display:flex;align-items:center;gap:14px;padding:10px 18px 10px 12px}
-.title-bar .twig{flex:none;width:64px;height:64px;transform-origin:30% 70%;animation:bob 3.2s ease-in-out infinite}
+.title-bar{position:absolute;top:12px;left:12px;right:12px;z-index:11;display:grid;grid-template-columns:minmax(var(--side,240px),1fr) auto minmax(var(--side,240px),1fr);align-items:center;gap:14px;padding:10px 18px}
+.title-main{position:relative;min-width:0}   /* the twig hangs off to the left so the words sit dead centre */
+.title-bar .twig{position:absolute;right:calc(100% + 14px);top:50%;margin-top:-32px;width:64px;height:64px;transform-origin:30% 70%;animation:bob 3.2s ease-in-out infinite}
 @keyframes bob{0%,100%{transform:rotate(-4deg) translateY(0)}50%{transform:rotate(5deg) translateY(-3px)}}
-.title-text{flex:1;min-width:0}
-.title-bar h1{font:700 clamp(1.5rem,3vw,2.6rem)/1.08 var(--serif);margin:0;color:var(--moss-dark);letter-spacing:.005em}
-.title-bar p{margin:4px 0 0;font-size:1rem;color:var(--muted)}
-.bar-actions{flex:none;display:flex;gap:8px;align-items:center}
+.title-text{min-width:0;text-align:center}
+.title-bar h1{font:700 clamp(1.4rem,2.55vw,2.6rem)/1.08 var(--serif);margin:0;color:var(--moss-dark);letter-spacing:.005em;text-wrap:balance}
+#appTag{margin:4px 0 0;font:italic 600 clamp(.95rem,1.4vw,1.2rem)/1.3 var(--serif);color:var(--muted)}
+.bar-actions{grid-column:3;justify-self:end;display:flex;gap:8px;align-items:center}
 .zoom-box{position:absolute;right:12px;top:var(--bar-h,104px);z-index:10;display:flex;flex-direction:column;overflow:hidden}
 .zoom-box button{width:44px;height:44px;border:0;background:transparent;color:var(--moss-dark);font:700 1.5rem/1 var(--sans);cursor:pointer}
 .zoom-box button+button{border-top:1px solid var(--line)}
@@ -56,6 +57,16 @@ body{background:#cfe0ea;color:var(--ink);font:16px/1.5 var(--sans)}
 .btn.secondary{background:var(--card);color:var(--moss)}
 .btn.secondary:hover{background:#eef3ec}
 .btn.block{width:100%}
+.btn.go{width:100%;min-height:64px;margin-top:6px;border-radius:14px;font:700 2.1rem/1 var(--serif);letter-spacing:.03em;box-shadow:0 3px 0 var(--moss-dark)}
+.btn.go:active{transform:translateY(2px);box-shadow:0 1px 0 var(--moss-dark)}
+.nudge{color:var(--no);font-weight:700;margin:6px 0 0}
+.drop-tip{position:fixed;left:0;top:0;z-index:12;pointer-events:none;display:flex;align-items:center;gap:8px;background:var(--honey);color:var(--moss-dark);border:2px solid var(--honey-edge);border-radius:16px;padding:7px 14px;font:700 1.15rem/1.2 var(--serif);box-shadow:var(--shadow);white-space:nowrap}
+.drop-tip[hidden]{display:none}
+.drop-tip:not(.static)::before{content:"";position:absolute;left:-8px;top:50%;width:12px;height:12px;margin-top:-7px;background:var(--honey);border-left:2px solid var(--honey-edge);border-bottom:2px solid var(--honey-edge);transform:rotate(45deg)}
+.drop-tip.flip::before{left:auto;right:-8px;transform:rotate(225deg)}
+.drop-tip img{display:none;width:34px;height:34px}
+.drop-tip.static img{display:block}
+body.can-drop .esri-view .esri-view-surface[data-cursor=default]:not([data-navigating=true]){cursor:var(--stick-cursor,pointer)}
 .row{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
 .row .btn{flex:1 1 auto}
 label.field{display:block;font-weight:700;margin:12px 0 4px}
@@ -105,10 +116,14 @@ dialog th{background:#f1ead9}
 @media (max-width:700px){
   #viewDiv{bottom:46%}
   .crosshair{top:27%}
-  .title-bar{top:0;left:0;right:0;border-radius:0;padding:6px 10px;gap:8px}
-  .title-bar .twig{width:40px;height:40px}
-  .title-bar h1{font-size:1.15rem}
-  .title-bar p,.intro{display:none}
+  .title-bar{top:0;left:0;right:0;border-radius:0;padding:6px 10px 8px;display:flex;flex-wrap:wrap;justify-content:center;gap:4px 8px}
+  .title-main{flex:1 1 100%}
+  .bar-side{display:none}
+  .title-bar .twig{display:none}
+  .title-bar h1{font-size:1.1rem}
+  .chip.btn{min-height:36px}
+  #appTag{font-size:.8rem;margin-top:1px}
+  .intro{display:none}
   .chip{padding:6px 10px;font-size:.85rem}
   #leftCol{top:auto;bottom:0;left:0;right:0;width:auto;height:46%;max-height:46%;gap:0;border-radius:0}
   #leftCol .float{border-radius:0;box-shadow:none;border-width:2px 0 0}
@@ -122,10 +137,13 @@ dialog th{background:#f1ead9}
 <div class="crosshair" id="crosshair" aria-hidden="true"></div>
 
 <header class="float title-bar" id="titleBar">
-  <img class="twig" id="titleTwig" alt="" width="64" height="64">
-  <div class="title-text">
-    <h1 id="appTitle"></h1>
-    <p id="appTag">Drop a stick in a stream. Where will the water take it?</p>
+  <div class="bar-side" aria-hidden="true"></div>
+  <div class="title-main">
+    <img class="twig" id="titleTwig" alt="" width="64" height="64">
+    <div class="title-text">
+      <h1 id="appTitle"></h1>
+      <p id="appTag">Celebrating 100 years of Winnie the Pooh</p>
+    </div>
   </div>
   <div class="bar-actions">
     <p class="chip" id="score" aria-live="off">Score: 0 / 0</p>
@@ -168,16 +186,14 @@ dialog th{background:#f1ead9}
   <!-- STEP: predict -->
   <section class="float card" id="stepPredict" aria-labelledby="predictTitle" hidden>
     <h2 id="predictTitle" tabindex="-1">Where will your stick end up?</h2>
-    <p id="predictLead">We know where the water goes. Guess right for <strong>100 points</strong>, then watch the journey.</p>
+    <p id="predictLead">Pick where you think it ends up, then press <strong>Go!</strong> Guess right for <strong>100 points</strong>.</p>
     <form id="predictForm">
       <fieldset>
         <legend class="sr-only">Where will your stick end up?</legend>
         <div id="choices"></div>
       </fieldset>
-      <div class="row">
-        <button class="btn" id="lockBtn" type="submit" disabled>Lock in my guess</button>
-        <button class="btn secondary" id="skipGuessBtn" type="button">Just show me</button>
-      </div>
+      <p class="nudge" id="nudge" hidden>Pick one first!</p>
+      <button class="btn go" id="goBtn" type="submit">Go!</button>
     </form>
     <p class="hint">Tip: which sea is downhill from here? Mountains in the way can send water the long way round.</p>
   </section>
@@ -215,6 +231,8 @@ dialog th{background:#f1ead9}
     </div>
   </section>
 </div>
+
+<div class="drop-tip" id="dropTip" aria-hidden="true" hidden><img id="tipTwig" alt="" width="34" height="34"><span>Drop me in a stream!</span></div>
 
 <div class="credit-tag">Created by Jason Sawle</div>
 
@@ -1156,7 +1174,7 @@ dialog th{background:#f1ead9}
   'use strict';
 
   // ------------------------------------------------------------------ settings
-  const APP_VERSION = '0.4.0';
+  const APP_VERSION = '0.5.0';
   const APP_TITLE = '“I wonder where my stick goes,” said Pooh';
   const INTRO_HTML =
     '<p>In <cite>The House at Pooh Corner</cite> (1928), Pooh drops a fir-cone off a bridge and watches it float out ' +
@@ -1202,6 +1220,70 @@ dialog th{background:#f1ead9}
   const STICK_PX = 56;
   const STICK_AXIS = 27.5;   // the twig is drawn pointing up and to the right at this angle
   $('#titleTwig').src = STICK_URL;
+  $('#tipTwig').src = STICK_URL;
+
+  // the mouse pointer becomes the twig over the map; its tip (bottom left, like a pencil) is the spot that gets clicked
+  const CURSOR_PX = 48, CURSOR_HOT = [4, 37];
+  (function makeStickCursor() {
+    const svg = STICK_SVG.replace('<svg ', "<svg width='" + CURSOR_PX + "' height='" + CURSOR_PX + "' ");
+    const src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    const set = url => document.documentElement.style.setProperty('--stick-cursor', 'url("' + url + '") ' + CURSOR_HOT.join(' ') + ', pointer');
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const c = document.createElement('canvas'); c.width = c.height = CURSOR_PX;
+        c.getContext('2d').drawImage(img, 0, 0, CURSOR_PX, CURSOR_PX);
+        set(c.toDataURL('image/png'));   // PNG cursors work in every browser
+      } catch (e) { set(src); }
+    };
+    img.onerror = () => set(src);
+    img.src = src;
+  })();
+
+  // "Drop me in a stream!" beside the twig for 10 seconds at the start of each turn
+  const TIP_MS = 10000;
+  const tip = $('#dropTip');
+  const canHover = !!(window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches);
+  let tipArmed = false, tipUntil = 0, tipTimer = null;
+  function endTip() { tipArmed = false; tipUntil = 0; clearTimeout(tipTimer); tip.hidden = true; }
+  function startTipClock() { tipUntil = Date.now() + TIP_MS; clearTimeout(tipTimer); tipTimer = setTimeout(endTip, TIP_MS); }
+  function placeTip(x, y) {
+    const w = tip.offsetWidth, h = tip.offsetHeight;
+    // beside the leaf at the top right of the twig cursor, as if the twig is talking
+    let left = x + 50, top = y - 36 - h / 2;
+    const flip = left + w > window.innerWidth - 8;
+    if (flip) left = x - w - 14;
+    tip.classList.toggle('flip', flip);
+    if (top < 8) top = y + 20;
+    tip.style.transform = 'translate(' + Math.round(left) + 'px,' + Math.round(top) + 'px)';
+  }
+  function armTip() {
+    endTip(); tipArmed = true; tip.classList.toggle('static', !canHover);
+    if (!canHover) {   // touch screens have no pointer to follow: show it over the middle of the map
+      const r = $('#viewDiv').getBoundingClientRect();
+      const top = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--bar-h')) || r.top;
+      tip.hidden = false;
+      const x = r.left + r.width / 2 - tip.offsetWidth / 2, y = top + (r.bottom - top) / 2 - tip.offsetHeight / 2;
+      tip.style.transform = 'translate(' + Math.round(x) + 'px,' + Math.round(y) + 'px)';
+      startTipClock();
+    }
+  }
+  $('#viewDiv').addEventListener('pointermove', e => {
+    if (!tipArmed || e.pointerType === 'touch' || !canHover) return;
+    if (!tipUntil) startTipClock();
+    tip.hidden = false; placeTip(e.clientX, e.clientY);
+  }, true);
+  $('#viewDiv').addEventListener('pointerleave', () => { if (canHover) tip.hidden = true; });
+  $('#viewDiv').addEventListener('pointerdown', () => { if (!canHover) endTip(); }, true);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') endTip(); });
+
+  // the centred title needs equal space on both sides, as wide as the score and About buttons
+  function sizeBar() {
+    const w = Math.ceil($('.bar-actions').getBoundingClientRect().width);
+    if (w) document.documentElement.style.setProperty('--side', w + 'px');
+  }
+  window.addEventListener('resize', sizeBar);
+  if (window.ResizeObserver) new ResizeObserver(sizeBar).observe($('.bar-actions'));
 
   // -------------------------------------------------------------------- text
   document.title = APP_TITLE;
@@ -1227,6 +1309,7 @@ dialog th{background:#f1ead9}
   const showScore = () => { $('#score').textContent = 'Score: ' + nf0.format(score.right * POINTS) + ' points'; $('#score').title = score.right + ' right out of ' + score.played; };
   const saveScore = () => { try { localStorage.setItem(SCORE_KEY, JSON.stringify(score)); } catch (e) { /* ignore */ } showScore(); };
   showScore();
+  sizeBar();
 
   // ------------------------------------------------------------- announcements
   let srTimer = null;
@@ -1243,6 +1326,8 @@ dialog th{background:#f1ead9}
   function show(step, focusHeading) {
     state = step;
     STEPS.forEach(s => { $('#step' + s).hidden = s !== step; });
+    document.body.classList.toggle('can-drop', step === 'Ready' || step === 'Reveal');
+    if (step === 'Ready') armTip(); else endTip();
     if (focusHeading) { const h = $('#step' + step + ' h2'); if (h) h.focus({ preventScroll: false }); }
   }
   function readyMessage(msg) {
@@ -1486,25 +1571,25 @@ dialog th{background:#f1ead9}
         lab.className = 'choice';
         const inp = document.createElement('input');
         inp.type = 'radio'; inp.name = 'choice'; inp.value = String(i);
-        inp.addEventListener('change', () => { $('#lockBtn').disabled = false; });
+        inp.addEventListener('change', () => { $('#nudge').hidden = true; });
         const span = document.createElement('span');
         span.textContent = o.label;
         lab.append(inp, span);
         box.appendChild(lab);
       });
-      $('#lockBtn').disabled = true;
+      $('#nudge').hidden = true;
     }
     $('#predictForm').addEventListener('submit', e => {
       e.preventDefault();
       const sel = document.querySelector('input[name="choice"]:checked');
-      if (!sel || !current) return;
+      if (!current) return;
+      if (!sel) { $('#nudge').hidden = false; announce('Pick one first!'); const first = document.querySelector('input[name="choice"]'); if (first) first.focus(); return; }
       current.choice = current.options[Number(sel.value)];
       score.played += 1;
       if (current.choice.correct) score.right += 1;
       saveScore();
       startJourney();
     });
-    $('#skipGuessBtn').addEventListener('click', () => { if (current) { current.choice = null; startJourney(); } });
 
     // ------------------------------------------------------------- journey
     function startJourney() {
