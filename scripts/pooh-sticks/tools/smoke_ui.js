@@ -45,6 +45,11 @@ function fakeSDK(win) {
   class ElevationLayer extends Layer {
     fetchTile(level, row, col) {
       win.__tiles = (win.__tiles || 0) + 1;
+      if (win.__flaky) {   // every tile fails once (a busy server), then works: the app must try again
+        const k = level + '/' + row + '/' + col;
+        win.__failedOnce = win.__failedOnce || new Set();
+        if (!win.__failedOnce.has(k)) { win.__failedOnce.add(k); const e = new Error('busy'); e.details = { httpStatus: 503 }; return Promise.reject(e); }
+      }
       const W = 257, v = new Float32Array(W * W), r = FE.res(level);
       for (let j = 0; j < W; j++) for (let i = 0; i < W; i++) {
         const x = (col * 256 + i + 0.5) * r - FE.ORIGIN, y = FE.ORIGIN - (row * 256 + j + 0.5) * r;
@@ -64,7 +69,7 @@ function fakeSDK(win) {
     }
     on(ev, fn) { this.handlers[ev] = fn; return { remove() {} }; }
     toScreen() { win.__toScreen = (win.__toScreen || 0) + 1; return { x: 600, y: 400 }; }
-    goTo(t) { if (t && t.center) { const m = FE.toMerc(t.center[0], t.center[1]); this.center = new Point({ x: m[0], y: m[1] }); } if (t && t.zoom !== undefined) this.zoom = t.zoom; return Promise.resolve(); }
+    goTo(t) { if (t && t.target && t.target.x !== undefined) this.center = t.target; if (t && t.scale) this.scale = t.scale; if (t && t.center) { const m = FE.toMerc(t.center[0], t.center[1]); this.center = new Point({ x: m[0], y: m[1] }); } if (t && t.zoom !== undefined) this.zoom = t.zoom; return Promise.resolve(); }
     when(fn) { return Promise.resolve().then(fn); }
     set viewpoint(vp) { this._vp = vp; win.__viewpoints = (win.__viewpoints || 0) + 1; }
     get viewpoint() { return this._vp; }
@@ -106,7 +111,7 @@ async function until(fn, label, ms = 60000) { const t = Date.now(); while (!fn()
   await wait(50);
   assert.ok($('#appTitle').textContent.includes('I wonder where my stick goes'));
   assert.ok(!$('#stepReady').hidden);
-  assert.ok($('#foot').textContent.includes('0.6.0'));
+  assert.ok($('#foot').textContent.includes('0.6.1'));
   assert.strictEqual($('#score').textContent, 'Score: 0 points', 'the score starts at 0, whatever an older version saved');
   assert.strictEqual(win.localStorage.getItem('poohSticks.score.v1'), null, 'the old saved score is cleared');
   assert.strictEqual($('#appTag').textContent, 'Celebrating 100 years of Winnie the Pooh');
@@ -137,6 +142,7 @@ async function until(fn, label, ms = 60000) { const t = Date.now(); while (!fn()
   $('#predictForm').dispatchEvent(new win.Event('submit', { cancelable: true, bubbles: true }));
   await until(() => !$('#stepReveal').hidden, 'reveal');
   console.log('result:', $('#resultBox').textContent);
+  const firstGo = $('#resultBox').textContent.match(/floated about [\d.,]+ km and reached the [A-Za-z ]+/)[0];
   console.log('real:', $('#realBox').textContent);
   console.log('facts:', $('#facts').textContent);
   assert.ok($('#resultBox').textContent.includes('You got it') && $('#resultBox').textContent.includes('English Channel'));
@@ -186,7 +192,7 @@ async function until(fn, label, ms = 60000) { const t = Date.now(); while (!fn()
   $('#aboutBtn').click();
   assert.ok($('#aboutDlg').hasAttribute('open'));
   const about = $('#aboutBody').textContent;
-  assert.ok(about.includes('Flow model') && about.includes('Inland ending rule') && about.includes('v0.6.0') && about.includes('starts at 0') && about.includes('v1.2') && about.includes('may not follow every bend') && about.includes('100 points') && about.includes('TopoBathy3D'));
+  assert.ok(about.includes('Flow model') && about.includes('Inland ending rule') && about.includes('v0.6.1') && about.includes('v1.1') && about.includes('starts at 0') && about.includes('v1.2') && about.includes('may not follow every bend') && about.includes('100 points') && about.includes('TopoBathy3D'));
   assert.ok(!/©|Copyright/i.test(about), 'no copyright line');
   $('#aboutClose').click();
   const sel = $('#placeSelect');
@@ -209,12 +215,37 @@ async function until(fn, label, ms = 60000) { const t = Date.now(); while (!fn()
   console.log('result 3:', $('#resultBox').textContent);
   assert.ok($('#resultBox').textContent.includes('into the wide mouth of the Columbia River, which opens into the Pacific Ocean.'));
   assert.ok($('#resultBox').textContent.includes('You got it'));
+  // "Drop another stick" is a fresh go: back where the last stick went in, nothing carried over but the score
+  const scoreBefore = $('#score').textContent;
+  win.__view.scale = 9e6;                               // the journey left the map zoomed right out
+  $('#againBtn').click();
+  await wait(20);
+  assert.ok(Math.abs(win.__view.center.longitude + 122.8) < 1e-6 && win.__view.scale !== 9e6, 'back to where the last stick went in');
+  assert.strictEqual($('#score').textContent, scoreBefore, 'score kept');
+  // cancel straight after a drop, then drop again: must not get stuck
+  const gs = FE.toMerc(-112.0, 41.6);
+  win.__view.handlers.click({ mapPoint: new win.__Point({ x: gs[0], y: gs[1] }) });
+  $('#cancelBtn').click();
+  assert.ok(!$('#stepReady').hidden, 'cancel goes back to the start');
+  // the same drop as the very first go must give exactly the same answer now (fresh go, nothing cumulative)
+  const pb = FE.toMerc(0.097407, 51.084674);
+  win.__view.handlers.click({ mapPoint: new win.__Point({ x: pb[0], y: pb[1] }) });
+  await until(() => !$('#stepPredict').hidden || !$('#readyMsg').hidden, 'predict again');
+  assert.ok($('#readyMsg').hidden, $('#readyMsg').textContent);
+  const ec = [...win.document.querySelectorAll('#choices input')][[...win.document.querySelectorAll('#choices label')].map(l => l.textContent).indexOf('English Channel')];
+  ec.checked = true; ec.dispatchEvent(new win.Event('change', { bubbles: true }));
+  $('#goBtn').click();
+  await until(() => !$('#stepReveal').hidden, 'reveal again');
+  const laterGo = $('#resultBox').textContent.match(/floated about [\d.,]+ km and reached the [A-Za-z ]+/)[0];
+  console.log('first go:', firstGo, '| fifth go, same spot:', laterGo);
+  assert.strictEqual(laterGo, firstGo, 'same drop, same result, however many goes before it');
   assert.ok($('.credit-tag').textContent === 'Created by Jason Sawle');
   assert.strictEqual(errors.length, 0, 'page errors: ' + errors.join(' | '));
   win.close();
 
   // ---- 4. animated journey (no reduced motion): the camera moves, then skip
   ({ win, $, errors } = load(false));
+  win.__flaky = true;
   await until(() => win.__view, 'view b');
   await wait(50);
   assert.strictEqual($('#score').textContent, 'Score: 0 points', 'back to 0 after a refresh');
@@ -225,6 +256,7 @@ async function until(fn, label, ms = 60000) { const t = Date.now(); while (!fn()
   await until(() => !$('#stepJourney').hidden, 'journey');
   await wait(800);
   assert.ok(win.__toScreen > 0, 'the splash found where the stick hit the water');
+  assert.ok(win.__failedOnce.size > 0, 'every tile failed once and was fetched again');
   const vp = win.__viewpoints || 0;
   console.log('viewpoint updates during 0.8 s of journey:', vp, '| status:', $('#journeyStatus').textContent);
   assert.ok(vp > 5, 'camera follows the stick');

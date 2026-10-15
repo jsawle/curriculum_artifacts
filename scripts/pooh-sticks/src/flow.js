@@ -13,7 +13,7 @@
 (function (root) {
   'use strict';
 
-  const VERSION = { flow: '1.0', inland: '1.0' };
+  const VERSION = { flow: '1.1', inland: '1.0' };
   const ORIGIN = 20037508.342787;
   const RES0 = 156543.03392800014;
   const TS = 256;
@@ -96,48 +96,92 @@
   }
 
   // ------------------------------------------------------------- tile store
+  /**
+   * Elevation tiles for ONE stick. The app makes a new store for every stick and closes the old one,
+   * so nothing (cached tiles, failed tiles, queued downloads) carries over from one go to the next.
+   * Downloads use the store's own abort signal, never a trace's, so a cancelled trace can't poison a tile
+   * that another trace is waiting for. Tiles the trace needs now jump ahead of look-ahead prefetches,
+   * and only the most recent prefetches are kept waiting.
+   */
   class TileStore {
     /** fetchElev(L, tx, ty, signal) → Promise<Float32Array(65536) | null>; NaN = no data */
     constructor(fetchElev, features, opts) {
       this.fetchElev = fetchElev;
       this.features = features;
       this.tiles = new Map();
-      this.pending = new Map();
+      this.pending = new Map();     // key → { promise, task }
       this.maxConcurrent = (opts && opts.maxConcurrent) || 6;
+      this.maxPrefetchQueue = (opts && opts.maxPrefetchQueue) || 24;
       this.active = 0;
-      this.queue = [];
+      this.urgent = [];             // tiles a trace is waiting for
+      this.later = [];              // look-ahead prefetches, newest last
       this.fetched = 0;
+      this.closed = false;
+      this.ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
     }
     static key(L, tx, ty) { return L + '/' + tx + '/' + ty; }
     wrap(L, tx) { const n = Math.pow(2, L); return ((tx % n) + n) % n; }
     tile(L, tx, ty) { return this.tiles.get(TileStore.key(L, this.wrap(L, tx), ty)); }
-    ensure(L, tx, ty, signal) {
+    static aborted() { const e = new Error('cancelled'); e.name = 'AbortError'; return e; }
+    /** stop everything: queued downloads are dropped, running ones aborted, waiting traces get AbortError */
+    close() {
+      if (this.closed) return;
+      this.closed = true;
+      for (const t of this.urgent.concat(this.later)) t.reject(TileStore.aborted());
+      this.urgent = []; this.later = [];
+      if (this.ctl) this.ctl.abort();
+    }
+    _next() {
+      while (this.active < this.maxConcurrent && !this.closed) {
+        const t = this.urgent.shift() || this.later.pop();   // newest prefetch first: it's nearest the front
+        if (!t) return;
+        t.start();
+      }
+    }
+    ensure(L, tx, ty, signal, urgent = true) {
       tx = this.wrap(L, tx);
       const n = Math.pow(2, L);
       const k = TileStore.key(L, tx, ty);
       if (this.tiles.has(k)) return Promise.resolve(this.tiles.get(k));
       if (ty < 0 || ty >= n) { const t = { z: null, m: null }; this.tiles.set(k, t); return Promise.resolve(t); }
-      if (this.pending.has(k)) return this.pending.get(k);
-      const p = new Promise((resolve, reject) => {
-        const run = () => {
+      if (this.closed) return Promise.reject(TileStore.aborted());
+      const p0 = this.pending.get(k);
+      if (p0) {
+        if (urgent && !p0.task.started) {   // a prefetch the trace now needs: move it to the front
+          const i = this.later.indexOf(p0.task);
+          if (i >= 0) { this.later.splice(i, 1); this.urgent.push(p0.task); this._next(); }
+        }
+        return p0.promise;
+      }
+      const task = { started: false };
+      const promise = new Promise((resolve, reject) => {
+        task.reject = e => { this.pending.delete(k); reject(e); };
+        task.start = () => {
+          task.started = true;
           this.active++;
-          Promise.resolve(this.fetchElev(L, tx, ty, signal)).then(z => {
+          Promise.resolve(this.fetchElev(L, tx, ty, this.ctl ? this.ctl.signal : undefined)).then(z => {
+            if (this.closed) throw TileStore.aborted();
             const t = { z: z || null, m: rasterizeTile(this.features, L, tx, ty) };
             this.tiles.set(k, t);
             this.fetched++;
             resolve(t);
-          }, reject).finally(() => {
+          }).catch(reject).finally(() => {
             this.pending.delete(k);
             this.active--;
-            if (this.queue.length) this.queue.shift()();
+            this._next();
           });
         };
-        if (this.active < this.maxConcurrent) run(); else this.queue.push(run);
       });
-      this.pending.set(k, p);
-      return p;
+      this.pending.set(k, { promise, task });
+      if (urgent) this.urgent.push(task);
+      else {
+        this.later.push(task);
+        if (this.later.length > this.maxPrefetchQueue) this.later.shift().reject(TileStore.aborted());   // drop the oldest look-ahead
+      }
+      this._next();
+      return promise;
     }
-    prefetch(L, tx, ty) { this.ensure(L, tx, ty).catch(() => {}); }
+    prefetch(L, tx, ty) { this.ensure(L, tx, ty, undefined, false).catch(() => {}); }
     /** undefined = tile not loaded yet; NaN = no data */
     z(L, gx, gy) {
       const n = TS << L;
