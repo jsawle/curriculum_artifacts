@@ -8,7 +8,7 @@
   const MODEL_VERSIONS = {
     snap:    { name: 'Stream snap',      version: '1.0', what: 'Finds the stream nearest to where the stick was dropped.' },
     trace:   { name: 'Downstream trace', version: '1.0', what: 'Follows each river section to the next one downstream until the water stops.' },
-    sea:     { name: 'Sea finder',       version: '1.1', what: 'Names the sea or ocean at the river mouth, or flags an inland ending. v1.1 fixes distances to seas on the far side of the globe.' },
+    sea:     { name: 'Sea finder',       version: '1.2', what: 'Names the sea or ocean at the river mouth, or flags an inland ending. v1.1 fixes distances to seas on the far side of the globe. v1.2 names the bigger sea that small, little-known channels, lagoons and river-mouth bays open into (the Atlantic Ocean, not the Canal do Norte in the Amazon delta).' },
     options: { name: 'Answer options',   version: '1.0', what: 'Picks the correct answer plus nearby seas as the other choices.' }
   };
 
@@ -147,13 +147,42 @@
    *   nearest proper sea within `estuaryKm`;
    * - nothing within `coastKm` → inland ending (the water never reaches the sea).
    */
+  // Natural Earth's least important waters (scalerank 8 and 9) are mostly small channels, straits and lagoons
+  // with names few people know, such as the Canal do Norte in the Amazon delta or the Szczecin Lagoon.
+  // Name the bigger water they open into instead: the most important one touching them (sea finder v1.2).
+  // "Boca" (Spanish for mouth) waters are a river's own mouth, e.g. the Boca Grande of the Orinoco, so they count too.
+  const MINOR_RANK = 8, TOUCH_KM = 30;
+  const isMinor = s => s.rank >= MINOR_RANK || /^Bocas? /.test(s.name);
+  function outerVerts(s) {
+    const v = [];
+    s.polys.forEach(p => { const ring = p[0]; for (let i = 0; i < ring.length; i += 2) v.push([ring[i], ring[i + 1]]); });
+    return v;
+  }
+  function opensInto(index, sea) {
+    if (!sea || !isMinor(sea)) return sea;
+    const verts = outerVerts(sea);
+    let best = null;
+    for (const cand of index) {
+      if (cand === sea || cand.isRiver || isMinor(cand)) continue;
+      let d = Infinity;
+      for (const v of verts) {
+        const dv = distToSeaKm(cand, v[0], v[1], Math.min(d, TOUCH_KM));
+        if (dv < d) d = dv;
+        if (d === 0) break;
+      }
+      if (d > TOUCH_KM) continue;
+      if (!best || cand.rank < best.s.rank || (cand.rank === best.s.rank && d < best.d)) best = { s: cand, d };
+    }
+    return best ? best.s : sea;
+  }
+
   function findSea(index, lon, lat, opts) {
     const coastKm = (opts && opts.coastKm) || 100;
     const estuaryKm = (opts && opts.estuaryKm) || 800;
     const scored = index.map(s => ({ s, d: distToSeaKm(s, lon, lat, estuaryKm) }))
       .filter(x => isFinite(x.d)).sort((a, b) => a.d - b.d);
     if (!scored.length || scored[0].d > coastKm) return { inland: true, nearest: scored[0] ? scored[0].s : null, distKm: scored[0] ? scored[0].d : null };
-    if (!scored[0].s.isRiver) return { inland: false, sea: scored[0].s, distKm: scored[0].d };
+    if (!scored[0].s.isRiver) return { inland: false, sea: opensInto(index, scored[0].s), distKm: scored[0].d, local: scored[0].s };
     // The mouth is inside a river-shaped polygon: use the sea that this polygon opens into
     // (the proper sea closest to any of its vertices), not the sea nearest the outlet itself.
     const river = scored[0].s;
@@ -172,7 +201,7 @@
       const fromMouth = (scored.find(x => x.s === cand) || { d: Infinity }).d;
       if (!best || d < best.d - 0.5 || (Math.abs(d - best.d) <= 0.5 && fromMouth < best.fromMouth)) best = { s: cand, d, fromMouth };
     }
-    if (best) return { inland: false, sea: best.s, distKm: scored[0].d, via: river };
+    if (best) return { inland: false, sea: opensInto(index, best.s), distKm: scored[0].d, via: river, local: best.s };
     return { inland: true, nearest: river, distKm: scored[0].d };
   }
 

@@ -12,6 +12,7 @@ Build: `python3 tools/build.py ../../pooh-sticks.html`
 Tests (Node 22):
 - `node tools/test_flow_synth.js`: synthetic valleys, deep lakes, side-by-side hollows, a narrow gorge, a closed basin and a salt lake.
 - `node tools/test_flow_rhine.js <dir>`: the Rhine basin (MERIT 30" DEM from the `pyflwdir` 0.5.12 source package, exported as `elv.f32`, `d8.u8` and `hdr.json`) compared with the MERIT Hydro D8 flow direction. All 8 starts reach the mouth, with about 93% of each route within 2 km of the reference.
+- `node tools/test_sea.js`: the sea finder at real river mouths, wide river polygons (Amazon, Columbia, Yangtze, St Lawrence), and little-known channels, lagoons and "Boca" waters named by the sea they open into.
 - `JSDOM_PATH=... node tools/smoke_ui.js`: the whole page in jsdom with a stand-in SDK and synthetic terrain.
 
 Data prep (needs the Natural Earth GeoJSON from github.com/nvkelso/natural-earth-vector): `prep_seas.py`, `prep_lakes.py`, `prep_places.js`.

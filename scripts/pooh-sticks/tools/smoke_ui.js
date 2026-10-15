@@ -9,6 +9,9 @@ const FE = require('../src/flow.js');
 // around the Great Salt Lake a closed bowl.
 const hash = (a, b) => { const s = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return s - Math.floor(s); };
 function elevAt(lon, lat) {
+  if (lon > -123.6 && lon < -122.4 && lat > 45.9 && lat < 46.6) {   // a slope down to the Columbia's wide estuary (a river polygon)
+    return 5 + 3 * (lon + 123.6) * 76.9 + 0.5 * Math.abs(lat - 46.22) * 111 + 2 * hash(Math.floor(lon * 500), Math.floor(lat * 500));
+  }
   if (lon > -114 && lon < -111 && lat > 40 && lat < 42.5) {
     const r = Math.hypot((lon + 112.55) * 84, (lat - 41.1) * 111);
     return 1280 + 0.03 * r * r + 2 * hash(Math.floor(lon * 300), Math.floor(lat * 300));
@@ -100,7 +103,7 @@ async function until(fn, label, ms = 60000) { const t = Date.now(); while (!fn()
   await wait(50);
   assert.ok($('#appTitle').textContent.includes('I wonder where my stick goes'));
   assert.ok(!$('#stepReady').hidden);
-  assert.ok($('#foot').textContent.includes('0.5.2'));
+  assert.ok($('#foot').textContent.includes('0.5.3'));
   assert.strictEqual($('#appTag').textContent, 'Celebrating 100 years of Winnie the Pooh');
   assert.ok(win.document.body.classList.contains('can-drop'), 'twig cursor on while a stick can be dropped');
   assert.ok(!$('#dropTip').hidden && $('#dropTip').textContent.includes('Drop me in a stream!'), 'drop-me tip shows at the start of a turn');
@@ -178,7 +181,7 @@ async function until(fn, label, ms = 60000) { const t = Date.now(); while (!fn()
   $('#aboutBtn').click();
   assert.ok($('#aboutDlg').hasAttribute('open'));
   const about = $('#aboutBody').textContent;
-  assert.ok(about.includes('Flow model') && about.includes('Inland ending rule') && about.includes('v0.5.2') && about.includes('may not follow every bend') && about.includes('100 points') && about.includes('TopoBathy3D'));
+  assert.ok(about.includes('Flow model') && about.includes('Inland ending rule') && about.includes('v0.5.3') && about.includes('v1.2') && about.includes('may not follow every bend') && about.includes('100 points') && about.includes('TopoBathy3D'));
   assert.ok(!/©|Copyright/i.test(about), 'no copyright line');
   $('#aboutClose').click();
   const sel = $('#placeSelect');
@@ -187,6 +190,20 @@ async function until(fn, label, ms = 60000) { const t = Date.now(); while (!fn()
   await wait(50);
   console.log('after Go, centre:', FE.toLonLat(win.__view.center.x, win.__view.center.y).map(v => v.toFixed(3)).join(','));
   assert.ok(Math.abs(win.__view.center.longitude - 32.674) < 0.01);
+  // a stick that floats into a river so wide the map draws it as water: named by the sea it opens into
+  const col = FE.toMerc(-122.8, 46.22);
+  win.__view.handlers.click({ mapPoint: new win.__Point({ x: col[0], y: col[1] }) });
+  await until(() => !$('#stepPredict').hidden || !$('#readyMsg').hidden, 'predict columbia');
+  assert.ok($('#readyMsg').hidden, $('#readyMsg').textContent);
+  const labels3 = [...win.document.querySelectorAll('#choices label')].map(l => l.textContent);
+  console.log('choices 3:', labels3.join(' | '));
+  const pac = [...win.document.querySelectorAll('#choices input')][labels3.indexOf('Pacific Ocean')];
+  pac.checked = true; pac.dispatchEvent(new win.Event('change', { bubbles: true }));
+  $('#goBtn').click();
+  await until(() => !$('#stepReveal').hidden, 'reveal columbia');
+  console.log('result 3:', $('#resultBox').textContent);
+  assert.ok($('#resultBox').textContent.includes('into the wide mouth of the Columbia River, which opens into the Pacific Ocean.'));
+  assert.ok($('#resultBox').textContent.includes('You got it'));
   assert.ok($('.credit-tag').textContent === 'Created by Jason Sawle');
   assert.strictEqual(errors.length, 0, 'page errors: ' + errors.join(' | '));
   win.close();
