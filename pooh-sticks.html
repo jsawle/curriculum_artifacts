@@ -66,6 +66,9 @@ body{background:#cfe0ea;color:var(--ink);font:16px/1.5 var(--sans)}
 .drop-tip.flip::before{left:auto;right:-8px;transform:rotate(225deg)}
 .drop-tip img{display:none;width:34px;height:34px}
 .drop-tip.static img{display:block}
+/* The SDK only writes data-cursor on the map surface once its cursor changes, so normally the attribute is absent.
+   Show the twig then (or when it is "default"), but never while the map is being dragged. */
+body.can-drop .esri-view .esri-view-surface:not([data-cursor]):not([data-navigating=true]),
 body.can-drop .esri-view .esri-view-surface[data-cursor=default]:not([data-navigating=true]){cursor:var(--stick-cursor,pointer)}
 .row{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
 .row .btn{flex:1 1 auto}
@@ -1174,7 +1177,7 @@ dialog th{background:#f1ead9}
   'use strict';
 
   // ------------------------------------------------------------------ settings
-  const APP_VERSION = '0.5.0';
+  const APP_VERSION = '0.5.1';
   const APP_TITLE = '“I wonder where my stick goes,” said Pooh';
   const INTRO_HTML =
     '<p>In <cite>The House at Pooh Corner</cite> (1928), Pooh drops a fir-cone off a bridge and watches it float out ' +
