@@ -3,7 +3,7 @@
   'use strict';
 
   // ------------------------------------------------------------------ settings
-  const APP_VERSION = '0.4.0';
+  const APP_VERSION = '0.5.0';
   const APP_TITLE = '“I wonder where my stick goes,” said Pooh';
   const INTRO_HTML =
     '<p>In <cite>The House at Pooh Corner</cite> (1928), Pooh drops a fir-cone off a bridge and watches it float out ' +
@@ -49,6 +49,70 @@
   const STICK_PX = 56;
   const STICK_AXIS = 27.5;   // the twig is drawn pointing up and to the right at this angle
   $('#titleTwig').src = STICK_URL;
+  $('#tipTwig').src = STICK_URL;
+
+  // the mouse pointer becomes the twig over the map; its tip (bottom left, like a pencil) is the spot that gets clicked
+  const CURSOR_PX = 48, CURSOR_HOT = [4, 37];
+  (function makeStickCursor() {
+    const svg = STICK_SVG.replace('<svg ', "<svg width='" + CURSOR_PX + "' height='" + CURSOR_PX + "' ");
+    const src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    const set = url => document.documentElement.style.setProperty('--stick-cursor', 'url("' + url + '") ' + CURSOR_HOT.join(' ') + ', pointer');
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const c = document.createElement('canvas'); c.width = c.height = CURSOR_PX;
+        c.getContext('2d').drawImage(img, 0, 0, CURSOR_PX, CURSOR_PX);
+        set(c.toDataURL('image/png'));   // PNG cursors work in every browser
+      } catch (e) { set(src); }
+    };
+    img.onerror = () => set(src);
+    img.src = src;
+  })();
+
+  // "Drop me in a stream!" beside the twig for 10 seconds at the start of each turn
+  const TIP_MS = 10000;
+  const tip = $('#dropTip');
+  const canHover = !!(window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches);
+  let tipArmed = false, tipUntil = 0, tipTimer = null;
+  function endTip() { tipArmed = false; tipUntil = 0; clearTimeout(tipTimer); tip.hidden = true; }
+  function startTipClock() { tipUntil = Date.now() + TIP_MS; clearTimeout(tipTimer); tipTimer = setTimeout(endTip, TIP_MS); }
+  function placeTip(x, y) {
+    const w = tip.offsetWidth, h = tip.offsetHeight;
+    // beside the leaf at the top right of the twig cursor, as if the twig is talking
+    let left = x + 50, top = y - 36 - h / 2;
+    const flip = left + w > window.innerWidth - 8;
+    if (flip) left = x - w - 14;
+    tip.classList.toggle('flip', flip);
+    if (top < 8) top = y + 20;
+    tip.style.transform = 'translate(' + Math.round(left) + 'px,' + Math.round(top) + 'px)';
+  }
+  function armTip() {
+    endTip(); tipArmed = true; tip.classList.toggle('static', !canHover);
+    if (!canHover) {   // touch screens have no pointer to follow: show it over the middle of the map
+      const r = $('#viewDiv').getBoundingClientRect();
+      const top = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--bar-h')) || r.top;
+      tip.hidden = false;
+      const x = r.left + r.width / 2 - tip.offsetWidth / 2, y = top + (r.bottom - top) / 2 - tip.offsetHeight / 2;
+      tip.style.transform = 'translate(' + Math.round(x) + 'px,' + Math.round(y) + 'px)';
+      startTipClock();
+    }
+  }
+  $('#viewDiv').addEventListener('pointermove', e => {
+    if (!tipArmed || e.pointerType === 'touch' || !canHover) return;
+    if (!tipUntil) startTipClock();
+    tip.hidden = false; placeTip(e.clientX, e.clientY);
+  }, true);
+  $('#viewDiv').addEventListener('pointerleave', () => { if (canHover) tip.hidden = true; });
+  $('#viewDiv').addEventListener('pointerdown', () => { if (!canHover) endTip(); }, true);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') endTip(); });
+
+  // the centred title needs equal space on both sides, as wide as the score and About buttons
+  function sizeBar() {
+    const w = Math.ceil($('.bar-actions').getBoundingClientRect().width);
+    if (w) document.documentElement.style.setProperty('--side', w + 'px');
+  }
+  window.addEventListener('resize', sizeBar);
+  if (window.ResizeObserver) new ResizeObserver(sizeBar).observe($('.bar-actions'));
 
   // -------------------------------------------------------------------- text
   document.title = APP_TITLE;
@@ -74,6 +138,7 @@
   const showScore = () => { $('#score').textContent = 'Score: ' + nf0.format(score.right * POINTS) + ' points'; $('#score').title = score.right + ' right out of ' + score.played; };
   const saveScore = () => { try { localStorage.setItem(SCORE_KEY, JSON.stringify(score)); } catch (e) { /* ignore */ } showScore(); };
   showScore();
+  sizeBar();
 
   // ------------------------------------------------------------- announcements
   let srTimer = null;
@@ -90,6 +155,8 @@
   function show(step, focusHeading) {
     state = step;
     STEPS.forEach(s => { $('#step' + s).hidden = s !== step; });
+    document.body.classList.toggle('can-drop', step === 'Ready' || step === 'Reveal');
+    if (step === 'Ready') armTip(); else endTip();
     if (focusHeading) { const h = $('#step' + step + ' h2'); if (h) h.focus({ preventScroll: false }); }
   }
   function readyMessage(msg) {
@@ -333,25 +400,25 @@
         lab.className = 'choice';
         const inp = document.createElement('input');
         inp.type = 'radio'; inp.name = 'choice'; inp.value = String(i);
-        inp.addEventListener('change', () => { $('#lockBtn').disabled = false; });
+        inp.addEventListener('change', () => { $('#nudge').hidden = true; });
         const span = document.createElement('span');
         span.textContent = o.label;
         lab.append(inp, span);
         box.appendChild(lab);
       });
-      $('#lockBtn').disabled = true;
+      $('#nudge').hidden = true;
     }
     $('#predictForm').addEventListener('submit', e => {
       e.preventDefault();
       const sel = document.querySelector('input[name="choice"]:checked');
-      if (!sel || !current) return;
+      if (!current) return;
+      if (!sel) { $('#nudge').hidden = false; announce('Pick one first!'); const first = document.querySelector('input[name="choice"]'); if (first) first.focus(); return; }
       current.choice = current.options[Number(sel.value)];
       score.played += 1;
       if (current.choice.correct) score.right += 1;
       saveScore();
       startJourney();
     });
-    $('#skipGuessBtn').addEventListener('click', () => { if (current) { current.choice = null; startJourney(); } });
 
     // ------------------------------------------------------------- journey
     function startJourney() {

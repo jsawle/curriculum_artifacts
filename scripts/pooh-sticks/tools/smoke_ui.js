@@ -100,7 +100,11 @@ async function until(fn, label, ms = 60000) { const t = Date.now(); while (!fn()
   await wait(50);
   assert.ok($('#appTitle').textContent.includes('I wonder where my stick goes'));
   assert.ok(!$('#stepReady').hidden);
-  assert.ok($('#foot').textContent.includes('0.4.0'));
+  assert.ok($('#foot').textContent.includes('0.5.0'));
+  assert.strictEqual($('#appTag').textContent, 'Celebrating 100 years of Winnie the Pooh');
+  assert.ok(win.document.body.classList.contains('can-drop'), 'twig cursor on while a stick can be dropped');
+  assert.ok(!$('#dropTip').hidden && $('#dropTip').textContent.includes('Drop me in a stream!'), 'drop-me tip shows at the start of a turn');
+  assert.ok(!$('#skipGuessBtn') && !$('#lockBtn'), 'no Just show me / Lock in buttons');
   assert.ok($('#titleTwig').src.startsWith('data:image/svg+xml'), 'twig in the title');
   assert.ok(!$('#crosshair').classList.contains('show'), 'no cross unless using the keyboard');
   const opts = [...win.document.querySelectorAll('#placeSelect option')].map(o => o.textContent);
@@ -113,6 +117,12 @@ async function until(fn, label, ms = 60000) { const t = Date.now(); while (!fn()
   console.log('choices:', labels.join(' | '));
   assert.strictEqual(labels.length, 4);
   assert.ok(labels.includes('English Channel'), 'the synthetic slope runs south to the English Channel');
+  assert.ok($('#dropTip').hidden, 'tip goes once the stick is dropped');
+  assert.ok(!win.document.body.classList.contains('can-drop'), 'no twig cursor while guessing');
+  assert.strictEqual($('#goBtn').textContent, 'Go!');
+  $('#predictForm').dispatchEvent(new win.Event('submit', { cancelable: true, bubbles: true }));
+  await wait(20);
+  assert.ok(!$('#nudge').hidden && !$('#stepPredict').hidden, 'Go! with nothing picked asks for a pick');
   const radios = [...win.document.querySelectorAll('#choices input')];
   const r = radios[labels.indexOf('English Channel')];
   r.checked = true; r.dispatchEvent(new win.Event('change', { bubbles: true }));
@@ -139,12 +149,16 @@ async function until(fn, label, ms = 60000) { const t = Date.now(); while (!fn()
   assert.ok($('#readyMsg').hidden, $('#readyMsg').textContent);
   const labels2 = [...win.document.querySelectorAll('#choices label')].map(l => l.textContent);
   console.log('choices 2:', labels2.join(' | '));
-  $('#skipGuessBtn').click();
+  const wrong = [...win.document.querySelectorAll('#choices input')][labels2.findIndex(l => !l.includes('never reaches'))];
+  wrong.checked = true; wrong.dispatchEvent(new win.Event('change', { bubbles: true }));
+  assert.ok($('#nudge').hidden);
+  $('#goBtn').click();
   await until(() => !$('#stepReveal').hidden, 'reveal 2');
+  assert.ok($('#resultBox').textContent.includes('No points this time'));
   console.log('result 2:', $('#resultBox').textContent);
   assert.ok($('#resultBox').textContent.includes('Great Salt Lake'));
   assert.ok($('#realBox').hidden, 'no real-river note away from the chosen place');
-  assert.strictEqual($('#score').textContent, 'Score: 100 points', 'skipping does not score');
+  assert.strictEqual($('#score').textContent, 'Score: 100 points', 'a wrong guess does not score');
   // the famous-places list is on the results panel too
   const sel2 = $('#placeSelect2');
   sel2.value = String([...sel2.querySelectorAll('option')].findIndex(o => o.textContent.startsWith('Nile')) - 1);
@@ -164,7 +178,7 @@ async function until(fn, label, ms = 60000) { const t = Date.now(); while (!fn()
   $('#aboutBtn').click();
   assert.ok($('#aboutDlg').hasAttribute('open'));
   const about = $('#aboutBody').textContent;
-  assert.ok(about.includes('Flow model') && about.includes('Inland ending rule') && about.includes('v0.4.0') && about.includes('100 points') && about.includes('TopoBathy3D'));
+  assert.ok(about.includes('Flow model') && about.includes('Inland ending rule') && about.includes('v0.5.0') && about.includes('100 points') && about.includes('TopoBathy3D'));
   assert.ok(!/©|Copyright/i.test(about), 'no copyright line');
   $('#aboutClose').click();
   const sel = $('#placeSelect');
@@ -183,7 +197,8 @@ async function until(fn, label, ms = 60000) { const t = Date.now(); while (!fn()
   await wait(50);
   win.__view.handlers.click({ mapPoint: win.__view.center });
   await until(() => !$('#stepPredict').hidden, 'predict b');
-  $('#skipGuessBtn').click();
+  const any = win.document.querySelector('#choices input'); any.checked = true; any.dispatchEvent(new win.Event('change', { bubbles: true }));
+  $('#goBtn').click();
   await until(() => !$('#stepJourney').hidden, 'journey');
   await wait(800);
   const vp = win.__viewpoints || 0;
