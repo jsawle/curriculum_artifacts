@@ -272,7 +272,7 @@ dialog th{background:#f1ead9}
   const MODEL_VERSIONS = {
     snap:    { name: 'Stream snap',      version: '1.0', what: 'Finds the stream nearest to where the stick was dropped.' },
     trace:   { name: 'Downstream trace', version: '1.0', what: 'Follows each river section to the next one downstream until the water stops.' },
-    sea:     { name: 'Sea finder',       version: '1.0', what: 'Names the sea or ocean at the river mouth, or flags an inland ending.' },
+    sea:     { name: 'Sea finder',       version: '1.1', what: 'Names the sea or ocean at the river mouth, or flags an inland ending. v1.1 fixes distances to seas on the far side of the globe.' },
     options: { name: 'Answer options',   version: '1.0', what: 'Picks the correct answer plus nearby seas as the other choices.' }
   };
 
@@ -388,13 +388,16 @@ dialog th{background:#f1ead9}
         for (let h = 1; h < poly.length; h++) if (pointInRing(lon, lat, poly[h])) { inHole = true; break; }
         if (!inHole) return 0;
       }
+      const kx = 111.32 * Math.cos(lat * Math.PI / 180);
       for (const ring of poly) {
-        let prev = kmXY(ring[0], ring[1], lon, lat);
         for (let i = 2; i < ring.length; i += 2) {
-          const cur = kmXY(ring[i], ring[i + 1], lon, lat);
-          const r = segDist(0, 0, prev[0], prev[1], cur[0], cur[1]);
+          // wrap each segment as a whole (never vertex by vertex), so a segment near the far side of the
+          // globe is not split and drawn straight through the point
+          let da = ring[i - 2] - lon, db = ring[i] - lon;
+          const mid = (da + db) / 2, k = mid > 180 ? -360 : mid < -180 ? 360 : 0;
+          da += k; db += k;
+          const r = segDist(0, 0, da * kx, (ring[i - 1] - lat) * 110.57, db * kx, (ring[i + 1] - lat) * 110.57);
           if (r.d < best) best = r.d;
-          prev = cur;
         }
       }
     }
@@ -705,7 +708,7 @@ dialog th{background:#f1ead9}
   'use strict';
 
   // ------------------------------------------------------------------ settings
-  const APP_VERSION = '0.1.0';
+  const APP_VERSION = '0.1.1';
   const APP_TITLE = 'Race to the Sea';           // one-line change if a different name is cleared
   const APP_TAG = 'Drop a stick in a stream. Where will it end up?';
   const INTRO_HTML =
