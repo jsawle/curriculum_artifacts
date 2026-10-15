@@ -100,7 +100,7 @@ async function until(fn, label, ms = 60000) { const t = Date.now(); while (!fn()
   await wait(50);
   assert.ok($('#appTitle').textContent.includes('I wonder where my stick goes'));
   assert.ok(!$('#stepReady').hidden);
-  assert.ok($('#foot').textContent.includes('0.5.1'));
+  assert.ok($('#foot').textContent.includes('0.5.2'));
   assert.strictEqual($('#appTag').textContent, 'Celebrating 100 years of Winnie the Pooh');
   assert.ok(win.document.body.classList.contains('can-drop'), 'twig cursor on while a stick can be dropped');
   assert.ok(!$('#dropTip').hidden && $('#dropTip').textContent.includes('Drop me in a stream!'), 'drop-me tip shows at the start of a turn');
@@ -178,7 +178,7 @@ async function until(fn, label, ms = 60000) { const t = Date.now(); while (!fn()
   $('#aboutBtn').click();
   assert.ok($('#aboutDlg').hasAttribute('open'));
   const about = $('#aboutBody').textContent;
-  assert.ok(about.includes('Flow model') && about.includes('Inland ending rule') && about.includes('v0.5.1') && about.includes('100 points') && about.includes('TopoBathy3D'));
+  assert.ok(about.includes('Flow model') && about.includes('Inland ending rule') && about.includes('v0.5.2') && about.includes('may not follow every bend') && about.includes('100 points') && about.includes('TopoBathy3D'));
   assert.ok(!/©|Copyright/i.test(about), 'no copyright line');
   $('#aboutClose').click();
   const sel = $('#placeSelect');
