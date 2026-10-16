@@ -37,7 +37,15 @@ body{background:#cfe0ea;color:var(--ink);font:16px/1.5 var(--sans)}
 .card{padding:14px 16px}
 .title-bar{position:absolute;top:12px;left:12px;right:12px;z-index:11;display:grid;grid-template-columns:minmax(var(--side,240px),1fr) auto minmax(var(--side,240px),1fr);align-items:center;gap:14px;padding:10px 18px}
 .title-main{position:relative;min-width:0}   /* the twig hangs off to the left so the words sit dead centre */
-.title-bar .twig{position:absolute;right:calc(100% + 14px);top:50%;margin-top:-32px;width:64px;height:64px;transform-origin:30% 70%;animation:bob 3.2s ease-in-out infinite}
+.title-bar .twig{position:absolute;right:calc(100% + 14px);top:50%;margin-top:-32px;width:64px;height:64px;transform-origin:30% 70%;animation:bob 3.2s ease-in-out 1}
+.title-bar .twig.bob-again{animation:bob2 3.2s ease-in-out 1}
+@keyframes bob2{0%,100%{transform:rotate(-4deg) translateY(0)}50%{transform:rotate(5deg) translateY(-3px)}}
+.bar-side{position:relative;align-self:stretch;display:flex;align-items:center}
+.honey{display:block;height:68px;width:auto;max-width:calc(100% - 72px)}
+.honey[hidden]{display:none}
+.honey .wing{transform-box:fill-box;transform-origin:50% 100%}
+.honey.flying .wing{animation:flap .11s linear infinite alternate}
+@keyframes flap{to{transform:scaleY(.35)}}
 @keyframes bob{0%,100%{transform:rotate(-4deg) translateY(0)}50%{transform:rotate(5deg) translateY(-3px)}}
 .title-text{min-width:0;text-align:center}
 .title-bar h1{font:700 clamp(1.4rem,2.55vw,2.6rem)/1.08 var(--serif);margin:0;color:var(--moss-dark);letter-spacing:.005em;text-wrap:balance}
@@ -125,7 +133,7 @@ dialog table{border-collapse:collapse;width:100%;margin:6px 0 12px;font-size:.9r
 dialog th,dialog td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
 dialog th{background:#f1ead9}
 .dialog-close{float:right}
-@media (prefers-reduced-motion: reduce){.spin{animation:none;border-right-color:var(--river)}.title-bar .twig{animation:none}}
+@media (prefers-reduced-motion: reduce){.spin{animation:none;border-right-color:var(--river)}.title-bar .twig,.title-bar .twig.bob-again{animation:none}.honey.flying .wing{animation:none}}
 @media (max-width:700px){
   #viewDiv{bottom:46%}
   .crosshair{top:27%}
@@ -150,7 +158,30 @@ dialog th{background:#f1ead9}
 <div class="crosshair" id="crosshair" aria-hidden="true"></div>
 
 <header class="float title-bar" id="titleBar">
-  <div class="bar-side" aria-hidden="true"></div>
+  <div class="bar-side" aria-hidden="true">
+    <svg class="honey" id="honeyScene" viewBox="0 0 220 90" width="200" height="82" hidden>
+      <defs>
+        <clipPath id="beeBody" clipPathUnits="userSpaceOnUse"><ellipse cx="0" cy="0" rx="7" ry="5"/></clipPath>
+        <g id="bee">
+          <g class="wings"><ellipse class="wing" cx="-1.5" cy="-6.5" rx="4.2" ry="6" transform="rotate(-25 -1.5 -6.5)" fill="#fff" fill-opacity=".85" stroke="#7fb3d6" stroke-width=".8"/><ellipse class="wing" cx="2.5" cy="-6" rx="3.6" ry="5.2" transform="rotate(20 2.5 -6)" fill="#fff" fill-opacity=".85" stroke="#7fb3d6" stroke-width=".8"/></g>
+          <ellipse cx="0" cy="0" rx="7" ry="5" fill="#f7c41f" stroke="#3b2a14" stroke-width="1.2"/>
+          <g clip-path="url(#beeBody)" fill="#3b2a14"><rect x="-3.6" y="-6" width="2.4" height="12"/><rect x="1" y="-6" width="2.4" height="12"/></g>
+          <path d="M-7 0l-2.6 0" stroke="#3b2a14" stroke-width="1.2" stroke-linecap="round"/>
+          <circle cx="7.6" cy="-.6" r="3.2" fill="#3b2a14"/>
+          <circle cx="8.6" cy="-1.6" r=".9" fill="#fff"/>
+        </g>
+      </defs>
+      <!-- a plain clay honey pot, drawn for this app -->
+      <ellipse cx="50" cy="86" rx="26" ry="3" fill="#000" fill-opacity=".12"/>
+      <path d="M28 34C14 46 15 76 32 84h36c17-8 18-38 4-50z" fill="#c8742e" stroke="#6b3a12" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M27 50c-1 10 1 20 7 27" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="3" stroke-linecap="round"/>
+      <path d="M31 62c12 3 26 3 38 0" fill="none" stroke="#6b3a12" stroke-opacity=".45" stroke-width="1.6" stroke-linecap="round"/>
+      <rect x="25" y="24" width="50" height="12" rx="6" fill="#a85d22" stroke="#6b3a12" stroke-width="2"/>
+      <ellipse cx="50" cy="25" rx="21" ry="4" fill="#f6b40e" stroke="#c98a06" stroke-width="1"/>
+      <path d="M30 25c-1 6 1 9 3 9s3-3 2-9M44 26c0 9 1 15 3 15s3-6 2-15M60 25c0 5 1 8 3 8s2-3 2-8" fill="#f6b40e" stroke="#c98a06" stroke-width="1" stroke-linejoin="round"/>
+      <g class="bees"><use class="bee" href="#bee"/><use class="bee" href="#bee"/><use class="bee" href="#bee"/></g>
+    </svg>
+  </div>
   <div class="title-main">
     <img class="twig" id="titleTwig" alt="" width="64" height="64">
     <div class="title-text">

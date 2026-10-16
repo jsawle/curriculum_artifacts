@@ -112,7 +112,7 @@ async function main() {
   await wait(50);
   assert.ok($('#appTitle').textContent.includes('I wonder where my stick goes'));
   assert.ok(!$('#stepReady').hidden);
-  assert.ok($('#foot').textContent.includes('0.6.6'));
+  assert.ok($('#foot').textContent.includes('0.6.7'));
   assert.strictEqual($('#score').textContent, 'Score: 0 points', 'the score starts at 0, whatever an older version saved');
   assert.strictEqual(win.localStorage.getItem('poohSticks.score.v1'), null, 'the old saved score is cleared');
   assert.strictEqual($('#appTag').textContent, 'Celebrating 100 years of Winnie the Pooh');
@@ -193,7 +193,7 @@ async function main() {
   $('#aboutBtn').click();
   assert.ok($('#aboutDlg').hasAttribute('open'));
   const about = $('#aboutBody').textContent;
-  assert.ok(about.includes('Flow model') && about.includes('Inland ending rule') && about.includes('v0.6.6') && about.includes('v1.1') && about.includes('starts at 0') && about.includes('v1.2') && about.includes('may not follow every bend') && about.includes('100 points') && about.includes('TopoBathy3D'));
+  assert.ok(about.includes('Flow model') && about.includes('Inland ending rule') && about.includes('v0.6.7') && about.includes('v1.1') && about.includes('starts at 0') && about.includes('v1.2') && about.includes('may not follow every bend') && about.includes('100 points') && about.includes('TopoBathy3D'));
   assert.ok(!/©|Copyright/i.test(about), 'no copyright line');
   $('#aboutClose').click();
   const sel = $('#placeSelect');
