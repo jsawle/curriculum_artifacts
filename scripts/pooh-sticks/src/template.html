@@ -81,6 +81,7 @@ label.field{display:block;font-weight:700;margin:12px 0 4px}
 .lab fieldset{margin-top:8px}
 #labLast{margin-top:10px}
 .lab-note{margin:0 0 12px}
+.next-row{margin:0 0 12px}
 .hint{font-size:.88rem;color:var(--muted)}
 .notice{border-left:5px solid var(--amber);background:#fff8df;padding:9px 12px;border-radius:6px;font-size:.95rem}
 .status{display:flex;align-items:center;gap:12px;font-weight:600}
@@ -216,18 +217,19 @@ dialog th{background:#f1ead9}
 
   <!-- STEP: reveal -->
   <section class="float card" id="stepReveal" aria-labelledby="revealTitle" hidden>
-    <p class="notice lab-note" id="labNote" hidden></p>
     <div id="resultBox" class="result"><h2 id="revealTitle" tabindex="-1">Result</h2><div id="resultText"></div></div>
+    <!-- right under the result, so the next go is always on screen -->
+    <div class="row next-row">
+      <button class="btn" id="againBtn" type="button">Drop another stick</button>
+      <button class="btn secondary" id="replayBtn" type="button">Watch again</button>
+    </div>
+    <p class="notice lab-note" id="labNote" hidden></p>
     <p id="realBox" class="real" hidden></p>
     <dl class="facts" id="facts"></dl>
     <details>
       <summary>How the app worked this out</summary>
       <ul id="howList"></ul>
     </details>
-    <div class="row">
-      <button class="btn" id="againBtn" type="button">Drop another stick</button>
-      <button class="btn secondary" id="replayBtn" type="button">Watch again</button>
-    </div>
     <div class="row">
       <button class="btn secondary" id="toStartBtn" type="button">Zoom to start</button>
       <button class="btn secondary" id="toEndBtn" type="button">Zoom to the end</button>
@@ -254,7 +256,10 @@ dialog th{background:#f1ead9}
       <button class="btn secondary" id="labSave" type="button">Save</button>
     </div>
     <p class="hint" id="labKeyState"></p>
-    <button class="btn secondary" id="labForget" type="button">Forget the key</button>
+    <div class="row">
+      <button class="btn secondary" id="labForget" type="button">Forget the key</button>
+      <button class="btn secondary" id="labSaveReply" type="button" hidden>Save Esri's last reply</button>
+    </div>
     <p class="notice" id="labLast" aria-live="polite" hidden></p>
   </details>
 </div>
