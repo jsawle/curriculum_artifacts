@@ -18,3 +18,11 @@ Tests (Node 22):
 - `JSDOM_PATH=... node tools/smoke_ui.js`: the whole page in jsdom with a stand-in SDK and synthetic terrain.
 
 Data prep (needs the Natural Earth GeoJSON from github.com/nvkelso/natural-earth-vector): `prep_seas.py`, `prep_lakes.py`, `prep_places.js`.
+
+## Tracing engine (v0.7.0)
+
+The page asks Esri's ready-to-use Trace Downstream service (hydro.arcgis.com) for the route first, with a
+public-application ArcGIS API key built into `src/app.js` (`ESRI_KEY`). The key is meant to be public: it is
+limited to this site by referrer, has no item access and expires (renew it before then). Esri's ArcGIS Online
+help says Trace Downstream uses no credits. If the service doesn't answer within 20 seconds, refuses the key or
+fails, the app's own flow model (`src/flow.js`) traces the stick and "How the app worked this out" says why.

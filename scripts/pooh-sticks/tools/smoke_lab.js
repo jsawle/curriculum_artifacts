@@ -2,6 +2,7 @@
 // Checks: a working key traces via the service; a refused key, a failed job and no key all fall back to our model and say why.
 const assert = require('assert');
 const { load, wait, until, FE } = require('./smoke_ui.js');
+const BUILT_IN_KEY = require('fs').readFileSync(require('path').join(__dirname, '../src/app.js'), 'utf8').match(/const ESRI_KEY = '([^']+)'/)[1];
 
 // stand-in Web Audio: counts the sound parts started, so the test can tell whether the splash played
 function fakeAudio(win) {
@@ -27,13 +28,14 @@ function fakeHydro(win, mode) {
     win.__hydro.push(u.pathname.split('/').slice(-2).join('/') + (q.get('DataSourceResolution') ? ' res=' + q.get('DataSourceResolution') : ''));
     assert.ok(u.href.startsWith('https://hydro.arcgis.com/arcgis/rest/services/Tools/Hydrology/GPServer/TraceDownstream'), u.href);
     const json = o => ({ ok: true, status: 200, json: async () => o });
-    if (q.get('token') !== 'GOODKEY' || mode === 'refused') return json({ error: { code: 498, message: 'Invalid token.' } });
+    win.__tokens = (win.__tokens || []).concat(q.get('token'));
+    if (!['GOODKEY', BUILT_IN_KEY].includes(q.get('token')) || mode === 'refused') return json({ error: { code: 498, message: 'Invalid token.' } });
     if (u.pathname.endsWith('/submitJob')) {
       const pts = JSON.parse(q.get('InputPoints'));
       win.__input = pts.features[0].geometry;
       return json({ jobId: 'j1', jobStatus: 'esriJobSubmitted' });
     }
-    if (u.pathname.endsWith('/jobs/j1')) return json({ jobId: 'j1', jobStatus: mode === 'failed' ? 'esriJobFailed' : 'esriJobSucceeded', messages: mode === 'failed' ? [{ type: 'esriJobMessageTypeError', description: 'Point is outside the data.' }] : [] });
+    if (u.pathname.endsWith('/jobs/j1')) return json({ jobId: 'j1', jobStatus: mode === 'failed' ? 'esriJobFailed' : mode === 'slow' ? 'esriJobExecuting' : 'esriJobSucceeded', messages: mode === 'failed' ? [{ type: 'esriJobMessageTypeError', description: 'Point is outside the data.' }] : [] });
     if (u.pathname.endsWith('/results/OutputTraceLine')) {
       // a line due south from the drop to the English Channel, in Web Mercator as asked for
       const a = FE.toMerc(win.__input.x, win.__input.y), b = FE.toMerc(win.__input.x, 50.65), mid = [a[0] + 300, (a[1] + b[1]) / 2];
@@ -70,7 +72,7 @@ async function dropAndReveal(win, $, label) {
   await until(() => win.__view, 'view');
   await wait(50);
   assert.ok(!$('#labBox').hidden, 'lab panel shows on the lab page');
-  assert.ok(win.document.title.endsWith('(lab)') && $('#foot').textContent.includes('lab 0.9'));
+  assert.ok(win.document.title.endsWith('(lab)') && $('#foot').textContent.includes('lab 1.0'));
   assert.ok($('#labKeyState').textContent.includes('saved in this browser'));
   assert.ok(win.document.querySelector('input[name="engine"][value="esri"]').checked, 'Esri engine is the lab default');
   assert.ok(!$('#labSoundTest'), 'no test-sound button (it was only for diagnosing)');
@@ -91,12 +93,12 @@ async function dropAndReveal(win, $, label) {
   console.log('esri:', out.note, '|', out.result.slice(0, 90));
   assert.ok(out.note.startsWith('Traced by Esri Trace Downstream in'), out.note);
   assert.ok(out.facts.includes('Traced byEsri Trace Downstream'), out.facts);
-  assert.ok(out.how.includes('Esri Trace Downstream (lab)') && out.how.includes('USGS data in the US'), out.how);
+  assert.ok(out.how.includes('Esri Trace Downstream v1.0') && out.how.includes('USGS data in the US'), out.how);
   assert.ok(out.result.includes('English Channel'));
   assert.ok(win.__hydro.some(h => h.includes('submitJob res=FINEST')), win.__hydro.join(' | '));
   assert.ok(Math.abs(win.__input.x - 0.097407) < 1e-6, 'the drop point is what was sent');
   $('#aboutBtn').click();
-  assert.ok($('#aboutBody').textContent.includes('Esri Trace Downstream (lab)') && $('#aboutBody').textContent.includes('Lab version'));
+  assert.ok($('#aboutBody').textContent.includes('Esri Trace Downstream') && $('#aboutBody').textContent.includes('Lab version'));
   $('#aboutClose').click();
   assert.strictEqual(errors.length, 0, errors.join(' | '));
   win.close();
@@ -137,10 +139,11 @@ async function dropAndReveal(win, $, label) {
   ({ win, $, errors } = load(true, 'pooh-sticks-lab.html', w => fakeHydro(w, 'ok')));
   await until(() => win.__view, 'view nokey');
   await wait(50);
-  assert.ok($('#labKeyState').textContent.includes('No key saved'));
+  assert.ok($('#labKeyState').textContent.includes('built-in key is used'));
   out = await dropAndReveal(win, $, 'nokey');
   console.log('no key:', out.note);
-  assert.ok(out.note.startsWith('No API key saved'), out.note);
+  assert.ok(out.note.startsWith('(Using the app\'s built-in key.) Traced by Esri Trace Downstream'), out.note);
+  assert.ok(win.__tokens.every(t => t === BUILT_IN_KEY), 'the built-in key was sent');
   $('#labKey').value = 'GOODKEY'; $('#labSave').click();
   assert.ok($('#labKeyState').textContent.includes('saved in this browser') && $('#labKey').value === '', 'key saved and the box cleared');
   assert.strictEqual(win.localStorage.getItem('poohSticks.lab.apiKey'), 'GOODKEY');
@@ -171,7 +174,7 @@ async function dropAndReveal(win, $, label) {
   assert.ok(!$('#honeyScene').hasAttribute('hidden') && !win.__honey.flying(), 'reduced motion: the bees just sit on the pot');
   win.close();
 
-  // 5. the main page has no lab panel and never calls the service
+  // 5. the main page: no lab panel; it asks Esri first with the built-in key, and shows no lab note or timings
   ({ win, $, errors } = load(true, 'pooh-sticks.html', w => fakeHydro(w, 'ok')));
   await until(() => win.__view, 'view main');
   await wait(50);
@@ -179,8 +182,23 @@ async function dropAndReveal(win, $, label) {
   assert.ok($('#soundBtn').hidden, 'no sound switch on the main page (sound is a lab try-out)');
   assert.ok($('#honeyScene').hasAttribute('hidden') && !win.__honey, 'no honey pot on the main page (lab try-out)');
   out = await dropAndReveal(win, $, 'main');
-  assert.strictEqual(win.__hydro.length, 0, 'main page never calls Trace Downstream');
-  assert.ok($('#labNote').hidden);
+  console.log('main:', out.result.slice(0, 80), '|', out.how.slice(0, 80));
+  assert.ok(win.__tokens.length && win.__tokens.every(t => t === BUILT_IN_KEY), 'main page sends the built-in key');
+  assert.ok(out.how.includes('Esri Trace Downstream v1.0') && out.result.includes('48 km'), 'route from Esri');
+  assert.ok($('#labNote').hidden && !out.facts.includes('Traced by') && !out.facts.includes('Map squares used'), 'no lab note, timing or map squares');
+  assert.strictEqual(errors.length, 0, errors.join(' | '));
   win.close();
+
+  // 6. Esri too slow: after the time limit our model takes over (limit shortened to 2 s for the test)
+  ({ win, $, errors } = load(true, 'pooh-sticks.html', w => { fakeHydro(w, 'slow'); w.__esriTimeoutMs = 2000; }));
+  await until(() => win.__view, 'view slow');
+  await wait(50);
+  const t0 = Date.now();
+  out = await dropAndReveal(win, $, 'slow');
+  console.log('slow (' + ((Date.now() - t0) / 1000).toFixed(1) + ' s):', out.how.slice(out.how.indexOf('Flow model'), out.how.indexOf('Flow model') + 120));
+  assert.ok(out.how.includes('couldn\'t be used this time (it didn\'t answer within 2 seconds), so our own model traced the stick'), out.how);
+  assert.ok(out.facts.includes('Map squares used'), 'our model traced it');
+  win.close();
+
   console.log('LAB SMOKE TEST PASSED');
 })().catch(e => { console.error('FAIL', e); process.exit(1); });

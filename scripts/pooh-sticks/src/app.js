@@ -3,7 +3,7 @@
   'use strict';
 
   // ------------------------------------------------------------------ settings
-  const APP_VERSION = '0.6.9';
+  const APP_VERSION = '0.7.0';
   const APP_TITLE = '“I wonder where my stick goes,” said Pooh';
   const INTRO_HTML =
     '<p>In <cite>The House at Pooh Corner</cite> (1928), Pooh drops a fir-cone off a bridge and watches it float out ' +
@@ -13,8 +13,13 @@
   const BASEMAP_URL = 'https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer';
   // Lab page only (built with --lab): try Esri's ready-to-use Trace Downstream service, with an API key the tester pastes in
   const LAB = !!window.POOH_LAB;
-  const LAB_VERSION = '0.9';
+  const LAB_VERSION = '1.0';
   const TRACE_URL = 'https://hydro.arcgis.com/arcgis/rest/services/Tools/Hydrology/GPServer/TraceDownstream';
+  // Public-application API key for Trace Downstream (ArcGIS developer credentials). It is meant to be public: it is
+  // limited to this site (referrer), has no item access and expires; Esri says Trace Downstream uses no credits.
+  const ESRI_KEY = 'AAPTa0h78ScosLkGOHKe2Md0s7w..hykN-ktiq-qlXZO7FpRqDBZUv-gavdMJ3303xGka6CQTgcq1tnnUouKOzel16LUqpePqwl726a4X4iN7Sy92Zbi9RehqMq5K2W7KGb-HajAnZz3y9DnjQ-NY7nS6ZNymBBapUFM7GeQh9u6bUBr881P7LihR31kVkIK_I4Yi19dmmQgm0_W0CHe-SLdGMOldiEU-HTUklecw4s5Fqho-c86GcdIOfk7e5FHJVs3Ugjvqz2YKuhqOyvqBcw..AT1_ybv2CggH';
+  const ESRI_TIMEOUT_MS = window.__esriTimeoutMs || 20000;   // after this, our own flow model takes over (tests can shorten it)
+  const ESRI_TRACE_VERSION = '1.0';
 
   const FE = window.FlowEngine;
   const L = window.RiverLogic;
@@ -29,12 +34,12 @@
     ...window.LAKES_DATA.map(l => ({ name: l.n, kind: l.k, polys: l.p }))
   ]);
   const MODELS = [
-    { name: 'Flow model', version: FE.VERSION.flow, what: 'Our own flow direction from Esri TopoBathy3D elevation. The stick steps to the lowest of the 8 squares around it; hollows, lakes and reservoirs are filled until they overflow. Squares are about 20 m across near the stick and grow to about 300 m on long rivers (bigger only to cross very large lakes). v1.1: every stick starts with fresh map squares, and a square that fails to download is tried again instead of being treated as a hole.' },
+    { name: 'Flow model', version: FE.VERSION.flow, what: 'Used when Esri\'s Trace Downstream service can\'t be reached. Our own flow direction from Esri TopoBathy3D elevation. The stick steps to the lowest of the 8 squares around it; hollows, lakes and reservoirs are filled until they overflow. Squares are about 20 m across near the stick and grow to about 300 m on long rivers (bigger only to cross very large lakes). v1.1: every stick starts with fresh map squares, and a square that fails to download is tried again instead of being treated as a hole.' },
     { name: 'Inland ending rule', version: FE.VERSION.inland, what: 'The water stops in a lake with no outlet (from Natural Earth), or when getting out would mean the water rising more than 15 m over more than 3,000 km² of dry land.' },
     { name: MV.sea.name, version: MV.sea.version, what: MV.sea.what },
     { name: MV.options.name, version: MV.options.version, what: MV.options.what }
   ];
-  if (LAB) MODELS.push({ name: 'Esri Trace Downstream (lab)', version: LAB_VERSION, what: 'Esri\'s ready-to-use Trace Downstream service (hydro.arcgis.com) traces the water to the sea on hydrologically corrected elevation: USGS 10 m and 30 m data in the US, 90 m data from WWF elsewhere. It needs an ArcGIS access token; if it can\'t be used, the stick falls back to our flow model. v0.3 builds the route as one path from the drop to the furthest point downstream, however the line comes back (mouth-first, in pieces, or with stretches repeated).' });
+  MODELS.push({ name: 'Esri Trace Downstream', version: ESRI_TRACE_VERSION, what: 'Esri\'s ready-to-use Trace Downstream service (hydro.arcgis.com) traces the water to the sea on hydrologically corrected elevation: USGS 10 m and 30 m data in the US, 90 m data from WWF elsewhere. The app asks it first. If it doesn\'t answer within 20 seconds or can\'t be used, our own flow model traces the stick instead. The route is built as one path from the drop to the furthest point downstream, however the line comes back (mouth-first, in pieces, or with stretches repeated).' });
   const reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const nf0 = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
   const $ = s => document.querySelector(s);
@@ -224,12 +229,13 @@
     `<tr><td>App</td><td>v${APP_VERSION}${LAB ? ' (lab ' + LAB_VERSION + ')' : ''}</td><td>The whole app.</td></tr>` +
     MODELS.map(m => `<tr><td>${esc(m.name)}</td><td>v${esc(m.version)}</td><td>${esc(m.what)}</td></tr>`).join('') + `</tbody></table>` +
     `<h3>Data</h3><table><thead><tr><th scope="col">What</th><th scope="col">Source</th></tr></thead><tbody>` +
-    `<tr><td>Elevation (land and sea floor)</td><td>Esri World Elevation TopoBathy3D, with its data partners</td></tr>` +
+    `<tr><td>The route to the sea</td><td>Esri Trace Downstream (hydro.arcgis.com): USGS 10 m and 30 m elevation data in the US, 90 m data from WWF elsewhere</td></tr>` +
+    `<tr><td>Elevation (land and sea floor)</td><td>Esri World Elevation TopoBathy3D, with its data partners (starting height, and our own model when Esri's service can't be reached)</td></tr>` +
     `<tr><td>Seas, oceans, lakes, and the real rivers in the start list</td><td>Made with Natural Earth (public domain)</td></tr>` +
     `<tr><td>Basemap</td><td>Esri World Topographic Map and its contributors</td></tr></tbody></table>` +
     `<h3>Good to know</h3><ul>` +
     `<li>This is a model. It follows the shape of the land only, so it knows nothing about dams, canals, pumps or water taken out for farms and cities. Very flat land and narrow gorges are the hardest places, and sometimes the model takes a different way from the real river. When you start from the list, the app tells you where the real river goes.</li>` +
-    `<li>Your stick may not follow every bend of the blue stream on the map. It is steered by an elevation model: a grid of squares, each with a height, that tells the stick which way is downhill. Most squares are about 10 to 300 metres across (bigger over wide lakes and very flat land), and a little stream can be narrower than one square. The blue lines on the map and the heights were also made separately, so they don't always line up. Think of the stick's path as the way the land leads the water: usually right about the big journey, a bit rough on the small wiggles. After each journey, "Map squares used" shows how big the squares were for your stick.</li>` +
+    `<li>Your stick may not follow every bend of the blue stream on the map. It is steered by an elevation model: a grid of squares, each with a height, that tells the stick which way is downhill. Esri's Trace Downstream uses squares 10 to 30 metres across in the USA and 90 metres elsewhere; if it can't be reached, our own model uses squares of about 10 to 300 metres (bigger over wide lakes and very flat land). A little stream can be narrower than one square. The blue lines on the map and the heights were also made separately, so they don't always line up. Think of the stick's path as the way the land leads the water: usually right about the big journey, a bit rough on the small wiggles. When our own model traces the stick, "Map squares used" shows how big its squares were.</li>` +
     `<li>Distances follow the model's path. Real rivers wiggle more, so they are longer.</li>` +
     `<li>Each right guess scores 100 points. The score starts at 0 each time the app opens.</li>` +
     `<li>"Use my location" keeps your location on your device. The app only asks Esri for elevation and map tiles around that spot.</li>` +
@@ -352,7 +358,7 @@
       ...marineRaw.filter(x => x.n === 'Caspian Sea')
     ]);
     function labSay(msg) { const el = $('#labLast'); el.textContent = msg; el.hidden = !msg; }
-    function keyState() { $('#labKeyState').textContent = labKey ? 'A key is saved in this browser (only here, nowhere else).' : 'No key saved yet.'; }
+    function keyState() { $('#labKeyState').textContent = labKey ? 'A key is saved in this browser (only here, nowhere else).' : 'No key saved here, so the app\'s built-in key is used.'; }
     if (LAB) {
       try { labKey = localStorage.getItem(KEY_STORE) || ''; engine = localStorage.getItem(ENGINE_STORE) || 'esri'; } catch (e) { engine = 'esri'; }
       $('#labBox').hidden = false;
@@ -437,8 +443,8 @@
       const t = setTimeout(res, ms);
       if (signal) signal.addEventListener('abort', () => { clearTimeout(t); const e = new Error('cancelled'); e.name = 'AbortError'; rej(e); }, { once: true });
     });
-    async function esriCall(path, params, signal, post) {
-      const q = new URLSearchParams(Object.assign({ f: 'json', token: labKey }, params || {}));
+    async function esriCall(path, params, signal, post, token) {
+      const q = new URLSearchParams(Object.assign({ f: 'json', token }, params || {}));
       const res = post ? await fetch(TRACE_URL + path, { method: 'POST', body: q, signal })
                        : await fetch(TRACE_URL + path + '?' + q.toString(), { signal });
       if (!res.ok) throw labError('the service answered HTTP ' + res.status, res.status);
@@ -447,9 +453,15 @@
       return j;
     }
     // Ask Trace Downstream for the route from the drop point; returns a route shaped like FE.trace's
-    async function traceWithEsri(m, lon, lat, signal) {
+    async function traceWithEsri(m, lon, lat, outer, token) {
       const t0 = Date.now();
-      const tick = setInterval(() => { $('#traceStatus').textContent = 'Asking Esri\'s Trace Downstream service… ' + Math.round((Date.now() - t0) / 1000) + ' s'; }, 1000);
+      const tick = setInterval(() => { $('#traceStatus').textContent = (LAB ? 'Asking Esri\'s Trace Downstream service… ' : 'Following the water downhill… ') + Math.round((Date.now() - t0) / 1000) + ' s'; }, 1000);
+      // its own stop switch: pulled by Cancel / a new stick, or after ESRI_TIMEOUT_MS
+      const ctl = new AbortController(), signal = ctl.signal;
+      let timedOut = false;
+      const stop = () => ctl.abort();
+      if (outer) outer.addEventListener('abort', stop, { once: true });
+      const timer = setTimeout(() => { timedOut = true; ctl.abort(); }, ESRI_TIMEOUT_MS);
       try {
         const points = JSON.stringify({
           geometryType: 'esriGeometryPoint', spatialReference: { wkid: 4326 },
@@ -458,23 +470,23 @@
         });
         const base = { InputPoints: points, Generalize: 'false', 'env:outSR': '102100' };
         let job;
-        try { job = await esriCall('/submitJob', Object.assign({ DataSourceResolution: 'FINEST' }, base), signal, true); }
+        try { job = await esriCall('/submitJob', Object.assign({ DataSourceResolution: 'FINEST' }, base), signal, true, token); }
         catch (e) {
           if (e.name === 'AbortError' || [401, 403, 498, 499].includes(e.code)) throw e;
-          job = await esriCall('/submitJob', base, signal, true);   // try once more with the service's default data
+          job = await esriCall('/submitJob', base, signal, true, token);   // try once more with the service's default data
         }
         if (!job.jobId) throw labError('no trace job was started');
         let st = job.jobStatus || '', msgs = [];
         while (!/Succeeded|Failed|TimedOut|Cancelled|Deleted/i.test(st)) {
           await sleep(1500, signal);
-          const j = await esriCall('/jobs/' + job.jobId, {}, signal, false);
+          const j = await esriCall('/jobs/' + job.jobId, {}, signal, false, token);
           st = j.jobStatus || ''; msgs = j.messages || msgs;
         }
         if (!/Succeeded/i.test(st)) {
           const why = msgs.filter(x => /Error/i.test(x.type)).map(x => x.description).join(' ');
           throw labError('the trace job ' + st.replace(/^esriJob/i, '').toLowerCase() + (why ? ': ' + why : ''));
         }
-        const out = await esriCall('/jobs/' + job.jobId + '/results/OutputTraceLine', {}, signal, false);
+        const out = await esriCall('/jobs/' + job.jobId + '/results/OutputTraceLine', {}, signal, false, token);
         lastReply = { when: new Date().toISOString(), drop: [lon, lat], jobId: job.jobId, result: out };
         $('#labSaveReply').hidden = false;
         const v = out.value || out, f = (v.features || [])[0];
@@ -504,7 +516,10 @@
         // what Esri sent, for the lab note (and the "save the reply" link)
         const reply = { pieces: paths.length, piecesKm: built.piecesKm, esriKm: f.attributes && isFinite(+f.attributes.LengthKm) ? +f.attributes.LengthKm : null, features: (v.features || []).length };
         return { coords, km, end, stats: { engine: 'esri', ms: Date.now() - t0, startZ, levels: [], attrs: f.attributes || {}, reply } };
-      } finally { clearInterval(tick); }
+      } catch (e) {
+        if (timedOut && !(outer && outer.aborted)) throw labError('it didn\'t answer within ' + Math.round(ESRI_TIMEOUT_MS / 1000) + ' seconds');
+        throw e;
+      } finally { clearInterval(tick); clearTimeout(timer); if (outer) outer.removeEventListener('abort', stop); }
     }
 
     // ------------------------------------------------------------- dropping
@@ -742,13 +757,13 @@
       announce('Splash! Your stick is in the water. Working out where the water flows.');
       let lastSaid = Date.now();
       try {
-        let route = null, labNote = '';
-        if (LAB && engine === 'esri') {
-          if (!labKey) labNote = 'No API key saved, so our flow model traced this stick.';
-          else {
+        let route = null, labNote = '', fallbackWhy = '';
+        if (!LAB || engine === 'esri') {
+          {
             try {
-              route = await traceWithEsri(m, lon, lat, signal);
-              labNote = 'Traced by Esri Trace Downstream in ' + (route.stats.ms / 1000).toFixed(1) + ' s.';
+              route = await traceWithEsri(m, lon, lat, signal, (LAB && labKey) || ESRI_KEY);
+              if (LAB && !labKey) labNote = '(Using the app\'s built-in key.) ';
+              labNote += 'Traced by Esri Trace Downstream in ' + (route.stats.ms / 1000).toFixed(1) + ' s.';
               const rp = route.stats.reply;
               labNote += ' Esri sent ' + (rp.pieces === 1 ? 'one line' : 'a line in ' + rp.pieces + ' pieces') +
                 (rp.features > 1 ? ' (and ' + (rp.features - 1) + ' more trace' + (rp.features > 2 ? 's' : '') + ', not used)' : '') +
@@ -756,7 +771,8 @@
                 '. The stick\'s route is ' + fmtKm(route.km) + ' km.';
             } catch (err) {
               if ((err && err.name === 'AbortError') || signal.aborted) throw err;
-              labNote = 'Esri Trace Downstream didn\'t work: ' + String(err.message).replace(/[.\s]+$/, '') + '. Our flow model traced this stick instead.';
+              fallbackWhy = String(err.message).replace(/[.\s]+$/, '');
+              labNote = 'Esri Trace Downstream didn\'t work: ' + fallbackWhy + '. Our flow model traced this stick instead.';
               console.warn('Trace Downstream', err);
             }
           }
@@ -769,6 +785,7 @@
           }, signal);
           if (LAB && route.end.type !== 'lost') labNote += (labNote ? ' ' : '') + 'Our model took ' + ((Date.now() - t0) / 1000).toFixed(1) + ' s.';
         }
+        route.fallbackWhy = fallbackWhy;
         if (LAB) { labSay(labNote); route.labNote = labNote; }
         if (signal.aborted) return;        // a newer stick (or Cancel) has taken over
         if (route.coords.length < 3 || route.km < 0.05) {
@@ -986,14 +1003,14 @@
         rb.hidden = false;
       } else rb.hidden = true;
 
-      const startZ = r.stats.startZ;
+      const startZ = r.stats.startZ, esriRoute = r.stats.engine === 'esri';
       const lat0 = c.drop[1];
       const sizes = (r.stats.levels || []).map(Lv => FE.res(Lv) * Math.cos(lat0 * Math.PI / 180));
       const facts = [['Distance floated', 'about ' + fmtKm(km) + ' km (' + fmtKm(km * 0.621371) + ' miles)']];
       if (isFinite(startZ)) facts.push(['Starting height', nf0.format(startZ) + ' m (' + nf0.format(startZ * 3.28084) + ' ft) above sea level']);
       if (km > 1) facts.push(['At walking pace', 'floating non-stop at 5 km/h, the trip would take about ' + (km / 5 < 48 ? nf0.format(km / 5) + ' hours' : nf0.format(km / 120) + ' days')]);
-      if (r.stats.engine === 'esri') facts.push(['Traced by', 'Esri Trace Downstream, in ' + (r.stats.ms / 1000).toFixed(1) + ' s']);
-      if (sizes.length) facts.push(['Map squares used', 'about ' + nf0.format(Math.min(...sizes)) + ' m to ' + nf0.format(Math.max(...sizes)) + ' m across']);
+      if (LAB && r.stats.engine === 'esri') facts.push(['Traced by', 'Esri Trace Downstream, in ' + (r.stats.ms / 1000).toFixed(1) + ' s']);
+      if (sizes.length && !esriRoute) facts.push(['Map squares used', 'about ' + nf0.format(Math.min(...sizes)) + ' m to ' + nf0.format(Math.max(...sizes)) + ' m across']);
       const dl = $('#facts');
       dl.replaceChildren();
       facts.forEach(([k, v]) => { const dt = document.createElement('dt'); dt.textContent = k; const dd = document.createElement('dd'); dd.textContent = v; dl.append(dt, dd); });
@@ -1003,7 +1020,7 @@
       const esri = r.stats.engine === 'esri';
       const items = [
         esri ? [MODELS[4], 'Esri\'s service traced the water downhill to where it ends.']
-             : [MODELS[0], 'From the drop, the water stepped downhill square by square, filling ' + (r.stats.stretches > 1 ? 'hollows and lakes' : 'any hollows') + ' until they overflowed.'],
+             : [MODELS[0], (r.fallbackWhy ? 'Esri\'s Trace Downstream couldn\'t be used this time (' + r.fallbackWhy + '), so our own model traced the stick. ' : '') + 'From the drop, the water stepped downhill square by square, filling ' + (r.stats.stretches > 1 ? 'hollows and lakes' : 'any hollows') + ' until they overflowed.'],
         [MODELS[1], esri && e.kind === 'inland' ? 'The trace ended away from any sea or lake with no outlet, so this counts as an inland basin.' : e.kind === 'terminal' ? 'The water reached ' + e.name + ', which has no outlet.' : e.kind === 'inland' ? 'Getting out would have flooded a large area of dry land, so this counts as an inland basin.' : 'Not needed this time: the water found a way out.'],
         [MODELS[2], e.kind === 'sea' ? 'The end point was matched to the nearest named sea or ocean.' : 'No sea was reached.'],
         [MODELS[3], 'The choices were the seas nearest to your stick, plus "never reaches the sea".']
