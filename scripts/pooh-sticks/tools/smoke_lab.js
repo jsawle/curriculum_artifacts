@@ -72,7 +72,7 @@ async function dropAndReveal(win, $, label) {
   await until(() => win.__view, 'view');
   await wait(50);
   assert.ok(!$('#labBox').hidden, 'lab panel shows on the lab page');
-  assert.ok(win.document.title.endsWith('(lab)') && $('#foot').textContent.includes('lab 1.0'));
+  assert.ok(win.document.title.endsWith('(lab)') && $('#foot').textContent.includes('lab 1.1'));
   assert.ok($('#labKeyState').textContent.includes('saved in this browser'));
   assert.ok(win.document.querySelector('input[name="engine"][value="esri"]').checked, 'Esri engine is the lab default');
   assert.ok(!$('#labSoundTest'), 'no test-sound button (it was only for diagnosing)');
@@ -175,15 +175,17 @@ async function dropAndReveal(win, $, label) {
   win.close();
 
   // 5. the main page: no lab panel; it asks Esri first with the built-in key, and shows no lab note or timings
-  ({ win, $, errors } = load(true, 'pooh-sticks.html', w => fakeHydro(w, 'ok')));
+  ({ win, $, errors } = load(true, 'pooh-sticks.html', w => { fakeHydro(w, 'ok'); fakeAudio(w); }));
   await until(() => win.__view, 'view main');
   await wait(50);
   assert.ok($('#labBox').hidden, 'no lab panel on the main page');
-  assert.ok($('#soundBtn').hidden, 'no sound switch on the main page (sound is a lab try-out)');
-  assert.ok($('#honeyScene').hasAttribute('hidden') && !win.__honey, 'no honey pot on the main page (lab try-out)');
+  assert.ok(!$('#soundBtn').hidden && $('#soundBtn').getAttribute('aria-pressed') === 'true', 'the speaker button is on the main page');
+  win.document.dispatchEvent(new win.Event('pointerdown'));
+  assert.ok(!$('#honeyScene').hasAttribute('hidden') && win.__honey && !win.__honey.flying(), 'the honey pot is on the main page (still, with reduced motion)');
   out = await dropAndReveal(win, $, 'main');
   console.log('main:', out.result.slice(0, 80), '|', out.how.slice(0, 80));
   assert.ok(win.__tokens.length && win.__tokens.every(t => t === BUILT_IN_KEY), 'main page sends the built-in key');
+  assert.ok(win.__sounds >= 6, 'the plop plays on the main page');
   assert.ok(out.how.includes('Esri Trace Downstream v1.0') && out.result.includes('48 km'), 'route from Esri');
   assert.ok($('#labNote').hidden && !out.facts.includes('Traced by') && !out.facts.includes('Map squares used'), 'no lab note, timing or map squares');
   assert.strictEqual(errors.length, 0, errors.join(' | '));
