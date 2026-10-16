@@ -3,7 +3,7 @@
   'use strict';
 
   // ------------------------------------------------------------------ settings
-  const APP_VERSION = '0.6.2';
+  const APP_VERSION = '0.6.3';
   const APP_TITLE = '“I wonder where my stick goes,” said Pooh';
   const INTRO_HTML =
     '<p>In <cite>The House at Pooh Corner</cite> (1928), Pooh drops a fir-cone off a bridge and watches it float out ' +
@@ -13,7 +13,7 @@
   const BASEMAP_URL = 'https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer';
   // Lab page only (built with --lab): try Esri's ready-to-use Trace Downstream service, with an API key the tester pastes in
   const LAB = !!window.POOH_LAB;
-  const LAB_VERSION = '0.1';
+  const LAB_VERSION = '0.2';
   const TRACE_URL = 'https://hydro.arcgis.com/arcgis/rest/services/Tools/Hydrology/GPServer/TraceDownstream';
 
   const FE = window.FlowEngine;
@@ -34,7 +34,7 @@
     { name: MV.sea.name, version: MV.sea.version, what: MV.sea.what },
     { name: MV.options.name, version: MV.options.version, what: MV.options.what }
   ];
-  if (LAB) MODELS.push({ name: 'Esri Trace Downstream (lab)', version: LAB_VERSION, what: 'Esri\'s ready-to-use Trace Downstream service (hydro.arcgis.com) traces the water to the sea on hydrologically corrected elevation: USGS 10 m and 30 m data in the US, 90 m data from WWF elsewhere. It needs an ArcGIS access token; if it can\'t be used, the stick falls back to our flow model.' });
+  if (LAB) MODELS.push({ name: 'Esri Trace Downstream (lab)', version: LAB_VERSION, what: 'Esri\'s ready-to-use Trace Downstream service (hydro.arcgis.com) traces the water to the sea on hydrologically corrected elevation: USGS 10 m and 30 m data in the US, 90 m data from WWF elsewhere. It needs an ArcGIS access token; if it can\'t be used, the stick falls back to our flow model. v0.2 puts the returned line in order from the drop, whichever way round (or in however many pieces) it comes back.' });
   const reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const nf0 = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
   const $ = s => document.querySelector(s);
@@ -319,6 +319,26 @@
       });
       $('#labForget').addEventListener('click', () => { labKey = ''; try { localStorage.removeItem(KEY_STORE); } catch (e) { /* ignore */ } keyState(); announce('Key forgotten.'); });
     }
+    // Esri's trace line doesn't always run from the drop to the sea (the Great Stour came back mouth-first),
+    // and may come in several pieces. Join the pieces end to end and start from the end nearest the drop.
+    function orderFromDrop(paths, drop) {
+      const parts = paths.filter(p => p.length >= 2).map(p => p.slice());
+      if (!parts.length) return [];
+      const d2 = (a, b) => (a[0] - b[0]) * (a[0] - b[0]) + (a[1] - b[1]) * (a[1] - b[1]);
+      const nearest = to => {
+        let best = { i: 0, d: Infinity, rev: false };
+        parts.forEach((p, i) => {
+          const ds = d2(p[0], to), de = d2(p[p.length - 1], to);
+          if (ds < best.d) best = { i, d: ds, rev: false };
+          if (de < best.d) best = { i, d: de, rev: true };
+        });
+        const part = parts.splice(best.i, 1)[0];
+        return best.rev ? part.reverse() : part;
+      };
+      let line = nearest(drop);
+      while (parts.length) line = line.concat(nearest(line[line.length - 1]));
+      return line;
+    }
     const labError = (msg, code) => { const e = new Error(msg); e.code = code; return e; };
     const sleep = (ms, signal) => new Promise((res, rej) => {
       const t = setTimeout(res, ms);
@@ -366,8 +386,9 @@
         if (!f || !f.geometry || !f.geometry.paths || !f.geometry.paths.length) throw labError('no trace came back for this spot (it may be outside the service\'s data)');
         const sr = v.spatialReference || (f.geometry.spatialReference) || {};
         const wkid = sr.latestWkid || sr.wkid || 102100;
-        let coords = [].concat(...f.geometry.paths).map(p => [p[0], p[1]]);
-        if (wkid === 4326 || wkid === 4269) coords = coords.map(p => FE.toMerc(p[0], p[1]));
+        let paths = f.geometry.paths.map(path => path.map(p => [p[0], p[1]]));
+        if (wkid === 4326 || wkid === 4269) paths = paths.map(path => path.map(p => FE.toMerc(p[0], p[1])));
+        const coords = orderFromDrop(paths, [m[0], m[1]]);
         coords.unshift([m[0], m[1]]);
         let km = 0;
         for (let i = 1; i < coords.length; i++) {
