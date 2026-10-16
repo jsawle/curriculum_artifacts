@@ -112,6 +112,9 @@ details ul{margin:8px 0 0;padding-left:1.2em;font-size:.92rem}
 .points.none{color:var(--muted);font:600 .95rem var(--sans)}
 .again-place{border-top:1px solid var(--honey-edge);margin-top:12px;padding-top:2px}
 .chip.btn{min-height:40px;padding:6px 14px;border-radius:999px;font-size:.95rem}
+.icon-btn.chip.btn{width:44px;padding:0}
+.icon-btn svg{width:24px;height:24px}
+.icon-btn[aria-pressed="true"] .off,.icon-btn[aria-pressed="false"] .on{display:none}
 .credit-tag{position:absolute;right:8px;bottom:30px;z-index:5;background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:6px;padding:3px 9px;font-size:12px;color:var(--ink)}
 .foot{font-size:.8rem;color:var(--muted);margin:8px 0 0}
 dialog{max-width:680px;width:calc(100% - 32px);max-height:calc(100% - 40px);border:1px solid var(--line);border-radius:14px;padding:22px;background:var(--paper);color:var(--ink)}
@@ -156,6 +159,7 @@ dialog th{background:#f1ead9}
     </div>
   </div>
   <div class="bar-actions">
+    <button class="chip btn secondary icon-btn" id="soundBtn" type="button" aria-label="Sound" aria-pressed="true" title="Sound on" hidden><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path class="on" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="off" d="M16.5 9.5l5 5M21.5 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
     <p class="chip" id="score" aria-live="off">Score: 0 / 0</p>
     <button class="chip btn secondary" id="aboutBtn" type="button" aria-haspopup="dialog">About</button>
   </div>
@@ -212,7 +216,6 @@ dialog th{background:#f1ead9}
   <section class="float card" id="stepJourney" aria-labelledby="journeyTitle" hidden>
     <h2 id="journeyTitle" tabindex="-1">Off it goes…</h2>
     <p class="status"><span class="spin" aria-hidden="true"></span><span id="journeyStatus">Floating downstream</span></p>
-    <button class="btn secondary" id="skipBtn" type="button">Skip to the end</button>
   </section>
 
   <!-- STEP: reveal -->
