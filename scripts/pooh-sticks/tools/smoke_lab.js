@@ -70,25 +70,16 @@ async function dropAndReveal(win, $, label) {
   await until(() => win.__view, 'view');
   await wait(50);
   assert.ok(!$('#labBox').hidden, 'lab panel shows on the lab page');
-  assert.ok(win.document.title.endsWith('(lab)') && $('#foot').textContent.includes('lab 0.8'));
+  assert.ok(win.document.title.endsWith('(lab)') && $('#foot').textContent.includes('lab 0.9'));
   assert.ok($('#labKeyState').textContent.includes('saved in this browser'));
   assert.ok(win.document.querySelector('input[name="engine"][value="esri"]').checked, 'Esri engine is the lab default');
   assert.ok(!$('#labSoundTest'), 'no test-sound button (it was only for diagnosing)');
-  assert.deepStrictEqual([...$('#labSound').options].map(o => o.textContent), ['Classic splash', 'Pebble plop', 'Big spray', 'Bubbly']);
-  assert.strictEqual($('#labSound').value, 'classic', 'the classic splash is the default');
-  for (const k of ['plop', 'spray', 'bubbles', 'classic']) {   // each one can be heard from the panel
-    const n = win.__sounds || 0;
-    $('#labSound').value = k; $('#labSound').dispatchEvent(new win.Event('change'));
-    $('#labSoundHear').click();
-    assert.ok((win.__sounds || 0) > n + 3, k + ' plays');
-  }
-  $('#labSound').value = 'plop'; $('#labSound').dispatchEvent(new win.Event('change'));
-  assert.strictEqual(win.localStorage.getItem('poohSticks.lab.splash'), 'plop', 'the choice is remembered in this browser');
+  assert.ok(!$('#labSound'), 'one splash sound (Pebble plop), no chooser');
   assert.ok(!$('#soundBtn').hidden && $('#soundBtn').getAttribute('aria-label') === 'Sound' && $('#soundBtn').title === 'Sound on' && $('#soundBtn').getAttribute('aria-pressed') === 'true');
   win.document.dispatchEvent(new win.Event('pointerdown'));   // the first touch wakes the audio
   let out = await dropAndReveal(win, $, 'esri');
   console.log('splash sound parts played:', win.__sounds);
-  assert.ok(win.__sounds >= 10, 'the splash sound played on the drop (bloop, splash, droplets)');
+  assert.ok(win.__sounds >= 6, 'the Pebble plop played on the drop (plop, bubble, splash, drips)');
   $('#soundBtn').click();
   assert.ok($('#soundBtn').title === 'Sound off' && $('#soundBtn').getAttribute('aria-pressed') === 'false');
   assert.strictEqual(win.localStorage.getItem('poohSticks.sound'), 'off', 'the choice is remembered in this browser');
