@@ -83,13 +83,14 @@ function fakeSDK(win) {
   win.__Point = Point;
 }
 
-function load(reduce) {
-  const html = fs.readFileSync(path.join(__dirname, '../dist/pooh-sticks.html'), 'utf8').replace('<script src="https://js.arcgis.com/4.34/"></script>', '');
+function load(reduce, page, extra) {
+  const html = fs.readFileSync(path.join(__dirname, '../dist/' + (page || 'pooh-sticks.html')), 'utf8').replace('<script src="https://js.arcgis.com/4.34/"></script>', '');
   const errors = [];
   const dom = new JSDOM(html, {
     runScripts: 'dangerously', pretendToBeVisual: true, url: 'https://example.github.io/pooh/',
     beforeParse(win) {
       fakeSDK(win);
+      if (extra) extra(win);
       win.localStorage.setItem('poohSticks.score.v1', JSON.stringify({ right: 7, played: 9 }));   // a score an older version saved
       win.HTMLCanvasElement.prototype.getContext = () => null;   // jsdom has no canvas; the page skips the splash drawing
       win.matchMedia = q => ({ matches: reduce && q.includes('reduce'), addEventListener() {} });
@@ -104,14 +105,14 @@ function load(reduce) {
 const wait = ms => new Promise(r => setTimeout(r, ms));
 async function until(fn, label, ms = 60000) { const t = Date.now(); while (!fn()) { if (Date.now() - t > ms) throw new Error('timeout: ' + label); await wait(25); } }
 
-(async () => {
+async function main() {
   // ---- 1. Poohsticks Bridge (map opens there), reduced motion
   let { win, $, errors } = load(true);
   await until(() => win.__view, 'view');
   await wait(50);
   assert.ok($('#appTitle').textContent.includes('I wonder where my stick goes'));
   assert.ok(!$('#stepReady').hidden);
-  assert.ok($('#foot').textContent.includes('0.6.1'));
+  assert.ok($('#foot').textContent.includes('0.6.2'));
   assert.strictEqual($('#score').textContent, 'Score: 0 points', 'the score starts at 0, whatever an older version saved');
   assert.strictEqual(win.localStorage.getItem('poohSticks.score.v1'), null, 'the old saved score is cleared');
   assert.strictEqual($('#appTag').textContent, 'Celebrating 100 years of Winnie the Pooh');
@@ -192,7 +193,7 @@ async function until(fn, label, ms = 60000) { const t = Date.now(); while (!fn()
   $('#aboutBtn').click();
   assert.ok($('#aboutDlg').hasAttribute('open'));
   const about = $('#aboutBody').textContent;
-  assert.ok(about.includes('Flow model') && about.includes('Inland ending rule') && about.includes('v0.6.1') && about.includes('v1.1') && about.includes('starts at 0') && about.includes('v1.2') && about.includes('may not follow every bend') && about.includes('100 points') && about.includes('TopoBathy3D'));
+  assert.ok(about.includes('Flow model') && about.includes('Inland ending rule') && about.includes('v0.6.2') && about.includes('v1.1') && about.includes('starts at 0') && about.includes('v1.2') && about.includes('may not follow every bend') && about.includes('100 points') && about.includes('TopoBathy3D'));
   assert.ok(!/©|Copyright/i.test(about), 'no copyright line');
   $('#aboutClose').click();
   const sel = $('#placeSelect');
@@ -269,4 +270,6 @@ async function until(fn, label, ms = 60000) { const t = Date.now(); while (!fn()
   assert.strictEqual(errors.length, 0, 'page errors: ' + errors.join(' | '));
   console.log(`UI SMOKE TEST PASSED (${win.__tiles} elevation tiles)`);
   win.close();
-})().catch(e => { console.error('FAIL', e); process.exit(1); });
+}
+module.exports = { load, wait, until, FE };
+if (require.main === module) main().catch(e => { console.error('FAIL', e); process.exit(1); });

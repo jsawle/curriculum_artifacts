@@ -76,6 +76,11 @@ body.can-drop .esri-view .esri-view-surface[data-cursor=default]:not([data-navig
 label.field{display:block;font-weight:700;margin:12px 0 4px}
 .inline{display:flex;gap:8px}
 .inline select{flex:1;min-width:0;min-height:44px;padding:8px 10px;border:2px solid #8f8571;border-radius:8px;font:1rem var(--sans);background:#fff;color:var(--ink)}
+.inline input{flex:1;min-width:0;min-height:44px;padding:8px 10px;border:2px solid #8f8571;border-radius:8px;font:1rem var(--sans);background:#fff;color:var(--ink)}
+.lab summary{font:700 1.05rem var(--serif)}
+.lab fieldset{margin-top:8px}
+#labLast{margin-top:10px}
+.lab-note{margin:0 0 12px}
 .hint{font-size:.88rem;color:var(--muted)}
 .notice{border-left:5px solid var(--amber);background:#fff8df;padding:9px 12px;border-radius:6px;font-size:.95rem}
 .status{display:flex;align-items:center;gap:12px;font-weight:600}
@@ -211,6 +216,7 @@ dialog th{background:#f1ead9}
 
   <!-- STEP: reveal -->
   <section class="float card" id="stepReveal" aria-labelledby="revealTitle" hidden>
+    <p class="notice lab-note" id="labNote" hidden></p>
     <div id="resultBox" class="result"><h2 id="revealTitle" tabindex="-1">Result</h2><div id="resultText"></div></div>
     <p id="realBox" class="real" hidden></p>
     <dl class="facts" id="facts"></dl>
@@ -234,6 +240,23 @@ dialog th{background:#f1ead9}
       </div>
     </div>
   </section>
+  <!-- LAB ONLY: try Esri's Trace Downstream service -->
+  <details class="float card lab" id="labBox" hidden>
+    <summary>Lab: how the stick is traced</summary>
+    <fieldset>
+      <legend>Tracing engine</legend>
+      <label class="choice"><input type="radio" name="engine" value="esri"><span>Esri Trace Downstream (needs an ArcGIS API key)</span></label>
+      <label class="choice"><input type="radio" name="engine" value="ours"><span>Our flow model (no key)</span></label>
+    </fieldset>
+    <label class="field" for="labKey">ArcGIS API key</label>
+    <div class="inline">
+      <input id="labKey" type="password" autocomplete="off" spellcheck="false" placeholder="Paste the key here">
+      <button class="btn secondary" id="labSave" type="button">Save</button>
+    </div>
+    <p class="hint" id="labKeyState"></p>
+    <button class="btn secondary" id="labForget" type="button">Forget the key</button>
+    <p class="notice" id="labLast" aria-live="polite" hidden></p>
+  </details>
 </div>
 
 <div class="drop-tip" id="dropTip" aria-hidden="true" hidden><img id="tipTwig" alt="" width="34" height="34"><span>Drop me in a stream!</span></div>
