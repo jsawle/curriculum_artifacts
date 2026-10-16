@@ -3,7 +3,7 @@
   'use strict';
 
   // ------------------------------------------------------------------ settings
-  const APP_VERSION = '0.6.7';
+  const APP_VERSION = '0.6.8';
   const APP_TITLE = '“I wonder where my stick goes,” said Pooh';
   const INTRO_HTML =
     '<p>In <cite>The House at Pooh Corner</cite> (1928), Pooh drops a fir-cone off a bridge and watches it float out ' +
@@ -13,7 +13,7 @@
   const BASEMAP_URL = 'https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer';
   // Lab page only (built with --lab): try Esri's ready-to-use Trace Downstream service, with an API key the tester pastes in
   const LAB = !!window.POOH_LAB;
-  const LAB_VERSION = '0.6';
+  const LAB_VERSION = '0.8';
   const TRACE_URL = 'https://hydro.arcgis.com/arcgis/rest/services/Tools/Hydrology/GPServer/TraceDownstream';
 
   const FE = window.FlowEngine;
@@ -118,11 +118,11 @@
     if (!LAB || !svg) return { buzz() {} };
     svg.removeAttribute('hidden');   // an <svg> has no .hidden property, so use the attribute
     const bees = [...svg.querySelectorAll('.bee')];
-    const rest = [[37, 21, 1], [66, 19, -1], [62, 57, -1]];          // where they land: x, y, facing
+    const rest = [[37, 21, 1], [66, 19, -1], [77, 75, -1]];          // where they land (clear of the label): x, y, facing
     const fly = [                                                    // looping paths around and beside the pot
-      { cx: 70, cy: 44, ax: 52, ay: 26, w: 2.1, p: 0.0, q: 1.1 },
-      { cx: 92, cy: 40, ax: 72, ay: 22, w: 1.7, p: 2.1, q: 0.3 },
-      { cx: 80, cy: 50, ax: 60, ay: 30, w: 2.6, p: 4.2, q: 2.0 }
+      { cx: 70, cy: 44, ax: 52, ay: 26, w: 1.0, p: 0.0, q: 1.1 },      // slow, lazy loops
+      { cx: 92, cy: 40, ax: 72, ay: 22, w: 0.8, p: 2.1, q: 0.3 },
+      { cx: 80, cy: 50, ax: 60, ay: 30, w: 1.2, p: 4.2, q: 2.0 }
     ];
     const place = (b, x, y, face, tilt) => b.setAttribute('transform', 'translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ') scale(' + (face * 0.95) + ' 0.95) rotate(' + (tilt || 0).toFixed(1) + ')');
     bees.forEach((b, i) => place(b, rest[i][0], rest[i][1], rest[i][2]));
@@ -132,10 +132,10 @@
       const settle = Math.max(0, Math.min(1, 1 - left / 0.7));       // glide in to land over the last 0.7 s
       bees.forEach((b, i) => {
         const f = fly[i];
-        const x = f.cx + f.ax * Math.sin(f.w * t + f.p), y = f.cy + f.ay * Math.sin(2 * f.w * t + f.q) + 2 * Math.sin(t * 30 + i);
+        const x = f.cx + f.ax * Math.sin(f.w * t + f.p), y = f.cy + f.ay * Math.sin(2 * f.w * t + f.q) + 1.5 * Math.sin(t * 12 + i);
         const dx = f.ax * f.w * Math.cos(f.w * t + f.p);
         const e = settle * settle * (3 - 2 * settle);
-        place(b, x + (rest[i][0] - x) * e, y + (rest[i][1] - y) * e, e > 0.5 ? rest[i][2] : (dx >= 0 ? 1 : -1), (1 - e) * 10 * Math.sin(t * 6 + i));
+        place(b, x + (rest[i][0] - x) * e, y + (rest[i][1] - y) * e, e > 0.5 ? rest[i][2] : (dx >= 0 ? 1 : -1), (1 - e) * 8 * Math.sin(t * 3 + i));
       });
       if (now < until) raf = requestAnimationFrame(frame);
       else { svg.classList.remove('flying'); bees.forEach((b, i) => place(b, rest[i][0], rest[i][1], rest[i][2])); raf = 0; }
@@ -234,7 +234,7 @@
     `<li>Each right guess scores 100 points. The score starts at 0 each time the app opens.</li>` +
     `<li>"Use my location" keeps your location on your device. The app only asks Esri for elevation and map tiles around that spot.</li>` +
     `<li>Keyboard: Tab to the map and a cross appears in the middle. Use the arrow keys to move and + / &minus; to zoom, then press Enter to drop your stick at the cross. Press Escape to skip to the end of a journey.</li></ul>` +
-    (LAB ? `<h3>Lab version</h3><p>This page tests Esri's Trace Downstream service. Paste an ArcGIS API key in the Lab panel; it is kept only in this browser. Without a key, or if the service says no, the stick uses our own flow model and the page tells you why. The lab also tries a splash sound when the stick lands in the water (the speaker button at the top turns it off), and a honey pot whose bees fly for a few seconds when the page opens and after each right answer.</p>` : '') +
+    (LAB ? `<h3>Lab version</h3><p>This page tests Esri's Trace Downstream service. Paste an ArcGIS API key in the Lab panel; it is kept only in this browser. Without a key, or if the service says no, the stick uses our own flow model and the page tells you why. The lab also tries a splash sound when the stick lands in the water (choose between four in the Lab panel; the speaker button at the top turns it off), and a honey pot whose bees fly for a few seconds when the page opens and after each right answer.</p>` : '') +
     `<p>Created by Jason Sawle</p>`;
   const dlg = $('#aboutDlg');
   $('#aboutBtn').addEventListener('click', () => { if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', ''); $('#aboutClose').focus(); });
@@ -542,20 +542,9 @@
       const sb = $('#soundBtn');
       const showSound = () => { sb.title = soundOn ? 'Sound on' : 'Sound off'; sb.setAttribute('aria-pressed', String(soundOn)); };
       sb.hidden = false; showSound();
-      // a test button: plays the splash now and says whether the browser is really playing it
-      $('#labSoundTest').addEventListener('click', () => {
-        const st = $('#labSoundState'), ctx = audio();
-        if (!ctx) { st.textContent = 'This browser can\'t make sounds from a web page (no Web Audio).'; return; }
-        try { splashSound(ctx, ctx.destination, ctx.currentTime + 0.05); } catch (e) { st.textContent = 'The sound couldn\'t be made: ' + e.message; return; }
-        setTimeout(() => {
-          st.textContent = ctx.state === 'running'
-            ? 'The page is playing the splash now. If you heard nothing, check the volume, your speakers or headphones, and that this tab or site isn\'t muted in the browser.' + (soundOn ? '' : ' (The speaker button is off, so drops are silent; this test plays anyway.)')
-            : 'The browser is holding the sound back (audio is "' + ctx.state + '"). Click the map once, then try again.';
-        }, 250);
-      });
       sb.addEventListener('click', () => { soundOn = !soundOn; try { localStorage.setItem(SOUND_STORE, soundOn ? 'on' : 'off'); } catch (e) { /* this visit only */ } showSound(); announce(soundOn ? 'Sound on' : 'Sound off'); });
     }
-    function splashSound(ctx, dest, t) {
+    function classicSplash(ctx, dest, t) {
       const out = ctx.createGain(); out.gain.value = 0.8; out.connect(dest);
       const env = (g, t0, peak, attack, release) => { g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(peak, t0 + attack); g.gain.exponentialRampToValueAtTime(0.0001, t0 + attack + release); };
       // the bloop: a low tone that rises quickly, like an air pocket under the water
@@ -579,6 +568,59 @@
         env(dg, tk, 0.12 + Math.random() * 0.12, 0.004, 0.07);
         d.connect(dg); dg.connect(out); d.start(tk); d.stop(tk + 0.09);
       }
+    }
+
+    // helpers for the alternatives
+    function soundKit(ctx, dest, level) {
+      const out = ctx.createGain(); out.gain.value = level; out.connect(dest);
+      const env = (g, t0, peak, attack, release) => { g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(peak, t0 + attack); g.gain.exponentialRampToValueAtTime(0.0001, t0 + attack + release); };
+      const chirp = (t0, f0, f1, sweep, peak, release, type) => {     // a tone sliding from f0 to f1: a bubble or a plink
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = type || 'sine'; o.frequency.setValueAtTime(f0, t0); o.frequency.exponentialRampToValueAtTime(f1, t0 + sweep);
+        env(g, t0, peak, 0.005, release); o.connect(g); g.connect(out); o.start(t0); o.stop(t0 + release + 0.03);
+      };
+      const hiss = (t0, secs, type, f0, f1, q, peak, attack, release) => {   // filtered noise: spray and splash
+        const len = Math.floor(ctx.sampleRate * secs), b = ctx.createBuffer(1, len, ctx.sampleRate), d = b.getChannelData(0);
+        for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+        const n = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+        n.buffer = b; f.type = type; f.Q.value = q; f.frequency.setValueAtTime(f0, t0); if (f1 !== f0) f.frequency.exponentialRampToValueAtTime(f1, t0 + secs * 0.9);
+        env(g, t0, peak, attack, release); n.connect(f); f.connect(g); g.connect(out); n.start(t0); n.stop(t0 + secs);
+      };
+      return { chirp, hiss };
+    }
+    // a pebble into a pond: one round "plop", a smaller bubble after it, a soft splash and a few drips
+    function plopSplash(ctx, dest, t) {
+      const { chirp, hiss } = soundKit(ctx, dest, 0.9);
+      chirp(t, 240, 780, 0.08, 0.75, 0.17);
+      chirp(t + 0.07, 420, 1150, 0.05, 0.32, 0.1);
+      hiss(t, 0.35, 'lowpass', 2200, 900, 0.7, 0.18, 0.01, 0.28);
+      for (const [dt, f] of [[0.32, 1300], [0.47, 1700], [0.66, 1100]]) chirp(t + dt, f, f * 1.7, 0.04, 0.16, 0.07);
+    }
+    // a big splash: a bright burst of spray, a long watery "sploosh" and lots of droplets
+    function spraySplash(ctx, dest, t) {
+      const { chirp, hiss } = soundKit(ctx, dest, 0.85);
+      chirp(t, 300, 950, 0.11, 0.45, 0.2);
+      hiss(t, 0.3, 'highpass', 2000, 2000, 0.7, 0.45, 0.008, 0.25);
+      hiss(t, 1.0, 'bandpass', 1500, 450, 1.1, 0.5, 0.03, 0.85);
+      for (let k = 0; k < 12; k++) { const f = 900 + Math.random() * 1600; chirp(t + 0.16 + Math.random() * 0.85, f, f * 1.7, 0.05, 0.12 + Math.random() * 0.12, 0.08); }
+    }
+    // bubbly and playful: a little plink, then a run of bubbles going up
+    function bubblySplash(ctx, dest, t) {
+      const { chirp, hiss } = soundKit(ctx, dest, 0.85);
+      chirp(t, 1250, 1900, 0.03, 0.35, 0.08);
+      hiss(t, 0.4, 'lowpass', 1600, 700, 0.7, 0.12, 0.01, 0.32);
+      for (let k = 0; k < 6; k++) chirp(t + 0.08 + k * 0.075, 280 + k * 95, (280 + k * 95) * 2.3, 0.06, 0.5 - k * 0.05, 0.08);
+    }
+    const SPLASHES = { classic: ['Classic splash', classicSplash], plop: ['Pebble plop', plopSplash], spray: ['Big spray', spraySplash], bubbles: ['Bubbly', bubblySplash] };
+    let soundKind = 'classic';
+    try { const k = localStorage.getItem('poohSticks.lab.splash'); if (SPLASHES[k]) soundKind = k; } catch (e) { /* default */ }
+    function splashSound(ctx, dest, t, kind) { (SPLASHES[kind || soundKind] || SPLASHES.classic)[1](ctx, dest, t); }
+    if (LAB) {   // the chooser in the Lab panel, with a button to hear each one
+      const sel = $('#labSound');
+      Object.entries(SPLASHES).forEach(([k, [label]]) => { const o = document.createElement('option'); o.value = k; o.textContent = label; sel.appendChild(o); });
+      sel.value = soundKind;
+      sel.addEventListener('change', () => { soundKind = sel.value; try { localStorage.setItem('poohSticks.lab.splash', soundKind); } catch (e) { /* this visit only */ } });
+      $('#labSoundHear').addEventListener('click', () => { const ctx = audio(); if (ctx) try { splashSound(ctx, ctx.destination, ctx.currentTime + 0.03); } catch (e) { /* no sound is fine */ } });
     }
     window.__splashSound = splashSound;   // lets a test render the sound offline
     function playSplash() {
