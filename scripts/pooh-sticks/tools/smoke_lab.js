@@ -70,7 +70,7 @@ async function dropAndReveal(win, $, label) {
   await until(() => win.__view, 'view');
   await wait(50);
   assert.ok(!$('#labBox').hidden, 'lab panel shows on the lab page');
-  assert.ok(win.document.title.endsWith('(lab)') && $('#foot').textContent.includes('lab 0.4'));
+  assert.ok(win.document.title.endsWith('(lab)') && $('#foot').textContent.includes('lab 0.5'));
   assert.ok($('#labKeyState').textContent.includes('saved in this browser'));
   assert.ok(win.document.querySelector('input[name="engine"][value="esri"]').checked, 'Esri engine is the lab default');
   assert.ok(!$('#soundBtn').hidden && $('#soundBtn').getAttribute('aria-label') === 'Sound' && $('#soundBtn').title === 'Sound on' && $('#soundBtn').getAttribute('aria-pressed') === 'true');
@@ -78,6 +78,9 @@ async function dropAndReveal(win, $, label) {
   let out = await dropAndReveal(win, $, 'esri');
   console.log('splash sound parts played:', win.__sounds);
   assert.ok(win.__sounds >= 10, 'the splash sound played on the drop (bloop, splash, droplets)');
+  const n0 = win.__sounds;
+  $('#labSoundTest').click(); await wait(300);
+  assert.ok(win.__sounds > n0 && $('#labSoundState').textContent.startsWith('The page is playing the splash now'), $('#labSoundState').textContent);
   $('#soundBtn').click();
   assert.ok($('#soundBtn').title === 'Sound off' && $('#soundBtn').getAttribute('aria-pressed') === 'false');
   assert.strictEqual(win.localStorage.getItem('poohSticks.sound'), 'off', 'the choice is remembered in this browser');

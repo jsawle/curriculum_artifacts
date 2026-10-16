@@ -3,7 +3,7 @@
   'use strict';
 
   // ------------------------------------------------------------------ settings
-  const APP_VERSION = '0.6.5';
+  const APP_VERSION = '0.6.6';
   const APP_TITLE = '“I wonder where my stick goes,” said Pooh';
   const INTRO_HTML =
     '<p>In <cite>The House at Pooh Corner</cite> (1928), Pooh drops a fir-cone off a bridge and watches it float out ' +
@@ -13,7 +13,7 @@
   const BASEMAP_URL = 'https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer';
   // Lab page only (built with --lab): try Esri's ready-to-use Trace Downstream service, with an API key the tester pastes in
   const LAB = !!window.POOH_LAB;
-  const LAB_VERSION = '0.4';
+  const LAB_VERSION = '0.5';
   const TRACE_URL = 'https://hydro.arcgis.com/arcgis/rest/services/Tools/Hydrology/GPServer/TraceDownstream';
 
   const FE = window.FlowEngine;
@@ -494,6 +494,17 @@
       const sb = $('#soundBtn');
       const showSound = () => { sb.title = soundOn ? 'Sound on' : 'Sound off'; sb.setAttribute('aria-pressed', String(soundOn)); };
       sb.hidden = false; showSound();
+      // a test button: plays the splash now and says whether the browser is really playing it
+      $('#labSoundTest').addEventListener('click', () => {
+        const st = $('#labSoundState'), ctx = audio();
+        if (!ctx) { st.textContent = 'This browser can\'t make sounds from a web page (no Web Audio).'; return; }
+        try { splashSound(ctx, ctx.destination, ctx.currentTime + 0.05); } catch (e) { st.textContent = 'The sound couldn\'t be made: ' + e.message; return; }
+        setTimeout(() => {
+          st.textContent = ctx.state === 'running'
+            ? 'The page is playing the splash now. If you heard nothing, check the volume, your speakers or headphones, and that this tab or site isn\'t muted in the browser.' + (soundOn ? '' : ' (The speaker button is off, so drops are silent; this test plays anyway.)')
+            : 'The browser is holding the sound back (audio is "' + ctx.state + '"). Click the map once, then try again.';
+        }, 250);
+      });
       sb.addEventListener('click', () => { soundOn = !soundOn; try { localStorage.setItem(SOUND_STORE, soundOn ? 'on' : 'off'); } catch (e) { /* this visit only */ } showSound(); announce(soundOn ? 'Sound on' : 'Sound off'); });
     }
     function splashSound(ctx, dest, t) {
