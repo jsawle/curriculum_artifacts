@@ -1315,7 +1315,7 @@ dialog th{background:#f1ead9}
   'use strict';
 
   // ------------------------------------------------------------------ settings
-  const APP_VERSION = '0.7.0';
+  const APP_VERSION = '0.7.1';
   const APP_TITLE = '“I wonder where my stick goes,” said Pooh';
   const INTRO_HTML =
     '<p>In <cite>The House at Pooh Corner</cite> (1928), Pooh drops a fir-cone off a bridge and watches it float out ' +
@@ -1325,7 +1325,7 @@ dialog th{background:#f1ead9}
   const BASEMAP_URL = 'https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer';
   // Lab page only (built with --lab): try Esri's ready-to-use Trace Downstream service, with an API key the tester pastes in
   const LAB = !!window.POOH_LAB;
-  const LAB_VERSION = '1.0';
+  const LAB_VERSION = '1.1';
   const TRACE_URL = 'https://hydro.arcgis.com/arcgis/rest/services/Tools/Hydrology/GPServer/TraceDownstream';
   // Public-application API key for Trace Downstream (ArcGIS developer credentials). It is meant to be public: it is
   // limited to this site (referrer), has no item access and expires; Esri says Trace Downstream uses no credits.
@@ -1427,12 +1427,12 @@ dialog th{background:#f1ead9}
   $('#viewDiv').addEventListener('pointerdown', () => { if (!canHover) endTip(); }, true);
   document.addEventListener('keydown', e => { if (e.key === 'Escape') endTip(); });
 
-  // ---- lab: a honey pot with bees at the left of the title bar. The bees fly for 5 s when the page opens
+  // ---- a honey pot with bees at the left of the title bar (a lab try-out until v0.7.1). The bees fly for 5 s when the page opens
   // and 4 s after each right answer, then land on the pot and stay still (moving content stops within 5 s).
   // With reduced motion they just sit on the pot. Decorative only (hidden from screen readers).
   const honey = (function () {
     const svg = $('#honeyScene');
-    if (!LAB || !svg) return { buzz() {} };
+    if (!svg) return { buzz() {} };
     svg.removeAttribute('hidden');   // an <svg> has no .hidden property, so use the attribute
     const bees = [...svg.querySelectorAll('.bee')];
     const rest = [[37, 21, 1], [66, 19, -1], [77, 75, -1]];          // where they land (clear of the label): x, y, facing
@@ -1550,9 +1550,11 @@ dialog th{background:#f1ead9}
     `<li>Your stick may not follow every bend of the blue stream on the map. It is steered by an elevation model: a grid of squares, each with a height, that tells the stick which way is downhill. Esri's Trace Downstream uses squares 10 to 30 metres across in the USA and 90 metres elsewhere; if it can't be reached, our own model uses squares of about 10 to 300 metres (bigger over wide lakes and very flat land). A little stream can be narrower than one square. The blue lines on the map and the heights were also made separately, so they don't always line up. Think of the stick's path as the way the land leads the water: usually right about the big journey, a bit rough on the small wiggles. When our own model traces the stick, "Map squares used" shows how big its squares were.</li>` +
     `<li>Distances follow the model's path. Real rivers wiggle more, so they are longer.</li>` +
     `<li>Each right guess scores 100 points. The score starts at 0 each time the app opens.</li>` +
+    `<li>The bees round the honey pot fly for a few seconds when the app opens and after each right answer, then settle. With reduced motion turned on in your device settings, they stay still.</li>` +
+    `<li>A little "plop" plays when the stick lands in the water. The speaker button at the top turns it off (this device remembers the choice).</li>` +
     `<li>"Use my location" keeps your location on your device. The app only asks Esri for elevation and map tiles around that spot.</li>` +
     `<li>Keyboard: Tab to the map and a cross appears in the middle. Use the arrow keys to move and + / &minus; to zoom, then press Enter to drop your stick at the cross. Press Escape to skip to the end of a journey.</li></ul>` +
-    (LAB ? `<h3>Lab version</h3><p>This page tests Esri's Trace Downstream service. Paste an ArcGIS API key in the Lab panel; it is kept only in this browser. Without a key, or if the service says no, the stick uses our own flow model and the page tells you why. The lab also tries a splash sound when the stick lands in the water (a pebble plop; the speaker button at the top turns it off), and a honey pot whose bees fly for a few seconds when the page opens and after each right answer.</p>` : '') +
+    (LAB ? `<h3>Lab version</h3><p>This page is for testing. Its Lab panel shows how each stick was traced and how long it took, can switch to our own flow model, and can try a different ArcGIS API key (kept only in this browser); otherwise the app's built-in key is used.</p>` : '') +
     `<p>Created by Jason Sawle</p>`;
   const dlg = $('#aboutDlg');
   $('#aboutBtn').addEventListener('click', () => { if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', ''); $('#aboutClose').focus(); });
@@ -1863,7 +1865,7 @@ dialog th{background:#f1ead9}
         return actx;
       } catch (e) { return null; }
     }
-    if (LAB) {
+    {   // the splash sound is on every page (it was a lab try-out until v0.7.1)
       // browsers only allow sound after the person has touched the page, so wake the audio on their first touch,
       // click or key (iPhones and iPads only allow it when the finger lifts, hence pointerup, touchend and click)
       ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown'].forEach(ev => document.addEventListener(ev, () => { if (soundOn) audio(); }, true));
@@ -1901,7 +1903,7 @@ dialog th{background:#f1ead9}
     function splashSound(ctx, dest, t) { plopSplash(ctx, dest, t); }   // Pebble plop, chosen from four tried in lab 0.8
     window.__splashSound = splashSound;   // lets a test render the sound offline
     function playSplash() {
-      if (!LAB || !soundOn) return;
+      if (!soundOn) return;
       const ctx = audio();
       if (!ctx) return;
       try { splashSound(ctx, ctx.destination, ctx.currentTime + 0.01); } catch (e) { /* no sound is fine */ }
@@ -2270,7 +2272,7 @@ dialog th{background:#f1ead9}
       stickLayer.add(c.endLabel);
 
       const guessed = !!c.choice, right = guessed && c.choice.correct;
-      if (right && LAB) { honey.buzz(4000); bobTwig(); }   // a little celebration (lab try-out)
+      if (right) { honey.buzz(4000); bobTwig(); }   // a little celebration
       const box = $('#resultBox');
       box.className = 'result' + (guessed ? (right ? ' ok' : ' no') : '');
       $('#revealTitle').textContent = !guessed ? 'Here\'s where it went' : right ? '✓ You got it!' : '✗ Not this time';
