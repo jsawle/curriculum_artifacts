@@ -112,7 +112,7 @@ async function main() {
   await wait(50);
   assert.ok($('#appTitle').textContent.includes('I wonder where my stick goes'));
   assert.ok(!$('#stepReady').hidden);
-  assert.ok($('#foot').textContent.includes('0.6.4'));
+  assert.ok($('#foot').textContent.includes('0.6.5'));
   assert.strictEqual($('#score').textContent, 'Score: 0 points', 'the score starts at 0, whatever an older version saved');
   assert.strictEqual(win.localStorage.getItem('poohSticks.score.v1'), null, 'the old saved score is cleared');
   assert.strictEqual($('#appTag').textContent, 'Celebrating 100 years of Winnie the Pooh');
@@ -193,7 +193,7 @@ async function main() {
   $('#aboutBtn').click();
   assert.ok($('#aboutDlg').hasAttribute('open'));
   const about = $('#aboutBody').textContent;
-  assert.ok(about.includes('Flow model') && about.includes('Inland ending rule') && about.includes('v0.6.4') && about.includes('v1.1') && about.includes('starts at 0') && about.includes('v1.2') && about.includes('may not follow every bend') && about.includes('100 points') && about.includes('TopoBathy3D'));
+  assert.ok(about.includes('Flow model') && about.includes('Inland ending rule') && about.includes('v0.6.5') && about.includes('v1.1') && about.includes('starts at 0') && about.includes('v1.2') && about.includes('may not follow every bend') && about.includes('100 points') && about.includes('TopoBathy3D'));
   assert.ok(!/©|Copyright/i.test(about), 'no copyright line');
   $('#aboutClose').click();
   const sel = $('#placeSelect');
@@ -218,10 +218,10 @@ async function main() {
   assert.ok($('#resultBox').textContent.includes('You got it'));
   // "Drop another stick" is a fresh go: back where the last stick went in, nothing carried over but the score
   const scoreBefore = $('#score').textContent;
-  win.__view.scale = 9e6;                               // the journey left the map zoomed right out
-  $('#againBtn').click();
+  await wait(20);                                       // the route has been fitted on the map
+  $('#againBtn').click();                               // map not moved since the result: back to the last drop
   await wait(20);
-  assert.ok(Math.abs(win.__view.center.longitude + 122.8) < 1e-6 && win.__view.scale !== 9e6, 'back to where the last stick went in');
+  assert.ok(Math.abs(win.__view.center.longitude + 122.8) < 1e-6, 'back to where the last stick went in');
   assert.strictEqual($('#score').textContent, scoreBefore, 'score kept');
   // cancel straight after a drop, then drop again: must not get stuck
   const gs = FE.toMerc(-112.0, 41.6);
@@ -240,6 +240,13 @@ async function main() {
   const laterGo = $('#resultBox').textContent.match(/floated about [\d.,]+ km and reached the [A-Za-z ]+/)[0];
   console.log('first go:', firstGo, '| fifth go, same spot:', laterGo);
   assert.strictEqual(laterGo, firstGo, 'same drop, same result, however many goes before it');
+  // after the result, pan somewhere else to find the next stream: Drop another stick must leave the map there
+  await wait(20);
+  const away = FE.toMerc(-3.2, 55.95);
+  win.__view.center = new win.__Point({ x: away[0], y: away[1] });
+  $('#againBtn').click();
+  await wait(20);
+  assert.ok(Math.abs(win.__view.center.longitude + 3.2) < 1e-6 && !$('#stepReady').hidden, 'map stays where it was panned to');
   assert.ok($('.credit-tag').textContent === 'Created by Jason Sawle');
   assert.strictEqual(errors.length, 0, 'page errors: ' + errors.join(' | '));
   win.close();
@@ -261,11 +268,12 @@ async function main() {
   const vp = win.__viewpoints || 0;
   console.log('viewpoint updates during 0.8 s of journey:', vp, '| status:', $('#journeyStatus').textContent);
   assert.ok(vp > 5, 'camera follows the stick');
-  $('#skipBtn').click();
+  assert.ok(!$('#skipBtn'), 'no Skip button any more');
+  win.document.dispatchEvent(new win.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));   // Escape still skips
   await until(() => !$('#stepReveal').hidden, 'reveal b');
   $('#replayBtn').click();
   await until(() => !$('#stepJourney').hidden, 'replay');
-  $('#skipBtn').click();
+  win.document.dispatchEvent(new win.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
   await until(() => !$('#stepReveal').hidden, 'reveal c');
   assert.strictEqual(errors.length, 0, 'page errors: ' + errors.join(' | '));
   console.log(`UI SMOKE TEST PASSED (${win.__tiles} elevation tiles)`);

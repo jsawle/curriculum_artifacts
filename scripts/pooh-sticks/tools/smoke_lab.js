@@ -3,6 +3,22 @@
 const assert = require('assert');
 const { load, wait, until, FE } = require('./smoke_ui.js');
 
+// stand-in Web Audio: counts the sound parts started, so the test can tell whether the splash played
+function fakeAudio(win) {
+  win.__sounds = 0;
+  const param = () => ({ value: 0, setValueAtTime() {}, exponentialRampToValueAtTime() {}, linearRampToValueAtTime() {} });
+  const nodeOf = extra => Object.assign({ connect(n) { return n; }, start() { win.__sounds++; }, stop() {} }, extra);
+  win.AudioContext = class {
+    constructor() { this.state = 'running'; this.currentTime = 0; this.sampleRate = 8000; this.destination = {}; win.__audioCtx = (win.__audioCtx || 0) + 1; }
+    resume() { return Promise.resolve(); }
+    createGain() { return nodeOf({ gain: param() }); }
+    createOscillator() { return nodeOf({ type: 'sine', frequency: param() }); }
+    createBiquadFilter() { return nodeOf({ type: 'lowpass', frequency: param(), Q: param() }); }
+    createBufferSource() { return nodeOf({ buffer: null }); }
+    createBuffer(ch, len) { const d = new Float32Array(len); return { getChannelData: () => d }; }
+  };
+}
+
 // stand-in service: answers like hydro.arcgis.com .../TraceDownstream (submitJob → job status → results)
 function fakeHydro(win, mode) {
   win.__hydro = [];
@@ -50,14 +66,26 @@ async function dropAndReveal(win, $, label) {
 
 (async () => {
   // 1. a working key: the route comes from the service
-  let { win, $, errors } = load(true, 'pooh-sticks-lab.html', w => { fakeHydro(w, 'ok'); w.localStorage.setItem('poohSticks.lab.apiKey', 'GOODKEY'); });
+  let { win, $, errors } = load(true, 'pooh-sticks-lab.html', w => { fakeHydro(w, 'ok'); fakeAudio(w); w.localStorage.setItem('poohSticks.lab.apiKey', 'GOODKEY'); });
   await until(() => win.__view, 'view');
   await wait(50);
   assert.ok(!$('#labBox').hidden, 'lab panel shows on the lab page');
-  assert.ok(win.document.title.endsWith('(lab)') && $('#foot').textContent.includes('lab 0.3'));
+  assert.ok(win.document.title.endsWith('(lab)') && $('#foot').textContent.includes('lab 0.4'));
   assert.ok($('#labKeyState').textContent.includes('saved in this browser'));
   assert.ok(win.document.querySelector('input[name="engine"][value="esri"]').checked, 'Esri engine is the lab default');
+  assert.ok(!$('#soundBtn').hidden && $('#soundBtn').getAttribute('aria-label') === 'Sound' && $('#soundBtn').title === 'Sound on' && $('#soundBtn').getAttribute('aria-pressed') === 'true');
+  win.document.dispatchEvent(new win.Event('pointerdown'));   // the first touch wakes the audio
   let out = await dropAndReveal(win, $, 'esri');
+  console.log('splash sound parts played:', win.__sounds);
+  assert.ok(win.__sounds >= 10, 'the splash sound played on the drop (bloop, splash, droplets)');
+  $('#soundBtn').click();
+  assert.ok($('#soundBtn').title === 'Sound off' && $('#soundBtn').getAttribute('aria-pressed') === 'false');
+  assert.strictEqual(win.localStorage.getItem('poohSticks.sound'), 'off', 'the choice is remembered in this browser');
+  const before = win.__sounds;
+  $('#againBtn').click(); await wait(20);
+  out = await dropAndReveal(win, $, 'esri, sound off');
+  assert.strictEqual(win.__sounds, before, 'no sound when it is switched off');
+  $('#soundBtn').click();
   console.log('esri:', out.note, '|', out.result.slice(0, 90));
   assert.ok(out.note.startsWith('Traced by Esri Trace Downstream in'), out.note);
   assert.ok(out.facts.includes('Traced byEsri Trace Downstream'), out.facts);
@@ -127,6 +155,7 @@ async function dropAndReveal(win, $, label) {
   await until(() => win.__view, 'view main');
   await wait(50);
   assert.ok($('#labBox').hidden, 'no lab panel on the main page');
+  assert.ok($('#soundBtn').hidden, 'no sound switch on the main page (sound is a lab try-out)');
   out = await dropAndReveal(win, $, 'main');
   assert.strictEqual(win.__hydro.length, 0, 'main page never calls Trace Downstream');
   assert.ok($('#labNote').hidden);
