@@ -44,7 +44,7 @@ body{background:#cfe0ea;color:var(--ink);font:16px/1.5 var(--sans)}
 .honey{display:block;height:68px;width:auto;max-width:calc(100% - 72px)}
 .honey[hidden]{display:none}
 .honey .wing{transform-box:fill-box;transform-origin:50% 100%}
-.honey.flying .wing{animation:flap .11s linear infinite alternate}
+.honey.flying .wing{animation:flap .16s linear infinite alternate}
 @keyframes flap{to{transform:scaleY(.35)}}
 @keyframes bob{0%,100%{transform:rotate(-4deg) translateY(0)}50%{transform:rotate(5deg) translateY(-3px)}}
 .title-text{min-width:0;text-align:center}
@@ -175,7 +175,8 @@ dialog th{background:#f1ead9}
       <ellipse cx="50" cy="86" rx="26" ry="3" fill="#000" fill-opacity=".12"/>
       <path d="M28 34C14 46 15 76 32 84h36c17-8 18-38 4-50z" fill="#c8742e" stroke="#6b3a12" stroke-width="2" stroke-linejoin="round"/>
       <path d="M27 50c-1 10 1 20 7 27" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="3" stroke-linecap="round"/>
-      <path d="M31 62c12 3 26 3 38 0" fill="none" stroke="#6b3a12" stroke-opacity=".45" stroke-width="1.6" stroke-linecap="round"/>
+      <rect x="25" y="49" width="50" height="19" rx="4" fill="#fff4dc" stroke="#6b3a12" stroke-width="1.4"/>
+      <text x="50" y="63.2" text-anchor="middle" font-family="Georgia,'Palatino Linotype',serif" font-weight="700" font-size="13" letter-spacing=".6" fill="#6b3a12">HONEY</text>
       <rect x="25" y="24" width="50" height="12" rx="6" fill="#a85d22" stroke="#6b3a12" stroke-width="2"/>
       <ellipse cx="50" cy="25" rx="21" ry="4" fill="#f6b40e" stroke="#c98a06" stroke-width="1"/>
       <path d="M30 25c-1 6 1 9 3 9s3-3 2-9M44 26c0 9 1 15 3 15s3-6 2-15M60 25c0 5 1 8 3 8s2-3 2-8" fill="#f6b40e" stroke="#c98a06" stroke-width="1" stroke-linejoin="round"/>
@@ -204,7 +205,7 @@ dialog th{background:#f1ead9}
 
   <!-- STEP: ready -->
   <section class="float card" id="stepReady" aria-labelledby="readyTitle">
-    <h2 id="readyTitle" tabindex="-1">Drop your stick</h2>
+    <h2 id="readyTitle" tabindex="-1">Let’s play Pooh Sticks!</h2>
     <div class="intro" id="intro"></div>
     <p id="readyMsg" class="notice" hidden></p>
     <p style="margin-top:10px"><strong>Find a river or stream on the map and click right on it to drop your stick in.</strong></p>
@@ -284,6 +285,11 @@ dialog th{background:#f1ead9}
       <label class="choice"><input type="radio" name="engine" value="esri"><span>Esri Trace Downstream (needs an ArcGIS API key)</span></label>
       <label class="choice"><input type="radio" name="engine" value="ours"><span>Our flow model (no key)</span></label>
     </fieldset>
+    <label class="field" for="labSound">Splash sound</label>
+    <div class="inline">
+      <select id="labSound"></select>
+      <button class="btn secondary" id="labSoundHear" type="button">Hear it</button>
+    </div>
     <label class="field" for="labKey">ArcGIS API key</label>
     <div class="inline">
       <input id="labKey" type="password" autocomplete="off" spellcheck="false" placeholder="Paste the key here">
@@ -294,8 +300,6 @@ dialog th{background:#f1ead9}
       <button class="btn secondary" id="labForget" type="button">Forget the key</button>
       <button class="btn secondary" id="labSaveReply" type="button" hidden>Save Esri's last reply</button>
     </div>
-    <button class="btn secondary" id="labSoundTest" type="button">Play the splash sound</button>
-    <p class="hint" id="labSoundState" aria-live="polite"></p>
     <p class="notice" id="labLast" aria-live="polite" hidden></p>
   </details>
 </div>
