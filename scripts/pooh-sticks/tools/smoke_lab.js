@@ -20,8 +20,14 @@ function fakeHydro(win, mode) {
     if (u.pathname.endsWith('/jobs/j1')) return json({ jobId: 'j1', jobStatus: mode === 'failed' ? 'esriJobFailed' : 'esriJobSucceeded', messages: mode === 'failed' ? [{ type: 'esriJobMessageTypeError', description: 'Point is outside the data.' }] : [] });
     if (u.pathname.endsWith('/results/OutputTraceLine')) {
       // a line due south from the drop to the English Channel, in Web Mercator as asked for
-      const a = FE.toMerc(win.__input.x, win.__input.y), b = FE.toMerc(win.__input.x, 50.65);
-      return json({ paramName: 'OutputTraceLine', value: { spatialReference: { wkid: 102100, latestWkid: 3857 }, features: [{ attributes: { PointID: 1, LengthKm: 48.1 }, geometry: { paths: [[a, [a[0] + 300, (a[1] + b[1]) / 2], b]] } }] } });
+      const a = FE.toMerc(win.__input.x, win.__input.y), b = FE.toMerc(win.__input.x, 50.65), mid = [a[0] + 300, (a[1] + b[1]) / 2];
+      const q1 = [a[0] + 150, (3 * a[1] + b[1]) / 4], q3 = [a[0] + 150, (a[1] + 3 * b[1]) / 4];
+      // ok: one piece, drop → sea; reversed: one piece, sea → drop (as the Great Stour came back);
+      // pieces: three pieces in a jumbled order, some backwards
+      const paths = mode === 'reversed' ? [[b, q3, mid, q1, a]]
+                  : mode === 'pieces' ? [[b, q3], [q1, mid].reverse(), [a, q1], [mid, q3]].map((p, i) => i === 1 ? p : p)
+                  : [[a, q1, mid, q3, b]];
+      return json({ paramName: 'OutputTraceLine', value: { spatialReference: { wkid: 102100, latestWkid: 3857 }, features: [{ attributes: { PointID: 1, LengthKm: 48.1 }, geometry: { paths } }] } });
     }
     return { ok: false, status: 404, json: async () => ({}) };
   };
@@ -46,7 +52,7 @@ async function dropAndReveal(win, $, label) {
   await until(() => win.__view, 'view');
   await wait(50);
   assert.ok(!$('#labBox').hidden, 'lab panel shows on the lab page');
-  assert.ok(win.document.title.endsWith('(lab)') && $('#foot').textContent.includes('lab 0.1'));
+  assert.ok(win.document.title.endsWith('(lab)') && $('#foot').textContent.includes('lab 0.2'));
   assert.ok($('#labKeyState').textContent.includes('saved in this browser'));
   assert.ok(win.document.querySelector('input[name="engine"][value="esri"]').checked, 'Esri engine is the lab default');
   let out = await dropAndReveal(win, $, 'esri');
@@ -62,6 +68,21 @@ async function dropAndReveal(win, $, label) {
   $('#aboutClose').click();
   assert.strictEqual(errors.length, 0, errors.join(' | '));
   win.close();
+
+  // 1b. the line comes back mouth-first, or in jumbled pieces: the stick must still start at the drop and end at the sea
+  for (const mode of ['reversed', 'pieces']) {
+    ({ win, $, errors } = load(true, 'pooh-sticks-lab.html', w => { fakeHydro(w, mode); w.localStorage.setItem('poohSticks.lab.apiKey', 'GOODKEY'); }));
+    await until(() => win.__view, 'view ' + mode);
+    await wait(50);
+    out = await dropAndReveal(win, $, mode);
+    const km = Number(out.result.match(/floated about ([\d.,]+) km/)[1]);
+    console.log(mode + ':', out.result.slice(0, 80), '| km', km);
+    assert.ok(out.note.startsWith('Traced by Esri Trace Downstream'), out.note);
+    assert.ok(km >= 45 && km <= 50, mode + ': no doubling back, km = ' + km);   // drop to the coast is ~48 km
+    assert.ok(out.result.includes('English Channel'), mode + ': ends at the sea, not back at the drop');
+    assert.strictEqual(errors.length, 0, errors.join(' | '));
+    win.close();
+  }
 
   // 2. a refused key, 3. a failed job: both fall back to our model and say why
   for (const [mode, expect] of [['refused', 'Invalid token.'], ['failed', 'Point is outside the data.']]) {
