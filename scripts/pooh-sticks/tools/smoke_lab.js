@@ -24,7 +24,9 @@ function fakeHydro(win, mode) {
       const q1 = [a[0] + 150, (3 * a[1] + b[1]) / 4], q3 = [a[0] + 150, (a[1] + 3 * b[1]) / 4];
       // ok: one piece, drop → sea; reversed: one piece, sea → drop (as the Great Stour came back);
       // pieces: three pieces in a jumbled order, some backwards
-      const paths = mode === 'reversed' ? [[b, q3, mid, q1, a]]
+      const off = p => [p[0] + 20, p[1] + 20];
+      const paths = mode === 'repeated' ? [[a, q1, mid, q3, b], [b, q3, mid, q1, a], [a, q1, mid, q3, b].map(off), [q1, mid], [q3, mid].map(off), [mid, q3, b]]   // the Okavango case
+                  : mode === 'reversed' ? [[b, q3, mid, q1, a]]
                   : mode === 'pieces' ? [[b, q3], [q1, mid].reverse(), [a, q1], [mid, q3]].map((p, i) => i === 1 ? p : p)
                   : [[a, q1, mid, q3, b]];
       return json({ paramName: 'OutputTraceLine', value: { spatialReference: { wkid: 102100, latestWkid: 3857 }, features: [{ attributes: { PointID: 1, LengthKm: 48.1 }, geometry: { paths } }] } });
@@ -52,7 +54,7 @@ async function dropAndReveal(win, $, label) {
   await until(() => win.__view, 'view');
   await wait(50);
   assert.ok(!$('#labBox').hidden, 'lab panel shows on the lab page');
-  assert.ok(win.document.title.endsWith('(lab)') && $('#foot').textContent.includes('lab 0.2'));
+  assert.ok(win.document.title.endsWith('(lab)') && $('#foot').textContent.includes('lab 0.3'));
   assert.ok($('#labKeyState').textContent.includes('saved in this browser'));
   assert.ok(win.document.querySelector('input[name="engine"][value="esri"]').checked, 'Esri engine is the lab default');
   let out = await dropAndReveal(win, $, 'esri');
@@ -70,7 +72,7 @@ async function dropAndReveal(win, $, label) {
   win.close();
 
   // 1b. the line comes back mouth-first, or in jumbled pieces: the stick must still start at the drop and end at the sea
-  for (const mode of ['reversed', 'pieces']) {
+  for (const mode of ['reversed', 'pieces', 'repeated']) {
     ({ win, $, errors } = load(true, 'pooh-sticks-lab.html', w => { fakeHydro(w, mode); w.localStorage.setItem('poohSticks.lab.apiKey', 'GOODKEY'); }));
     await until(() => win.__view, 'view ' + mode);
     await wait(50);
@@ -80,6 +82,10 @@ async function dropAndReveal(win, $, label) {
     assert.ok(out.note.startsWith('Traced by Esri Trace Downstream'), out.note);
     assert.ok(km >= 45 && km <= 50, mode + ': no doubling back, km = ' + km);   // drop to the coast is ~48 km
     assert.ok(out.result.includes('English Channel'), mode + ': ends at the sea, not back at the drop');
+    assert.ok(/The stick's route is 4\d km\./.test(out.note) && out.note.includes('Esri gives the trace as 48 km'), out.note);
+    if (mode === 'repeated') { console.log('  note:', out.note); assert.ok(/a line in 6 pieces adding up to 1\d\d km/.test(out.note), out.note); }
+    if (mode === 'reversed') assert.ok(out.note.includes('Esri sent one line adding up to 48 km'), out.note);
+    assert.ok(!$('#labSaveReply').hidden, 'the reply can be saved for checking');
     assert.strictEqual(errors.length, 0, errors.join(' | '));
     win.close();
   }

@@ -3,7 +3,7 @@
   'use strict';
 
   // ------------------------------------------------------------------ settings
-  const APP_VERSION = '0.6.3';
+  const APP_VERSION = '0.6.4';
   const APP_TITLE = '“I wonder where my stick goes,” said Pooh';
   const INTRO_HTML =
     '<p>In <cite>The House at Pooh Corner</cite> (1928), Pooh drops a fir-cone off a bridge and watches it float out ' +
@@ -13,7 +13,7 @@
   const BASEMAP_URL = 'https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer';
   // Lab page only (built with --lab): try Esri's ready-to-use Trace Downstream service, with an API key the tester pastes in
   const LAB = !!window.POOH_LAB;
-  const LAB_VERSION = '0.2';
+  const LAB_VERSION = '0.3';
   const TRACE_URL = 'https://hydro.arcgis.com/arcgis/rest/services/Tools/Hydrology/GPServer/TraceDownstream';
 
   const FE = window.FlowEngine;
@@ -34,7 +34,7 @@
     { name: MV.sea.name, version: MV.sea.version, what: MV.sea.what },
     { name: MV.options.name, version: MV.options.version, what: MV.options.what }
   ];
-  if (LAB) MODELS.push({ name: 'Esri Trace Downstream (lab)', version: LAB_VERSION, what: 'Esri\'s ready-to-use Trace Downstream service (hydro.arcgis.com) traces the water to the sea on hydrologically corrected elevation: USGS 10 m and 30 m data in the US, 90 m data from WWF elsewhere. It needs an ArcGIS access token; if it can\'t be used, the stick falls back to our flow model. v0.2 puts the returned line in order from the drop, whichever way round (or in however many pieces) it comes back.' });
+  if (LAB) MODELS.push({ name: 'Esri Trace Downstream (lab)', version: LAB_VERSION, what: 'Esri\'s ready-to-use Trace Downstream service (hydro.arcgis.com) traces the water to the sea on hydrologically corrected elevation: USGS 10 m and 30 m data in the US, 90 m data from WWF elsewhere. It needs an ArcGIS access token; if it can\'t be used, the stick falls back to our flow model. v0.3 builds the route as one path from the drop to the furthest point downstream, however the line comes back (mouth-first, in pieces, or with stretches repeated).' });
   const reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const nf0 = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
   const $ = s => document.querySelector(s);
@@ -297,7 +297,7 @@
 
     // ------------------------------------------------------------- lab: Esri Trace Downstream
     const KEY_STORE = 'poohSticks.lab.apiKey', ENGINE_STORE = 'poohSticks.lab.engine';
-    let labKey = '', engine = 'ours';
+    let labKey = '', engine = 'ours', lastReply = null;
     const TERMINAL_INDEX = L.buildSeaIndex([
       ...window.LAKES_DATA.filter(l => l.k === 'terminal').map(l => ({ n: l.n, c: 'lake', r: 9, p: l.p })),
       ...marineRaw.filter(x => x.n === 'Caspian Sea')
@@ -317,27 +317,71 @@
         try { if (labKey) localStorage.setItem(KEY_STORE, labKey); } catch (e) { /* kept for this visit only */ }
         keyState(); announce(labKey ? 'Key saved.' : 'No key entered.');
       });
+      $('#labSaveReply').addEventListener('click', () => {   // download Esri's last reply as a JSON file, to check what it sent
+        if (!lastReply) return;
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([JSON.stringify(lastReply, null, 1)], { type: 'application/json' }));
+        a.download = 'trace-downstream-reply.json';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+      });
       $('#labForget').addEventListener('click', () => { labKey = ''; try { localStorage.removeItem(KEY_STORE); } catch (e) { /* ignore */ } keyState(); announce('Key forgotten.'); });
     }
-    // Esri's trace line doesn't always run from the drop to the sea (the Great Stour came back mouth-first),
-    // and may come in several pieces. Join the pieces end to end and start from the end nearest the drop.
-    function orderFromDrop(paths, drop) {
-      const parts = paths.filter(p => p.length >= 2).map(p => p.slice());
-      if (!parts.length) return [];
-      const d2 = (a, b) => (a[0] - b[0]) * (a[0] - b[0]) + (a[1] - b[1]) * (a[1] - b[1]);
-      const nearest = to => {
-        let best = { i: 0, d: Infinity, rev: false };
-        parts.forEach((p, i) => {
-          const ds = d2(p[0], to), de = d2(p[p.length - 1], to);
-          if (ds < best.d) best = { i, d: ds, rev: false };
-          if (de < best.d) best = { i, d: de, rev: true };
-        });
-        const part = parts.splice(best.i, 1)[0];
-        return best.rev ? part.reverse() : part;
+    // Esri's trace line can come back mouth-first (the Great Stour), in pieces, and with the same stretch of river
+    // more than once (the Okavango came back about five times over). So the pieces are treated as one network:
+    // every vertex is a node, pieces are joined where their ends meet (within GAP_M), and the route is the single
+    // shortest path from the node nearest the drop to the node furthest downstream (furthest along the network).
+    const GAP_M = 300;
+    function routeFromPieces(paths, drop) {
+      const parts = paths.filter(p => p.length >= 2);
+      if (!parts.length) return { line: [], piecesKm: 0 };
+      const idOf = new Map(), xy = [], adj = [];
+      const node = p => {
+        const k = Math.round(p[0] * 2) + ':' + Math.round(p[1] * 2);   // same point to within half a metre
+        let id = idOf.get(k);
+        if (id === undefined) { id = xy.length; idOf.set(k, id); xy.push([p[0], p[1]]); adj.push([]); }
+        return id;
       };
-      let line = nearest(drop);
-      while (parts.length) line = line.concat(nearest(line[line.length - 1]));
-      return line;
+      const dist = (a, b) => Math.hypot(xy[a][0] - xy[b][0], xy[a][1] - xy[b][1]);
+      const link = (a, b) => { if (a !== b) { const w = dist(a, b); adj[a].push([b, w]); adj[b].push([a, w]); } };
+      let piecesKm = 0;
+      const ends = [];
+      for (const p of parts) {
+        let prev = node(p[0]);
+        ends.push(prev);
+        for (let i = 1; i < p.length; i++) {
+          const n = node(p[i]);
+          piecesKm += dist(prev, n) * Math.cos(FE.toLonLat(xy[n][0], xy[n][1])[1] * Math.PI / 180) / 1000;   // map metres to ground km
+          link(prev, n); prev = n;
+        }
+        ends.push(prev);
+      }
+      // bridge small gaps: each piece end to the nearest node of the network that isn't its own neighbour
+      for (const e of ends) {
+        let best = -1, bd = GAP_M;
+        for (let n = 0; n < xy.length; n++) {
+          if (n === e || adj[e].some(([m]) => m === n)) continue;
+          const d = dist(e, n);
+          if (d < bd) { bd = d; best = n; }
+        }
+        if (best >= 0) link(e, best);
+      }
+      let start = 0, sd = Infinity;
+      for (let n = 0; n < xy.length; n++) { const d = Math.hypot(xy[n][0] - drop[0], xy[n][1] - drop[1]); if (d < sd) { sd = d; start = n; } }
+      // Dijkstra from the start
+      const D = new Float64Array(xy.length).fill(Infinity), from = new Int32Array(xy.length).fill(-1), heap = new FE.Heap();
+      D[start] = 0; heap.push(start, 0, 0);
+      while (heap.n) {
+        const c = heap.pop(), u = c.x;
+        if (c.e > D[u]) continue;
+        for (const [v, w] of adj[u]) if (D[u] + w < D[v]) { D[v] = D[u] + w; from[v] = u; heap.push(v, 0, D[v]); }
+      }
+      let far = start;
+      for (let n = 0; n < xy.length; n++) if (isFinite(D[n]) && D[n] > D[far]) far = n;
+      const line = [];
+      for (let n = far; n !== -1; n = from[n]) line.push(xy[n]);
+      line.reverse();
+      return { line, piecesKm };
     }
     const labError = (msg, code) => { const e = new Error(msg); e.code = code; return e; };
     const sleep = (ms, signal) => new Promise((res, rej) => {
@@ -382,13 +426,16 @@
           throw labError('the trace job ' + st.replace(/^esriJob/i, '').toLowerCase() + (why ? ': ' + why : ''));
         }
         const out = await esriCall('/jobs/' + job.jobId + '/results/OutputTraceLine', {}, signal, false);
+        lastReply = { when: new Date().toISOString(), drop: [lon, lat], jobId: job.jobId, result: out };
+        $('#labSaveReply').hidden = false;
         const v = out.value || out, f = (v.features || [])[0];
         if (!f || !f.geometry || !f.geometry.paths || !f.geometry.paths.length) throw labError('no trace came back for this spot (it may be outside the service\'s data)');
         const sr = v.spatialReference || (f.geometry.spatialReference) || {};
         const wkid = sr.latestWkid || sr.wkid || 102100;
         let paths = f.geometry.paths.map(path => path.map(p => [p[0], p[1]]));
         if (wkid === 4326 || wkid === 4269) paths = paths.map(path => path.map(p => FE.toMerc(p[0], p[1])));
-        const coords = orderFromDrop(paths, [m[0], m[1]]);
+        const built = routeFromPieces(paths, [m[0], m[1]]);
+        const coords = built.line;
         coords.unshift([m[0], m[1]]);
         let km = 0;
         for (let i = 1; i < coords.length; i++) {
@@ -405,7 +452,9 @@
         end.x = last[0]; end.y = last[1];
         let startZ = NaN;
         try { const [gx, gy] = FE.cellOf(m[0], m[1], 13); await store.need(13, gx, gy); startZ = store.z(13, gx, gy); } catch (e) { /* height is a nice-to-have */ }
-        return { coords, km, end, stats: { engine: 'esri', ms: Date.now() - t0, startZ, levels: [], attrs: f.attributes || {} } };
+        // what Esri sent, for the lab note (and the "save the reply" link)
+        const reply = { pieces: paths.length, piecesKm: built.piecesKm, esriKm: f.attributes && isFinite(+f.attributes.LengthKm) ? +f.attributes.LengthKm : null, features: (v.features || []).length };
+        return { coords, km, end, stats: { engine: 'esri', ms: Date.now() - t0, startZ, levels: [], attrs: f.attributes || {}, reply } };
       } finally { clearInterval(tick); }
     }
 
@@ -595,6 +644,11 @@
             try {
               route = await traceWithEsri(m, lon, lat, signal);
               labNote = 'Traced by Esri Trace Downstream in ' + (route.stats.ms / 1000).toFixed(1) + ' s.';
+              const rp = route.stats.reply;
+              labNote += ' Esri sent ' + (rp.pieces === 1 ? 'one line' : 'a line in ' + rp.pieces + ' pieces') +
+                (rp.features > 1 ? ' (and ' + (rp.features - 1) + ' more trace' + (rp.features > 2 ? 's' : '') + ', not used)' : '') +
+                ' adding up to ' + fmtKm(rp.piecesKm) + ' km' + (rp.esriKm !== null ? '; Esri gives the trace as ' + fmtKm(rp.esriKm) + ' km' : '') +
+                '. The stick\'s route is ' + fmtKm(route.km) + ' km.';
             } catch (err) {
               if ((err && err.name === 'AbortError') || signal.aborted) throw err;
               labNote = 'Esri Trace Downstream didn\'t work: ' + String(err.message).replace(/[.\s]+$/, '') + '. Our flow model traced this stick instead.';
