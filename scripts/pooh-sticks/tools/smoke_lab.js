@@ -70,7 +70,7 @@ async function dropAndReveal(win, $, label) {
   await until(() => win.__view, 'view');
   await wait(50);
   assert.ok(!$('#labBox').hidden, 'lab panel shows on the lab page');
-  assert.ok(win.document.title.endsWith('(lab)') && $('#foot').textContent.includes('lab 0.5'));
+  assert.ok(win.document.title.endsWith('(lab)') && $('#foot').textContent.includes('lab 0.6'));
   assert.ok($('#labKeyState').textContent.includes('saved in this browser'));
   assert.ok(win.document.querySelector('input[name="engine"][value="esri"]').checked, 'Esri engine is the lab default');
   assert.ok(!$('#soundBtn').hidden && $('#soundBtn').getAttribute('aria-label') === 'Sound' && $('#soundBtn').title === 'Sound on' && $('#soundBtn').getAttribute('aria-pressed') === 'true');
@@ -153,12 +153,32 @@ async function dropAndReveal(win, $, label) {
   assert.strictEqual(errors.length, 0, errors.join(' | '));
   win.close();
 
+  // 4b. the honey pot: bees fly when the page opens, land within 5 s, and fly again after a right answer;
+  //     with reduced motion they never fly
+  ({ win, $, errors } = load(false, 'pooh-sticks-lab.html', w => { fakeHydro(w, 'ok'); w.localStorage.setItem('poohSticks.lab.apiKey', 'GOODKEY'); }));
+  await until(() => win.__view, 'view honey');
+  assert.ok(!$('#honeyScene').hasAttribute('hidden') && win.__honey.flying(), 'bees fly when the page opens');
+  await wait(5300);
+  assert.ok(!win.__honey.flying(), 'bees have landed within 5 s');
+  out = await dropAndReveal(win, $, 'honey');
+  assert.ok(out.result.includes('You got it') && win.__honey.flying(), 'bees fly again after a right answer');
+  assert.ok($('#titleTwig').classList.contains('bob-again'), 'the twig bobs again too');
+  await wait(4300);
+  assert.ok(!win.__honey.flying(), 'and land again within 5 s');
+  assert.strictEqual(errors.length, 0, errors.join(' | '));
+  win.close();
+  ({ win, $, errors } = load(true, 'pooh-sticks-lab.html', w => fakeHydro(w, 'ok')));
+  await until(() => win.__view, 'view honey reduced');
+  assert.ok(!$('#honeyScene').hasAttribute('hidden') && !win.__honey.flying(), 'reduced motion: the bees just sit on the pot');
+  win.close();
+
   // 5. the main page has no lab panel and never calls the service
   ({ win, $, errors } = load(true, 'pooh-sticks.html', w => fakeHydro(w, 'ok')));
   await until(() => win.__view, 'view main');
   await wait(50);
   assert.ok($('#labBox').hidden, 'no lab panel on the main page');
   assert.ok($('#soundBtn').hidden, 'no sound switch on the main page (sound is a lab try-out)');
+  assert.ok($('#honeyScene').hasAttribute('hidden') && !win.__honey, 'no honey pot on the main page (lab try-out)');
   out = await dropAndReveal(win, $, 'main');
   assert.strictEqual(win.__hydro.length, 0, 'main page never calls Trace Downstream');
   assert.ok($('#labNote').hidden);

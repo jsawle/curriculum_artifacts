@@ -3,7 +3,7 @@
   'use strict';
 
   // ------------------------------------------------------------------ settings
-  const APP_VERSION = '0.6.6';
+  const APP_VERSION = '0.6.7';
   const APP_TITLE = '“I wonder where my stick goes,” said Pooh';
   const INTRO_HTML =
     '<p>In <cite>The House at Pooh Corner</cite> (1928), Pooh drops a fir-cone off a bridge and watches it float out ' +
@@ -13,7 +13,7 @@
   const BASEMAP_URL = 'https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer';
   // Lab page only (built with --lab): try Esri's ready-to-use Trace Downstream service, with an API key the tester pastes in
   const LAB = !!window.POOH_LAB;
-  const LAB_VERSION = '0.5';
+  const LAB_VERSION = '0.6';
   const TRACE_URL = 'https://hydro.arcgis.com/arcgis/rest/services/Tools/Hydrology/GPServer/TraceDownstream';
 
   const FE = window.FlowEngine;
@@ -110,6 +110,54 @@
   $('#viewDiv').addEventListener('pointerdown', () => { if (!canHover) endTip(); }, true);
   document.addEventListener('keydown', e => { if (e.key === 'Escape') endTip(); });
 
+  // ---- lab: a honey pot with bees at the left of the title bar. The bees fly for 5 s when the page opens
+  // and 4 s after each right answer, then land on the pot and stay still (moving content stops within 5 s).
+  // With reduced motion they just sit on the pot. Decorative only (hidden from screen readers).
+  const honey = (function () {
+    const svg = $('#honeyScene');
+    if (!LAB || !svg) return { buzz() {} };
+    svg.removeAttribute('hidden');   // an <svg> has no .hidden property, so use the attribute
+    const bees = [...svg.querySelectorAll('.bee')];
+    const rest = [[37, 21, 1], [66, 19, -1], [62, 57, -1]];          // where they land: x, y, facing
+    const fly = [                                                    // looping paths around and beside the pot
+      { cx: 70, cy: 44, ax: 52, ay: 26, w: 2.1, p: 0.0, q: 1.1 },
+      { cx: 92, cy: 40, ax: 72, ay: 22, w: 1.7, p: 2.1, q: 0.3 },
+      { cx: 80, cy: 50, ax: 60, ay: 30, w: 2.6, p: 4.2, q: 2.0 }
+    ];
+    const place = (b, x, y, face, tilt) => b.setAttribute('transform', 'translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ') scale(' + (face * 0.95) + ' 0.95) rotate(' + (tilt || 0).toFixed(1) + ')');
+    bees.forEach((b, i) => place(b, rest[i][0], rest[i][1], rest[i][2]));
+    let raf = 0, until = 0, t0 = 0;
+    function frame(now) {
+      const t = (now - t0) / 1000, left = (until - now) / 1000;
+      const settle = Math.max(0, Math.min(1, 1 - left / 0.7));       // glide in to land over the last 0.7 s
+      bees.forEach((b, i) => {
+        const f = fly[i];
+        const x = f.cx + f.ax * Math.sin(f.w * t + f.p), y = f.cy + f.ay * Math.sin(2 * f.w * t + f.q) + 2 * Math.sin(t * 30 + i);
+        const dx = f.ax * f.w * Math.cos(f.w * t + f.p);
+        const e = settle * settle * (3 - 2 * settle);
+        place(b, x + (rest[i][0] - x) * e, y + (rest[i][1] - y) * e, e > 0.5 ? rest[i][2] : (dx >= 0 ? 1 : -1), (1 - e) * 10 * Math.sin(t * 6 + i));
+      });
+      if (now < until) raf = requestAnimationFrame(frame);
+      else { svg.classList.remove('flying'); bees.forEach((b, i) => place(b, rest[i][0], rest[i][1], rest[i][2])); raf = 0; }
+    }
+    function buzz(ms) {
+      if (reduceMotion) return;
+      const now = performance.now();
+      if (!raf) t0 = now;
+      until = now + ms;
+      svg.classList.add('flying');
+      if (!raf) raf = requestAnimationFrame(frame);
+    }
+    buzz(5000);
+    window.__honey = { flying: () => svg.classList.contains('flying') };
+    return { buzz };
+  })();
+  // the twig in the title bobs once when the page opens; it bobs again with the bees after a right answer
+  function bobTwig() {
+    const tw = $('#titleTwig');
+    tw.classList.remove('bob-again'); void tw.offsetWidth; tw.classList.add('bob-again');
+  }
+
   // the centred title needs equal space on both sides, as wide as the score and About buttons
   function sizeBar() {
     const w = Math.ceil($('.bar-actions').getBoundingClientRect().width);
@@ -186,7 +234,7 @@
     `<li>Each right guess scores 100 points. The score starts at 0 each time the app opens.</li>` +
     `<li>"Use my location" keeps your location on your device. The app only asks Esri for elevation and map tiles around that spot.</li>` +
     `<li>Keyboard: Tab to the map and a cross appears in the middle. Use the arrow keys to move and + / &minus; to zoom, then press Enter to drop your stick at the cross. Press Escape to skip to the end of a journey.</li></ul>` +
-    (LAB ? `<h3>Lab version</h3><p>This page tests Esri's Trace Downstream service. Paste an ArcGIS API key in the Lab panel; it is kept only in this browser. Without a key, or if the service says no, the stick uses our own flow model and the page tells you why. The lab also tries a splash sound when the stick lands in the water; the speaker button at the top turns it off.</p>` : '') +
+    (LAB ? `<h3>Lab version</h3><p>This page tests Esri's Trace Downstream service. Paste an ArcGIS API key in the Lab panel; it is kept only in this browser. Without a key, or if the service says no, the stick uses our own flow model and the page tells you why. The lab also tries a splash sound when the stick lands in the water (the speaker button at the top turns it off), and a honey pot whose bees fly for a few seconds when the page opens and after each right answer.</p>` : '') +
     `<p>Created by Jason Sawle</p>`;
   const dlg = $('#aboutDlg');
   $('#aboutBtn').addEventListener('click', () => { if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', ''); $('#aboutClose').focus(); });
@@ -901,6 +949,7 @@
       stickLayer.add(c.endLabel);
 
       const guessed = !!c.choice, right = guessed && c.choice.correct;
+      if (right && LAB) { honey.buzz(4000); bobTwig(); }   // a little celebration (lab try-out)
       const box = $('#resultBox');
       box.className = 'result' + (guessed ? (right ? ' ok' : ' no') : '');
       $('#revealTitle').textContent = !guessed ? 'Here\'s where it went' : right ? '✓ You got it!' : '✗ Not this time';
