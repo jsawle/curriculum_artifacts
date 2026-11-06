@@ -71,6 +71,7 @@ def visible(a,b,ha,hb):
     for h in (ha,hb):  # allow the approach within 2.5 km of a harbour
         seg=seg.difference(Point(h).buffer(0.025))
     return seg.is_empty or not CLEAR.intersects(seg)
+OFF16=np.array([(a,b) for a in range(-2,3) for b in range(-2,3) if (a,b)!=(0,0) and np.gcd(abs(a),abs(b))==1])   # 16 directions: fewer stair-steps
 def raw_path(ha,hb):
     s=snap(*ha); t=snap(*hb)
     r0,r1=sorted([s[0],t[0]]); c0,c1=sorted([s[1],t[1]])

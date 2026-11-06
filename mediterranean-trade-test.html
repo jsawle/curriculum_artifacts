@@ -110,7 +110,7 @@
       <li><b>Foundation links</b>: a sea lane from each founding city to its colony, where Pleiades records the link or its description states it. 56 links, dated in Pleiades to before 330 BCE.</li>
       <li><b>Coastal networks</b>: a model, not a record. Each Phoenician-Punic or Greek port is joined to its two nearest ports of the same culture, plus enough links to connect the whole network.</li>
       <li><b>Settlement zones</b>: the coast within 40 km of a site, running 25 km inland. A site counts if Pleiades describes it as Phoenician, Punic, Carthaginian or Greek and dates it within 700–350 BCE. The Etruscan zone is land within 20 km of Etruscan sites.</li>
-      <li><b>Sea lanes</b> keep about 4 km offshore where the sea allows, follow strait centrelines worked out from the coastline, and end at harbours. From v2.1 they are drawn as smooth curves for readability: splines through each lane's turning points, with a gentle arc on long open-water crossings. Each curve was checked to stay 1 km clear of land, otherwise a gentler curve was used. Strait passages and harbour approaches keep their exact course. Checked every 500 m against the basemap at zoom 9: 0.04% of samples fall on land, all at island harbour approaches. The curves are a drawing convention; the exact course of any voyage is indicative.</li>
+      <li><b>Sea lanes</b> start from the least-cost path at sea, which keeps about 4 km offshore where the sea allows and threads the straits along centrelines worked out from the coastline. Each lane is then smoothed as strongly as it can be while keeping at least 1 km from land, or as much room as the channel allows in narrows and at harbours. The smoothing strength changes gradually along the lane, so there are no sudden corners. A final check confirms no lane crosses the coastline outside the last 2.5 km into a harbour. Against the basemap at zoom 9, 0.08% of samples fall on land, in short stretches in very narrow channels where the basemap's coastline differs from Natural Earth's. The curves are a drawing convention; the exact course of any voyage is indicative.</li>
     </ul>
     <h3>Known limitations</h3>
     <ul>
@@ -135,13 +135,13 @@
 <script type="module">
 /* Versions: app + one version per layer ("model"). Bump a layer's version when
    its data or data handling changes, and the app version every release. */
-const APP_VERSION = '2.1.0';
+const APP_VERSION = '2.2.0';
 const SDK_VERSION = '5.1';
 const DATA = 'data/mediterranean-trade-v2/';
 const LAYERS = {
   zones:   { title:'Settlement zones',    v:'2.0', file:'zones_of_settlement.geojson', what:'Phoenician-Punic, Greek and Etruscan zones around sites that Pleiades describes by culture and dates within 700–350 BCE', lic:'Pleiades (CC BY 3.0); Natural Earth coastline (public domain)', copyright:'Pleiades, CC BY 3.0' },
   persia:  { title:'Persian Empire',      v:'2.0', file:'persian_empire.geojson',      what:'Maximum extent of the Achaemenid Empire, c. 500 BCE, clipped to the coastline', lic:'AWMC geodata (ODbL 1.0); this layer is released under ODbL', copyright:'Ancient World Mapping Center, ODbL' },
-  routes:  { title:'Trade routes',        v:'2.1', file:'trade_routes.geojson',        what:'Foundation links (founding city to colony), modelled coastal networks, overland and river corridors, and port links; sea lanes routed at sea. v2.1: drawn as smooth curves, every curve checked to stay 1 km clear of land', lic:'Links: Pleiades (CC BY 3.0); lanes: own work on the Natural Earth coastline', copyright:'Pleiades, CC BY 3.0' },
+  routes:  { title:'Trade routes',        v:'2.2', file:'trade_routes.geojson',        what:'Foundation links (founding city to colony), modelled coastal networks, overland and river corridors, and port links. v2.2: sea lanes redrawn as flowing curves from the least-cost sea path, with no forced corners at straits, and Corinth and Chalcis using whichever harbour gives the shorter voyage', lic:'Links: Pleiades (CC BY 3.0); lanes: own work on the Natural Earth coastline', copyright:'Pleiades, CC BY 3.0' },
   places:  { title:'Places',              v:'2.0', file:'places.geojson',              what:'77 trading hubs, plus the colonies and founding cities that Pleiades links', lic:'Pleiades (CC BY 3.0)', copyright:'Pleiades, CC BY 3.0' },
   goods:   { title:'Trade goods',         v:'2.0', file:'trade_goods.geojson',         what:'14 commodity points at representative source regions', lic:'Own work (general historical knowledge)' },
   people:  { title:'Peoples and polities',v:'2.0', file:'peoples.geojson',             what:'14 group labels at representative points', lic:'Own work' },
