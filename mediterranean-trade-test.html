@@ -103,21 +103,26 @@
   <div class="dlg">
     <button class="btn" id="closeAbout">Close</button>
     <h2 id="abouth">About &amp; versions</h2>
-    <p>This viewer is a test of pulling GIS layers out of a map image that has no georeferencing. Hub positions are real site coordinates. Zones are traced from the image and then snapped to the coastline. Each sea route is the shortest path at sea between hubs that the source map links.</p>
+    <p>This viewer is a test of pulling GIS layers out of a map image that has no georeferencing. Hub positions are real site coordinates. Zones are traced from the image and then fitted to the real coastline. Each sea route is a lane computed at sea between hubs that the source map links.</p>
     <h3>Versions</h3>
     <table id="vertable"><thead><tr><th scope="col">Part</th><th scope="col">Version</th><th scope="col">What it is</th></tr></thead><tbody></tbody></table>
     <h3>Georeferencing accuracy</h3>
     <p>60 control points (map dots matched to known site coordinates), fitted with a 2nd-order polynomial. Leave-one-out error: median 21 km, 90th percentile 47 km. The worst errors are at the map's eastern edge. Phaleron and Cartenna were left out because the source map draws them away from their real positions.</p>
+    <h3>Coastline checks (v1.1)</h3>
+    <p>Every sea lane was sampled every 500 m against the Esri World Terrain Base basemap at zoom 9. In v1.0, 3.8% of the samples (about 845 km) fell on land. In v1.1 the figure is 2 samples in 45,630, both at harbour approaches. Sea lanes keep about 4 km off the coast where the sea allows. Through the Bosporus, Dardanelles, Strait of Messina, Rion straits, Kerch Strait and Strait of Gibraltar they follow centrelines worked out from the coastline. Each lane ends at a harbour. Inland or silted places (for example Sparta, Delphi, Miletus and Ephesus) are joined to their port by a port link.</p>
+    <p>The coastal zones now stop at the coastline. About 95% of the small remaining differences from the basemap lie within 1.5 km of the coast. They come from the difference between the Natural Earth 1:10m coastline used here and the more detailed basemap coastline.</p>
     <h3>Known limitations</h3>
     <ul>
       <li>The Persian Empire zone follows the source map's hatching. It leaves out Egypt and the Levant, which were Achaemenid c. 500 BCE.</li>
       <li>The Etruscan zone is the source map's green patch on the Po plain, not core Etruria.</li>
       <li>Routes are indicative, not attested sailing courses. Tartessos's exact location is unknown (the Huelva area is used).</li>
+      <li>The sea lanes follow today's coastline. Several ancient harbours (Miletus, Ephesus, Utica, Atria, Spina) have silted up since and now lie inland.</li>
     </ul>
     <h3>Sources</h3>
     <ul>
       <li>Source map: Simeon Netchev, “Map of the Mediterranean Trade Networks, c. 700–350 BCE”, World History Encyclopedia (licence CC BY-NC-ND). The zones and the choice of route connections are derived from it.</li>
       <li>Coastline used to clean the zones and route the sea lanes: Natural Earth 10m land (public domain).</li>
+      <li>The Esri basemap was used only to check the result and to place a few sea waypoints (four harbours and the strait centrelines). No basemap geometry is stored in the data.</li>
       <li>Basemaps: Esri World Terrain Base, World Physical Map and World Imagery.</li>
     </ul>
     <h3>Web addresses this page needs</h3>
@@ -129,12 +134,12 @@
 <script type="module">
 /* Versions: app + one version per layer ("model"). Bump a layer's version when
    its data or data handling changes, and the app version every release. */
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '1.1.0';
 const SDK_VERSION = '5.1';
 const DATA = 'data/mediterranean-trade/';
 const LAYERS = {
-  zones:  { title:'Zones of influence',   v:'1.0', file:'zones_of_influence.geojson',   what:'5 zones extracted from the image (colour and texture classification, polynomial georeference), snapped to the coastline' },
-  routes: { title:'Trade routes',         v:'1.0', file:'trade_routes.geojson',         what:'68 links. Sea legs are shortest paths at sea; overland legs follow hand-placed waypoints' },
+  zones:  { title:'Zones of influence',   v:'1.1', file:'zones_of_influence.geojson',   what:'5 zones extracted from the image (colour and texture classification, polynomial georeference). v1.1: the Phoenician and Hellenic zones are rebuilt as bands along the real coast, and every zone stops at the coastline (no spill onto the sea)' },
+  routes: { title:'Trade routes',         v:'1.1', file:'trade_routes.geojson',         what:'95 links. v1.1: sea lanes kept about 4 km offshore where the sea allows, through strait centrelines worked out from the coastline, ending at each place\'s harbour; inland places joined to their port by port links; no sea lane crosses land' },
   hubs:   { title:'Trading hubs',         v:'1.0', file:'trading_hubs.geojson',         what:'78 named ports and settlements at real site coordinates' },
   goods:  { title:'Trade goods',          v:'1.0', file:'trade_goods.geojson',          what:'14 commodity points at representative source regions' },
   exch:   { title:'Exchange zones',       v:'1.0', file:'exchange_zones.geojson',       what:'7 regional exchange panels, with goods in each direction' },
@@ -186,9 +191,10 @@ async function start() {
   ]);
 
   const BASEMAPS = [
-    { id:'terrain', title:'Terrain, no labels (default)', url:'https://services.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer' },
-    { id:'physical', title:'Physical map, no labels', url:'https://services.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer' },
-    { id:'imagery', title:'Satellite imagery', url:'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer' },
+    // maxZoom: the deepest zoom each basemap has sea tiles for (beyond it the sea shows "Map data not yet available")
+    { id:'terrain', title:'Terrain, no labels (default)', maxZoom:9, url:'https://services.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer' },
+    { id:'physical', title:'Physical map, no labels', maxZoom:8, url:'https://services.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer' },
+    { id:'imagery', title:'Satellite imagery', maxZoom:12, url:'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer' },
   ];
   const basemaps = Object.fromEntries(BASEMAPS.map(b => [b.id, new Basemap({ id:b.id, title:b.title, baseLayers:[new TileLayer({ url:b.url })] })]));
   $('basemapSel').innerHTML = BASEMAPS.map(b => `<option value="${b.id}">${esc(b.title)}</option>`).join('');
@@ -199,16 +205,21 @@ async function start() {
   mapEl.extent = home;
   await mapEl.viewOnReady();
   const view = mapEl.view;
-  view.constraints = { minZoom:3, maxZoom:10, snapToZoom:false };
+  const BMAX = Object.fromEntries(BASEMAPS.map(b => [b.id, b.maxZoom]));
+  view.constraints = { minZoom:3, maxZoom:BMAX.terrain, snapToZoom:false };
   view.popup.dockEnabled = false;
   document.querySelector('arcgis-home').viewpoint = view.viewpoint.clone();
-  $('basemapSel').addEventListener('change', e => { mapEl.basemap = basemaps[e.target.value]; });
+  $('basemapSel').addEventListener('change', e => {
+    const id = e.target.value; mapEl.basemap = basemaps[id];
+    view.constraints = { ...view.constraints, maxZoom:BMAX[id] };
+    if (view.zoom > BMAX[id]) view.goTo({ zoom:BMAX[id] }, { animate:!reduceMotion }).catch(() => {});
+  });
 
   // ---------- popups ----------
   const LABEL = { modern:'Modern place', affiliation:'Affiliation', network:'Network', site_type:'Site type', period:'Period',
     loc_source:'Location from', loc_note:'Note', mode:'Mode', certainty:'Certainty', method:'Method', length_km:'Length (km)',
     culture:'Culture', descr:'Description', area_km2:'Area (km²)', source:'Source', goods:'Goods', region:'Region', note:'Note',
-    placement:'Placement', flow_a_dir:'Direction', flow_a:'Goods', flow_b_dir:'Direction', flow_b:'Goods',
+    placement:'Placement', from_harbour:'Starts at', to_harbour:'Ends at', flow_a_dir:'Direction', flow_a:'Goods', flow_b_dir:'Direction', flow_b:'Goods',
     loo_error_km:'Leave-one-out error (km)', image_x:'Image x (px)', image_y:'Image y (px)' };
   // Empty fields are left out of the popup (fields content would show a blank row).
   const pt = (key, title, fields) => ({
@@ -233,8 +244,10 @@ async function start() {
              popupTemplate: pt('zones','{name}',['culture','period','descr','area_km2','certainty','source']) },
     routes: { renderer:{ type:'unique-value', valueExpression:"IIF($feature.mode == 'sea', $feature.network, $feature.mode)",
                uniqueValueInfos:[ { value:'Phoenician-Punic', symbol:line(COL.phoen,'solid',2.2) }, { value:'Hellenic', symbol:line(COL.hell,'dash-dot',2.2) },
-                                  { value:'land', symbol:line(COL.over,'dash',2.4) }, { value:'river', symbol:line(COL.river,'dot',2.6) } ] },
-              popupTemplate: pt('routes','{name}',['network','mode','certainty','method','length_km']) },
+                                  { value:'Other', symbol:line('#6b7280','solid',1.8) },
+                                  { value:'land', symbol:line(COL.over,'dash',2.4) }, { value:'river', symbol:line(COL.river,'dot',2.6) },
+                                  { value:'port', symbol:line('#6b7280','short-dot',1.6) } ] },
+              popupTemplate: pt('routes','{name}',['network','mode','from_harbour','to_harbour','certainty','method','length_km']) },
     hubs: { renderer:{ type:'unique-value', field:'network', uniqueValueInfos:Object.entries(NET).map(([k,c]) => ({ value:k, symbol:marker(c) })) },
             popupTemplate: pt('hubs','{name}',['modern','affiliation','network','site_type','period','loc_source','loc_note']),
             labelingInfo:[{ labelExpressionInfo:{ expression:'$feature.name' }, labelPlacement:'center-right', minScale:12000000,
@@ -284,7 +297,9 @@ async function start() {
     { id:'ph', name:'Phoenician-Punic (sea)', where:"(mode = 'sea' AND network = 'Phoenician-Punic')", svg:`<line x1="1" y1="8" x2="25" y2="8" stroke="${COL.phoen}" stroke-width="3"/>` },
     { id:'he', name:'Hellenic (sea)', where:"(mode = 'sea' AND network = 'Hellenic')", svg:`<line x1="1" y1="8" x2="25" y2="8" stroke="${COL.hell}" stroke-width="3" stroke-dasharray="10 3 2 3"/>` },
     { id:'ld', name:'Overland', where:"(mode = 'land')", svg:`<line x1="1" y1="8" x2="25" y2="8" stroke="${COL.over}" stroke-width="3" stroke-dasharray="7 5"/>` },
-    { id:'rv', name:'River (Nile)', where:"(mode = 'river')", svg:`<line x1="1" y1="8" x2="25" y2="8" stroke="${COL.river}" stroke-width="3" stroke-dasharray="2 4"/>` },
+    { id:'rv', name:'River and estuary', where:"(mode = 'river')", svg:`<line x1="1" y1="8" x2="25" y2="8" stroke="${COL.river}" stroke-width="3" stroke-dasharray="2 4"/>` },
+    { id:'pt', name:'Port links (inland place to its harbour)', where:"(mode = 'port')", svg:'<line x1="1" y1="8" x2="25" y2="8" stroke="#6b7280" stroke-width="2" stroke-dasharray="1 3"/>' },
+    { id:'ot', name:'Channel crossing (tin route)', where:"(mode = 'sea' AND network = 'Other')", svg:'<line x1="1" y1="8" x2="25" y2="8" stroke="#6b7280" stroke-width="2.5"/>' },
   ];
   function routeFilter() {
     const on = ROUTE_SUBS.filter(s => $('chk_r_' + s.id).checked).map(s => s.where);
@@ -330,7 +345,7 @@ async function start() {
       b.addEventListener('click', async () => {
         if (!L.hubs.visible) { L.hubs.visible = true; $('chk_hubs').checked = true; }
         if (innerWidth <= 760) togglePanel(false);
-        await view.goTo({ target:g.geometry, zoom:7 }, { animate:!reduceMotion }).catch(() => {});
+        await view.goTo({ target:g.geometry, zoom:Math.min(7, view.constraints.maxZoom) }, { animate:!reduceMotion }).catch(() => {});
         view.openPopup({ features:[g], location:g.geometry });
       });
       list.appendChild(b);
