@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mediterranean Trade Networks c. 700–350 BCE – Layer Viewer</title>
+<meta name="description" content="Six GIS layers (trading hubs, trade routes, zones of influence, trade goods, exchange zones, peoples) extracted from a map image without georeferencing, on ArcGIS." />
+<link rel="icon" href="data:," />
+<script type="module" src="https://js.arcgis.com/5.1/"></script>
+<style>
+  /* Light panel beside the map. Text colours meet WCAG AA on white. */
+  :root { --ink:#1d232a; --muted:#4a545e; --line:#d5dbe0; --accent:#0a5fa8; --head:#14324a; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; height:100%; font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; color:var(--ink); }
+  .skip { position:absolute; left:-999px; top:0; background:#fff; padding:8px; z-index:3000; }
+  .skip:focus { left:8px; }
+  header { height:52px; display:flex; align-items:center; gap:10px; padding:0 12px; background:var(--head); color:#fff; }
+  header h1 { font-size:16px; margin:0; font-weight:600; flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  header .ver { font-size:12px; opacity:.9; }
+  header button { background:#fff; color:var(--head); border:0; border-radius:6px; padding:6px 10px; font:inherit; font-size:14px; font-weight:600; cursor:pointer; }
+  #wrap { position:absolute; top:52px; bottom:0; left:0; right:0; display:flex; }
+  #panel { width:340px; flex:none; overflow:auto; background:#fff; border-right:1px solid var(--line); padding:12px 14px 60px; }
+  #mapwrap { flex:1; position:relative; min-width:0; }
+  arcgis-map { width:100%; height:100%; display:block; }
+  h2 { font-size:13px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); margin:16px 0 6px; }
+  h2:first-child { margin-top:0; }
+  .layer { display:flex; align-items:center; gap:8px; padding:5px 4px; border-radius:6px; }
+  .layer:hover { background:#f2f5f7; }
+  .layer input { width:18px; height:18px; margin:0; accent-color:var(--accent); flex:none; }
+  .layer label { flex:1; display:flex; align-items:center; gap:8px; cursor:pointer; }
+  .sw { width:26px; height:16px; flex:none; }
+  .badge { font-size:11px; background:#e7eef4; color:#1d3b55; border-radius:10px; padding:1px 7px; white-space:nowrap; }
+  .count { font-size:12px; color:var(--muted); }
+  .sub { margin:0 0 6px 30px; font-size:13px; }
+  .sub .layer { padding:3px 4px; }
+  .note { font-size:13px; color:var(--muted); margin:6px 0; }
+  select, input[type=search] { width:100%; padding:7px 9px; border:1px solid #8b97a2; border-radius:6px; font:inherit; background:#fff; }
+  details { border:1px solid var(--line); border-radius:8px; padding:6px 10px; margin-top:12px; }
+  summary { cursor:pointer; font-weight:600; }
+  .list { max-height:300px; overflow:auto; margin-top:6px; }
+  .list button { display:block; width:100%; text-align:left; background:none; border:0; border-bottom:1px solid #eef1f3; padding:6px 2px; font:inherit; font-size:14px; color:var(--ink); cursor:pointer; }
+  .list button:hover { background:#f2f5f7; }
+  .list small { color:var(--muted); }
+  :focus-visible { outline:3px solid #f5a623; outline-offset:2px; }
+  #credit { position:absolute; right:10px; bottom:30px; z-index:10; background:rgba(255,255,255,.95); border:1px solid var(--line); border-radius:6px; padding:4px 9px; font-size:12px; font-weight:600; color:#333; }
+  #status { position:absolute; left:50%; top:40%; transform:translate(-50%,-50%); z-index:20; background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px 18px; max-width:min(440px,90%); box-shadow:0 6px 24px rgba(0,0,0,.18); }
+  #status[hidden] { display:none; }
+  dialog { max-width:760px; width:calc(100% - 24px); border:0; border-radius:10px; padding:0; box-shadow:0 10px 40px rgba(0,0,0,.35); }
+  dialog::backdrop { background:rgba(0,0,0,.45); }
+  .dlg { padding:18px 20px; max-height:82vh; overflow:auto; }
+  .dlg h2 { font-size:18px; text-transform:none; letter-spacing:0; color:var(--ink); margin-top:0; }
+  .dlg h3 { font-size:15px; margin:16px 0 6px; }
+  .dlg table { border-collapse:collapse; width:100%; font-size:14px; }
+  .dlg th, .dlg td { border-bottom:1px solid var(--line); padding:5px 6px; text-align:left; vertical-align:top; }
+  .btn { background:var(--accent); color:#fff; border:0; border-radius:6px; padding:7px 12px; font:inherit; font-weight:600; cursor:pointer; float:right; }
+  #togglePanel { display:none; }
+  @media (max-width:760px) {
+    #panel { position:absolute; z-index:30; left:0; right:0; bottom:0; width:auto; max-height:60%; border-right:0; border-top:1px solid var(--line); box-shadow:0 -4px 18px rgba(0,0,0,.18); border-radius:12px 12px 0 0; padding-bottom:20px; }
+    #panel[hidden] { display:none; }
+    #togglePanel { display:inline-block; }
+    header .ver { display:none; }
+    #credit { bottom:auto; top:10px; right:10px; left:auto; }
+  }
+  .sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); }
+</style>
+</head>
+<body>
+<a class="skip" href="#panel">Skip to layer controls</a>
+<header>
+  <h1>Mediterranean Trade Networks c. 700–350 BCE</h1>
+  <span class="ver" id="verTop"></span>
+  <button id="togglePanel" aria-controls="panel" aria-expanded="true">Layers</button>
+  <button id="aboutBtn" aria-haspopup="dialog">About &amp; versions</button>
+</header>
+<div id="wrap">
+  <aside id="panel" aria-label="Layers and features">
+    <h2 id="lh">Layers</h2>
+    <div id="layers" role="group" aria-labelledby="lh"></div>
+    <h2 id="qh">Quality checks</h2>
+    <div id="qa" role="group" aria-labelledby="qh"></div>
+    <p class="note">The dotted outlines are the zones as first extracted from the image. The filled zones have been snapped to the real coastline. Control points are coloured by leave-one-out error.</p>
+    <h2><label for="basemapSel">Basemap</label></h2>
+    <select id="basemapSel"></select>
+    <details>
+      <summary>Find a trading hub</summary>
+      <label for="q" class="sr">Search hubs</label>
+      <input id="q" type="search" placeholder="Search hubs, e.g. Tyre" autocomplete="off" />
+      <div class="list" id="hublist"></div>
+    </details>
+  </aside>
+  <main id="mapwrap" aria-label="Map of the extracted layers. Every layer is also listed in the panel, and hubs can be found with Find a trading hub.">
+    <arcgis-map>
+      <arcgis-zoom slot="top-left"></arcgis-zoom>
+      <arcgis-home slot="top-left"></arcgis-home>
+      <arcgis-scale-bar slot="bottom-left" unit="dual"></arcgis-scale-bar>
+    </arcgis-map>
+    <div id="credit">Created by Jason Sawle</div>
+    <div id="status" role="status" aria-live="polite">Loading the map…</div>
+  </main>
+</div>
+
+<dialog id="about" aria-labelledby="abouth">
+  <div class="dlg">
+    <button class="btn" id="closeAbout">Close</button>
+    <h2 id="abouth">About &amp; versions</h2>
+    <p>This viewer is a test of pulling GIS layers out of a map image that has no georeferencing. Hub positions are real site coordinates. Zones are traced from the image and then snapped to the coastline. Each sea route is the shortest path at sea between hubs that the source map links.</p>
+    <h3>Versions</h3>
+    <table id="vertable"><thead><tr><th scope="col">Part</th><th scope="col">Version</th><th scope="col">What it is</th></tr></thead><tbody></tbody></table>
+    <h3>Georeferencing accuracy</h3>
+    <p>60 control points (map dots matched to known site coordinates), fitted with a 2nd-order polynomial. Leave-one-out error: median 21 km, 90th percentile 47 km. The worst errors are at the map's eastern edge. Phaleron and Cartenna were left out because the source map draws them away from their real positions.</p>
+    <h3>Known limitations</h3>
+    <ul>
+      <li>The Persian Empire zone follows the source map's hatching. It leaves out Egypt and the Levant, which were Achaemenid c. 500 BCE.</li>
+      <li>The Etruscan zone is the source map's green patch on the Po plain, not core Etruria.</li>
+      <li>Routes are indicative, not attested sailing courses. Tartessos's exact location is unknown (the Huelva area is used).</li>
+    </ul>
+    <h3>Sources</h3>
+    <ul>
+      <li>Source map: Simeon Netchev, “Map of the Mediterranean Trade Networks, c. 700–350 BCE”, World History Encyclopedia (licence CC BY-NC-ND). The zones and the choice of route connections are derived from it.</li>
+      <li>Coastline used to clean the zones and route the sea lanes: Natural Earth 10m land (public domain).</li>
+      <li>Basemaps: Esri World Terrain Base, World Physical Map and World Imagery.</li>
+    </ul>
+    <h3>Web addresses this page needs</h3>
+    <p>For school web filters: <b>js.arcgis.com</b> (ArcGIS Maps SDK), <b>services.arcgisonline.com</b> and <b>server.arcgisonline.com</b> (basemaps), <b>static.arcgis.com</b> (label fonts), and <b>jsawle.github.io</b> (this page and its data).</p>
+    <p>Data files: <code>data/mediterranean-trade/</code> in the curriculum_artifacts repository (GeoJSON, WGS84).</p>
+  </div>
+</dialog>
+
+<script type="module">
+/* Versions: app + one version per layer ("model"). Bump a layer's version when
+   its data or data handling changes, and the app version every release. */
+const APP_VERSION = '1.0.0';
+const SDK_VERSION = '5.1';
+const DATA = 'data/mediterranean-trade/';
+const LAYERS = {
+  zones:  { title:'Zones of influence',   v:'1.0', file:'zones_of_influence.geojson',   what:'5 zones extracted from the image (colour and texture classification, polynomial georeference), snapped to the coastline' },
+  routes: { title:'Trade routes',         v:'1.0', file:'trade_routes.geojson',         what:'68 links. Sea legs are shortest paths at sea; overland legs follow hand-placed waypoints' },
+  hubs:   { title:'Trading hubs',         v:'1.0', file:'trading_hubs.geojson',         what:'78 named ports and settlements at real site coordinates' },
+  goods:  { title:'Trade goods',          v:'1.0', file:'trade_goods.geojson',          what:'14 commodity points at representative source regions' },
+  exch:   { title:'Exchange zones',       v:'1.0', file:'exchange_zones.geojson',       what:'7 regional exchange panels, with goods in each direction' },
+  people: { title:'Peoples and polities', v:'1.0', file:'peoples_and_polities.geojson', what:'15 group labels at representative points' },
+  raw:    { title:'Raw extracted zones',  v:'1.0', file:'qa_raw_zones.geojson',         what:'QA: zone outlines as first extracted, before coastline snapping' },
+  gcps:   { title:'Control points',       v:'1.0', file:'qa_control_points.geojson',    what:'QA: 60 georeferencing control points with leave-one-out error' },
+};
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+$('verTop').textContent = `App v${APP_VERSION}`;
+
+// Versions table (filled straight away so it works even if the map fails)
+$('vertable').querySelector('tbody').innerHTML =
+  `<tr><th scope="row">Layer viewer (app)</th><td>v${APP_VERSION}</td><td>Whole app. Changes with every release. ArcGIS Maps SDK for JavaScript ${SDK_VERSION}.</td></tr>` +
+  Object.values(LAYERS).map(l => `<tr><th scope="row">${esc(l.title)}</th><td>v${l.v}</td><td>${esc(l.what)}</td></tr>`).join('');
+const dlg = $('about');
+$('aboutBtn').addEventListener('click', () => { try { dlg.showModal(); } catch { dlg.setAttribute('open',''); } });
+$('closeAbout').addEventListener('click', () => dlg.close());
+
+// Mobile: layers panel as a bottom sheet
+const panel = $('panel'), tb = $('togglePanel');
+function togglePanel(show) { if (show === undefined) show = panel.hidden; panel.hidden = !show; tb.setAttribute('aria-expanded', String(show)); }
+tb.addEventListener('click', () => togglePanel());
+if (innerWidth <= 760) togglePanel(false);
+
+function status(msg) { const s = $('status'); if (!msg) { s.hidden = true; return; } s.hidden = false; s.innerHTML = msg; }
+
+// Colours (shared by the renderers and the panel key)
+const COL = { phoen:'#5b2fa8', hell:'#b3261e', over:'#4a4a4a', river:'#1f6fb2', goods:'#b45309', exch:'#0e7c86' };
+const ZONES = [
+  { name:'Phoenician-Punic sphere', color:[124,77,204], style:'solid' },
+  { name:'Hellenic settlement zone', color:[212,71,93], style:'solid' },
+  { name:'Persian (Achaemenid) Empire c.500 BCE', color:[90,98,112], style:'backward-diagonal' },
+  { name:'Hallstatt cultural zone', color:[164,98,36], style:'forward-diagonal' },
+  { name:'Etruscan city-states', color:[46,125,50], style:'solid' },
+];
+const NET = { 'Phoenician-Punic':COL.phoen, 'Hellenic':COL.hell, 'Persian':'#4b5563', 'Local / other':'#1d232a' };
+
+async function start() {
+  const t0 = performance.now();
+  while (!globalThis.$arcgis?.import) {
+    if (performance.now() - t0 > 30000) throw new Error('The ArcGIS Maps SDK did not load');
+    await new Promise(r => setTimeout(r, 40));
+  }
+  const [GeoJSONLayer, Basemap, TileLayer, Extent] = await $arcgis.import([
+    '@arcgis/core/layers/GeoJSONLayer.js', '@arcgis/core/Basemap.js',
+    '@arcgis/core/layers/TileLayer.js', '@arcgis/core/geometry/Extent.js',
+  ]);
+
+  const BASEMAPS = [
+    { id:'terrain', title:'Terrain, no labels (default)', url:'https://services.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer' },
+    { id:'physical', title:'Physical map, no labels', url:'https://services.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer' },
+    { id:'imagery', title:'Satellite imagery', url:'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer' },
+  ];
+  const basemaps = Object.fromEntries(BASEMAPS.map(b => [b.id, new Basemap({ id:b.id, title:b.title, baseLayers:[new TileLayer({ url:b.url })] })]));
+  $('basemapSel').innerHTML = BASEMAPS.map(b => `<option value="${b.id}">${esc(b.title)}</option>`).join('');
+
+  const mapEl = document.querySelector('arcgis-map');
+  mapEl.basemap = basemaps.terrain;
+  const home = new Extent({ xmin:-11, ymin:24, xmax:50, ymax:52, spatialReference:{ wkid:4326 } });
+  mapEl.extent = home;
+  await mapEl.viewOnReady();
+  const view = mapEl.view;
+  view.constraints = { minZoom:3, maxZoom:10, snapToZoom:false };
+  view.popup.dockEnabled = false;
+  document.querySelector('arcgis-home').viewpoint = view.viewpoint.clone();
+  $('basemapSel').addEventListener('change', e => { mapEl.basemap = basemaps[e.target.value]; });
+
+  // ---------- popups ----------
+  const LABEL = { modern:'Modern place', affiliation:'Affiliation', network:'Network', site_type:'Site type', period:'Period',
+    loc_source:'Location from', loc_note:'Note', mode:'Mode', certainty:'Certainty', method:'Method', length_km:'Length (km)',
+    culture:'Culture', descr:'Description', area_km2:'Area (km²)', source:'Source', goods:'Goods', region:'Region', note:'Note',
+    placement:'Placement', flow_a_dir:'Direction', flow_a:'Goods', flow_b_dir:'Direction', flow_b:'Goods',
+    loo_error_km:'Leave-one-out error (km)', image_x:'Image x (px)', image_y:'Image y (px)' };
+  // Empty fields are left out of the popup (fields content would show a blank row).
+  const pt = (key, title, fields) => ({
+    title, outFields:['*'],
+    content: ({ graphic }) => {
+      const a = graphic.attributes;
+      const rows = fields.filter(f => a[f] !== null && a[f] !== undefined && a[f] !== '')
+        .map(f => `<tr><th scope="row" style="text-align:left;padding:3px 10px 3px 0;vertical-align:top">${esc(LABEL[f] || f)}</th><td style="padding:3px 0">${esc(a[f])}</td></tr>`).join('');
+      return `<table style="border-collapse:collapse;width:100%">${rows}</table><p style="margin:8px 0 0;font-size:12px">Layer: ${esc(LAYERS[key].title)} v${LAYERS[key].v}</p>`;
+    },
+  });
+
+  // ---------- renderers ----------
+  const fill = (c, style) => ({ type:'simple-fill', style, color:[...c, style === 'solid' ? 0.38 : 0.85], outline:{ color:[...c, 1], width: style === 'solid' ? 1 : 1.5, style: style === 'solid' ? 'solid' : 'dash' } });
+  const line = (color, style, width = 2) => ({ type:'simple-line', color, width, style });
+  const marker = (color, style = 'circle', size = 9) => ({ type:'simple-marker', style, color, size, outline:{ color:'#ffffff', width:1.5 } });
+  const halo = { haloColor:'#ffffff', haloSize:1.5 };
+  const font = (size, extra = {}) => ({ family:'Noto Sans', size, ...extra });
+
+  const defs = {
+    zones: { renderer:{ type:'unique-value', field:'name', uniqueValueInfos: ZONES.map(z => ({ value:z.name, label:z.name, symbol:fill(z.color, z.style) })) },
+             popupTemplate: pt('zones','{name}',['culture','period','descr','area_km2','certainty','source']) },
+    routes: { renderer:{ type:'unique-value', valueExpression:"IIF($feature.mode == 'sea', $feature.network, $feature.mode)",
+               uniqueValueInfos:[ { value:'Phoenician-Punic', symbol:line(COL.phoen,'solid',2.2) }, { value:'Hellenic', symbol:line(COL.hell,'dash-dot',2.2) },
+                                  { value:'land', symbol:line(COL.over,'dash',2.4) }, { value:'river', symbol:line(COL.river,'dot',2.6) } ] },
+              popupTemplate: pt('routes','{name}',['network','mode','certainty','method','length_km']) },
+    hubs: { renderer:{ type:'unique-value', field:'network', uniqueValueInfos:Object.entries(NET).map(([k,c]) => ({ value:k, symbol:marker(c) })) },
+            popupTemplate: pt('hubs','{name}',['modern','affiliation','network','site_type','period','loc_source','loc_note']),
+            labelingInfo:[{ labelExpressionInfo:{ expression:'$feature.name' }, labelPlacement:'center-right', minScale:12000000,
+              symbol:{ type:'text', color:'#1d232a', ...halo, font:font(10,{ weight:'bold' }) } }] },
+    goods: { renderer:{ type:'simple', symbol:marker(COL.goods,'square',11) },
+             popupTemplate: pt('goods','Goods: {goods}',['region','note','placement']),
+             labelingInfo:[{ labelExpressionInfo:{ expression:'$feature.goods' }, labelPlacement:'below-center', minScale:9000000,
+               symbol:{ type:'text', color:'#8a3d00', ...halo, font:font(9,{ weight:'bold' }) } }] },
+    exch: { renderer:{ type:'simple', symbol:marker(COL.exch,'diamond',14) },
+            popupTemplate: pt('exch','{name}',['flow_a_dir','flow_a','flow_b_dir','flow_b','placement']) },
+    people: { renderer:{ type:'simple', symbol:{ type:'simple-marker', size:0, color:[0,0,0,0], outline:null } },
+              labelingInfo:[{ labelExpressionInfo:{ expression:'$feature.name' }, labelPlacement:'center-center', minScale:50000000,
+                symbol:{ type:'text', color:'#3d3d3d', ...halo, font:font(11,{ style:'italic', weight:'bold' }) } }] },
+    raw: { renderer:{ type:'simple', symbol:{ type:'simple-fill', color:[0,0,0,0], outline:{ color:'#111111', width:1.3, style:'short-dot' } } },
+           popupTemplate: { title:'Raw extraction: {name}', content:`<small>Layer: ${LAYERS.raw.title} v${LAYERS.raw.v}</small>` } },
+    gcps: { renderer:{ type:'class-breaks', field:'loo_error_km', classBreakInfos:[
+              { minValue:0, maxValue:15, label:'under 15 km', symbol:marker('#1a9850','circle',11) },
+              { minValue:15, maxValue:30, label:'15–30 km', symbol:marker('#91cf60','circle',11) },
+              { minValue:30, maxValue:50, label:'30–50 km', symbol:marker('#fdae61','circle',11) },
+              { minValue:50, maxValue:10000, label:'over 50 km', symbol:marker('#d73027','circle',11) } ] },
+            popupTemplate: pt('gcps','Control point: {name}',['loo_error_km','image_x','image_y']) },
+  };
+  const order = ['zones','raw','routes','people','goods','exch','gcps','hubs'];
+  const startOff = new Set(['raw','gcps']);
+  const L = {};
+  for (const k of order) {
+    L[k] = new GeoJSONLayer({ url:DATA + LAYERS[k].file, title:LAYERS[k].title, outFields:['*'], visible:!startOff.has(k),
+      labelsVisible:true, ...defs[k] });
+  }
+  mapEl.map.addMany(order.map(k => L[k]));
+
+  // ---------- layer panel ----------
+  const sw = {
+    zones:'<svg class="sw" aria-hidden="true"><rect width="26" height="16" fill="#7c4dcc" fill-opacity=".45" stroke="#7c4dcc"/></svg>',
+    routes:`<svg class="sw" aria-hidden="true"><line x1="1" y1="8" x2="25" y2="8" stroke="${COL.phoen}" stroke-width="3"/></svg>`,
+    hubs:`<svg class="sw" aria-hidden="true"><circle cx="7" cy="8" r="5" fill="${COL.phoen}" stroke="#fff"/><circle cx="19" cy="8" r="5" fill="${COL.hell}" stroke="#fff"/></svg>`,
+    goods:`<svg class="sw" aria-hidden="true"><rect x="6" y="1" width="14" height="14" fill="${COL.goods}" stroke="#fff" stroke-width="2"/></svg>`,
+    exch:`<svg class="sw" aria-hidden="true"><rect x="8" y="3" width="10" height="10" fill="${COL.exch}" transform="rotate(45 13 8)"/></svg>`,
+    people:'<svg class="sw" aria-hidden="true"><text x="2" y="13" font-family="Georgia" font-style="italic" font-weight="700" font-size="13" fill="#3d3d3d">Aa</text></svg>',
+    raw:'<svg class="sw" aria-hidden="true"><rect x="1" y="1" width="24" height="14" fill="none" stroke="#111" stroke-dasharray="2 3" stroke-width="1.5"/></svg>',
+    gcps:'<svg class="sw" aria-hidden="true"><circle cx="5" cy="8" r="4" fill="#1a9850"/><circle cx="13" cy="8" r="4" fill="#fdae61"/><circle cx="21" cy="8" r="4" fill="#d73027"/></svg>',
+  };
+  const counts = {};
+  await Promise.all(order.map(async k => { await L[k].load(); counts[k] = await L[k].queryFeatureCount(); }));
+
+  const ROUTE_SUBS = [
+    { id:'ph', name:'Phoenician-Punic (sea)', where:"(mode = 'sea' AND network = 'Phoenician-Punic')", svg:`<line x1="1" y1="8" x2="25" y2="8" stroke="${COL.phoen}" stroke-width="3"/>` },
+    { id:'he', name:'Hellenic (sea)', where:"(mode = 'sea' AND network = 'Hellenic')", svg:`<line x1="1" y1="8" x2="25" y2="8" stroke="${COL.hell}" stroke-width="3" stroke-dasharray="10 3 2 3"/>` },
+    { id:'ld', name:'Overland', where:"(mode = 'land')", svg:`<line x1="1" y1="8" x2="25" y2="8" stroke="${COL.over}" stroke-width="3" stroke-dasharray="7 5"/>` },
+    { id:'rv', name:'River (Nile)', where:"(mode = 'river')", svg:`<line x1="1" y1="8" x2="25" y2="8" stroke="${COL.river}" stroke-width="3" stroke-dasharray="2 4"/>` },
+  ];
+  function routeFilter() {
+    const on = ROUTE_SUBS.filter(s => $('chk_r_' + s.id).checked).map(s => s.where);
+    L.routes.definitionExpression = on.length ? on.join(' OR ') : '1=0';
+  }
+  function row(container, k) {
+    const d = document.createElement('div'); d.className = 'layer';
+    d.innerHTML = `<input type="checkbox" id="chk_${k}" ${L[k].visible ? 'checked' : ''}><label for="chk_${k}">${sw[k]}<span>${esc(LAYERS[k].title)} <span class="count">(${counts[k]})</span></span></label><span class="badge" title="Layer version">v${LAYERS[k].v}</span>`;
+    container.appendChild(d);
+    d.querySelector('input').addEventListener('change', e => { L[k].visible = e.target.checked; });
+    if (k === 'zones') {
+      const s = document.createElement('div'); s.className = 'sub'; s.setAttribute('role','list'); s.setAttribute('aria-label','Zone key');
+      s.innerHTML = ZONES.map(z => { const c = `rgb(${z.color.join(',')})`;
+        const pat = z.style === 'solid' ? `<rect width="26" height="16" fill="${c}" fill-opacity=".45" stroke="${c}"/>`
+          : `<rect width="26" height="16" fill="#fff" stroke="${c}" stroke-dasharray="3 2"/>` + [0,6,12,18,24,30].map(x => z.style === 'backward-diagonal' ? `<line x1="${x-8}" y1="0" x2="${x+8}" y2="16" stroke="${c}"/>` : `<line x1="${x+8}" y1="0" x2="${x-8}" y2="16" stroke="${c}"/>`).join('');
+        return `<div class="layer" role="listitem"><svg class="sw" aria-hidden="true">${pat}</svg><span>${esc(z.name)}</span></div>`; }).join('');
+      container.appendChild(s);
+    }
+    if (k === 'routes') {
+      const s = document.createElement('div'); s.className = 'sub';
+      for (const r of ROUTE_SUBS) {
+        const w = document.createElement('div'); w.className = 'layer';
+        w.innerHTML = `<input type="checkbox" id="chk_r_${r.id}" checked><label for="chk_r_${r.id}"><svg class="sw" aria-hidden="true">${r.svg}</svg><span>${esc(r.name)}</span></label>`;
+        w.querySelector('input').addEventListener('change', routeFilter);
+        s.appendChild(w);
+      }
+      container.appendChild(s);
+    }
+  }
+  ['zones','routes','hubs','goods','exch','people'].forEach(k => row($('layers'), k));
+  ['raw','gcps'].forEach(k => row($('qa'), k));
+
+  // ---------- hub finder ----------
+  const hubs = (await L.hubs.queryFeatures({ where:'1=1', outFields:['*'], returnGeometry:true })).features
+    .sort((a, b) => a.attributes.name.localeCompare(b.attributes.name));
+  function renderList(q) {
+    q = (q || '').toLowerCase(); const list = $('hublist'); list.innerHTML = '';
+    for (const g of hubs) {
+      const a = g.attributes;
+      if (q && !a.name.toLowerCase().includes(q) && !(a.modern || '').toLowerCase().includes(q)) continue;
+      const b = document.createElement('button');
+      b.innerHTML = `${esc(a.name)} <small>– ${esc(a.modern)} · ${esc(a.network)}</small>`;
+      b.addEventListener('click', async () => {
+        if (!L.hubs.visible) { L.hubs.visible = true; $('chk_hubs').checked = true; }
+        if (innerWidth <= 760) togglePanel(false);
+        await view.goTo({ target:g.geometry, zoom:7 }, { animate:!reduceMotion }).catch(() => {});
+        view.openPopup({ features:[g], location:g.geometry });
+      });
+      list.appendChild(b);
+    }
+  }
+  $('q').addEventListener('input', e => renderList(e.target.value));
+  renderList('');
+  status('');
+}
+
+start().catch(err => {
+  console.error(err);
+  status(`<b>The map could not load.</b><br>${esc(err.message)}<br><br>This page needs <b>js.arcgis.com</b>, <b>services.arcgisonline.com</b> and <b>jsawle.github.io</b>. If your school filters web sites, ask for these to be allowed. Otherwise, check your connection, then try again.`);
+});
+</script>
+</body>
+</html>
